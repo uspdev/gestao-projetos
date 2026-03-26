@@ -14,8 +14,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('priority')->nullable();
-            $table->string('status');
-            $table->string('label')->nullable();
+            $table->string('status'); //TaskStatus Enum
+            $table->string('label')->nullable(); //TaskLabel Enum
             $table->date('start_date')->nullable();
             $table->date('due_date')->nullable();
 

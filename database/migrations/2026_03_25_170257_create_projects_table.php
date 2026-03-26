@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('status');
+            $table->string('status'); //ProjectStatus Enum
             $table->text('description')->nullable();
 
             $table->foreignId('created_by')->nullable()->constrained('users');
