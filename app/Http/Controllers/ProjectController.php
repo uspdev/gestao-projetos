@@ -5,12 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Actions\Project\CreateProjectAction;
+use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         //
@@ -27,9 +26,12 @@ class ProjectController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProjectRequest $request)
+    public function store(StoreProjectRequest $request, CreateProjectAction $action)
     {
-        //
+        $project = $action->execute($request->validated(), Auth::id());
+
+        return redirect()->route('projects.show', $project)
+                         ->with('success', 'Projeto criado com sucesso!');
     }
 
     /**

@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectStatus;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use app\Models\Task;
 
 class Project extends Model
 {
@@ -17,7 +17,7 @@ class Project extends Model
     protected function casts(): array
     {
         return [
-            'status' => 'string',
+            'status' => ProjectStatus::class,
         ];
     }
 

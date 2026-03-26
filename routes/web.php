@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProjectController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,7 +14,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Permite usar Gate::check('user')na view 404
-Route::fallback(function(){
-    return view('errors.404');
- });
+Route::resource('projects', ProjectController::class)->middleware('auth');
+
+Route::get('/', function () {
+    return ('welcome');
+});
+
+Route::fallback(function () {
+    abort(404);
+});
