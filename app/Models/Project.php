@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 
 /**
@@ -43,6 +44,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
+ * @method static Builder<static>|Project accessibleBy(\App\Models\User $user)
  * @mixin \Eloquent
  */
 class Project extends Model
@@ -71,6 +73,17 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    {
+        if ($user->hasRole('admin')) {
+            return $query;
+        }
+
+        return $query->whereHas('users', function (Builder $q) use ($user) {
+            $q->where('users.id', $user->id);
+        });
     }
 
     // public function statusUpdates(): HasMany

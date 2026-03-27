@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Project\IndexProjectAction;
 use App\Actions\Project\ShowProjectAction;
+use App\Http\Requests\Project\IndexProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\ShowProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
@@ -13,9 +15,11 @@ use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(IndexProjectRequest $request, IndexProjectAction $action)
     {
-        //
+        $projects = $action->execute($request->user());
+
+        return view('Project.index', compact('projects'));
     }
 
     public function create()
