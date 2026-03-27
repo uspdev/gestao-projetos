@@ -26,7 +26,9 @@ class ProjectController extends Controller
 
     public function create()
     {
-        //
+        $this->authorize('create', Project::class);
+
+        return view('Project.create');
     }
 
     public function store(StoreProjectRequest $request, CreateProjectAction $action)
@@ -46,7 +48,9 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
-        //
+        $this->authorize('update', $project);
+
+        return view('Project.update', compact('project'));
     }
 
     public function update(UpdateProjectRequest $request, Project $project, UpdateProjectAction $action)
