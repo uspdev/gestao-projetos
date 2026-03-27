@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Project\ShowProjectAction;
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\ShowProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
 use App\Actions\Project\CreateProjectAction;
@@ -29,9 +31,11 @@ class ProjectController extends Controller
                          ->with('success', 'Projeto criado com sucesso!');
     }
 
-    public function show(Project $project)
+    public function show(ShowProjectRequest $request, Project $project, ShowProjectAction $action)
     {
-        //
+        $project = $action->execute($project);
+
+        return view('Project.show', compact('project'));
     }
 
     public function edit(Project $project)
