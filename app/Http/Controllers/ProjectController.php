@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\Project\IndexProjectAction;
 use App\Actions\Project\ShowProjectAction;
+use App\Actions\Project\DestroyProjectAction;
 use App\Http\Requests\Project\IndexProjectRequest;
+use App\Http\Requests\Project\DestroyProjectRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\ShowProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
@@ -55,8 +57,11 @@ class ProjectController extends Controller
                          ->with('success', 'Projeto atualizado com sucesso!');
     }
     
-    public function destroy(Project $project)
+    public function destroy(DestroyProjectRequest $request, Project $project, DestroyProjectAction $action)
     {
-        //
+        $action->execute($project);
+
+        return redirect()->route('projects.index')
+                         ->with('success', 'Projeto excluido com sucesso!');
     }
 }
