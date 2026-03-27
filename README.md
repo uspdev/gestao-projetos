@@ -44,14 +44,23 @@ php artisan key:generate
 
 ### Configuração para Desenvolvimento (IDE Helper)
 
-Para garantir que a sua IDE reconheça as Facades nativas do Laravel de imediato após clonar o repositório, rode:
+O projeto utiliza o [`barryvdh/laravel-ide-helper`](docs/ide_helper.md) para garantir tipagem forte e autocompletar na IDE. Esse pacote atua em duas frentes distintas e ambas já estão automatizadas:
 
+**1. Tipagem de Classes e Facades (Framework)**
+Logo após clonar o repositório pela primeira vez, para que sua IDE reconheça as classes nativas do Laravel, rode:
 ```sh
 php artisan ide-helper:generate
 php artisan ide-helper:meta
 ```
+> **Automação:** No dia a dia, não é necessário repetir esses dois comandos manualmente. Sempre que ao rodar `composer update` para baixar ou atualizar pacotes, o `composer.json` se encarregará de regerar esses arquivos de mapeamento ocultos.
 
-*(No dia a dia, o `composer update` manterá esses arquivos auxiliares atualizados automaticamente).*
+**2. Tipagem de Banco de Dados (Models)**
+Sempre que você alterar o esquema do banco, rode:
+```sh
+php artisan migrate
+```
+> **Automação:** Foi implementado um *listener* no `AppServiceProvider`. Ao finalizar a migração, ele automaticamente roda o comando `ide-helper:models` e atualiza as propriedades (`@property`) no topo das classes em `app/Models/`.
+
 
 ### Senha Única
 
