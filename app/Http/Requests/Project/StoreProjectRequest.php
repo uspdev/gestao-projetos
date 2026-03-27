@@ -5,12 +5,13 @@ namespace App\Http\Requests;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\ProjectStatus;
+use App\Models\Project;
 
 class StoreProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', Project::class);
     }
 
     public function rules(): array

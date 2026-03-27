@@ -104,4 +104,9 @@ class User extends Authenticatable
         return $this->belongsToMany(Task::class)
                     ->withTimestamps();
     }
+
+    public function isMemberOfProject(Project $project): bool
+    {
+        return $this->projects()->where('project_id', $project->id)->exists();
+    }
 }
