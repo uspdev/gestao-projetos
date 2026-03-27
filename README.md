@@ -66,17 +66,6 @@ php artisan migrate
 
 Cadastre uma nova URL no configurador de senha única da USP utilizando o caminho `https://seu_app/callback`. Guarde o `callback_id` e adicione ao seu arquivo `.env`.
 
-### Banco de dados
-
-  * **DEV**
-
-    Cria as tabelas, roda os seeds e aciona automaticamente a reescrita do IDE Helper nos Models:
-    `php artisan migrate:fresh --seed`
-
-  * **Produção**
-
-    `php artisan migrate --force`
-
 ## Problemas e soluções
 
   * **Erro de Intelephense no VS Code após clonar o projeto:**
