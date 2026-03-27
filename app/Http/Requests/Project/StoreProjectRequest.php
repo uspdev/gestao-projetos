@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Project;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -9,7 +9,7 @@ use App\Models\Project;
 
 class StoreProjectRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize(): bool 
     {
         return $this->user()->can('create', Project::class);
     }
