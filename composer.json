@@ -27,14 +27,15 @@
         "uspdev/senhaunica-socialite": "^4.5"
     },
     "require-dev": {
-        "spatie/laravel-ignition": "^2.0",
+        "barryvdh/laravel-ide-helper": "^3.7",
         "fakerphp/faker": "^1.9.1",
         "laravel/dusk": "^8.0",
         "laravel/sail": "^1.0.1",
         "lucascudo/laravel-pt-br-localization": "^3",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.1",
-        "phpunit/phpunit": "^11.0"
+        "phpunit/phpunit": "^11.0",
+        "spatie/laravel-ignition": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -59,7 +60,10 @@
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
-            "[ $COMPOSER_DEV_MODE -eq 0 ] || php artisan vendor:publish --tag=laravel-pt-br-localization --force"
+            "[ $COMPOSER_DEV_MODE -eq 0 ] || php artisan vendor:publish --tag=laravel-pt-br-localization --force",
+            "Illuminate\\Foundation\\ComposerScripts::postUpdate",
+            "@php artisan ide-helper:generate",
+            "@php artisan ide-helper:meta"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

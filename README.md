@@ -4,3 +4,79 @@
 
 - MVP: [docs/MVP.md](docs/MVP.md)
 - Road Map: [docs/roadmap.md](docs/roadmap.md)
+- IDE Helper: [Tipagem e Autocompletação (IDE Helper)](docs/ide_helper.md)
+
+-----
+
+# Sistema de Gestão de Projetos USP
+
+Sistema interno construído em Laravel que auxilia na organização, centralização e acompanhamento de projetos, tarefas e reuniões, desenhado para atender tanto o corpo de desenvolvedores quanto o setor administrativo.
+
+## Funcionalidades
+
+  * Gera e gerencia Projetos com ciclo de vida.
+  * Fornece um sistema para mapear Tarefas com prioridades, datas, labels e status
+  * Autenticação unificada utilizando as credenciais da rede da instituição (Senha Única Socialite)
+  * Estrutura arquitetural preparada para expansão contínua.
+
+## Documentação
+
+  - [MVP - Minimum Viable Product](https://www.google.com/search?q=docs/MVP.md)
+  - [Roadmap - Features Futuras](https://www.google.com/search?q=docs/roadmap.md)
+  - [Tipagem e Autocompletação (IDE Helper)](https://www.google.com/search?q=docs/ide_helper.md)
+
+## Requisitos
+
+Aplicação Laravel padrão (PHP 8.2+).
+
+## Instalação
+
+### Básico
+
+```sh
+git clone [git@github.com:uspdev/gestao-projetos.git]
+composer install
+
+# Configure o .env conforme a necessidade
+cp .env.example .env
+php artisan key:generate
+```
+
+### Configuração para Desenvolvimento (IDE Helper)
+
+Para garantir que a sua IDE reconheça as Facades nativas do Laravel de imediato após clonar o repositório, rode:
+
+```sh
+php artisan ide-helper:generate
+php artisan ide-helper:meta
+```
+
+*(No dia a dia, o `composer update` manterá esses arquivos auxiliares atualizados automaticamente).*
+
+### Senha Única
+
+Cadastre uma nova URL no configurador de senha única da USP utilizando o caminho `https://seu_app/callback`. Guarde o `callback_id` e adicione ao seu arquivo `.env`.
+
+### Banco de dados
+
+  * **DEV**
+
+    Cria as tabelas, roda os seeds e aciona automaticamente a reescrita do IDE Helper nos Models:
+    `php artisan migrate:fresh --seed`
+
+  * **Produção**
+
+    `php artisan migrate --force`
+
+## Problemas e soluções
+
+  * **Erro de Intelephense no VS Code após clonar o projeto:**
+    Certifique-se de ter rodado `composer install` e os comandos do IDE Helper descritos na seção de Instalação. O pacote recriará os mapeamentos dinâmicos que o `.gitignore` não rastreia.
+
+## Changelog
+
+03/2026
+
+* Setup inicial da arquitetura do MVP (Projetos, Tarefas e Usuários)
+* Configuração de validações dinâmicas com Form Requests e Action Pattern
+* Implementação do `barryvdh/laravel-ide-helper` no fluxo de desenvolvimento local
