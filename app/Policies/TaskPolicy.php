@@ -22,9 +22,9 @@ class TaskPolicy
         return $user->isMemberOfProject($project);
     }
 
-    public function view(User $user, Project $project): bool
+    public function view(User $user, Task $task): bool
     {
-        return $user->isMemberOfProject($project);
+        return $user->isMemberOfProject($task->project);
     }
 
     public function create(User $user, Project $project): bool
