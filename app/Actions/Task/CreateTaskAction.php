@@ -4,13 +4,17 @@ namespace App\Actions\Task;
 
 use App\Enums\TaskStatus;
 use App\Models\Task;
+use App\Models\Project; 
 use Illuminate\Support\Facades\DB;
 
 class CreateTaskAction
 {
-    public function execute(array $data, int $userId): Task
+    public function execute(Project $project, array $data, int $userId): Task
     {
-        return DB::transaction(function () use ($data, $userId) {
+        return DB::transaction(function () use ($project, $data, $userId) {
+            
+            $data['project_id'] = $project->id;
+            
             $data['created_by'] = $userId;
             $data['status'] = $data['status'] ?? TaskStatus::TO_DO->value;
 

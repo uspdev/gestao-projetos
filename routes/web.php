@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProjectTaskController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,8 +16,16 @@ use App\Http\Controllers\TaskController;
 |
 */
 
-Route::resource('projects', ProjectController::class)->middleware('auth');
-Route::resource('tasks', TaskController::class)->middleware('auth');
+Route::resource('projects', ProjectController::class)
+    ->middleware('auth');
+
+Route::resource('tasks', TaskController::class)
+    ->except('index','create','store')
+    ->middleware('auth');
+
+Route::resource('projects.tasks', ProjectTaskController::class)
+    ->only('index','create','store')
+    ->middleware('auth');
 
 Route::get('/', function () {
     return ('welcome');

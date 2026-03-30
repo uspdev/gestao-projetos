@@ -4,7 +4,6 @@ namespace App\Http\Requests\Task;
 
 use App\Enums\TaskLabel;
 use App\Enums\TaskStatus;
-use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -14,10 +13,7 @@ class StoreTaskRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $project = Project::find($this->input('project_id'));
-        if (! $project) {
-            return true;
-        }
+        $project = $this->route('project');
 
         return $this->user()->can('create', [Task::class, $project]);
     }
@@ -25,7 +21,6 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_id' => ['required', 'integer', 'exists:projects,id'], 
             'title' => ['required', 'string', 'min:3', 'max:120'],
             'description' => ['nullable', 'string', 'max:10000'],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
@@ -39,8 +34,6 @@ class StoreTaskRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'project_id.required' => 'O projeto da tarefa é obrigatório.',
-            'project_id.exists' => 'O projeto selecionado é inválido.',
             'title.required' => 'O título da tarefa é obrigatório.',
             'title.min' => 'O título da tarefa deve ter pelo menos :min caracteres.',
             'title.max' => 'O título da tarefa não pode exceder :max caracteres.',

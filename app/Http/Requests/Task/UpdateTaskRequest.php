@@ -17,7 +17,6 @@ class UpdateTaskRequest extends StoreTaskRequest
     public function rules(): array
     {   
         $rules = parent::rules();
-        unset($rules['project_id']);
 
         return $rules;
     }
