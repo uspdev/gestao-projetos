@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Task\DestroyTaskAction;
 use App\Actions\Task\ShowTaskAction;
 use App\Actions\Task\UpdateTaskAction;
+use App\Http\Requests\Task\DestroyTaskRequest;
 use App\Http\Requests\Task\ShowTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Models\Task;
@@ -31,8 +33,11 @@ class TaskController extends Controller
                          ->with('success', 'Tarefa atualizada com sucesso!');
     }
 
-    public function destroy(Task $task)
+    public function destroy(DestroyTaskRequest $request, Task $task, DestroyTaskAction $action)
     {
-        //
+        $action->execute($task);
+
+        return redirect()->route('projects.tasks.index', $task->project)
+                         ->with('success', 'Tarefa excluida com sucesso!');
     }
 }
