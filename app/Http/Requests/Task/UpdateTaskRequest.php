@@ -2,14 +2,9 @@
 
 namespace App\Http\Requests\Task;
 
-use App\Enums\TaskLabel;
-use App\Enums\TaskPriority;
-use App\Enums\TaskStatus;
 use App\Models\Task;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UpdateTaskRequest extends FormRequest
+class UpdateTaskRequest extends StoreTaskRequest
 {
     public function authorize(): bool
     {
@@ -20,32 +15,10 @@ class UpdateTaskRequest extends FormRequest
     }
 
     public function rules(): array
-    {
-        return [
-            'title' => ['required', 'string', 'min:3', 'max:120'],
-            'description' => ['nullable', 'string', 'max:10000'],
-            'priority' => ['nullable', Rule::enum(TaskPriority::class)],
-            'status' => ['required', Rule::enum(TaskStatus::class)],
-            'label' => ['nullable', Rule::enum(TaskLabel::class)],
-            'start_date' => ['nullable', 'date'],
-            'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-        ];
-    }
+    {   
+        $rules = parent::rules();
+        unset($rules['project_id']);
 
-    public function messages(): array
-    {
-        return [
-            'title.required' => 'O título da tarefa é obrigatório.',
-            'title.min' => 'O título da tarefa deve ter pelo menos :min caracteres.',
-            'title.max' => 'O título da tarefa não pode exceder :max caracteres.',
-            'description.max' => 'A descrição é muito longa. O limite é de :max caracteres.',
-            'priority.max' => 'A prioridade não pode exceder :max caracteres.',
-            'status.required' => 'É necessário definir um status para a tarefa.',
-            'status.enum' => 'O status selecionado é inválido.',
-            'label.enum' => 'O rótulo selecionado é inválido.',
-            'start_date.date' => 'A data de início deve ser uma data válida.',
-            'due_date.date' => 'A data de vencimento deve ser uma data válida.',
-            'due_date.after_or_equal' => 'A data de vencimento deve ser igual ou posterior à data de início.',
-        ];
+        return $rules;
     }
 }

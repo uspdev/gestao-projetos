@@ -16,7 +16,7 @@ class StoreTaskRequest extends FormRequest
     {
         $project = Project::find($this->input('project_id'));
         if (! $project) {
-            return false;
+            return true;
         }
 
         return $this->user()->can('create', [Task::class, $project]);
