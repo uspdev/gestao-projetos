@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Task\CreateTaskAction;
+use App\Actions\Task\ShowTaskAction;
+use App\Http\Requests\Task\ShowTaskRequest;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Project;
@@ -34,9 +36,11 @@ class TaskController extends Controller
                          ->with('success', 'Tarefa criada com sucesso!');
     }
 
-    public function show(Task $task)
+    public function show(ShowTaskRequest $request, Task $task, ShowTaskAction $action)
     {
-        //
+        $task = $action->execute($task);
+
+        return view('Task.show', compact('task'));
     }
 
     public function edit(Task $task)
