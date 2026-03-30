@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->string('priority')->nullable();
+            $table->unsignedTinyInteger('priority')->nullable(); //TaskPriority Enum
             $table->string('status'); //TaskStatus Enum
             $table->string('label')->nullable(); //TaskLabel Enum
             $table->date('start_date')->nullable();

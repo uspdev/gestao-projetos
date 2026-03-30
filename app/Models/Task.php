@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Enums\TaskPriority;
 
 /**
  * @property int $id
@@ -63,6 +64,7 @@ class Task extends Model
             'label' => 'string',
             'start_date' => 'date',
             'due_date' => 'date',
+            'priority' => TaskPriority::class
         ];
     }
 
