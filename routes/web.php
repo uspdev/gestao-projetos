@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ProjectTaskController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,10 @@ Route::resource('tasks', TaskController::class)
 
 Route::resource('projects.tasks', ProjectTaskController::class)
     ->only('index','create','store')
+    ->middleware('auth');
+
+Route::resource('users', UserController::class)
+    ->only('show')
     ->middleware('auth');
 
 Route::get('/', function () {
