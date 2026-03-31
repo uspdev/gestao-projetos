@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ProjectStatus;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,8 +18,12 @@ class ProjectFactory extends Factory
      */
     public function definition(): array
     {
+        $statuses = array_column(ProjectStatus::cases(), 'value');
+
         return [
-            //
+            'name' => $this->faker->unique()->sentence(3),
+            'status' => $this->faker->randomElement($statuses),
+            'description' => $this->faker->optional()->paragraph(),
         ];
     }
 }
