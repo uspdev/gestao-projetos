@@ -2,21 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Task\CreateTaskAction;
-use App\Actions\Task\IndexTaskAction;
+use App\Enums\TaskStatus;
 use App\Http\Requests\Task\StoreTaskRequest;
-use Illuminate\Http\Request;
 use App\Models\Project; 
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ProjectTaskController extends Controller
 {
-    public function index(Project $project, IndexTaskAction $action)
+    public function index(Project $project)
     {
         Gate::authorize('viewAny', [Task::class, $project]);
-        $tasks = $action->execute($project);
+        $tasks = $project->tasks()
+                         ->with('project:id,name,status')
+                         ->with('users:id,name')
+                         ->orderBy('priority', 'asc')
+                         ->latest()
+                         ->get();
         
         return view('Project.Task.index', compact('tasks', 'project'));
     }
@@ -28,9 +32,19 @@ class ProjectTaskController extends Controller
         return view('Task.create', compact('project'));
     }
 
-    public function store(StoreTaskRequest $request, Project $project, CreateTaskAction $action)
+    public function store(StoreTaskRequest $request, Project $project)
     {
-        $task = $action->execute($project, $request->validated(), Auth::id());
+        $task = DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['project_id'] = $project->id;
+            $data['created_by'] = Auth::id();
+            $data['status'] = $data['status'] ?? TaskStatus::TO_DO->value;
+
+            $task = Task::create($data);
+            $task->users()->attach(Auth::id());
+
+            return $task;
+        });
 
         return redirect()->route('tasks.show', $task)
                          ->with('success', 'Tarefa criada com sucesso!');

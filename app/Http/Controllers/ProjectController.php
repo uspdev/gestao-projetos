@@ -2,24 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Project\IndexProjectAction;
-use App\Actions\Project\ShowProjectAction;
-use App\Actions\Project\DestroyProjectAction;
+use App\Enums\ProjectStatus;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
-use App\Actions\Project\CreateProjectAction;
-use App\Actions\Project\UpdateProjectAction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request, IndexProjectAction $action)
+    public function index(Request $request)
     {
         Gate::authorize('viewAny', Project::class);
-        $projects = $action->execute($request->user());
+        $projects = Project::accessibleBy($request->user())
+                           ->with([
+                                'users:id,name',
+                                'tasks:id,project_id,status'
+                            ])
+                           ->latest()
+                           ->get();
 
         return view('Project.index', compact('projects'));
     }
@@ -31,18 +34,30 @@ class ProjectController extends Controller
         return view('Project.create');
     }
 
-    public function store(StoreProjectRequest $request, CreateProjectAction $action)
+    public function store(StoreProjectRequest $request)
     {
-        $project = $action->execute($request->validated(), $request->user()); //validacao faz sentido?
+        $project = DB::transaction(function () use ($request) {
+            $data = $request->validated();
+            $data['created_by'] = Auth::id();
+            $data['status'] = $data['status'] ?? ProjectStatus::PLANNING->value;
+
+            $project = Project::create($data);
+            $project->users()->attach(Auth::id());
+
+            return $project;
+        });
 
         return redirect()->route('projects.show', $project)
                          ->with('success', 'Projeto criado com sucesso!');
     }
 
-    public function show(Project $project, ShowProjectAction $action)
+    public function show(Project $project)
     {
         Gate::authorize('view', $project);
-        $project = $action->execute($project);
+        $project = $project->load([
+            'users:id,name,email',
+            'tasks:id,project_id,title,status,due_date',
+        ]);
 
         return view('Project.show', compact('project'));
     }
@@ -54,18 +69,25 @@ class ProjectController extends Controller
         return view('Project.update', compact('project'));
     }
 
-    public function update(UpdateProjectRequest $request, Project $project, UpdateProjectAction $action)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        $project = $action->execute($project, $request->validated(), Auth::id());
+        $project = DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
 
         return redirect()->route('projects.show', $project)
                          ->with('success', 'Projeto atualizado com sucesso!');
     }
     
-    public function destroy(Project $project, DestroyProjectAction $action)
+    public function destroy(Project $project)
     {
         Gate::authorize('delete', $project);
-        $action->execute($project);
+        DB::transaction(function () use ($project) {
+            $project->delete();
+        });
 
         return redirect()->route('projects.index')
                          ->with('success', 'Projeto excluido com sucesso!');
