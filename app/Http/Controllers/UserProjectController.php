@@ -3,13 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Actions\User\IndexUserProjectAction;
-use App\Http\Requests\User\IndexUserProjectRequest;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Project;
 
 class UserProjectController extends Controller
 {
-    public function index(IndexUserProjectRequest $request, User $user, IndexUserProjectAction $action)
+    public function index(User $user, IndexUserProjectAction $action)
     {
+        Gate::authorize('viewAny', [Project::class, $user]);
         $projects = $action->execute($user);
 
         return view('User.Project.index', compact('projects', 'user'));

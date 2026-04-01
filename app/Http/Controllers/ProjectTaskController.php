@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use App\Actions\Task\CreateTaskAction;
 use App\Actions\Task\IndexTaskAction;
 use App\Http\Requests\Task\StoreTaskRequest;
-use App\Http\Requests\Task\IndexTaskRequest;
+use Illuminate\Http\Request;
 use App\Models\Project; 
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ProjectTaskController extends Controller
 {
-    public function index(IndexTaskRequest $request, Project $project, IndexTaskAction $action)
+    public function index(Project $project, IndexTaskAction $action)
     {
-        $this->authorize('viewAny', [Task::class, $project]);
+        Gate::authorize('viewAny', [Task::class, $project]);
         $tasks = $action->execute($project);
         
         return view('Project.Task.index', compact('tasks', 'project'));
@@ -22,7 +23,7 @@ class ProjectTaskController extends Controller
 
     public function create(Project $project)
     {
-        $this->authorize('create', [Task::class, $project]);
+        Gate::authorize('create', [Task::class, $project]);
 
         return view('Task.create', compact('project'));
     }
