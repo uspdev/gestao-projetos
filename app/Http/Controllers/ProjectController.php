@@ -7,26 +7,11 @@ use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request)
-    {
-        Gate::authorize('viewAny', Project::class);
-        $projects = Project::accessibleBy($request->user())
-                           ->with([
-                                'users:id,name',
-                                'tasks:id,project_id,status'
-                            ])
-                           ->latest()
-                           ->get();
-
-        return view('Project.index', compact('projects'));
-    }
-
     public function create()
     {
         Gate::authorize('create', Project::class);
