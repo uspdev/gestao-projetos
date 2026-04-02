@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Project;
 
+use App\Models\Project;
+use App\Models\ProjectStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Enums\ProjectStatus;
-use App\Models\Project;
 
 class StoreProjectRequest extends FormRequest
 {

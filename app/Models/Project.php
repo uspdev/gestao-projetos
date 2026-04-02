@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ProjectStatus;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +10,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
+enum ProjectStatus: string {
+    case PLANNING = 'PLANNING';
+    case DEVELOPMENT = 'DEVELOPMENT';
+    case PRODUCTION = 'PRODUCTION';
+    case DEACTIVATED = 'DEACTIVATED';
+    case MIGRATED = 'MIGRATED';
+    case HOLD = 'HOLD';
+}
 
 /**
  * @property int $id
@@ -87,9 +94,4 @@ class Project extends Model
             $q->where('users.id', $user->id);
         });
     }
-
-    // public function statusUpdates(): HasMany
-    // {
-    //     return $this->hasMany(StatusUpdate::class);
-    // }
 }

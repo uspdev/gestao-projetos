@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests\Task;
 
-use App\Enums\TaskLabel;
-use App\Enums\TaskStatus;
 use App\Models\Task;
+use App\Models\TaskLabel;
+use App\Models\TaskPriority;
+use App\Models\TaskStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Enums\TaskPriority;
 
 class StoreTaskRequest extends FormRequest
 {
