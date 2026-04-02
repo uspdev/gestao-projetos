@@ -17,7 +17,7 @@ class StoreProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:3', 'max:30'],
+            'name' => ['required', 'string', 'min:3', 'max:50'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
             'description' => ['nullable', 'string', 'max:10000'],
         ];
