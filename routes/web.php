@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
@@ -8,42 +9,30 @@ use App\Http\Controllers\UserProjectController;
 use App\Http\Controllers\UserTaskController;
 use App\Http\Controllers\UserController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+Route::middleware('auth')->group(function () {
 
-Route::resource('projects', ProjectController::class)
-    ->middleware('auth');
+    Route::get('/', function () {
+        return redirect()->route('users.projects.index', Auth::id());
+    });
 
-Route::resource('tasks', TaskController::class)
-    ->except('index','create','store')
-    ->middleware('auth');
+    Route::resource('projects', ProjectController::class)
+        ->only(['create', 'store', 'show', 'edit', 'update', 'destroy']);
 
-Route::resource('projects.tasks', ProjectTaskController::class)
-    ->only('index','create','store')
-    ->middleware('auth');
+    Route::resource('tasks', TaskController::class)
+        ->only(['show', 'edit', 'update', 'destroy']);
 
-Route::resource('users', UserController::class)
-    ->only('show')
-    ->middleware('auth');
+    Route::resource('projects.tasks', ProjectTaskController::class)
+        ->only(['index', 'create', 'store']);
 
-Route::resource('users.projects', UserProjectController::class)
-    ->only('index')
-    ->middleware('auth');
+    Route::resource('users', UserController::class)
+        ->only(['show']);
 
-Route::resource('users.tasks', UserTaskController::class)
-    ->only('index')
-    ->middleware('auth');
+    Route::resource('users.projects', UserProjectController::class)
+        ->only(['index']);
 
-Route::get('/', function () {
-    return ('welcome');
+    Route::resource('users.tasks', UserTaskController::class)
+        ->only(['index']);
+
 });
 
 Route::fallback(function () {
