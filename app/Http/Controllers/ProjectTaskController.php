@@ -29,7 +29,7 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        return view('tasks.create', compact('project'));
+        return view('project-tasks.create', compact('project'));
     }
 
     public function store(StoreTaskRequest $request, Project $project)
