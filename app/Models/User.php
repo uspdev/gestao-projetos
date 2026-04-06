@@ -3,10 +3,8 @@
 namespace App\Models;
 
 use App\Models\Project;
-use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -21,10 +19,6 @@ use app\Models\Task;
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property int|null $created_by
- * @property int|null $updated_by
- * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property int $codpes
  * @property-read Bool|String $env
  * @property-read String $level
@@ -43,16 +37,12 @@ use app\Models\Task;
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User permission($permissions, bool $without = false)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User role($roles, ?string $guard = null, bool $without = false)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User sortable($defaultParameters = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCodpes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDeletedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDeletedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
@@ -60,16 +50,14 @@ use app\Models\Task;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, ?string $guard = null)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
+ * @property-read \App\Models\ProjectUser|null $pivot
  * @mixin \Eloquent
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, Auditable;
+    use HasApiTokens, HasFactory, Notifiable;
     use \Spatie\Permission\Traits\HasRoles;
     use \Uspdev\SenhaunicaSocialite\Traits\HasSenhaunica;
 

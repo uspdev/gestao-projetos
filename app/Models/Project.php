@@ -52,6 +52,7 @@ enum ProjectStatus: string {
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
  * @method static Builder<static>|Project accessibleBy(\App\Models\User $user)
+ * @property-read \App\Models\ProjectUser|null $pivot
  * @mixin \Eloquent
  */
 class Project extends Model
