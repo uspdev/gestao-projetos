@@ -18,13 +18,13 @@ class TaskController extends Controller
             'users:id,name,email',
         ]);
 
-        return view('Task.show', compact('task'));
+        return view('tasks.show', compact('task'));
     }
 
     public function edit(Task $task)
     {
         Gate::authorize('update', $task);
-        return view('Task.edit', compact('task'));
+        return view('tasks.edit', compact('task'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)

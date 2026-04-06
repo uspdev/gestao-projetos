@@ -22,14 +22,14 @@ class ProjectTaskController extends Controller
                          ->latest()
                          ->get();
         
-        return view('Project.Task.index', compact('tasks', 'project'));
+        return view('project-tasks.index', compact('tasks', 'project'));
     }
 
     public function create(Project $project)
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        return view('Task.create', compact('project'));
+        return view('tasks.create', compact('project'));
     }
 
     public function store(StoreTaskRequest $request, Project $project)

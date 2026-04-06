@@ -19,6 +19,6 @@ class UserProjectController extends Controller
                          ->latest()
                          ->get();
 
-        return view('User.Project.index', compact('projects', 'user'));
+        return view('user-projects.index', compact('projects', 'user'));
     }
 }

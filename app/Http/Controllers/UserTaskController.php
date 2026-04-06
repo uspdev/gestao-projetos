@@ -20,6 +20,6 @@ class UserTaskController extends Controller
                       ->latest()
                       ->get();
 
-        return view('User.Task.index', compact('tasks', 'user'));
+        return view('user-tasks.index', compact('tasks', 'user'));
     }
 }

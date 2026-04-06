@@ -16,6 +16,6 @@ class UserController extends Controller
             'tasks:id,project_id,title,status,due_date',
         ]);
 
-        return view('User.show', compact('user'));
+        return view('users.show', compact('user'));
     }
 }

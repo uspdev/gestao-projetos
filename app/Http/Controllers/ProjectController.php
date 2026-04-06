@@ -16,7 +16,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('create', Project::class);
 
-        return view('Project.create');
+        return view('projects.create');
     }
 
     public function store(StoreProjectRequest $request)
@@ -44,14 +44,14 @@ class ProjectController extends Controller
             'tasks:id,project_id,title,status,due_date',
         ]);
 
-        return view('Project.show', compact('project'));
+        return view('projects.show', compact('project'));
     }
 
     public function edit(Project $project)
     {
         Gate::authorize('update', $project);
 
-        return view('Project.update', compact('project'));
+        return view('projects.edit', compact('project'));
     }
 
     public function update(UpdateProjectRequest $request, Project $project)
@@ -74,7 +74,7 @@ class ProjectController extends Controller
             $project->delete();
         });
 
-        return redirect()->route('projects.index')
+        return redirect()->route('users.projects.index', Auth::id())
                          ->with('success', 'Projeto excluido com sucesso!');
     }
 }
