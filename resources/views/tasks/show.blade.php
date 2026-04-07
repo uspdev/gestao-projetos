@@ -1,1 +1,144 @@
-<h1>Show Task</h1>
+@extends('layouts.app')
+
+@section('title', 'Detalhes da Tarefa')
+
+@section('content')
+    <div class="container-fluid">
+        {{-- Navegação / Breadcrumb Simplificado --}}
+        <div class="mb-3">
+            <a href="{{ route('projects.show', $task->project_id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar para o Projeto
+            </a>
+        </div>
+
+        {{-- Form de Edição de Task (Recolhido por padrão) --}}
+        <div class="collapse mb-4" id="collapseEditarTask">
+            <div class="card card-body border-primary">
+                @include('tasks.edit', ['task' => $task])
+            </div>
+        </div>
+
+        <div class="row">
+            {{-- COLUNA PRINCIPAL (Esquerda): Título e Descrição --}}
+            <div class="col-md-8">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        {{-- Título em Destaque --}}
+                        <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
+                            <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
+                            <div>
+                                <button class="btn btn-outline-primary btn-sm" data-toggle="collapse"
+                                    data-target="#collapseEditarTask">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Descrição --}}
+                        <div class="text-dark text-justify" style="font-size: 1.1rem; line-height: 1.6;">
+                            @if ($task->description)
+                                {!! nl2br(e($task->description)) !!}
+                            @else
+                                <div class="text-center text-muted p-5 bg-light rounded">
+                                    <i class="fas fa-align-left fa-3x mb-3 text-secondary"></i>
+                                    <h5>Sem descrição</h5>
+                                    <p class="mb-0">Nenhuma descrição foi fornecida para esta tarefa.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{-- COLUNA LATERAL (Direita): Metadados e Responsáveis --}}
+            <div class="col-md-4">
+
+                {{-- Informações --}}
+                <div class="card mb-4 shadow-sm border-top-primary">
+                    <div class="card-header bg-white d-flex justify-content-center py-3">
+                        <span class="badge {{ $task->status->color() }} p-2" style="font-size: 1rem;">
+                            {{ $task->status->label() }}
+                        </span>
+                    </div>
+                    <div class="card-body p-3">
+                        <ul class="list-unstyled m-0">
+                            {{-- Projeto --}}
+                            <li class="mb-3 border-bottom pb-2 d-flex align-items-center">
+                                <span class="text-muted small font-weight-bold mr-2">Projeto:</span>
+                                <a href="{{ route('projects.show', $task->project_id) }}"
+                                    class="small font-weight-bold text-dark">
+                                    {{ $task->project->name ?? 'Acessar' }}
+                                </a>
+                            </li>
+
+                            {{-- Prioridade e Tag --}}
+                            <li class="mb-3 border-bottom pb-2">
+                                <div class="row no-gutters">
+                                    {{-- Prioridade --}}
+                                    <div class="col-6 border-right pr-2 d-flex align-items-center">
+                                        <span class="text-muted small mr-2">Prioridade:</span>
+                                        @if ($task->priority instanceof \App\Models\TaskPriority)
+                                            <span
+                                                class="badge {{ $task->priority->color() }}">{{ $task->priority->label() }}</span>
+                                        @else
+                                            <span class="text-muted font-italic small">-</span>
+                                        @endif
+                                    </div>
+                                    {{-- Tag --}}
+                                    <div class="col-6 pl-2 d-flex align-items-center">
+                                        <span class="text-muted small mr-2">Tag:</span>
+                                        @if ($task->label instanceof \App\Models\TaskLabel)
+                                            <span
+                                                class="badge {{ $task->label->color() }}">{{ $task->label->label() }}</span>
+                                        @else
+                                            <span class="text-muted font-italic small">-</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </li>
+
+                            {{-- Datas --}}
+                            <li class="mb-0">
+                                <div class="row no-gutters">
+                                    {{-- Data de Início --}}
+                                    <div class="col-6 border-right pr-2 d-flex align-items-center">
+                                        <span class="text-muted small mr-2">Início:</span>
+                                        <span class="text-dark small font-weight-bold">
+                                            {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/y') : '-' }}
+                                        </span>
+                                    </div>
+                                    {{-- Prazo (Due Date) --}}
+                                    <div class="col-6 pl-2 d-flex align-items-center">
+                                        <span class="text-muted small mr-2">Prazo:</span>
+                                        <span class="text-dark small font-weight-bold">
+                                            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/y') : '-' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {{-- Responsáveis --}}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 text-muted">
+                            <i class="fas fa-users mr-1"></i> Responsáveis
+                        </h6>
+                        <button class="btn btn-sm btn-outline-success" title="Atribuir usuário">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @forelse($task->users as $user)
+                            @include('users.preview', ['user' => $user])
+                        @empty
+                            <li class="list-group-item text-muted font-italic small text-center py-3">
+                                Nenhum usuário atribuído.
+                            </li>
+                        @endforelse
+                    </ul>
+                </div>
+
+            </div>
+        @endsection

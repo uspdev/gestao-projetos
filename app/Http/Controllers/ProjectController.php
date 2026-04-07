@@ -41,7 +41,7 @@ class ProjectController extends Controller
         Gate::authorize('view', $project);
         $project = $project->load([
             'users:id,name,email',
-            'tasks:id,project_id,title,status,due_date',
+            'tasks:id,project_id,title,priority,status,label,due_date',
         ]);
 
         return view('projects.show', compact('project'));

@@ -15,6 +15,28 @@ enum TaskLabel: string {
     case TEST = 'TEST';
     case DOC = 'DOC';
     case REFACTOR = 'REFACTOR';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::FIX => 'Correção',
+            self::FEATURE => 'Funcionalidade',
+            self::TEST => 'Teste',
+            self::DOC => 'Documentação',
+            self::REFACTOR => 'Refatoração',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::FIX => 'badge-danger',
+            self::FEATURE => 'badge-success',
+            self::TEST => 'badge-primary',
+            self::DOC => 'badge-info',
+            self::REFACTOR => 'badge-warning',
+        };
+    }
 }
 
 enum TaskPriority: int
@@ -37,10 +59,10 @@ enum TaskPriority: int
     public function color(): string
     {
         return match($this) {
-            self::URGENT => 'bg-red-500',
-            self::HIGH => 'bg-orange-500',
-            self::MEDIUM => 'bg-yellow-500',
-            self::LOW => 'bg-blue-500',
+            self::URGENT => 'badge-danger',
+            self::HIGH => 'badge-warning',
+            self::MEDIUM => 'badge-info',
+            self::LOW => 'badge-secondary',
         };
     }
 }
@@ -51,6 +73,28 @@ enum TaskStatus: string {
     case IN_REVIEW = 'IN_REVIEW';
     case DONE = 'DONE';
     case HOLD = 'HOLD';
+
+    public function label(): string
+    {
+        return match($this) {
+            self::TO_DO => 'A Fazer',
+            self::IN_PROGRESS => 'Em Andamento',
+            self::IN_REVIEW => 'Em Revisão',
+            self::DONE => 'Concluída',
+            self::HOLD => 'Em Espera',
+        };
+    }
+
+    public function color(): string
+    {
+        return match($this) {
+            self::TO_DO => 'badge-secondary',
+            self::IN_PROGRESS => 'badge-primary',
+            self::IN_REVIEW => 'badge-info',
+            self::DONE => 'badge-success',
+            self::HOLD => 'badge-warning',
+        };
+    }
 }
 
 /**
@@ -103,8 +147,8 @@ class Task extends Model
     protected function casts(): array
     {
         return [
-            'status' => 'string',
-            'label' => 'string',
+            'status' => TaskStatus::class,
+            'label' => TaskLabel::class,
             'start_date' => 'date',
             'due_date' => 'date',
             'priority' => TaskPriority::class
