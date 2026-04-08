@@ -11,7 +11,7 @@
             </a>
         </div>
 
-        {{-- Form de Edição de Task (Recolhido por padrão) --}}
+        {{-- Form de Edição de Task --}}
         <div class="collapse mb-4" id="collapseEditarTask">
             <div class="card card-body border-primary">
                 @include('tasks.edit', ['task' => $task])
@@ -19,11 +19,11 @@
         </div>
 
         <div class="row">
-            {{-- COLUNA PRINCIPAL (Esquerda): Título e Descrição --}}
+            {{-- COLUNA PRINCIPAL: Título e Descrição --}}
             <div class="col-md-8">
                 <div class="card mb-4 shadow-sm">
                     <div class="card-body">
-                        {{-- Título em Destaque --}}
+                        {{-- Título --}}
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
                             <div>
@@ -65,8 +65,9 @@
                             <li class="mb-3 border-bottom pb-2 d-flex align-items-center">
                                 <span class="text-muted small font-weight-bold mr-2">Projeto:</span>
                                 <a href="{{ route('projects.show', $task->project_id) }}"
-                                    class="small font-weight-bold text-dark">
-                                    {{ $task->project->name ?? 'Acessar' }}
+                                    class="small font-weight-bold text-primary" title="Acessar página do projeto">
+                                    <u>{{ $task->project->name ?? 'Acessar' }}</u>
+                                    <i class="fas fa-external-link-alt ml-1" style="font-size: 0.85em;"></i>
                                 </a>
                             </li>
 
