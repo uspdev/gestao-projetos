@@ -1,7 +1,7 @@
 ***
 # MVP (Minimum Viable Product)
 
-## O núcleo do sistema focado em resolver a organização básica de projetos, tarefas e o acompanhamento de reuniões.
+## O núcleo do sistema focado em resolver a organização básica de projetos e tarefas.
 > Este documento detalha as funcionalidades do sistema de gestão de projetos, especificamente o Produto Mínimo Viável (MVP) — essencial para o lançamento.
 ---
 
