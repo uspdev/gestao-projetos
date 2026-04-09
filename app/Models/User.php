@@ -121,4 +121,9 @@ class User extends Authenticatable
                 $q->where('projects.id', $projectId);
                 })->orderBy('name');
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin') || $this->can('admin');
+    }
 }
