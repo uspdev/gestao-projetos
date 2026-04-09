@@ -79,7 +79,7 @@ class Project extends Model
 
     public function scopeAccessibleBy(Builder $query, User $user): Builder
     {
-        if ($user->hasRole('admin')) {
+        if ($user->isAdmin()) {
             return $query;
         }
 
