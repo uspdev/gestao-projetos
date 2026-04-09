@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\StoreProjectMemberRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\ProjectStatus;
 use App\Models\ProjectUserRole;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -77,5 +79,29 @@ class ProjectController extends Controller
 
         return redirect()->route('users.projects.index', Auth::id())
                          ->with('success', 'Projeto excluido com sucesso!');
+    }
+
+    public function storeMember(StoreProjectMemberRequest $request, Project $project)
+    {
+        $data = $request->validated();
+
+        DB::transaction(function () use ($project, $data) {
+            $project->users()->syncWithoutDetaching([$data['user_id'] => [
+                'role' => $data['role'],
+            ]]);
+        });
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', 'Membro adicionado ao projeto com sucesso!');
+    }
+
+    public function selectableMembers(Project $project)
+    {
+        Gate::authorize('update', $project);
+
+        $users = User::selectableToProject($project->id)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Project;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -111,5 +112,12 @@ class User extends Authenticatable
     public function isTaskAssignee(Task $task): bool
     {
         return $this->tasks()->where('task_id', $task->id)->exists();
+    }
+
+    public function scopeSelectableToProject(Builder $query, int $projectId): Builder
+    {
+        return $query->whereDoesntHave('projects', function ($q) use ($projectId) {
+                $q->where('projects.id', $projectId);
+                })->orderBy('name');
     }
 }

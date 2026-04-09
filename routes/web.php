@@ -18,6 +18,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectController::class)
         ->only(['create', 'store', 'show', 'edit', 'update', 'destroy']);
 
+    Route::post('projects/{project}/members', [ProjectController::class, 'storeMember'])
+        ->name('projects.members.store');
+
+    Route::get('projects/{project}/members/selectable', [ProjectController::class, 'selectableMembers'])
+        ->name('projects.members.selectable');
+
     Route::resource('tasks', TaskController::class)
         ->only(['show', 'edit', 'update', 'destroy']);
 
