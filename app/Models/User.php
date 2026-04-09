@@ -55,6 +55,7 @@ use App\Models\Task;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, ?string $guard = null)
  * @property-read \App\Models\ProjectUser|null $pivot
+ * @method static Builder<static>|User selectableToProject(int $projectId)
  * @mixin \Eloquent
  */
 class User extends Authenticatable
