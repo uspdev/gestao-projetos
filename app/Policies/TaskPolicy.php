@@ -33,21 +33,13 @@ class TaskPolicy
     }
 
     public function update(User $user, Task $task): bool
-    {   
-        if (!$user->isMemberOfProject($task->project)) {
-            return false;
-        }
-
-        return $task->users->contains($user->id) || $task->created_by === $user->id;
+    {
+        return $user->isOwnerOfProject($task->project) || $user->isTaskAssignee($task);
     }
 
     public function delete(User $user, Task $task): bool
-    {   
-        if (!$user->isMemberOfProject($task->project)) {
-            return false;
-        }
-
-        return $task->users->contains($user->id) || $task->created_by === $user->id;
+    {
+        return $user->isOwnerOfProject($task->project) || $user->isTaskAssignee($task);
     }
 
     public function restore(User $user, Task $task): bool

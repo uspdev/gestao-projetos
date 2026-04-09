@@ -99,4 +99,17 @@ class User extends Authenticatable
     {
         return $this->projects()->where('project_id', $project->id)->exists();
     }
+
+    public function isOwnerOfProject(Project $project): bool
+    {
+        return $this->projects()
+                    ->where('project_id', $project->id)
+                    ->wherePivot('role', ProjectUserRole::OWNER->value)
+                    ->exists();
+    }
+
+    public function isTaskAssignee(Task $task): bool
+    {
+        return $this->tasks()->where('task_id', $task->id)->exists();
+    }
 }

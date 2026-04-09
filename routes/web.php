@@ -21,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class)
         ->only(['show', 'edit', 'update', 'destroy']);
 
+    Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])
+        ->name('tasks.updateTaskStatus');
+
     Route::resource('projects.tasks', ProjectTaskController::class)
         ->only(['index', 'create', 'store']);
 

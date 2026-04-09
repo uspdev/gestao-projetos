@@ -54,10 +54,37 @@
 
                 {{-- Informações --}}
                 <div class="card mb-4 shadow-sm border-top-primary">
-                    <div class="card-header bg-white d-flex justify-content-center py-3">
-                        <span class="badge {{ $task->status->color() }} p-2" style="font-size: 1rem;">
-                            {{ $task->status->label() }}
-                        </span>
+                    <div class="card-header bg-white py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted font-weight-bold">Status atual</span>
+                            <span class="badge {{ $task->status->color() }} p-2" style="font-size: 1rem;">
+                                {{ $task->status->label() }}
+                            </span>
+                        </div>
+
+                        <form method="POST" action="{{ route('tasks.updateTaskStatus', $task) }}"
+                            class="d-flex align-items-end">
+                            @csrf
+                            @method('PATCH')
+                            <div class="form-group mb-0 flex-grow-1 mr-2">
+                                <label for="task-status" class="small text-muted font-weight-bold mb-1">Alterar
+                                    status</label>
+                                <select id="task-status" name="status" class="form-control form-control-sm">
+                                    @foreach (\App\Models\TaskStatus::cases() as $status)
+                                        <option value="{{ $status->value }}" @selected(old('status', $task->status->value) === $status->value)>
+                                            {{ $status->label() }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('status')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <button type="submit" class="btn btn-sm btn-primary" disabled aria-disabled="true">
+                                <i class="fas fa-save mr-1"></i> Salvar
+                            </button>
+                        </form>
                     </div>
                     <div class="card-body p-3">
                         <ul class="list-unstyled m-0">

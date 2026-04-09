@@ -6,6 +6,7 @@ use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\ProjectStatus;
+use App\Models\ProjectUserRole;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +28,7 @@ class ProjectController extends Controller
             $data['status'] = $data['status'] ?? ProjectStatus::PLANNING->value;
 
             $project = Project::create($data);
-            $project->users()->attach(Auth::id());
+            $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::OWNER->value]);
 
             return $project;
         });

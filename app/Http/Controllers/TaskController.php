@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Requests\Task\UpdateTaskStatusRequest;
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,8 @@ class TaskController extends Controller
             $data['updated_by'] = Auth::id();
 
             $task->update($data);
+
+            return $task;
         });
 
         return redirect()->route('tasks.show', $task)
@@ -49,5 +52,20 @@ class TaskController extends Controller
 
         return redirect()->route('projects.tasks.index', $task->project)
                          ->with('success', 'Tarefa excluida com sucesso!');
+    }
+
+    public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
+    {
+        $task = DB::transaction(function () use ($task, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $task->update($data);
+
+            return $task;
+        });
+
+        return redirect()->route('tasks.show', $task)
+                         ->with('success', 'Status da tarefa atualizado com sucesso!');
     }
 }
