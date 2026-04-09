@@ -5,5 +5,10 @@
             {{ $user->name }}
         </a>
     </div>
-    <span class="badge badge-light border text-muted">{{ $user->email }}</span>
+    @php
+        $projectMember = isset($project) ? $project->users->firstWhere('id', $user->id) : null;
+        $roleValue = $projectMember?->pivot?->role ?? ($user->pivot->role ?? null);
+        $roleLabel = $roleValue ? ucfirst(strtolower($roleValue->value)) : 'Sem role';
+    @endphp
+    <span class="badge badge-light border text-muted">{{ $roleLabel }}</span>
 </li>

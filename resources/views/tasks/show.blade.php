@@ -159,7 +159,7 @@
                     </div>
                     <ul class="list-group list-group-flush">
                         @forelse($task->users as $user)
-                            @include('users.preview', ['user' => $user])
+                            @include('users.preview', ['user' => $user, 'project' => $task->project])
                         @empty
                             <li class="list-group-item text-muted font-italic small text-center py-3">
                                 Nenhum usuário atribuído.
