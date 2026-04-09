@@ -30,13 +30,11 @@ class TaskController extends Controller
 
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        $task = DB::transaction(function () use ($task, $request) {
+        DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
 
             $task->update($data);
-
-            return $task;
         });
 
         return redirect()->route('tasks.show', $task)
@@ -56,13 +54,11 @@ class TaskController extends Controller
 
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
     {
-        $task = DB::transaction(function () use ($task, $request) {
+        DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
 
             $task->update($data);
-
-            return $task;
         });
 
         return redirect()->route('tasks.show', $task)

@@ -57,7 +57,7 @@ class ProjectController extends Controller
 
     public function update(UpdateProjectRequest $request, Project $project)
     {
-        $project = DB::transaction(function () use ($project, $request) {
+        DB::transaction(function () use ($project, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
 
