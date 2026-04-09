@@ -97,7 +97,7 @@ class ProjectController extends Controller
 
     public function selectableMembers(Project $project)
     {
-        Gate::authorize('update', $project);
+        Gate::authorize('storeMember', $project);
 
         $users = User::selectableToProject($project->id)
             ->get(['id', 'name', 'email']);

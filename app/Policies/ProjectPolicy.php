@@ -51,4 +51,9 @@ class ProjectPolicy
     {
         return false;
     }
+
+    public function storeMember(User $user, Project $project): bool
+    {
+        return $user->isOwnerOfProject($project);
+    }
 }
