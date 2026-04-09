@@ -104,4 +104,32 @@ class ProjectController extends Controller
 
         return response()->json($users);
     }
+
+    public function destroyMember(Project $project, User $user)
+    {
+        Gate::authorize('storeMember', $project);
+
+        $destroyedIsOwner = $project->users()
+            ->where('users.id', $user->id)
+            ->wherePivot('role', ProjectUserRole::OWNER->value)
+            ->exists();
+
+        if ($destroyedIsOwner) {
+            $ownersCount = $project->users()
+                ->wherePivot('role', ProjectUserRole::OWNER->value)
+                ->count();
+
+            if ($ownersCount <= 1) {
+                return redirect()->route('projects.show', $project)
+                    ->with('error', 'O projeto precisa ter pelo menos um owner.');
+            }
+        }
+
+        DB::transaction(function () use ($project, $user) {
+            $project->users()->detach($user->id);
+        });
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', 'Membro removido do projeto com sucesso!');
+    }
 }

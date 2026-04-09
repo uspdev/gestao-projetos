@@ -21,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::post('projects/{project}/members', [ProjectController::class, 'storeMember'])
         ->name('projects.members.store');
 
+    Route::delete('projects/{project}/members/{user}', [ProjectController::class, 'destroyMember'])
+        ->name('projects.members.destroy');
+
     Route::get('projects/{project}/members/selectable', [ProjectController::class, 'selectableMembers'])
         ->name('projects.members.selectable');
 
