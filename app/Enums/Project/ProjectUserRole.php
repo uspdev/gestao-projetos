@@ -11,7 +11,7 @@ enum ProjectUserRole: string
     public function label(): string
     {
         return match ($this) {
-            self::OWNER => 'Responsavel',
+            self::OWNER => 'Dono',
             self::MEMBER => 'Membro',
             self::VIEWER => 'Visualizador',
         };

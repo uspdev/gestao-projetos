@@ -8,11 +8,15 @@
     @php
         $projectMember = isset($project) ? $project->users->firstWhere('id', $user->id) : null;
         $roleValue = $projectMember?->pivot?->role ?? ($user->pivot->role ?? null);
-        $roleRaw = is_object($roleValue) ? $roleValue->value : $roleValue;
-        $roleLabel = $roleRaw ? ucfirst(strtolower((string) $roleRaw)) : 'Sem role';
+        $roleEnum =
+            $roleValue instanceof \App\Enums\Project\ProjectUserRole
+                ? $roleValue
+                : \App\Enums\Project\ProjectUserRole::tryFrom((string) $roleValue);
+        $roleLabel = $roleEnum?->label() ?? 'Sem role';
+        $roleColor = $roleEnum?->color() ?? 'badge-light border text-muted';
     @endphp
     <div class="d-flex align-items-center">
-        <span class="badge badge-light border text-muted mr-2">{{ $roleLabel }}</span>
+        <span class="badge {{ $roleColor }} mr-2">{{ $roleLabel }}</span>
 
         @if (!empty($canManageMembers) && isset($project))
             <form method="POST" action="{{ route('projects.members.destroy', [$project, $user]) }}"

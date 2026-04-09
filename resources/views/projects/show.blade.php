@@ -151,7 +151,7 @@
                                                 <option value="">Selecione...</option>
                                                 @foreach (\App\Enums\Project\ProjectUserRole::cases() as $role)
                                                     <option value="{{ $role->value }}" @selected(old('role') === $role->value)>
-                                                        {{ ucfirst(strtolower($role->value)) }}
+                                                        {{ $role->label() }}
                                                     </option>
                                                 @endforeach
                                             </select>
