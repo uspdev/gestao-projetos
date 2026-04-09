@@ -70,7 +70,7 @@
                                 <label for="task-status" class="small text-muted font-weight-bold mb-1">Alterar
                                     status</label>
                                 <select id="task-status" name="status" class="form-control form-control-sm">
-                                    @foreach (\App\Models\TaskStatus::cases() as $status)
+                                    @foreach (\App\Enums\Task\TaskStatus::cases() as $status)
                                         <option value="{{ $status->value }}" @selected(old('status', $task->status->value) === $status->value)>
                                             {{ $status->label() }}
                                         </option>
@@ -104,7 +104,7 @@
                                     {{-- Prioridade --}}
                                     <div class="col-6 border-right pr-2 d-flex align-items-center">
                                         <span class="text-muted small mr-2">Prioridade:</span>
-                                        @if ($task->priority instanceof \App\Models\TaskPriority)
+                                        @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
                                             <span
                                                 class="badge {{ $task->priority->color() }}">{{ $task->priority->label() }}</span>
                                         @else
@@ -114,7 +114,7 @@
                                     {{-- Tag --}}
                                     <div class="col-6 pl-2 d-flex align-items-center">
                                         <span class="text-muted small mr-2">Tag:</span>
-                                        @if ($task->label instanceof \App\Models\TaskLabel)
+                                        @if ($task->label instanceof \App\Enums\Task\TaskLabel)
                                             <span
                                                 class="badge {{ $task->label->color() }}">{{ $task->label->label() }}</span>
                                         @else

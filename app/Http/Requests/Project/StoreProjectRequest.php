@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Project;
 
+use App\Enums\Project\ProjectStatus;
 use App\Models\Project;
-use App\Models\ProjectStatus;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 

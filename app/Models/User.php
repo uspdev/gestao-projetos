@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Project\ProjectUserRole;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

@@ -12,9 +12,10 @@
         <div class="col-md-4">
             <div class="form-group mb-3">
                 <label for="status">Status <span class="text-danger">*</span></label>
-                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
-                    @foreach(\App\Models\ProjectStatus::cases() as $status)
-                        <option value="{{ $status->value }}" 
+                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror"
+                    required>
+                    @foreach (\App\Enums\Project\ProjectStatus::cases() as $status)
+                        <option value="{{ $status->value }}"
                             {{ old('status', $project->status?->value) === $status->value ? 'selected' : '' }}>
                             {{ $status->label() }}
                         </option>
@@ -30,13 +31,15 @@
     <div class="row">
         {{-- Descrição --}}
         <div class="col-12">
-            <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $project->description }}" rows="4" />
+            <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $project->description }}"
+                rows="4" />
         </div>
     </div>
 
     <div class="d-flex justify-content-end mt-3">
         {{-- Botão cancelar --}}
-        <button type="button" class="btn btn-outline-secondary mr-2" data-toggle="collapse" data-target="#collapseEditarProjeto">
+        <button type="button" class="btn btn-outline-secondary mr-2" data-toggle="collapse"
+            data-target="#collapseEditarProjeto">
             Cancelar
         </button>
         <button type="submit" class="btn btn-primary">

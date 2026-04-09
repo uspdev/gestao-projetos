@@ -2,14 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\Project\ProjectUserRole;
 use Illuminate\Database\Eloquent\Relations\Pivot;
-
-enum ProjectUserRole: string
-{
-    case OWNER = 'OWNER';
-    case MEMBER = 'MEMBER';
-    case VIEWER = 'VIEWER';
-}
 
 /**
  * @property int $id
@@ -17,7 +11,7 @@ enum ProjectUserRole: string
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int $project_id
  * @property int $user_id
- * @property \App\Models\ProjectUserRole $role
+ * @property \App\Enums\Project\ProjectUserRole $role
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUser newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUser newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectUser query()

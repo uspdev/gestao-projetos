@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Project;
 
+use App\Enums\Project\ProjectUserRole;
 use App\Models\Project;
-use App\Models\ProjectUserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

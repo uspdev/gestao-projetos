@@ -2,100 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\Task\TaskLabel;
+use App\Enums\Task\TaskPriority;
+use App\Enums\Task\TaskStatus;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
-enum TaskLabel: string {
-    case FIX = 'FIX';
-    case FEATURE = 'FEATURE';
-    case TEST = 'TEST';
-    case DOC = 'DOC';
-    case REFACTOR = 'REFACTOR';
-
-    public function label(): string
-    {
-        return match($this) {
-            self::FIX => 'Correção',
-            self::FEATURE => 'Funcionalidade',
-            self::TEST => 'Teste',
-            self::DOC => 'Documentação',
-            self::REFACTOR => 'Refatoração',
-        };
-    }
-
-    public function color(): string
-    {
-        return match($this) {
-            self::FIX => 'badge-danger',
-            self::FEATURE => 'badge-success',
-            self::TEST => 'badge-primary',
-            self::DOC => 'badge-info',
-            self::REFACTOR => 'badge-warning',
-        };
-    }
-}
-
-enum TaskPriority: int
-{
-    case URGENT = 1;
-    case HIGH = 2;
-    case MEDIUM = 3;
-    case LOW = 4;
-
-    public function label(): string
-    {
-        return match($this) {
-            self::URGENT => 'Urgente',
-            self::HIGH => 'Alta',
-            self::MEDIUM => 'Média',
-            self::LOW => 'Baixa',
-        };
-    }
-
-    public function color(): string
-    {
-        return match($this) {
-            self::URGENT => 'badge-danger',
-            self::HIGH => 'badge-warning',
-            self::MEDIUM => 'badge-info',
-            self::LOW => 'badge-secondary',
-        };
-    }
-}
-
-enum TaskStatus: string {
-    case TO_DO = 'TO_DO';
-    case IN_PROGRESS = 'IN_PROGRESS';
-    case IN_REVIEW = 'IN_REVIEW';
-    case DONE = 'DONE';
-    case HOLD = 'HOLD';
-
-    public function label(): string
-    {
-        return match($this) {
-            self::TO_DO => 'A Fazer',
-            self::IN_PROGRESS => 'Em Andamento',
-            self::IN_REVIEW => 'Em Revisão',
-            self::DONE => 'Concluída',
-            self::HOLD => 'Em Espera',
-        };
-    }
-
-    public function color(): string
-    {
-        return match($this) {
-            self::TO_DO => 'badge-secondary',
-            self::IN_PROGRESS => 'badge-primary',
-            self::IN_REVIEW => 'badge-info',
-            self::DONE => 'badge-success',
-            self::HOLD => 'badge-warning',
-        };
-    }
-}
 
 /**
  * @property int $id

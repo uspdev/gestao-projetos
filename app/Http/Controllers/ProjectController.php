@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Project\ProjectStatus;
+use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\StoreProjectMemberRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
-use App\Models\ProjectStatus;
-use App\Models\ProjectUserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

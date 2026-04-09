@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Project\ProjectStatus;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,39 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
-
-enum ProjectStatus: string {
-    case PLANNING = 'PLANNING';
-    case DEVELOPMENT = 'DEVELOPMENT';
-    case PRODUCTION = 'PRODUCTION';
-    case DEACTIVATED = 'DEACTIVATED';
-    case MIGRATED = 'MIGRATED';
-    case HOLD = 'HOLD';
-
-    public function label(): string
-    {
-        return match($this) {
-            self::PLANNING => 'Planejamento',
-            self::DEVELOPMENT => 'Desenvolvimento',
-            self::PRODUCTION => 'Produção',
-            self::DEACTIVATED => 'Desativado',
-            self::MIGRATED => 'Migrado',
-            self::HOLD => 'Em Espera',
-        };
-    }
-
-    public function color(): string
-    {
-        return match($this) {
-            self::PLANNING => 'badge-secondary',
-            self::DEVELOPMENT => 'badge-primary',
-            self::PRODUCTION => 'badge-success',
-            self::DEACTIVATED => 'badge-danger',
-            self::MIGRATED => 'badge-info',
-            self::HOLD => 'badge-warning',
-        };
-    }
-}
 
 /**
  * @property int $id

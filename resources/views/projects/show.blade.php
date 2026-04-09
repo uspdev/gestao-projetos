@@ -142,7 +142,7 @@
                                         <select id="member-role" name="role"
                                             class="form-control @error('role') is-invalid @enderror">
                                             <option value="">Selecione...</option>
-                                            @foreach (\App\Models\ProjectUserRole::cases() as $role)
+                                            @foreach (\App\Enums\Project\ProjectUserRole::cases() as $role)
                                                 <option value="{{ $role->value }}" @selected(old('role') === $role->value)>
                                                     {{ ucfirst(strtolower($role->value)) }}
                                                 </option>

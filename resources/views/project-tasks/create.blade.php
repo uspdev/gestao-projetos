@@ -13,8 +13,9 @@
         <div class="col-md-4">
             <div class="form-group mb-3">
                 <label for="status">Status <span class="text-danger">*</span></label>
-                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
-                    @foreach(\App\Models\TaskStatus::cases() as $status)
+                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror"
+                    required>
+                    @foreach (\App\Enums\Task\TaskStatus::cases() as $status)
                         <option value="{{ $status->value }}" {{ old('status') == $status->value ? 'selected' : '' }}>
                             {{ $status->label() }}
                         </option>
@@ -31,8 +32,9 @@
                 <label for="priority">Prioridade</label>
                 <select name="priority" id="priority" class="form-control @error('priority') is-invalid @enderror">
                     <option value="">Selecione...</option>
-                    @foreach(\App\Models\TaskPriority::cases() as $priority)
-                        <option value="{{ $priority->value }}" {{ old('priority') == $priority->value ? 'selected' : '' }}>
+                    @foreach (\App\Enums\Task\TaskPriority::cases() as $priority)
+                        <option value="{{ $priority->value }}"
+                            {{ old('priority') == $priority->value ? 'selected' : '' }}>
                             {{ $priority->label() }}
                         </option>
                     @endforeach
@@ -48,7 +50,7 @@
                 <label for="label">Label (Tag)</label>
                 <select name="label" id="label" class="form-control @error('label') is-invalid @enderror">
                     <option value="">Selecione...</option>
-                    @foreach(\App\Models\TaskLabel::cases() as $label)
+                    @foreach (\App\Enums\Task\TaskLabel::cases() as $label)
                         <option value="{{ $label->value }}" {{ old('label') == $label->value ? 'selected' : '' }}>
                             {{ $label->label() }}
                         </option>
@@ -80,7 +82,8 @@
 
     {{-- Ações --}}
     <div class="d-flex justify-content-end mt-3">
-        <button type="button" class="btn btn-outline-secondary mr-2" data-toggle="collapse" data-target="#collapseNovaTask">
+        <button type="button" class="btn btn-outline-secondary mr-2" data-toggle="collapse"
+            data-target="#collapseNovaTask">
             Cancelar
         </button>
         <button type="submit" class="btn btn-success">

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Task;
 
+use App\Enums\Task\TaskStatus;
 use App\Models\Task;
-use App\Models\TaskStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
