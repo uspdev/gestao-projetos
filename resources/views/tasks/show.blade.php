@@ -81,7 +81,7 @@
                                 @enderror
                             </div>
 
-                            <button type="submit" class="btn btn-sm btn-primary" disabled aria-disabled="true">
+                            <button type="submit" class="btn btn-sm btn-primary">
                                 <i class="fas fa-save mr-1"></i> Salvar
                             </button>
                         </form>
