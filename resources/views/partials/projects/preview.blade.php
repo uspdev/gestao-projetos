@@ -1,6 +1,13 @@
 <div class="card mb-3 shadow-sm">
     <div class="card-body">
         <h5 class="card-title">{{ $project->name }}</h5>
+        @auth
+            <div class="mb-2">
+                <span class="badge {{ $project->userRole(Auth::user())?->color() ?? 'badge-light border text-muted' }}">
+                    {{ $project->userRole(Auth::user())?->label() ?? 'Sem role' }}
+                </span>
+            </div>
+        @endauth
         <span class="badge {{ $project->status->color() }}">
             {{ $project->status->label() }}
         </span>

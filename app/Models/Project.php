@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Project\ProjectStatus;
+use App\Enums\Project\ProjectUserRole;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -51,6 +52,8 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes, Auditable;
 
+    protected array $roleByUserCache = [];
+
     protected function casts(): array
     {
         return [
@@ -75,6 +78,43 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function userRole(?User $user): ?ProjectUserRole
+    {
+        if (!$user) {
+            return null;
+        }
+
+        if (array_key_exists($user->id, $this->roleByUserCache)) {
+            return $this->roleByUserCache[$user->id];
+        }
+
+        if (isset($this->pivot) && (int) ($this->pivot->user_id ?? 0) === (int) $user->id) {
+            return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($this->pivot->role ?? null);
+        }
+
+        if ($this->relationLoaded('users')) {
+            $member = $this->users->firstWhere('id', $user->id);
+            return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($member?->pivot?->role ?? null);
+        }
+
+        $member = $this->users()->where('users.id', $user->id)->first();
+
+        return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($member?->pivot?->role ?? null);
+    }
+
+    private function parseProjectUserRole(mixed $roleValue): ?ProjectUserRole
+    {
+        if ($roleValue instanceof ProjectUserRole) {
+            return $roleValue;
+        }
+
+        if (!$roleValue) {
+            return null;
+        }
+
+        return ProjectUserRole::tryFrom((string) $roleValue);
     }
 
     public function scopeAccessibleBy(Builder $query, User $user): Builder
