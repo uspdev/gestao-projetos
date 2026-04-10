@@ -28,7 +28,7 @@
         </div>
 
         <div class="row">
-            {{-- COLUNA PRINCIPAL: Título, Descrição e Tasks --}}
+            {{-- COLUNA PRINCIPAL: Título e Descrição --}}
             <div class="col-md-8">
 
                 {{-- Card: Título e Descrição --}}
@@ -60,29 +60,9 @@
                     </div>
                 </div>
 
-                {{-- Sessão: Tarefas do Projeto --}}
-                <div class="mt-5 mb-3 d-flex justify-content-between align-items-center">
-                    <h4 class="m-0 text-dark font-weight-bold">Tarefas do Projeto</h4>
-                    <button class="btn btn-sm btn-success" data-toggle="collapse" data-target="#collapseNovaTask">
-                        <i class="fas fa-plus"></i> Nova Task
-                    </button>
-                </div>
-
-                {{-- Form: Nova Task --}}
-                <div class="collapse mb-4" id="collapseNovaTask">
-                    <div class="card card-body bg-light border-success">
-                        @include('project-tasks.create', ['project_id' => $project->id])
-                    </div>
-                </div>
-
-                {{-- Index: Lista de Tasks --}}
-                <div class="card card-body mb-4 shadow-sm">
-                    @include('project-tasks.index', ['tasks' => $project->tasks])
-                </div>
-
             </div>
 
-            {{-- COLUNA LATERAL (Direita): Informações e Membros --}}
+            {{-- COLUNA LATERAL (Direita): Informações, Membros e Tasks --}}
             <div class="col-md-4">
 
                 {{-- Informações --}}
@@ -123,6 +103,31 @@
                             </li>
                         @endforelse
                     </ul>
+                </div>
+
+                {{-- Index: Lista de Tasks --}}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 text-muted">
+                            <i class="fas fa-tasks mr-1"></i> Tasks
+                        </h6>
+                        <button class="btn btn-sm btn-outline-success" data-toggle="collapse"
+                            data-target="#collapseNovaTask" title="Adicionar task">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="collapse mb-3" id="collapseNovaTask">
+                            <div class="card card-body bg-light border-success">
+                                @include('project-tasks.create', ['project_id' => $project->id])
+                            </div>
+                        </div>
+
+                        @include('project-tasks.index', [
+                            'tasks' => $project->tasks,
+                            'taskCardColumnClass' => 'col-6',
+                        ])
+                    </div>
                 </div>
 
                 @can('storeMember', $project)

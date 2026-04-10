@@ -1,6 +1,10 @@
+@php
+    $taskCardColumnClass = $taskCardColumnClass ?? 'col-md-6 col-lg-4';
+@endphp
+
 <div class="row">
     @forelse($tasks as $task)
-        <div class="col-md-6 col-lg-4">
+        <div class="{{ $taskCardColumnClass }}">
             @include('partials.tasks.preview', ['task' => $task])
         </div>
     @empty
