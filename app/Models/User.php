@@ -139,4 +139,9 @@ class User extends Authenticatable
     {
         return $this->hasRole('admin') || $this->can('admin');
     }
+
+    public function isTaskCreator(Task $task): bool
+    {
+        return $task->created_by === $this->id;
+    }
 }
