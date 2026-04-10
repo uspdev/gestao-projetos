@@ -6,6 +6,7 @@ use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\StoreProjectMemberRequest;
+use App\Http\Requests\Project\UpdateProjectMemberRoleRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\User;
@@ -93,6 +94,27 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.show', $project)
             ->with('success', 'Membro adicionado ao projeto com sucesso!');
+    }
+
+    public function updateMemberRole(UpdateProjectMemberRoleRequest $request, Project $project, User $user)
+    {
+        abort_unless($user->isMemberOfProject($project), 404);
+
+        $data = $request->validated();
+        $newRole = ProjectUserRole::from($data['role']);
+
+        if ($project->isLastOwner($user) && $newRole !== ProjectUserRole::OWNER) {
+            return redirect()->route('projects.show', $project)
+                ->with('error', 'O último owner do projeto não pode ter sua role alterada.');
+        }
+
+        DB::transaction(function () use ($project, $user, $newRole) {
+            $project->users()->updateExistingPivot($user->id, [
+                'role' => $newRole->value,
+            ]);
+        });
+
+        return redirect()->route('projects.show', $project);
     }
 
     public function selectableMembers(Project $project)

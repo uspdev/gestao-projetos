@@ -104,6 +104,21 @@ class Project extends Model
         return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($member?->pivot?->role ?? null);
     }
 
+    public function isLastOwner(User $user): bool
+    {
+        if ($this->userRole($user) !== ProjectUserRole::OWNER) {
+            return false;
+        }
+
+        $ownersCount = $this->relationLoaded('users')
+            ? $this->users->filter(function (User $member) {
+                return $this->userRole($member) === ProjectUserRole::OWNER;
+            })->count()
+            : $this->users()->wherePivot('role', ProjectUserRole::OWNER->value)->count();
+
+        return $ownersCount <= 1;
+    }
+
     private function parseProjectUserRole(mixed $roleValue): ?ProjectUserRole
     {
         if ($roleValue instanceof ProjectUserRole) {

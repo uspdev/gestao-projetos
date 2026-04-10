@@ -11,6 +11,15 @@
             </a>
         </div>
 
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
         {{-- Form de Edição de Projeto --}}
         <div class="collapse mb-4" id="collapseEditarProjeto">
             <div class="card card-body border-primary">
@@ -163,7 +172,8 @@
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-outline-secondary"
                                             data-dismiss="modal">Cancelar</button>
-                                        <button type="submit" class="btn btn-primary" id="project-member-confirm-btn" disabled>
+                                        <button type="submit" class="btn btn-primary" id="project-member-confirm-btn"
+                                            disabled>
                                             Confirmar
                                         </button>
                                     </div>

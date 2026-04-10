@@ -5,18 +5,47 @@
             {{ $user->name }}
         </a>
     </div>
-    @php
-        $projectMember = isset($project) ? $project->users->firstWhere('id', $user->id) : null;
-        $roleValue = $projectMember?->pivot?->role ?? ($user->pivot->role ?? null);
-        $roleEnum =
-            $roleValue instanceof \App\Enums\Project\ProjectUserRole
-                ? $roleValue
-                : \App\Enums\Project\ProjectUserRole::tryFrom((string) $roleValue);
-        $roleLabel = $roleEnum?->label() ?? 'Sem role';
-        $roleColor = $roleEnum?->color() ?? 'badge-light border text-muted';
-    @endphp
     <div class="d-flex align-items-center">
-        <span class="badge {{ $roleColor }} mr-2">{{ $roleLabel }}</span>
+        @if (isset($project))
+            @if (!empty($canManageMembers))
+                <div class="dropdown mr-2">
+                    <button class="btn btn-sm p-0 border-0 bg-transparent dropdown-toggle" type="button"
+                        id="member-role-dropdown-{{ $user->id }}" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false" title="Alterar role do membro">
+                        <span
+                            class="badge {{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }}">
+                            {{ $project->userRole($user)?->label() ?? 'Sem role' }}
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right p-2"
+                        aria-labelledby="member-role-dropdown-{{ $user->id }}">
+                        @foreach (\App\Enums\Project\ProjectUserRole::cases() as $role)
+                            <form method="POST" action="{{ route('projects.members.updateRole', [$project, $user]) }}"
+                                class="mb-1">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="role" value="{{ $role->value }}">
+                                <button type="submit" class="btn btn-sm btn-block text-left"
+                                    @disabled($project->userRole($user)?->value === $role->value)>
+                                    <span class="badge {{ $role->color() }}">
+                                        {{ $role->label() }}
+                                    </span>
+                                    @if ($project->userRole($user)?->value === $role->value)
+                                        <small class="text-muted ml-1">(atual)</small>
+                                    @endif
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+            @else
+                <span class="badge {{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }} mr-2">
+                    {{ $project->userRole($user)?->label() ?? 'Sem role' }}
+                </span>
+            @endif
+        @else
+            <span class="badge badge-light border text-muted mr-2">Sem role</span>
+        @endif
 
         @if (!empty($canManageMembers) && isset($project))
             <form method="POST" action="{{ route('projects.members.destroy', [$project, $user]) }}"

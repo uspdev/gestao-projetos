@@ -21,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::post('projects/{project}/members', [ProjectController::class, 'storeMember'])
         ->name('projects.members.store');
 
+    Route::patch('projects/{project}/members/{user}/role', [ProjectController::class, 'updateMemberRole'])
+        ->name('projects.members.updateRole');
+
     Route::delete('projects/{project}/members/{user}', [ProjectController::class, 'destroyMember'])
         ->name('projects.members.destroy');
 
