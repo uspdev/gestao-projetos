@@ -42,6 +42,11 @@ class TaskPolicy
         return $user->isOwnerOfProject($task->project) || $user->isTaskAssignee($task);
     }
 
+    public function storeAssignee(User $user, Task $task): bool
+    {
+        return $user->isOwnerOfProject($task->project) || $user->isTaskAssignee($task);
+    }
+
     public function restore(User $user, Task $task): bool
     {
         return false;

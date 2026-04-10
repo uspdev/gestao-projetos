@@ -56,6 +56,7 @@ use App\Models\Task;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, ?string $guard = null)
  * @property-read \App\Models\ProjectUser|null $pivot
  * @method static Builder<static>|User selectableToProject(int $projectId)
+ * @method static Builder<static>|User selectableToTask(int $taskId, int $projectId)
  * @mixin \Eloquent
  */
 class User extends Authenticatable
@@ -121,6 +122,17 @@ class User extends Authenticatable
         return $query->whereDoesntHave('projects', function ($q) use ($projectId) {
                 $q->where('projects.id', $projectId);
                 })->orderBy('name');
+    }
+
+    public function scopeSelectableToTask(Builder $query, int $taskId, int $projectId): Builder
+    {
+        return $query->whereHas('projects', function ($q) use ($projectId) {
+                $q->where('projects.id', $projectId);
+            })
+            ->whereDoesntHave('tasks', function ($q) use ($taskId) {
+                $q->where('tasks.id', $taskId);
+            })
+            ->orderBy('name');
     }
 
     public function isAdmin(): bool

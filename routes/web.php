@@ -36,6 +36,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])
         ->name('tasks.updateTaskStatus');
 
+    Route::post('tasks/{task}/assignees', [TaskController::class, 'storeAssignee'])
+        ->name('tasks.assignees.store');
+
+    Route::get('tasks/{task}/assignees/selectable', [TaskController::class, 'selectableAssignees'])
+        ->name('tasks.assignees.selectable');
+
     Route::resource('projects.tasks', ProjectTaskController::class)
         ->only(['index', 'create', 'store']);
 

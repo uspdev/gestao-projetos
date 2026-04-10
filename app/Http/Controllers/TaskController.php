@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -63,5 +65,33 @@ class TaskController extends Controller
 
         return redirect()->route('tasks.show', $task)
                          ->with('success', 'Status da tarefa atualizado com sucesso!');
+    }
+
+    public function storeAssignee(StoreTaskAssigneeRequest $request, Task $task)
+    {
+        $data = $request->validated();
+
+        $user = User::query()->findOrFail($data['user_id']);
+
+        if (!$user->isMemberOfProject($task->project)) {
+            return redirect()->route('tasks.show', $task)
+                ->with('error', 'Somente membros do projeto podem ser atribuídos à tarefa.');
+        }
+
+        DB::transaction(function () use ($task, $user) {
+            $task->users()->syncWithoutDetaching([$user->id]);
+        });
+
+        return redirect()->route('tasks.show', $task);
+    }
+
+    public function selectableAssignees(Task $task)
+    {
+        Gate::authorize('storeAssignee', $task);
+
+        $users = User::selectableToTask($task->id, $task->project_id)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
     }
 }
