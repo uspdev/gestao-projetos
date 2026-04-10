@@ -94,4 +94,15 @@ class TaskController extends Controller
 
         return response()->json($users);
     }
+
+    public function destroyAssignee(Task $task, User $user)
+    {
+        Gate::authorize('storeAssignee', $task);
+
+        DB::transaction(function () use ($task, $user) {
+            $task->users()->detach($user->id);
+        });
+
+        return redirect()->route('tasks.show', $task);
+    }
 }

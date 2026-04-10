@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::post('tasks/{task}/assignees', [TaskController::class, 'storeAssignee'])
         ->name('tasks.assignees.store');
 
+    Route::delete('tasks/{task}/assignees/{user}', [TaskController::class, 'destroyAssignee'])
+        ->name('tasks.assignees.destroy');
+
     Route::get('tasks/{task}/assignees/selectable', [TaskController::class, 'selectableAssignees'])
         ->name('tasks.assignees.selectable');
 
