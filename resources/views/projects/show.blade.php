@@ -20,13 +20,6 @@
             </div>
         @endif
 
-        {{-- Form de Edição de Projeto --}}
-        <div class="collapse mb-4" id="collapseEditarProjeto">
-            <div class="card card-body border-primary">
-                @include('projects.edit', ['project' => $project])
-            </div>
-        </div>
-
         <div class="row">
             {{-- COLUNA PRINCIPAL: Título e Descrição --}}
             <div class="col-md-8">
@@ -38,8 +31,7 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $project->name }}</h2>
                             <div>
-                                <button class="btn btn-outline-primary btn-sm" data-toggle="collapse"
-                                    data-target="#collapseEditarProjeto">
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
                                     <i class="fas fa-edit"></i> Editar
                                 </button>
                             </div>
@@ -281,4 +273,18 @@
             </div>
         </div>
     </div>
+
+{{-- Inclui o modal de edição (deve ficar solto na raiz do container) --}}
+    @include('projects.edit', ['project' => $project])
+
+    {{-- Reabre o modal caso haja erro de validação na edição --}}
+    @if ($errors->any() && old('_method') === 'PUT')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                $('#modalEditarProjeto').modal('show');
+            });
+        </script>
+    @endif
+</div> {{-- Fechamento da div container-fluid --}}
+
 @endsection
