@@ -20,13 +20,6 @@
             </div>
         @endif
 
-        {{-- Form de Edição de Task --}}
-        <div class="collapse mb-4" id="collapseEditarTask">
-            <div class="card card-body border-primary">
-                @include('tasks.edit', ['task' => $task])
-            </div>
-        </div>
-
         <div class="row">
             {{-- COLUNA PRINCIPAL: Título e Descrição --}}
             <div class="col-md-8">
@@ -36,8 +29,7 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
                             <div>
-                                <button class="btn btn-outline-primary btn-sm" data-toggle="collapse"
-                                    data-target="#collapseEditarTask">
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarTask">
                                     <i class="fas fa-edit"></i> Editar
                                 </button>
                             </div>
@@ -303,7 +295,7 @@
 
                                         fillUserSelect(users);
                                         userSelect.removeAttribute('disabled');
-                                        confirmBtn.removeAttribute('d;
+                                        confirmBtn.removeAttribute('disabled');
                                         usersLoaded = true;
                                     })
                                     .catch(function() {
@@ -319,4 +311,21 @@
                 @endcan
 
             </div>
-        @endsection
+        </div>
+
+        {{-- Inclusão dos Modais --}}
+        @include('tasks.edit', ['task' => $task])
+
+        {{-- Reabre o modal caso haja erro de validação na edição (Vanilla JS) --}}
+        @if ($errors->any() && old('_method') === 'PUT')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const editBtn = document.querySelector('[data-target="#modalEditarTask"]');
+                    if (editBtn) editBtn.click();
+                });
+            </script>
+        @endif
+
+
+    </div>
+@endsection
