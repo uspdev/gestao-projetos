@@ -19,12 +19,12 @@ class TaskPolicy
 
     public function viewAny(User $user, Project $project): bool
     {
-        return $user->isMemberOfProject($project);
+        return $user->isViewerOfProject($project);
     }
 
     public function view(User $user, Task $task): bool
     {
-        return $user->isMemberOfProject($task->project);
+        return $user->isViewerOfProject($task->project);
     }
 
     public function create(User $user, Project $project): bool
