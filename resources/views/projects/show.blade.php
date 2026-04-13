@@ -103,18 +103,11 @@
                         <h6 class="m-0 text-muted">
                             <i class="fas fa-tasks mr-1"></i> Tasks
                         </h6>
-                        <button class="btn btn-sm btn-outline-success" data-toggle="collapse"
-                            data-target="#collapseNovaTask" title="Adicionar task">
+                        <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask" title="Adicionar task">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                     <div class="card-body">
-                        <div class="collapse mb-3" id="collapseNovaTask">
-                            <div class="card card-body bg-light border-success">
-                                @include('project-tasks.create', ['project_id' => $project->id])
-                            </div>
-                        </div>
-
                         @include('project-tasks.index', [
                             'tasks' => $project->tasks,
                             'taskCardColumnClass' => 'col-6',
@@ -127,6 +120,7 @@
 
     @include('projects.edit', ['project' => $project])
     @include('partials.projects.add-member', ['project' => $project])
+    @include('project-tasks.create', ['project_id' => $project->id])
 
     {{-- Reabre o modal caso haja erro de validação na edição --}}
     @if ($errors->any() && old('_method') === 'PUT')
