@@ -50,7 +50,7 @@ class TaskController extends Controller
             $task->delete();
         });
 
-        return redirect()->route('projects.tasks.index', $task->project)
+        return redirect()->route('projects.show', $task->project)
                          ->with('success', 'Tarefa excluida com sucesso!');
     }
 

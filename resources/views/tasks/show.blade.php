@@ -32,6 +32,16 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarTask">
                                     <i class="fas fa-edit"></i> Editar
                                 </button>
+                                @can('delete', $task)
+                                    <form method="POST" action="{{ route('tasks.destroy', $task) }}" class="d-inline-block ml-1"
+                                        onsubmit="return confirm('Deseja realmente excluir esta tarefa? Esta ação não pode ser desfeita.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Excluir
+                                        </button>
+                                    </form>
+                                @endcan
                             </div>
                         </div>
 
