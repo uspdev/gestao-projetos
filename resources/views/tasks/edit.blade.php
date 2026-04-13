@@ -92,7 +92,7 @@
             data-target="#collapseEditarTask">
             Cancelar
         </button>
-        <button type="submit" class="btn btn-primary" disabled aria-disabled="true">
+        <button type="submit" class="btn btn-primary">
             <i class="fas fa-save"></i> Salvar Alterações
         </button>
     </div>
