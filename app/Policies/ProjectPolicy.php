@@ -24,7 +24,7 @@ class ProjectPolicy
 
     public function view(User $user, Project $project): bool
     {
-        return $user->isMemberOfProject($project);
+        return $user->isViewerOfProject($project);
     }
 
     public function create(User $user): bool
@@ -39,7 +39,7 @@ class ProjectPolicy
 
     public function delete(User $user, Project $project): bool
     {
-        return false;
+        return $user->isOwnerOfProject($project);
     }
 
     public function restore(User $user, Project $project): bool

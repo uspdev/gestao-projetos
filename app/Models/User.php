@@ -99,9 +99,20 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
-    public function isMemberOfProject(Project $project): bool
+    public function isViewerOfProject(Project $project): bool
     {
-        return $this->projects()->where('project_id', $project->id)->exists();
+        return $this->projects()
+                    ->where('project_id', $project->id)
+                    ->wherePivot('role', ProjectUserRole::VIEWER->value)
+                    ->exists();
+    }
+
+    public function isMemberOfProject(Project $project): bool
+    {   
+        return $this->projects()
+                ->where('project_id', $project->id)
+                ->wherePivotIn('role', [ProjectUserRole::OWNER->value, ProjectUserRole::MEMBER->value])
+                ->exists();
     }
 
     public function isOwnerOfProject(Project $project): bool
