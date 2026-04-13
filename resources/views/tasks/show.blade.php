@@ -303,7 +303,7 @@
 
                                         fillUserSelect(users);
                                         userSelect.removeAttribute('disabled');
-                                        confirmBtn.removeAttribute('disabled');
+                                        confirmBtn.removeAttribute('d;
                                         usersLoaded = true;
                                     })
                                     .catch(function() {
