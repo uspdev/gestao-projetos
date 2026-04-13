@@ -34,6 +34,16 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
                                     <i class="fas fa-edit"></i> Editar
                                 </button>
+                                @can('delete', $project)
+                                    <form method="POST" action="{{ route('projects.destroy', $project) }}" class="d-inline-block ml-1"
+                                        onsubmit="return confirm('Deseja realmente excluir este projeto? Esta ação não pode ser desfeita.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Excluir
+                                        </button>
+                                    </form>
+                                @endcan
                             </div>
                         </div>
 
