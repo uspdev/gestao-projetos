@@ -2,14 +2,15 @@
     <style>
         .task-preview-card {
             cursor: pointer;
-            border-radius: 0.5rem;
+            border-radius: 0.9rem;
             overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .task-preview-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 1.1rem 2.2rem rgba(0, 0, 0, 0.2);
         }
 
         .task-preview-title {
@@ -18,10 +19,10 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             word-break: break-word;
-            font-size: 1.1rem;
-            font-weight: 700;
+            font-size: 1.12rem;
+            font-weight: 800;
             line-height: 1.3;
-            color: #2d3748;
+            color: #1f2937;
         }
 
         .task-preview-project {
