@@ -22,6 +22,7 @@
             font-size: 1.12rem;
             font-weight: 800;
             line-height: 1.3;
+            min-height: 2.91rem; /* 2 linhas: 1.12rem (font-size) * 1.3 (line-height) * 2 (linhas) = 2.912rem */
             color: #1f2937;
         }
 
@@ -39,7 +40,7 @@
 <div
     class="card mb-3 shadow-sm position-relative task-preview-card border-left-{{ $task->priority instanceof \App\Enums\Task\TaskPriority ? str_replace('badge-', '', $task->priority->color()) : 'secondary' }}">
 
-    <div class="card-body p-3">
+    <div class="card-body p-3 d-flex flex-column h-100">
 
         {{-- CABEÇALHO: Título e Status --}}
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -58,7 +59,7 @@
         </div>
 
         {{-- RODAPÉ: Prioridade/Label e Datas --}}
-        <div class="d-flex justify-content-between align-items-end mt-2 task-preview-footer">
+        <div class="d-flex justify-content-between align-items-end mt-auto task-preview-footer">
 
             {{-- Lado Esquerdo do Rodapé (Badges) --}}
             <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem;">

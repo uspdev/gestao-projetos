@@ -22,6 +22,7 @@
             font-size: 1.25rem;
             font-weight: 800;
             line-height: 1.3;
+            min-height: 3.25rem; /* 2 linhas: 1.25rem (font-size) * 1.3 (line-height) * 2 (linhas) = 3.25rem */
             color: #1f2937;
         }
 
@@ -32,9 +33,9 @@
 @endonce
 
 <div class="card mb-3 shadow-sm position-relative project-preview-card border-left-primary">
-    
-    <div class="card-body p-3">
-        
+
+    <div class="card-body p-3 d-flex flex-column h-100">
+
         {{-- CABEÇALHO: Título (Esquerda) e Status (Direita) --}}
         <div class="d-flex justify-content-between align-items-start mb-3">
             <h5 class="m-0 pr-2 project-preview-title" title="{{ $project->name }}">
@@ -46,8 +47,8 @@
         </div>
 
         {{-- RODAPÉ: Role do Usuário (e espaço para futuras métricas) --}}
-        <div class="d-flex justify-content-between align-items-end mt-2">
-            
+        <div class="d-flex justify-content-between align-items-end mt-auto">
+
             {{-- Lado Esquerdo do Rodapé (Role) --}}
             <div class="project-preview-role">
                 @auth
@@ -69,6 +70,7 @@
         </div>
 
         {{-- Link clicável por todo o card --}}
-        <a href="{{ route('projects.show', $project->id) }}" class="stretched-link" aria-label="Acessar projeto {{ $project->name }}"></a>
+        <a href="{{ route('projects.show', $project->id) }}" class="stretched-link"
+            aria-label="Acessar projeto {{ $project->name }}"></a>
     </div>
 </div>
