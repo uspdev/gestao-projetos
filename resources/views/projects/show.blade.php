@@ -120,7 +120,7 @@
                     <div class="card-body">
                         @include('project-tasks.index', [
                             'tasks' => $project->tasks,
-                            'taskCardColumnClass' => 'col-6',
+                            'taskCardColumnClass' => 'col-12',
                         ])
                     </div>
                 </div>
