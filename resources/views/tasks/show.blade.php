@@ -29,11 +29,13 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
                             <div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarTask">
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
+                                    data-target="#modalEditarTask">
                                     <i class="fas fa-edit"></i> Editar
                                 </button>
                                 @can('delete', $task)
-                                    <form method="POST" action="{{ route('tasks.destroy', $task) }}" class="d-inline-block ml-1"
+                                    <form method="POST" action="{{ route('tasks.destroy', $task) }}"
+                                        class="d-inline-block ml-1"
                                         onsubmit="return confirm('Deseja realmente excluir esta tarefa? Esta ação não pode ser desfeita.');">
                                         @csrf
                                         @method('DELETE')
@@ -141,15 +143,16 @@
                                     {{-- Data de Início --}}
                                     <div class="col-6 border-right pr-2 d-flex align-items-center">
                                         <span class="text-muted small mr-2">Início:</span>
-                                        <span class="text-dark small font-weight-bold">
-                                            {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/y') : '-' }}
+                                        <span class="font-weight-bold">
+                                            {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/y') : '--/--/----' }}
                                         </span>
                                     </div>
                                     {{-- Prazo (Due Date) --}}
                                     <div class="col-6 pl-2 d-flex align-items-center">
                                         <span class="text-muted small mr-2">Prazo:</span>
-                                        <span class="text-dark small font-weight-bold">
-                                            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/y') : '-' }}
+                                        <span
+                                            class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}">
+                                            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/y') : '--/--/----' }}
                                         </span>
                                     </div>
                                 </div>
