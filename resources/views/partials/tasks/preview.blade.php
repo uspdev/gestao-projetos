@@ -2,15 +2,14 @@
     <style>
         .task-preview-card {
             cursor: pointer;
-            border-radius: 0.9rem;
+            border-radius: 0.5rem;
             overflow: hidden;
-            transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .task-preview-card:hover {
-            transform: translateY(-4px) scale(1.01);
-            box-shadow: 0 0.9rem 1.8rem rgba(0, 0, 0, 0.16);
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
         }
 
         .task-preview-title {
@@ -19,54 +18,79 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             word-break: break-word;
-            min-height: 2.8rem;
-            font-size: 1.12rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            line-height: 1.2;
-            color: #1f2937;
+            line-height: 1.3;
+            color: #2d3748;
         }
 
-        .task-preview-meta {
-            min-height: 2rem;
-            font-size: 0.95rem;
+        .task-preview-project {
+            font-size: 0.9rem;
+            color: #6b7280;
         }
 
-        .task-preview-meta small {
-            font-size: 0.95rem;
+        .task-preview-footer {
+            font-size: 0.85rem;
         }
     </style>
 @endonce
 
 <div
-    class="card mb-2 shadow-sm position-relative task-preview-card border-left-{{ $task->priority instanceof \App\Enums\Task\TaskPriority ? str_replace('badge-', '', $task->priority->color()) : 'secondary' }}">
+    class="card mb-3 shadow-sm position-relative task-preview-card border-left-{{ $task->priority instanceof \App\Enums\Task\TaskPriority ? str_replace('badge-', '', $task->priority->color()) : 'secondary' }}">
+
     <div class="card-body p-3">
-        <div class="d-flex align-items-start mb-2">
-            <h6 class="m-0 mr-2 task-preview-title">{{ $task->title }}</h6>
-            <span class="badge {{ $task->status->color() }} mt-0">
+
+        {{-- CABEÇALHO: Título e Status --}}
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="m-0 pr-2 task-preview-title" title="{{ $task->title }}">
+                {{ $task->title }}
+            </h6>
+            <span class="badge {{ $task->status->color() }} text-nowrap shadow-sm">
                 {{ $task->status->label() }}
             </span>
         </div>
 
-        <div class="task-preview-meta">
-            @if ($task->label instanceof \App\Enums\Task\TaskLabel)
-                <small class="text-muted d-block">
-                    <i class="fas fa-tag"></i>
-                    <span class="badge {{ $task->label->color() }}">
-                        {{ $task->label->label() }}
-                    </span>
-                </small>
-            @endif
+        {{-- CORPO: Projeto --}}
+        <div class="task-preview-project mb-2">
+            <i class="fas fa-folder-open mr-1"></i>
+            {{ $task->project?->name ?? 'Sem projeto vinculado' }}
         </div>
 
-        <small class="text-muted d-block" style="font-size: 0.95rem;">
-            @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
-                <span class="badge {{ $task->priority->color() }} mr-2">
-                    {{ $task->priority->label() }}
+        {{-- RODAPÉ: Prioridade/Label e Datas --}}
+        <div class="d-flex justify-content-between align-items-end mt-2 task-preview-footer">
+
+            {{-- Lado Esquerdo do Rodapé (Badges) --}}
+            <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem;">
+                @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
+                    <span class="badge {{ $task->priority->color() }}" title="Prioridade">
+                        <i class="fas fa-flag mr-1"></i>{{ $task->priority->label() }}
+                    </span>
+                @endif
+
+                @if ($task->label instanceof \App\Enums\Task\TaskLabel)
+                    <span class="badge {{ $task->label->color() }}" title="Tag">
+                        <i class="fas fa-tag mr-1"></i>{{ $task->label->label() }}
+                    </span>
+                @endif
+            </div>
+
+            {{-- Lado Direito do Rodapé (Datas) --}}
+            <div class="text-muted text-right text-nowrap pl-2">
+                <i class="far fa-calendar-alt mr-1"></i>
+
+                <span title="Data de Início">
+                    {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m') : '--/--' }}
                 </span>
-            @endif
-            <i class="far fa-calendar-alt"></i>
-            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : '-' }}
-        </small>
+
+                <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
+
+                <span title="Prazo de Entrega"
+                    class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== 'COMPLETED' ? 'text-danger' : 'text-dark' }}">
+                    {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : '--/--/----' }}
+                </span>
+            </div>
+
+        </div>
 
         <a href="{{ route('tasks.show', $task->id) }}" class="stretched-link"
             aria-label="Acessar tarefa {{ $task->title }}"></a>
