@@ -29,10 +29,12 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
                             <div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
-                                    data-target="#modalEditarTask">
-                                    <i class="fas fa-edit"></i> Editar
-                                </button>
+                                @can('update', $task)
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
+                                        data-target="#modalEditarTask">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                @endcan
                                 @can('delete', $task)
                                     <form method="POST" action="{{ route('tasks.destroy', $task) }}"
                                         class="d-inline-block ml-1"
@@ -75,29 +77,31 @@
                             </span>
                         </div>
 
-                        <form method="POST" action="{{ route('tasks.updateTaskStatus', $task) }}"
-                            class="d-flex align-items-end">
-                            @csrf
-                            @method('PATCH')
-                            <div class="form-group mb-0 flex-grow-1 mr-2">
-                                <label for="task-status" class="small text-muted font-weight-bold mb-1">Alterar
-                                    status</label>
-                                <select id="task-status" name="status" class="form-control form-control-sm">
-                                    @foreach (\App\Enums\Task\TaskStatus::cases() as $status)
-                                        <option value="{{ $status->value }}" @selected(old('status', $task->status->value) === $status->value)>
-                                            {{ $status->label() }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('status')
-                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
-                            </div>
+                        @can('update', $task)
+                            <form method="POST" action="{{ route('tasks.updateTaskStatus', $task) }}"
+                                class="d-flex align-items-end">
+                                @csrf
+                                @method('PATCH')
+                                <div class="form-group mb-0 flex-grow-1 mr-2">
+                                    <label for="task-status" class="small text-muted font-weight-bold mb-1">Alterar
+                                        status</label>
+                                    <select id="task-status" name="status" class="form-control form-control-sm">
+                                        @foreach (\App\Enums\Task\TaskStatus::cases() as $status)
+                                            <option value="{{ $status->value }}" @selected(old('status', $task->status->value) === $status->value)>
+                                                {{ $status->label() }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('status')
+                                        <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                    @enderror
+                                </div>
 
-                            <button type="submit" class="btn btn-sm btn-primary">
-                                <i class="fas fa-save mr-1"></i> Salvar
-                            </button>
-                        </form>
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-save mr-1"></i> Salvar
+                                </button>
+                            </form>
+                        @endcan
                     </div>
                     <div class="card-body p-3">
                         <ul class="list-unstyled m-0">
@@ -327,17 +331,21 @@
         </div>
 
         {{-- Inclusão dos Modais --}}
-        @include('tasks.edit', ['task' => $task])
+        @can('update', $task)
+            @include('tasks.edit', ['task' => $task])
+        @endcan
 
         {{-- Reabre o modal caso haja erro de validação na edição (Vanilla JS) --}}
-        @if ($errors->any() && old('_method') === 'PUT')
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const editBtn = document.querySelector('[data-target="#modalEditarTask"]');
-                    if (editBtn) editBtn.click();
-                });
-            </script>
-        @endif
+        @can('update', $task)
+            @if ($errors->any() && old('_method') === 'PUT')
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const editBtn = document.querySelector('[data-target="#modalEditarTask"]');
+                        if (editBtn) editBtn.click();
+                    });
+                </script>
+            @endif
+        @endcan
 
 
     </div>

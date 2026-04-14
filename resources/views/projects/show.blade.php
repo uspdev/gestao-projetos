@@ -31,9 +31,11 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $project->name }}</h2>
                             <div>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
-                                    <i class="fas fa-edit"></i> Editar
-                                </button>
+                                @can('update', $project)
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                @endcan
                                 @can('delete', $project)
                                     <form method="POST" action="{{ route('projects.destroy', $project) }}" class="d-inline-block ml-1"
                                         onsubmit="return confirm('Deseja realmente excluir este projeto? Esta ação não pode ser desfeita.');">
@@ -113,9 +115,11 @@
                         <h6 class="m-0 text-muted">
                             <i class="fas fa-tasks mr-1"></i> Tasks
                         </h6>
-                        <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask" title="Adicionar task">
-                            <i class="fas fa-plus"></i>
-                        </button>
+                        @can('create', [\App\Models\Task::class, $project])
+                            <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask" title="Adicionar task">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        @endcan
                     </div>
                     <div class="card-body">
                         @include('project-tasks.index', [
@@ -128,19 +132,29 @@
         </div>
     </div>
 
-    @include('projects.edit', ['project' => $project])
-    @include('partials.projects.add-member', ['project' => $project])
-    @include('project-tasks.create', ['project_id' => $project->id])
+    @can('update', $project)
+        @include('projects.edit', ['project' => $project])
+    @endcan
+
+    @can('storeMember', $project)
+        @include('partials.projects.add-member', ['project' => $project])
+    @endcan
+    
+    @can('create', [\App\Models\Task::class, $project])
+        @include('project-tasks.create', ['project_id' => $project->id])
+    @endcan
 
     {{-- Reabre o modal caso haja erro de validação na edição --}}
-    @if ($errors->any() && old('_method') === 'PUT')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const editBtn = document.querySelector('[data-target="#modalEditarProjeto"]');
-                if (editBtn) editBtn.click();
-            });
-        </script>
-    @endif
+    @can('update', $project)
+        @if ($errors->any() && old('_method') === 'PUT')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const editBtn = document.querySelector('[data-target="#modalEditarProjeto"]');
+                    if (editBtn) editBtn.click();
+                });
+            </script>
+        @endif
+    @endcan
 
 </div>
 
