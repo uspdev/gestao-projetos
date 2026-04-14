@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Task;
+use App\Models\Project;
 
 class UserTaskController extends Controller
 {
@@ -16,7 +17,10 @@ class UserTaskController extends Controller
                           'project:id,name,status',
                           'users:id,name',
                       ])
-                      ->orderBy('priority', 'asc')
+                      ->orderBy(
+                        Project::select('name')
+                               ->whereColumn('projects.id', 'tasks.project_id')
+                      )
                       ->latest()
                       ->get();
 
