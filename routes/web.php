@@ -15,47 +15,53 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('users.projects.index', Auth::id());
     });
 
+    // ==========================================
+    // PROJECT
+    // ==========================================
     Route::resource('projects', ProjectController::class)
         ->only(['create', 'store', 'show', 'edit', 'update', 'destroy']);
 
-    Route::post('projects/{project}/members', [ProjectController::class, 'storeMember'])
-        ->name('projects.members.store');
+    // PROJECT MEMBERS
+    Route::controller(ProjectController::class)
+        ->prefix('projects/{project}/members')
+        ->name('projects.members.')
+        ->group(function () {
+            Route::get('selectable', 'selectableMembers')->name('selectable');
+            Route::post('/', 'storeMember')->name('store');
+            Route::patch('{user}/role', 'updateMemberRole')->name('updateRole');
+            Route::delete('{user}', 'destroyMember')->name('destroy');
+        });
 
-    Route::patch('projects/{project}/members/{user}/role', [ProjectController::class, 'updateMemberRole'])
-        ->name('projects.members.updateRole');
-
-    Route::delete('projects/{project}/members/{user}', [ProjectController::class, 'destroyMember'])
-        ->name('projects.members.destroy');
-
-    Route::get('projects/{project}/members/selectable', [ProjectController::class, 'selectableMembers'])
-        ->name('projects.members.selectable');
-
-    Route::resource('tasks', TaskController::class)
-        ->only(['show', 'edit', 'update', 'destroy']);
-
-    Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])
-        ->name('tasks.updateTaskStatus');
-
-    Route::post('tasks/{task}/assignees', [TaskController::class, 'storeAssignee'])
-        ->name('tasks.assignees.store');
-
-    Route::delete('tasks/{task}/assignees/{user}', [TaskController::class, 'destroyAssignee'])
-        ->name('tasks.assignees.destroy');
-
-    Route::get('tasks/{task}/assignees/selectable', [TaskController::class, 'selectableAssignees'])
-        ->name('tasks.assignees.selectable');
-
+    // PROJECT TASKS
     Route::resource('projects.tasks', ProjectTaskController::class)
         ->only(['index', 'create', 'store']);
 
-    Route::resource('users', UserController::class)
-        ->only(['show']);
+    // ==========================================
+    // TASKS
+    // ==========================================
+    Route::resource('tasks', TaskController::class)
+        ->only(['show', 'edit', 'update', 'destroy']);
 
-    Route::resource('users.projects', UserProjectController::class)
-        ->only(['index']);
+    Route::controller(TaskController::class)
+        ->prefix('tasks/{task}')
+        ->name('tasks.')
+        ->group(function () {
+            Route::patch('status', 'updateTaskStatus')->name('updateTaskStatus');
 
-    Route::resource('users.tasks', UserTaskController::class)
-        ->only(['index']);
+            Route::prefix('assignees')->name('assignees.')->group(function () {
+                Route::get('selectable', 'selectableAssignees')->name('selectable');
+                Route::post('/', 'storeAssignee')->name('store');
+                Route::delete('{user}', 'destroyAssignee')->name('destroy');
+            });
+        });
+
+
+    // ==========================================
+    // USER
+    // ==========================================
+    Route::resource('users', UserController::class)->only(['show']);
+    Route::resource('users.projects', UserProjectController::class)->only(['index']);
+    Route::resource('users.tasks', UserTaskController::class)->only(['index']);
 
 });
 
