@@ -79,7 +79,7 @@
                 <i class="far fa-calendar-alt mr-1"></i>
 
                 <span title="Data de Início">
-                    {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m') : '--/--' }}
+                    {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/Y') : '--/--/----' }}
                 </span>
 
                 <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
