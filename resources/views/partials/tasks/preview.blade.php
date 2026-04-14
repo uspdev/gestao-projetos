@@ -87,7 +87,7 @@
                 <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
 
                 <span title="Prazo de Entrega"
-                    class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== 'COMPLETED' ? 'text-danger' : 'text-dark' }}">
+                    class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}">
                     {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : '--/--/----' }}
                 </span>
             </div>
