@@ -63,6 +63,22 @@ Route::middleware('auth')->group(function () {
     Route::resource('users.projects', UserProjectController::class)->only(['index']);
     Route::resource('users.tasks', UserTaskController::class)->only(['index']);
 
+
+    // ==========================================
+    // MENU
+    // ==========================================
+    Route::get('/meus-projetos', function () {
+        return redirect()->route('users.projects.index', Auth::id());
+    });
+
+    Route::get('/minhas-tasks', function () {
+        return redirect()->route('users.tasks.index', Auth::id());
+    });
+
+    Route::get('/meu-perfil', function () {
+        return redirect()->route('users.show', Auth::id());
+    });
+
 });
 
 Route::fallback(function () {
