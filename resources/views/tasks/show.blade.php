@@ -148,7 +148,12 @@
                                     <div class="col-6 border-right pr-2 d-flex align-items-center">
                                         <span class="text-muted small mr-2">Início:</span>
                                         <span class="font-weight-bold">
-                                            {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/y') : '--/--/----' }}
+                                            @if ($task->start_date)
+                                                <time class="local-date"
+                                                    datetime="{{ $task->start_date->format('Y-m-d') }}">{{ $task->start_date->format('Y-m-d') }}</time>
+                                            @else
+                                                --/--/----
+                                            @endif
                                         </span>
                                     </div>
                                     {{-- Prazo (Due Date) --}}
@@ -156,7 +161,12 @@
                                         <span class="text-muted small mr-2">Prazo:</span>
                                         <span
                                             class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}">
-                                            {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/y') : '--/--/----' }}
+                                            @if ($task->due_date)
+                                                <time class="local-date"
+                                                    datetime="{{ $task->due_date->format('Y-m-d') }}">{{ $task->due_date->format('Y-m-d') }}</time>
+                                            @else
+                                                --/--/----
+                                            @endif
                                         </span>
                                     </div>
                                 </div>

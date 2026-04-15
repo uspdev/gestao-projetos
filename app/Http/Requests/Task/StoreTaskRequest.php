@@ -26,8 +26,8 @@ class StoreTaskRequest extends FormRequest
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
             'status' => ['required', Rule::enum(TaskStatus::class)],
             'label' => ['nullable', Rule::enum(TaskLabel::class)],
-            'start_date' => ['nullable', 'date'],
-            'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
+            'due_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
         ];
     }
 
@@ -43,7 +43,9 @@ class StoreTaskRequest extends FormRequest
             'status.enum' => 'O status selecionado é inválido.',
             'label.enum' => 'O rótulo selecionado é inválido.',
             'start_date.date' => 'A data de início deve ser uma data válida.',
+            'start_date.date_format' => 'O formato da data de início é inválido.',
             'due_date.date' => 'A data de vencimento deve ser uma data válida.',
+            'due_date.date_format' => 'O formato da data de vencimento é inválido.',
             'due_date.after_or_equal' => 'A data de vencimento deve ser igual ou posterior à data de início.',
         ];
     }

@@ -22,7 +22,8 @@
             font-size: 1.12rem;
             font-weight: 800;
             line-height: 1.3;
-            min-height: 2.91rem; /* 2 linhas: 1.12rem (font-size) * 1.3 (line-height) * 2 (linhas) = 2.912rem */
+            min-height: 2.91rem;
+            /* 2 linhas: 1.12rem (font-size) * 1.3 (line-height) * 2 (linhas) = 2.912rem */
             color: #1f2937;
         }
 
@@ -81,14 +82,24 @@
                 <i class="far fa-calendar-alt mr-1"></i>
 
                 <span title="Data de Início">
-                    {{ $task->start_date ? \Carbon\Carbon::parse($task->start_date)->format('d/m/Y') : '--/--/----' }}
+                    @if ($task->start_date)
+                        <time class="local-date"
+                            datetime="{{ $task->start_date->format('Y-m-d') }}">{{ $task->start_date->format('Y-m-d') }}</time>
+                    @else
+                        --/--/----
+                    @endif
                 </span>
 
                 <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
 
                 <span title="Prazo de Entrega"
                     class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}">
-                    {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : '--/--/----' }}
+                    @if ($task->due_date)
+                        <time class="local-date"
+                            datetime="{{ $task->due_date->format('Y-m-d') }}">{{ $task->due_date->format('Y-m-d') }}</time>
+                    @else
+                        --/--/----
+                    @endif
                 </span>
             </div>
 
