@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Task;
 use App\Models\Project;
 
 class UserTaskController extends Controller
 {
     public function index(User $user)
     {
-        Gate::authorize('viewAny', [Task::class, $user]);
+        Gate::authorize('viewTasks', $user);
         $tasks = $user->tasks()
                       ->with([
                           'project:id,name,status',

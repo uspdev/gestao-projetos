@@ -19,4 +19,9 @@ class UserPolicy
     {
         return true;
     }
+
+    public function viewTasks(User $authUser, User $user): bool
+    {
+        return $authUser->id === $user->id;
+    }
 }
