@@ -103,7 +103,11 @@ class User extends Authenticatable
     {
         return $this->projects()
                     ->where('project_id', $project->id)
-                    ->wherePivot('role', ProjectUserRole::VIEWER->value)
+                    ->wherePivotIn('role', [
+                        ProjectUserRole::OWNER->value,
+                        ProjectUserRole::MEMBER->value,
+                        ProjectUserRole::VIEWER->value,
+                    ])
                     ->exists();
     }
 
