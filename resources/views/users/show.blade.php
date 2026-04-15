@@ -64,7 +64,7 @@
     {{-- Seção de Tarefas Atribuídas --}}
     <div>
         <h4 class="mb-3 text-secondary">
-            <i class="fas fa-tasks mr-2"></i> Tarefas Pendentes
+            <i class="fas fa-tasks mr-2"></i> Tarefas
         </h4>
         
         <div class="row">
