@@ -24,10 +24,10 @@ enum TaskStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::TO_DO => 'badge-secondary',
+            self::TO_DO => 'badge-success',
             self::IN_PROGRESS => 'badge-primary',
             self::IN_REVIEW => 'badge-info',
-            self::DONE => 'badge-success',
+            self::DONE => 'badge-secondary',
             self::HOLD => 'badge-warning',
         };
     }
