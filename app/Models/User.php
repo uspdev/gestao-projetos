@@ -143,6 +143,10 @@ class User extends Authenticatable
     {
         return $query->whereHas('projects', function ($q) use ($projectId) {
                 $q->where('projects.id', $projectId);
+                $q->whereIn('project_user.role', [
+                    ProjectUserRole::OWNER->value,
+                    ProjectUserRole::MEMBER->value,
+                ]);
             })
             ->whereDoesntHave('tasks', function ($q) use ($taskId) {
                 $q->where('tasks.id', $taskId);
