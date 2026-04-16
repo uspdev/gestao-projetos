@@ -7,6 +7,7 @@ $menu = [
         'active_patterns' => [
             'users.projects.*',
             'projects.*',
+            'tasks.*'
         ],
     ],
     [
@@ -14,7 +15,6 @@ $menu = [
         'url'  => 'minhas-tasks', 
         'active_patterns' => [
             'users.tasks.*',
-            'tasks.*',
         ],
     ],
     [
