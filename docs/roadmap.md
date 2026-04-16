@@ -106,6 +106,18 @@
 
 ---
 
+## 8.1 Navegação Dinâmica e Centralizada (Breadcrumbs)
+
+> **Problema:** Com a introdução de hierarquias complexas na Feature 8 (Pastas infinitas e Subtasks), a navegação estrutural baseada em código estático (*hardcoded*) nas *views* se tornará insustentável. Qualquer alteração de rota ou nível exigirá a modificação manual de dezenas de arquivos, gerando alto risco de *shotgun surgery* e inconsistência visual.
+>
+> **Solução:** Implementar um gerenciador centralizado de rotas de navegação que construa dinamicamente a trilha do usuário (*breadcrumb*), mapeando a árvore de dependências (Pai > Filho) em uma única fonte de verdade.
+
+* **Implementação:** Adoção do pacote `diglactic/laravel-breadcrumbs` (ou serviço customizado equivalente). Definição de *closures* em um arquivo central (`routes/breadcrumbs.php`) determinando a hierarquia das entidades, renderizado no front-end por um componente Blade único e burro.
+* **Prós:** Escala perfeitamente com a Feature 8, pois suporta recursividade nativa (uma subtask chama o breadcrumb da task pai, que chama a pasta, que chama o projeto). Desacopla a lógica de navegação dos Controllers e garante manutenção em um único arquivo.
+* **Contras:** Adiciona uma nova dependência ao projeto e requer configuração e mapeamento rigoroso de todas as ramificações de rotas criadas.
+
+---
+
 ## 9. Múltiplas Visões (View de Dev vs. View Administrativa)
 
 > **Problema:** Softwares como Jira são robustos, mas intimidam usuários não-técnicos. Equanto isso, softwares simplistas não atendem às métricas necessárias para desenvolvedores.
