@@ -7,7 +7,7 @@
         {{-- Navegação / Breadcrumb Simplificado --}}
         <div class="mb-3">
             <a href="{{ route('projects.show', $task->project_id) }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar para o Projeto
+                <i class="fas fa-arrow-left"></i> {{ $task->project->name }}
             </a>
         </div>
 
@@ -105,15 +105,6 @@
                     </div>
                     <div class="card-body p-3">
                         <ul class="list-unstyled m-0">
-                            {{-- Projeto --}}
-                            <li class="mb-3 border-bottom pb-2 d-flex align-items-center">
-                                <span class="text-muted small font-weight-bold mr-2">Projeto:</span>
-                                <a href="{{ route('projects.show', $task->project_id) }}"
-                                    class="small font-weight-bold text-primary" title="Acessar página do projeto">
-                                    <u>{{ $task->project->name ?? 'Acessar' }}</u>
-                                    <i class="fas fa-external-link-alt ml-1" style="font-size: 0.85em;"></i>
-                                </a>
-                            </li>
 
                             {{-- Prioridade e Tag --}}
                             <li class="mb-3 border-bottom pb-2">
