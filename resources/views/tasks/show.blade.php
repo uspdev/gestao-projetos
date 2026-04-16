@@ -4,11 +4,23 @@
 
 @section('content')
     <div class="container-fluid">
-        {{-- Navegação / Breadcrumb Simplificado --}}
-        <div class="mb-3">
-            <a href="{{ route('projects.show', $task->project_id) }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> {{ $task->project->name }}
+        {{-- Breadcrumb simplificado --}}
+        <div class="mb-4 d-flex align-items-center">
+            <a href="{{ route('users.projects.index', auth()->id()) }}" class="btn btn-sm btn-outline-secondary">
+                Meus Projetos
             </a>
+
+            <i class="fas fa-chevron-right text-muted mx-2" style="font-size: 0.8rem;"></i>
+
+            <a href="{{ route('projects.show', $task->project_id) }}" class="btn btn-sm btn-outline-secondary">
+                {{ $task->project->name }}
+            </a>
+
+            <i class="fas fa-chevron-right text-muted mx-2" style="font-size: 0.8rem;"></i>
+
+            <span class="btn btn-sm btn-outline-secondary font-weight-bold" style="pointer-events: none;">
+                {{ $task->title }}
+            </span>
         </div>
 
         @if (session('error'))

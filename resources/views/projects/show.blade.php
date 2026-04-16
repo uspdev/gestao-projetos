@@ -4,11 +4,19 @@
 
 @section('content')
     <div class="container-fluid">
-        {{-- Navegação / Breadcrumb Simplificado --}}
-        <div class="mb-3">
+        {{-- Breadcrumb simplificado --}}
+        <div class="mb-4 d-flex align-items-center">
+
             <a href="{{ route('users.projects.index', auth()->id()) }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Voltar para Projetos
+                Meus Projetos
             </a>
+
+            {{-- Separador --}}
+            <i class="fas fa-chevron-right text-muted mx-2" style="font-size: 0.8rem;"></i>
+
+            <span class="btn btn-sm btn-outline-secondary font-weight-bold" style="pointer-events: none;">
+                {{ $project->name }}
+            </span>
         </div>
 
         @if (session('error'))
@@ -32,12 +40,14 @@
                             <h2 class="m-0 text-dark font-weight-bold">{{ $project->name }}</h2>
                             <div>
                                 @can('update', $project)
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
+                                        data-target="#modalEditarProjeto">
                                         <i class="fas fa-edit"></i> Editar
                                     </button>
                                 @endcan
                                 @can('delete', $project)
-                                    <form method="POST" action="{{ route('projects.destroy', $project) }}" class="d-inline-block ml-1"
+                                    <form method="POST" action="{{ route('projects.destroy', $project) }}"
+                                        class="d-inline-block ml-1"
                                         onsubmit="return confirm('Deseja realmente excluir este projeto? Esta ação não pode ser desfeita.');">
                                         @csrf
                                         @method('DELETE')
@@ -116,7 +126,8 @@
                             <i class="fas fa-tasks mr-1"></i> Tasks
                         </h6>
                         @can('create', [\App\Models\Task::class, $project])
-                            <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask" title="Adicionar task">
+                            <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal"
+                                data-target="#modalNovaTask" title="Adicionar task">
                                 <i class="fas fa-plus"></i>
                             </button>
                         @endcan
@@ -139,7 +150,7 @@
     @can('storeMember', $project)
         @include('partials.projects.add-member', ['project' => $project])
     @endcan
-    
+
     @can('create', [\App\Models\Task::class, $project])
         @include('project-tasks.create', ['project_id' => $project->id])
     @endcan
@@ -156,6 +167,6 @@
         @endif
     @endcan
 
-</div>
+    </div>
 
 @endsection
