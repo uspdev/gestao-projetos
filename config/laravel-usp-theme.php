@@ -4,17 +4,35 @@ $menu = [
     [
         'text' => '<i class="fas fa-home"></i> Meus Projetos',
         'url'  => 'meus-projetos',
+        'active_patterns' => [
+            'users.projects.*',
+            'projects.*',
+        ],
     ],
     [
         'text' => '<i class="fas fa-tasks"></i> Minhas Tasks',
         'url'  => 'minhas-tasks', 
+        'active_patterns' => [
+            'users.tasks.*',
+            'tasks.*',
+        ],
     ],
     [
         'text' => '<i class="fas fa-user-circle"></i> Meu Perfil',
         'url'  => 'meu-perfil',
         'can'  => 'user',
+        'active_patterns' => [
+            'users.show',
+        ],
     ],
 ];
+
+$active_menu = [];
+foreach ($menu as $item) {
+    if (isset($item['active_patterns']) && isset($item['url'])) {
+        $active_menu[$item['url']] = $item['active_patterns'];
+    }
+}
 
 $right_menu = [
     [
@@ -32,7 +50,6 @@ $right_menu = [
         'align' => 'right',
     ],
 ];
-
 
 return [
     # valor default para a tag title, dentro da section title.
@@ -57,6 +74,7 @@ return [
     # menus
     'menu' => $menu,
     'right_menu' => $right_menu,
+    'active_menu' => $active_menu,
 
     # mensagens flash - https://uspdev.github.io/laravel#31-mensagens-flash
     'mensagensFlash' => true,
