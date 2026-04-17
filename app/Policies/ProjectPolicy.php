@@ -29,7 +29,11 @@ class ProjectPolicy
 
     public function create(User $user): bool
     {
-        return true;
+        return $user->canAny([
+            'senhaunica.estagiario',
+            'senhaunica.docente',
+            'senhaunica.servidor',
+        ]);
     }
 
     public function update(User $user, Project $project): bool
