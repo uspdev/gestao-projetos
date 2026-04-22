@@ -25,10 +25,10 @@ enum TaskLabel: string
     {
         return match ($this) {
             self::FIX => 'badge-danger',
-            self::FEATURE => 'badge-success',
-            self::TEST => 'badge-primary',
-            self::DOC => 'badge-info',
-            self::REFACTOR => 'badge-warning',
+            self::FEATURE => 'badge-primary',
+            self::TEST => 'badge-info',
+            self::DOC => 'badge-dark',
+            self::REFACTOR => 'badge-secondary',
         };
     }
 }

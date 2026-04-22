@@ -27,8 +27,8 @@ enum TaskStatus: string
             self::TO_DO => 'badge-success',
             self::IN_PROGRESS => 'badge-primary',
             self::IN_REVIEW => 'badge-info',
-            self::DONE => 'badge-secondary',
             self::HOLD => 'badge-warning',
+            self::DONE => 'badge-secondary',
         };
     }
 }

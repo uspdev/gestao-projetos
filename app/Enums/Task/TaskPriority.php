@@ -24,8 +24,8 @@ enum TaskPriority: int
         return match ($this) {
             self::URGENT => 'badge-danger',
             self::HIGH => 'badge-warning',
-            self::MEDIUM => 'badge-info',
-            self::LOW => 'badge-secondary',
+            self::MEDIUM => 'badge-secondary',
+            self::LOW => 'badge-light',
         };
     }
 }

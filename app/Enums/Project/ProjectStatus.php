@@ -26,12 +26,12 @@ enum ProjectStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::PLANNING => 'badge-secondary',
+            self::PLANNING => 'badge-light text-dark',
             self::DEVELOPMENT => 'badge-primary',
             self::PRODUCTION => 'badge-success',
-            self::DEACTIVATED => 'badge-danger',
-            self::MIGRATED => 'badge-info',
             self::HOLD => 'badge-warning',
+            self::MIGRATED => 'badge-info',
+            self::DEACTIVATED => 'badge-dark',
         };
     }
 }
