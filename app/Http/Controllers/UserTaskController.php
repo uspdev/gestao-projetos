@@ -8,6 +8,18 @@ use App\Models\Project;
 
 class UserTaskController extends Controller
 {
+    /**
+     * Construtor do controlador.
+     * Configura o middleware para ativar a URL no tema.
+     */
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \UspTheme::activeUrl('minhas-tasks');
+
+            return $next($request);
+        });
+    }
     public function index(User $user)
     {
         Gate::authorize('viewTasks', $user);

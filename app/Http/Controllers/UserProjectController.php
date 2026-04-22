@@ -8,6 +8,18 @@ use App\Models\Project;
 
 class UserProjectController extends Controller
 {
+    /**
+     * Construtor do controlador.
+     * Configura o middleware para ativar a URL no tema.
+     */
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \UspTheme::activeUrl('meus-projetos');
+
+            return $next($request);
+        });
+    }
     public function index(User $user)
     {
         Gate::authorize('viewAny', [Project::class, $user]);
