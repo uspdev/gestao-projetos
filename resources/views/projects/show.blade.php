@@ -39,12 +39,9 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $project->name }}</h2>
                             <div>
-                                @can('update', $project)
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
-                                        data-target="#modalEditarProjeto">
-                                        <i class="fas fa-edit"></i> Editar
-                                    </button>
-                                @endcan
+                                @includeWhen(auth()->user()->can('update', $project), 'projects.edit', [
+                                    'project' => $project,
+                                ])
                                 @can('delete', $project)
                                     <form method="POST" action="{{ route('projects.destroy', $project) }}"
                                         class="d-inline-block ml-1"
@@ -97,12 +94,9 @@
                         <h6 class="m-0 text-muted">
                             <i class="fas fa-users mr-1"></i> Membros do Projeto
                         </h6>
-                        @can('storeMember', $project)
-                            <button class="btn btn-sm btn-outline-success" title="Adicionar membro" data-toggle="modal"
-                                data-target="#addProjectMemberModal">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        @endcan
+                        @includeWhen(auth()->user()->can('storeMember', $project), 'partials.projects.add-member', [
+                            'project' => $project,
+                        ])
                     </div>
                     <ul class="list-group list-group-flush">
                         @forelse($project->users as $user)
@@ -125,12 +119,9 @@
                         <h6 class="m-0 text-muted">
                             <i class="fas fa-tasks mr-1"></i> Tasks
                         </h6>
-                        @can('create', [\App\Models\Task::class, $project])
-                            <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal"
-                                data-target="#modalNovaTask" title="Adicionar task">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        @endcan
+                        @includeWhen(auth()->user()->can('create', [\App\Models\Task::class, $project]), 'project-tasks.create', [
+                            'project_id' => $project->id,
+                        ])
                     </div>
                     <div class="card-body">
                         @include('project-tasks.index', [
@@ -142,18 +133,6 @@
             </div>
         </div>
     </div>
-
-    @can('update', $project)
-        @include('projects.edit', ['project' => $project])
-    @endcan
-
-    @can('storeMember', $project)
-        @include('partials.projects.add-member', ['project' => $project])
-    @endcan
-
-    @can('create', [\App\Models\Task::class, $project])
-        @include('project-tasks.create', ['project_id' => $project->id])
-    @endcan
 
     {{-- Reabre o modal caso haja erro de validação na edição --}}
     @can('update', $project)

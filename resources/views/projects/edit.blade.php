@@ -1,3 +1,7 @@
+<button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
+    <i class="fas fa-edit"></i> Editar
+</button>
+
 <div class="modal fade" id="modalEditarProjeto" tabindex="-1" aria-labelledby="modalEditarProjetoLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -11,7 +15,7 @@
             <form action="{{ route('projects.update', $project->id) }}" method="POST">
                 @csrf
                 @method('PUT')
-                
+
                 <div class="modal-body">
                     <div class="row">
                         {{-- Nome --}}

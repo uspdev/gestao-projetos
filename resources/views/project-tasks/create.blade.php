@@ -1,3 +1,8 @@
+<button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask"
+    title="Adicionar task">
+    <i class="fas fa-plus"></i>
+</button>
+
 <div class="modal fade" id="modalNovaTask" tabindex="-1" aria-labelledby="modalNovaTaskLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -7,7 +12,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            
+
             <form action="{{ route('projects.tasks.store', $project_id) }}" method="POST">
                 @csrf
                 <div class="modal-body">

@@ -6,12 +6,7 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Meus Projetos</h2>
-            {{-- Botão que exibe o Modal de criação --}}
-            @can('create', \App\Models\Project::class)
-                <button class="btn btn-success" type="button" data-toggle="modal" data-target="#modalNovoProjeto">
-                    <i class="fas fa-plus"></i> Novo Projeto
-                </button>
-            @endcan
+            @includeWhen(auth()->user()->can('create', \App\Models\Project::class), 'projects.create')
         </div>
 
         {{-- Listagem de Previews --}}
@@ -27,9 +22,6 @@
             @endforelse
         </div>
     </div>
-
-    {{-- Inclusão do Modal de Criação de Project --}}
-    @include('projects.create')
 
     @if ($errors->any() && old('name') !== null)
         <script>

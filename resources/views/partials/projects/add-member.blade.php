@@ -1,4 +1,8 @@
-@can('storeMember', $project)
+<button class="btn btn-sm btn-outline-success" title="Adicionar membro" type="button" data-toggle="modal"
+    data-target="#addProjectMemberModal">
+    <i class="fas fa-plus"></i>
+</button>
+
 <div class="modal fade" id="addProjectMemberModal" tabindex="-1" role="dialog" aria-labelledby="addProjectMemberModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -138,4 +142,3 @@
         });
     });
 </script>
-@endcan

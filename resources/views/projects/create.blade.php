@@ -1,3 +1,7 @@
+<button class="btn btn-success" type="button" data-toggle="modal" data-target="#modalNovoProjeto">
+    <i class="fas fa-plus"></i> Novo Projeto
+</button>
+
 <div class="modal fade" id="modalNovoProjeto" tabindex="-1" aria-labelledby="modalNovoProjetoLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
