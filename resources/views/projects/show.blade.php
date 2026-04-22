@@ -81,9 +81,7 @@
                     <div class="card-header bg-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted font-weight-bold">Status atual</span>
-                            <span class="badge {{ $project->status->color() }} p-2" style="font-size: 1rem;">
-                                {{ $project->status->label() }}
-                            </span>
+                            @include('projects.partials.update-status', ['project' => $project])
                         </div>
                     </div>
                 </div>

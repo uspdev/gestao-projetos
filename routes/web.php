@@ -19,6 +19,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('projects', ProjectController::class)
         ->only(['create', 'store', 'show', 'edit', 'update', 'destroy']);
 
+    Route::controller(ProjectController::class)
+        ->prefix('projects/{project}')
+        ->name('projects.')
+        ->group(function () {
+            Route::patch('status', 'updateProjectStatus')->name('updateStatus');
+        });
+
     // PROJECT MEMBERS
     Route::controller(ProjectController::class)
         ->prefix('projects/{project}/members')
