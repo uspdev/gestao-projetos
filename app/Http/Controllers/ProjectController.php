@@ -8,6 +8,7 @@ use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\StoreProjectMemberRequest;
 use App\Http\Requests\Project\UpdateProjectMemberRoleRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -70,7 +71,20 @@ class ProjectController extends Controller
         return redirect()->route('projects.show', $project)
                          ->with('success', 'Projeto atualizado com sucesso!');
     }
-    
+
+    public function updateProjectStatus(UpdateProjectStatusRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', 'Status do projeto atualizado com sucesso!');
+    }
+
     public function destroy(Project $project)
     {
         Gate::authorize('delete', $project);
