@@ -1,4 +1,8 @@
-@can('storeAssignee', $task)
+<button class="btn btn-sm btn-outline-success" title="Atribuir usuário" type="button" data-toggle="modal"
+    data-target="#addTaskAssigneeModal">
+    <i class="fas fa-plus"></i>
+</button>
+
 <div class="modal fade" id="addTaskAssigneeModal" tabindex="-1" role="dialog" aria-labelledby="addTaskAssigneeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -122,4 +126,3 @@
         });
     });
 </script>
-@endcan
