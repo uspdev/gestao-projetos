@@ -9,11 +9,9 @@ use App\Http\Controllers\UserProjectController;
 use App\Http\Controllers\UserTaskController;
 use App\Http\Controllers\UserController;
 
-Route::middleware('auth')->group(function () {
+Route::view('/', 'landing')->name('landing');
 
-    Route::get('/', function () {
-        return redirect()->route('users.projects.index', Auth::id());
-    });
+Route::middleware('auth')->group(function () {
 
     // ==========================================
     // PROJECT
