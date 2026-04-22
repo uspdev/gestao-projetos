@@ -4,26 +4,15 @@ $menu = [
     [
         'text' => '<i class="fas fa-home"></i> Meus Projetos',
         'url'  => 'meus-projetos',
-        'active_patterns' => [
-            'users.projects.*',
-            'projects.*',
-            'tasks.*'
-        ],
     ],
     [
         'text' => '<i class="fas fa-tasks"></i> Minhas Tasks',
-        'url'  => 'minhas-tasks', 
-        'active_patterns' => [
-            'users.tasks.*',
-        ],
+        'url'  => 'minhas-tasks',
     ],
     [
         'text' => '<i class="fas fa-user-circle"></i> Meu Perfil',
         'url'  => 'meu-perfil',
         'can'  => 'user',
-        'active_patterns' => [
-            'users.show',
-        ],
     ],
 ];
 
