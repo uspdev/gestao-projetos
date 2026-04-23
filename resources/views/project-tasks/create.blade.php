@@ -28,9 +28,11 @@
                         <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label for="status">Status <span class="text-danger">*</span></label>
-                                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
+                                <select name="status" id="status"
+                                    class="form-control @error('status') is-invalid @enderror" required>
                                     @foreach (\App\Enums\Task\TaskStatus::cases() as $status)
-                                        <option value="{{ $status->value }}" {{ old('status') == $status->value ? 'selected' : '' }}>
+                                        <option value="{{ $status->value }}"
+                                            {{ old('status') == $status->value ? 'selected' : '' }}>
                                             {{ $status->label() }}
                                         </option>
                                     @endforeach
@@ -44,10 +46,12 @@
                         <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label for="priority">Prioridade</label>
-                                <select name="priority" id="priority" class="form-control @error('priority') is-invalid @enderror">
+                                <select name="priority" id="priority"
+                                    class="form-control @error('priority') is-invalid @enderror">
                                     <option value="">Selecione...</option>
                                     @foreach (\App\Enums\Task\TaskPriority::cases() as $priority)
-                                        <option value="{{ $priority->value }}" {{ old('priority') == $priority->value ? 'selected' : '' }}>
+                                        <option value="{{ $priority->value }}"
+                                            {{ old('priority') == $priority->value ? 'selected' : '' }}>
                                             {{ $priority->label() }}
                                         </option>
                                     @endforeach
@@ -61,12 +65,13 @@
                         <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label for="label">Label (Tag)</label>
-                                <select name="label" id="label" class="form-control @error('label') is-invalid @enderror">
+                                <select name="label" id="label"
+                                    class="form-control @error('label') is-invalid @enderror">
                                     <option value="">Selecione...</option>
-                                    @foreach (\App\Enums\Task\TaskLabel::cases() as $label)
-                                        <option value="{{ $label->value }}" {{ old('label') == $label->value ? 'selected' : '' }}>
-                                            {{ $label->label() }}
-                                        </option>
+                                    @foreach ($task->tagsWithType('tasks') as $tag)
+                                        <span class="badge {{ $tag->color }}" title="Tag">
+                                            <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
+                                        </span>
                                     @endforeach
                                 </select>
                                 @error('label')

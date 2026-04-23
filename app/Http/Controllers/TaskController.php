@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,7 @@ class TaskController extends Controller
         $task = $task->load([
             'project:id,name,status',
             'users:id,name,email',
+            'tags:id,name,color,description',
         ]);
 
         return view('tasks.show', compact('task'));
@@ -27,7 +29,13 @@ class TaskController extends Controller
     public function edit(Task $task)
     {
         Gate::authorize('update', $task);
-        return view('tasks.edit', compact('task'));
+
+        $availableTags = Tag::getWithType('tasks')
+                            ->select('id', 'name', 'color', 'description')
+                            ->orderBy('name')
+                            ->get();
+
+        return view('tasks.edit', compact('task', 'availableTags'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)
@@ -37,6 +45,9 @@ class TaskController extends Controller
             $data['updated_by'] = Auth::id();
 
             $task->update($data);
+
+            $tags = $request->has('tags') ? $request->tags : [];
+            $task->syncTagsWithType($tags, 'tasks');
         });
 
         return redirect()->route('tasks.show', $task)

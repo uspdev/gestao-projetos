@@ -103,12 +103,13 @@
                                     {{-- Tag --}}
                                     <div class="col-6 pl-2 d-flex align-items-center">
                                         <span class="text-muted small mr-2">Tag:</span>
-                                        @if ($task->label instanceof \App\Enums\Task\TaskLabel)
-                                            <span
-                                                class="badge {{ $task->label->color() }}">{{ $task->label->label() }}</span>
-                                        @else
+                                        @forelse ($task->tagsWithType('tasks') as $tag)
+                                            <span class="badge {{ $tag->color }}">
+                                                <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
+                                            </span>
+                                        @empty
                                             <span class="text-muted font-italic small">-</span>
-                                        @endif
+                                        @endforelse
                                     </div>
                                 </div>
                             </li>

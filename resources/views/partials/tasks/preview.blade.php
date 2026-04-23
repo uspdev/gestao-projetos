@@ -70,11 +70,11 @@
                     </span>
                 @endif
 
-                @if ($task->label instanceof \App\Enums\Task\TaskLabel)
-                    <span class="badge {{ $task->label->color() }}" title="Tag">
-                        <i class="fas fa-tag mr-1"></i>{{ $task->label->label() }}
+                @foreach ($task->tagsWithType('tasks') as $tag)
+                    <span class="badge {{ $tag->color }}" title="Tag">
+                        <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
                     </span>
-                @endif
+                @endforeach
             </div>
 
             {{-- Lado Direito do Rodapé (Datas) --}}
