@@ -44,7 +44,7 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
                             <div>
-                                @includeWhen(auth()->user()->can('update', $task), 'tasks.edit', [
+                                @includeWhen(auth()->user()->can('update', $task), 'tasks.partials.edit', [
                                     'task' => $task,
                                 ])
                                 @can('delete', $task)
@@ -54,7 +54,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Excluir
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
                                 @endcan

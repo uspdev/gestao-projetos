@@ -39,7 +39,7 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $project->name }}</h2>
                             <div>
-                                @includeWhen(auth()->user()->can('update', $project), 'projects.edit', [
+                                @includeWhen(auth()->user()->can('update', $project), 'projects.partials.edit', [
                                     'project' => $project,
                                 ])
                                 @can('delete', $project)
@@ -49,7 +49,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Excluir
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
                                 @endcan
