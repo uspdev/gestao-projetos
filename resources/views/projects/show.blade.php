@@ -5,16 +5,16 @@
 @section('content')
     <div class="container-fluid">
         {{-- Breadcrumb simplificado --}}
-        <div class="mb-4 d-flex align-items-center">
+        <div class="mb-4 d-flex align-items-center" style="font-size: 1.2rem;">
 
-            <a href="{{ route('users.projects.index', auth()->id()) }}" class="btn btn-sm btn-outline-secondary">
+            <a href="{{ route('users.projects.index', auth()->id()) }}"
+            class="text-decoration-none text-secondary fw-medium">
                 Meus Projetos
             </a>
 
-            {{-- Separador --}}
-            <i class="fas fa-chevron-right text-muted mx-2" style="font-size: 0.8rem;"></i>
+            <i class="fas fa-chevron-right text-muted mx-2"></i>
 
-            <span class="btn btn-sm btn-outline-secondary font-weight-bold" style="pointer-events: none;">
+            <span class="text-dark fw-semibold">
                 {{ $project->name }}
             </span>
         </div>
