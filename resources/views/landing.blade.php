@@ -104,42 +104,6 @@
             margin-bottom: 3rem;
         }
 
-        /* Hover idêntico ao resources/views/partials/tasks/preview.blade.php */
-        .feature-card {
-            background: var(--landing-card);
-            border: 1px solid var(--landing-border);
-            border-radius: 0.9rem;
-            padding: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-6px) scale(1.01);
-            box-shadow: 0 1.1rem 2.2rem rgba(0, 0, 0, 0.2);
-        }
-
-        .feature-icon {
-            font-size: 1.8rem;
-            color: var(--landing-primary);
-            margin-bottom: 1rem;
-        }
-
-        .feature-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--landing-text);
-            margin-bottom: 0.75rem;
-        }
-
-        .feature-desc {
-            font-size: 0.95rem;
-            color: var(--landing-muted);
-            line-height: 1.5;
-            margin: 0;
-        }
-
         /* Roadmap Callout */
         .roadmap-callout {
             background: linear-gradient(160deg, var(--landing-primary) 0%, #0d5b6f 100%);
@@ -225,59 +189,59 @@
 
             <div class="features-grid">
 
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3 class="feature-title">Acesso Seguro Integrado</h3>
-                    <p class="feature-desc">
+                <x-card.preview class="h-100 shadow-sm border" >
+                    <div class="preview-card__feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3 class="preview-card__title preview-card__title--feature mb-2">Acesso Seguro Integrado</h3>
+                    <p class="preview-card__feature-desc">
                         Navegue em um ambiente 100% seguro utilizando sua <strong>Senha Única da USP</strong>. Sem
                         necessidade de criar novos cadastros ou memorizar novas senhas.
                     </p>
-                </div>
+                </x-card.preview>
 
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-project-diagram"></i></div>
-                    <h3 class="feature-title">Ciclo de Vida de Projetos</h3>
-                    <p class="feature-desc">
+                <x-card.preview class="h-100 shadow-sm border">
+                    <div class="preview-card__feature-icon"><i class="fas fa-project-diagram"></i></div>
+                    <h3 class="preview-card__title preview-card__title--feature mb-2">Ciclo de Vida de Projetos</h3>
+                    <p class="preview-card__feature-desc">
                         Crie e gerencie projetos acompanhando seu status real (Planejamento, Desenvolvimento, Produção,
                         etc.). Veja membros da equipe e todas as demandas em um só lugar.
                     </p>
-                </div>
+                </x-card.preview>
 
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
-                    <h3 class="feature-title">Colaboração e Permissões</h3>
-                    <p class="feature-desc">
+                <x-card.preview class="h-100 shadow-sm border">
+                    <div class="preview-card__feature-icon"><i class="fas fa-users-cog"></i></div>
+                    <h3 class="preview-card__title preview-card__title--feature mb-2">Colaboração e Permissões</h3>
+                    <p class="preview-card__feature-desc">
                         Adicione colegas aos seus projetos com papéis bem definidos (Proprietário, Membro ou Leitor). O
                         sistema garante de forma inteligente que funções críticas fiquem protegidas.
                     </p>
-                </div>
+                </x-card.preview>
 
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-tasks"></i></div>
-                    <h3 class="feature-title">Organização de Tarefas</h3>
-                    <p class="feature-desc">
+                <x-card.preview class="h-100 shadow-sm border">
+                    <div class="preview-card__feature-icon"><i class="fas fa-tasks"></i></div>
+                    <h3 class="preview-card__title preview-card__title--feature mb-2">Organização de Tarefas</h3>
+                    <p class="preview-card__feature-desc">
                         Quebre grandes entregas em tarefas menores. Defina responsáveis, níveis de prioridade, prazos de
                         entrega e o status atual de cada atividade.
                     </p>
-                </div>
+                </x-card.preview>
 
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-tags"></i></div>
-                    <h3 class="feature-title">Categorização e Filtros</h3>
-                    <p class="feature-desc">
+                <x-card.preview class="h-100 shadow-sm border">
+                    <div class="preview-card__feature-icon"><i class="fas fa-tags"></i></div>
+                    <h3 class="preview-card__title preview-card__title--feature mb-2">Categorização e Filtros</h3>
+                    <p class="preview-card__feature-desc">
                         Utilize etiquetas (labels) como 'Funcionalidade', 'Correção' ou 'Documentação' para classificar o
                         trabalho, mantendo o painel do projeto organizado visualmente.
                     </p>
-                </div>
+                </x-card.preview>
 
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-user-circle"></i></div>
-                    <h3 class="feature-title">Seu Espaço de Trabalho</h3>
-                    <p class="feature-desc">
+                <x-card.preview class="h-100 shadow-sm border">
+                    <div class="preview-card__feature-icon"><i class="fas fa-user-circle"></i></div>
+                    <h3 class="preview-card__title preview-card__title--feature mb-2">Seu Espaço de Trabalho</h3>
+                    <p class="preview-card__feature-desc">
                         Um painel pessoal dedicado onde você visualiza rapidamente seu perfil, atalhos de navegação e apenas
                         os projetos e as tarefas que estão atribuídas diretamente a você.
                     </p>
-                </div>
+                </x-card.preview>
 
             </div>
 
