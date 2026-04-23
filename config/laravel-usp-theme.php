@@ -4,10 +4,12 @@ $menu = [
     [
         'text' => '<i class="fas fa-home"></i> Meus Projetos',
         'url'  => 'meus-projetos',
+        'can'  => 'user',
     ],
     [
         'text' => '<i class="fas fa-tasks"></i> Minhas Tasks',
         'url'  => 'minhas-tasks',
+        'can'  => 'user',
     ],
     [
         'text' => '<i class="fas fa-user-circle"></i> Meu Perfil',
