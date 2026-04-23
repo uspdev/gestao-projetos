@@ -1,5 +1,5 @@
 <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
-    <i class="fas fa-edit"></i> Editar
+    <i class="fas fa-edit"></i>
 </button>
 
 <div class="modal fade" id="modalEditarProjeto" tabindex="-1" aria-labelledby="modalEditarProjetoLabel" aria-hidden="true">

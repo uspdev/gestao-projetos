@@ -5,20 +5,23 @@
 @section('content')
     <div class="container-fluid">
         {{-- Breadcrumb simplificado --}}
-        <div class="mb-4 d-flex align-items-center">
-            <a href="{{ route('users.projects.index', auth()->id()) }}" class="btn btn-sm btn-outline-secondary">
+        <div class="mb-4 d-flex align-items-center" style="font-size: 1.1rem;">
+
+            <a href="{{ route('users.projects.index', auth()->id()) }}"
+            class="text-decoration-none text-secondary fw-medium">
                 Meus Projetos
             </a>
 
-            <i class="fas fa-chevron-right text-muted mx-2" style="font-size: 0.8rem;"></i>
+            <i class="fas fa-chevron-right text-muted mx-2"></i>
 
-            <a href="{{ route('projects.show', $task->project_id) }}" class="btn btn-sm btn-outline-secondary">
+            <a href="{{ route('projects.show', $task->project_id) }}"
+            class="text-decoration-none text-secondary fw-medium">
                 {{ $task->project->name }}
             </a>
 
-            <i class="fas fa-chevron-right text-muted mx-2" style="font-size: 0.8rem;"></i>
+            <i class="fas fa-chevron-right text-muted mx-2"></i>
 
-            <span class="btn btn-sm btn-outline-secondary font-weight-bold" style="pointer-events: none;">
+            <span class="text-dark fw-semibold">
                 {{ $task->title }}
             </span>
         </div>
@@ -41,7 +44,7 @@
                         <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
                             <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
                             <div>
-                                @includeWhen(auth()->user()->can('update', $task), 'tasks.edit', [
+                                @includeWhen(auth()->user()->can('update', $task), 'tasks.partials.edit', [
                                     'task' => $task,
                                 ])
                                 @can('delete', $task)
@@ -51,7 +54,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Excluir
+                                            <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
                                 @endcan
