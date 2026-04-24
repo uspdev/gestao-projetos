@@ -111,6 +111,13 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function belongsToProject(Project $project): bool
+    {
+        return $this->projects()
+            ->where('project_id', $project->id)
+            ->exists();
+    }
+
     public function isMemberOfProject(Project $project): bool
     {
         return $this->projects()

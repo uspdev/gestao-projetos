@@ -119,14 +119,14 @@ class ProjectController extends Controller
 
     public function updateMemberRole(UpdateProjectMemberRoleRequest $request, Project $project, User $user)
     {
-        abort_unless($user->isMemberOfProject($project), 404);
+        abort_unless($user->belongsToProject($project), 404);
 
         $data = $request->validated();
         $newRole = ProjectUserRole::from($data['role']);
 
         if ($project->isLastOwner($user) && $newRole !== ProjectUserRole::OWNER) {
             return redirect()->route('projects.show', $project)
-                ->with('error', 'O último owner do projeto não pode ter sua role alterada.');
+                ->with('error', 'O último dono do projeto não pode ter sua role alterada.');
         }
 
         DB::transaction(function () use ($project, $user, $newRole) {
@@ -164,7 +164,7 @@ class ProjectController extends Controller
 
             if ($ownersCount <= 1) {
                 return redirect()->route('projects.show', $project)
-                    ->with('error', 'O projeto precisa ter pelo menos um owner.');
+                    ->with('error', 'O projeto precisa ter pelo menos um dono.');
             }
         }
 
