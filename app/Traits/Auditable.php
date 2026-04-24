@@ -19,7 +19,7 @@ trait Auditable
 
         static::deleting(function ($model) {
             $model->deleted_by = self::getCurrentUserId();
-            $model->saveQuietly(); 
+            $model->saveQuietly();
         });
     }
 
@@ -32,7 +32,7 @@ trait Auditable
 
         // Se a biblioteca usa um header específico ou outro método de injeção na Request:
         // return request()->header('X-User-ID') ?? null;
-        
+
         return null; // Retorna null para ações feitas pelo sistema (ex: CRON jobs)
     }
 }

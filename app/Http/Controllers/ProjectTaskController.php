@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Task\TaskStatus;
 use App\Http\Requests\Task\StoreTaskRequest;
-use App\Models\Project; 
+use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,13 +17,13 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('viewAny', [Task::class, $project]);
         $tasks = $project->tasks()
-                         ->with('project:id,name,status')
-                         ->with('users:id,name')
-                         ->with('tags:id,name,color,description')
-                         ->orderBy('priority', 'asc')
-                         ->latest()
-                         ->get();
-        
+            ->with('project:id,name,status')
+            ->with('users:id,name')
+            ->with('tags:id,name,color,description')
+            ->orderBy('priority', 'asc')
+            ->latest()
+            ->get();
+
         return view('project-tasks.index', compact('tasks', 'project'));
     }
 
@@ -32,9 +32,9 @@ class ProjectTaskController extends Controller
         Gate::authorize('create', [Task::class, $project]);
 
         $availableTags = Tag::getWithType('tasks')
-                            ->select('id', 'name', 'color')
-                            ->orderBy('name')
-                            ->get();
+            ->select('id', 'name', 'color')
+            ->orderBy('name')
+            ->get();
 
         return view('project-tasks.create', compact('project', 'availableTags'));
     }
@@ -59,6 +59,6 @@ class ProjectTaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
-                         ->with('success', 'Tarefa criada com sucesso!');
+            ->with('success', 'Tarefa criada com sucesso!');
     }
 }

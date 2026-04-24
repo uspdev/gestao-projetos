@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
         $adminPermission = Permission::findOrCreate('admin', User::$hierarquiaNs);
 
         $adminCodpes = collect((array) config('senhaunica.admins', []))
-            ->map(fn ($codpes) => trim((string) $codpes))
+            ->map(fn($codpes) => trim((string) $codpes))
             ->filter();
 
         if ($adminCodpes->isEmpty()) {

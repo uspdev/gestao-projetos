@@ -47,7 +47,8 @@ class HomeTest extends DuskTestCase
         });
     }
 
-    public function testHome(){
+    public function testHome()
+    {
         $this->browse(function ($browser) {
             $browser->loginAs(SELF::getUser())
                 ->visit('/')

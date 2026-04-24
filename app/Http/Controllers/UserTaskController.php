@@ -24,16 +24,16 @@ class UserTaskController extends Controller
     {
         Gate::authorize('viewTasks', $user);
         $tasks = $user->tasks()
-                      ->with([
-                          'project:id,name,status',
-                          'users:id,name',
-                      ])
-                      ->orderBy(
-                        Project::select('name')
-                               ->whereColumn('projects.id', 'tasks.project_id')
-                      )
-                      ->latest()
-                      ->get();
+            ->with([
+                'project:id,name,status',
+                'users:id,name',
+            ])
+            ->orderBy(
+                Project::select('name')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+            )
+            ->latest()
+            ->get();
 
         return view('user-tasks.index', compact('tasks', 'user'));
     }

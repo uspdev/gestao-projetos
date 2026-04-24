@@ -37,7 +37,7 @@ use Spatie\Tags\Tag as SpatieTag;
  * @mixin \Eloquent
  */
 class Tag extends SpatieTag
-{    
+{
     public $fillable = [
         'name',
         'slug',
@@ -45,7 +45,7 @@ class Tag extends SpatieTag
         'order_column',
 
         //adições
-        'color',        
-        'description', 
+        'color',
+        'description',
     ];
 }

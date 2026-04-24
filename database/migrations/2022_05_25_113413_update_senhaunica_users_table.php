@@ -17,8 +17,8 @@ class UpdateSenhaunicaUsersTable extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('password')->nullable()->change(); # deixar opcional
             if (!Schema::hasColumn('users', 'codpes')) {
-                    // https://stackoverflow.com/questions/20822159/laravel-migration-with-sqlite-cannot-add-a-not-null-column-with-default-value-n
-                    if ('sqlite' === Schema::connection($this->getConnection())->getConnection()->getDriverName()) {
+                // https://stackoverflow.com/questions/20822159/laravel-migration-with-sqlite-cannot-add-a-not-null-column-with-default-value-n
+                if ('sqlite' === Schema::connection($this->getConnection())->getConnection()->getDriverName()) {
                     $table->integer('codpes')->nullable();
                 } else {
                     $table->integer('codpes');

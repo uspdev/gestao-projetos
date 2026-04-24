@@ -6,7 +6,7 @@ use App\Models\Project;
 use App\Models\User;
 
 class ProjectPolicy
-{   
+{
 
     public function before(User $user, $ability): ?bool
     {
@@ -18,7 +18,7 @@ class ProjectPolicy
     }
 
     public function viewAny(User $user): bool
-    {   
+    {
         return true;
     }
 

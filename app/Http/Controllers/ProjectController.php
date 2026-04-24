@@ -39,7 +39,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->route('projects.show', $project)
-                         ->with('success', 'Projeto criado com sucesso!');
+            ->with('success', 'Projeto criado com sucesso!');
     }
 
     public function show(Project $project)
@@ -52,7 +52,7 @@ class ProjectController extends Controller
         ]);
 
         $availableTags = Tag::withType('tasks')
-            ->select('id', 'name', 'color','description')
+            ->select('id', 'name', 'color', 'description')
             ->orderBy('name')
             ->get();
 
@@ -76,7 +76,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->route('projects.show', $project)
-                         ->with('success', 'Projeto atualizado com sucesso!');
+            ->with('success', 'Projeto atualizado com sucesso!');
     }
 
     public function updateProjectStatus(UpdateProjectStatusRequest $request, Project $project)
@@ -100,7 +100,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->route('users.projects.index', Auth::id())
-                         ->with('success', 'Projeto excluido com sucesso!');
+            ->with('success', 'Projeto excluido com sucesso!');
     }
 
     public function storeMember(StoreProjectMemberRequest $request, Project $project)

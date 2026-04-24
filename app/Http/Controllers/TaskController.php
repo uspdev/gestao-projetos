@@ -36,11 +36,11 @@ class TaskController extends Controller
         Gate::authorize('update', $task);
 
         $availableTags = Tag::withType('tasks')
-                            ->select('id', 'name', 'color', 'description')
-                            ->orderBy('name')
-                            ->get();
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
 
-        return view('tasks.edit', compact('task', 'availableTags'));
+        return view('tasks.partials.edit', compact('task', 'availableTags'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)
@@ -59,7 +59,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
-                         ->with('success', 'Tarefa atualizada com sucesso!');
+            ->with('success', 'Tarefa atualizada com sucesso!');
     }
 
     public function destroy(Task $task)
@@ -70,7 +70,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('projects.show', $task->project)
-                         ->with('success', 'Tarefa excluida com sucesso!');
+            ->with('success', 'Tarefa excluida com sucesso!');
     }
 
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
@@ -83,7 +83,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
-                         ->with('success', 'Status da tarefa atualizado com sucesso!');
+            ->with('success', 'Status da tarefa atualizado com sucesso!');
     }
 
     public function storeAssignee(StoreTaskAssigneeRequest $request, Task $task)

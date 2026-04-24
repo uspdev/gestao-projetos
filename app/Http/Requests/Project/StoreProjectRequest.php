@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProjectRequest extends FormRequest
 {
-    public function authorize(): bool 
+    public function authorize(): bool
     {
         return $this->user()->can('create', Project::class);
     }
@@ -24,17 +24,16 @@ class StoreProjectRequest extends FormRequest
     }
 
     public function messages(): array
-        {
-            return [
-                'name.required' => 'O nome do projeto é obrigatório.',
-                'name.min' => 'O nome do projeto deve ter pelo menos :min caracteres.',
-                'name.max' => 'O nome do projeto não pode exceder :max caracteres.',
-                
-                'status.required' => 'É necessário definir um status para o projeto.',
-                'status.enum' => 'O status selecionado é inválido.',
-                
-                'description.max' => 'A descrição é muito longa. O limite é de :max caracteres.',
-            ];
-        }
+    {
+        return [
+            'name.required' => 'O nome do projeto é obrigatório.',
+            'name.min' => 'O nome do projeto deve ter pelo menos :min caracteres.',
+            'name.max' => 'O nome do projeto não pode exceder :max caracteres.',
 
+            'status.required' => 'É necessário definir um status para o projeto.',
+            'status.enum' => 'O status selecionado é inválido.',
+
+            'description.max' => 'A descrição é muito longa. O limite é de :max caracteres.',
+        ];
+    }
 }

@@ -48,7 +48,7 @@ class TaskFactory extends Factory
 
             if (!empty($availableTagIds)) {
                 $selectedIds = $this->faker->randomElements($availableTagIds, $this->faker->numberBetween(0, 2));
-                
+
                 $task->tags()->attach($selectedIds);
             }
         });

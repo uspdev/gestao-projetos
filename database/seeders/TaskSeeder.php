@@ -26,9 +26,9 @@ class TaskSeeder extends Seeder
                 ->unique()
                 ->values();
 
-            $randomCreatorId = $projectUserIds->isNotEmpty() 
-                           ? $projectUserIds->random() 
-                           : $allUsers->random();
+            $randomCreatorId = $projectUserIds->isNotEmpty()
+                ? $projectUserIds->random()
+                : $allUsers->random();
 
             $tasks = Task::factory()
                 ->count(random_int(4, 10))
@@ -57,8 +57,8 @@ class TaskSeeder extends Seeder
     private function resolveAdminUsers(): Collection
     {
         $adminCodpes = collect(explode(',', (string) env('SENHAUNICA_ADMINS', '')))
-            ->map(fn (string $codpes): string => trim($codpes))
-            ->filter(fn (string $codpes): bool => $codpes !== '');
+            ->map(fn(string $codpes): string => trim($codpes))
+            ->filter(fn(string $codpes): bool => $codpes !== '');
 
         if ($adminCodpes->isEmpty()) {
             return collect();

@@ -69,7 +69,7 @@ return [
     'debug' => (bool) env('SENHAUNICA_DEBUG', true),
 
     'dev' => env('SENHAUNICA_DEV', 'no'),
-    
+
     'callback_id' => env('SENHAUNICA_CALLBACK_ID'),
 
     // codigo da unidade para identificar logins proprios

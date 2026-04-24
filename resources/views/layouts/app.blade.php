@@ -32,5 +32,4 @@
   </script>
 
   @include('partials.date-formatter-script')
-
 @endsection

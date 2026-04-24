@@ -83,7 +83,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/meu-perfil', function () {
         return redirect()->route('users.show', Auth::id());
     });
-
 });
 
 Route::fallback(function () {

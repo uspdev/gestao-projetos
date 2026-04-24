@@ -88,43 +88,43 @@ class User extends Authenticatable
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)
-                    ->using(ProjectUser::class)
-                    ->withPivot('role')
-                    ->withTimestamps();
+            ->using(ProjectUser::class)
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(Task::class)
-                    ->withTimestamps();
+            ->withTimestamps();
     }
 
     public function isViewerOfProject(Project $project): bool
     {
         return $this->projects()
-                    ->where('project_id', $project->id)
-                    ->wherePivotIn('role', [
-                        ProjectUserRole::OWNER->value,
-                        ProjectUserRole::MEMBER->value,
-                        ProjectUserRole::VIEWER->value,
-                    ])
-                    ->exists();
+            ->where('project_id', $project->id)
+            ->wherePivotIn('role', [
+                ProjectUserRole::OWNER->value,
+                ProjectUserRole::MEMBER->value,
+                ProjectUserRole::VIEWER->value,
+            ])
+            ->exists();
     }
 
     public function isMemberOfProject(Project $project): bool
-    {   
+    {
         return $this->projects()
-                ->where('project_id', $project->id)
-                ->wherePivotIn('role', [ProjectUserRole::OWNER->value, ProjectUserRole::MEMBER->value])
-                ->exists();
+            ->where('project_id', $project->id)
+            ->wherePivotIn('role', [ProjectUserRole::OWNER->value, ProjectUserRole::MEMBER->value])
+            ->exists();
     }
 
     public function isOwnerOfProject(Project $project): bool
     {
         return $this->projects()
-                    ->where('project_id', $project->id)
-                    ->wherePivot('role', ProjectUserRole::OWNER->value)
-                    ->exists();
+            ->where('project_id', $project->id)
+            ->wherePivot('role', ProjectUserRole::OWNER->value)
+            ->exists();
     }
 
     public function isTaskAssignee(Task $task): bool
@@ -135,19 +135,19 @@ class User extends Authenticatable
     public function scopeSelectableToProject(Builder $query, int $projectId): Builder
     {
         return $query->whereDoesntHave('projects', function ($q) use ($projectId) {
-                $q->where('projects.id', $projectId);
-                })->orderBy('name');
+            $q->where('projects.id', $projectId);
+        })->orderBy('name');
     }
 
     public function scopeSelectableToTask(Builder $query, int $taskId, int $projectId): Builder
     {
         return $query->whereHas('projects', function ($q) use ($projectId) {
-                $q->where('projects.id', $projectId);
-                $q->whereIn('project_user.role', [
-                    ProjectUserRole::OWNER->value,
-                    ProjectUserRole::MEMBER->value,
-                ]);
-            })
+            $q->where('projects.id', $projectId);
+            $q->whereIn('project_user.role', [
+                ProjectUserRole::OWNER->value,
+                ProjectUserRole::MEMBER->value,
+            ]);
+        })
             ->whereDoesntHave('tasks', function ($q) use ($taskId) {
                 $q->where('tasks.id', $taskId);
             })
