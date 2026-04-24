@@ -63,7 +63,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('update', $project);
 
-        return view('projects.edit', compact('project'));
+        return view('projects.partials.edit', compact('project'));
     }
 
     public function update(UpdateProjectRequest $request, Project $project)
