@@ -26,12 +26,12 @@
                 </span>
             @endif
 
-            @if ($task->label instanceof \App\Enums\Task\TaskLabel)
-                <span class="badge {{ $task->label->color() }}" title="Tag">
-                    <i class="fas fa-tag mr-1"></i>{{ $task->label->label() }}
-                </span>
-            @endif
-        </div>
+                @foreach ($task->tagsWithType('tasks') as $tag)
+                    <span class="badge {{ $tag->color }}" title="Tag">
+                        <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
+                    </span>
+                @endforeach
+            </div>
 
         <div class="text-muted text-right text-nowrap pl-2" style="font-size: 0.85rem;">
             <i class="far fa-calendar-alt mr-1"></i>

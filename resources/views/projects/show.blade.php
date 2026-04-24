@@ -119,6 +119,7 @@
                         </h6>
                         @includeWhen(auth()->user()->can('create', [\App\Models\Task::class, $project]), 'project-tasks.create', [
                             'project_id' => $project->id,
+                            'availableTags' => $availableTags,
                         ])
                     </div>
                     <div class="card-body">

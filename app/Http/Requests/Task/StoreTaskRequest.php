@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Task;
 
-use App\Enums\Task\TaskLabel;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Task;
@@ -25,9 +24,11 @@ class StoreTaskRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:10000'],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
             'status' => ['required', Rule::enum(TaskStatus::class)],
-            'label' => ['nullable', Rule::enum(TaskLabel::class)],
             'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
             'due_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['integer', 'exists:tags,id'],
         ];
     }
 

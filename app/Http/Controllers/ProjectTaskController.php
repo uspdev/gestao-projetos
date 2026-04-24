@@ -9,6 +9,7 @@ use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use App\Models\Tag;
 
 class ProjectTaskController extends Controller
 {
@@ -18,6 +19,7 @@ class ProjectTaskController extends Controller
         $tasks = $project->tasks()
                          ->with('project:id,name,status')
                          ->with('users:id,name')
+                         ->with('tags:id,name,color,description')
                          ->orderBy('priority', 'asc')
                          ->latest()
                          ->get();
@@ -29,7 +31,12 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        return view('project-tasks.create', compact('project'));
+        $availableTags = Tag::getWithType('tasks')
+                            ->select('id', 'name', 'color')
+                            ->orderBy('name')
+                            ->get();
+
+        return view('project-tasks.create', compact('project', 'availableTags'));
     }
 
     public function store(StoreTaskRequest $request, Project $project)
@@ -42,6 +49,11 @@ class ProjectTaskController extends Controller
 
             $task = Task::create($data);
             $task->users()->attach(Auth::id());
+
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
+                $task->syncTagsWithType($tagsToSync, 'tasks');
+            }
 
             return $task;
         });

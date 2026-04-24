@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -19,15 +20,27 @@ class TaskController extends Controller
         $task = $task->load([
             'project:id,name,status',
             'users:id,name,email',
+            'tags:id,name,color,description',
         ]);
 
-        return view('tasks.show', compact('task'));
+        $availableTags = Tag::withType('tasks')
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
+
+        return view('tasks.show', compact('task', 'availableTags'));
     }
 
     public function edit(Task $task)
     {
         Gate::authorize('update', $task);
-        return view('tasks.edit', compact('task'));
+
+        $availableTags = Tag::withType('tasks')
+                            ->select('id', 'name', 'color', 'description')
+                            ->orderBy('name')
+                            ->get();
+
+        return view('tasks.edit', compact('task', 'availableTags'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)
@@ -37,6 +50,12 @@ class TaskController extends Controller
             $data['updated_by'] = Auth::id();
 
             $task->update($data);
+
+            $tagsToSync = [];
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
+            }
+            $task->syncTagsWithType($tagsToSync, 'tasks');
         });
 
         return redirect()->route('tasks.show', $task)

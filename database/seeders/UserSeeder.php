@@ -14,6 +14,7 @@ class UserSeeder extends Seeder
         User::factory()->count(10)->create();
 
         $this->ensureSenhaunicaHierarchyPermissions();
+        $this->ensureSenhaunicaPermissions();
         $this->assignAdminPermissionFromEnv();
     }
 
@@ -21,6 +22,15 @@ class UserSeeder extends Seeder
     {
         foreach (User::$permissoesHierarquia as $permissionName) {
             Permission::findOrCreate($permissionName, User::$hierarquiaNs);
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    private function ensureSenhaunicaPermissions(): void
+    {
+        foreach (User::$permissoesVinculo as $permissionName) {
+            Permission::findOrCreate($permissionName, User::$vinculoNs);
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

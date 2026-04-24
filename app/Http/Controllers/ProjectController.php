@@ -10,6 +10,7 @@ use App\Http\Requests\Project\UpdateProjectMemberRoleRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Models\Project;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -46,10 +47,16 @@ class ProjectController extends Controller
         Gate::authorize('view', $project);
         $project = $project->load([
             'users:id,name,email',
-            'tasks:id,project_id,title,priority,status,label,start_date,due_date',
+            'tasks:id,project_id,title,priority,status,start_date,due_date',
+            'tasks.tags',
         ]);
 
-        return view('projects.show', compact('project'));
+        $availableTags = Tag::withType('tasks')
+            ->select('id', 'name', 'color','description')
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.show', compact('project', 'availableTags'));
     }
 
     public function edit(Project $project)

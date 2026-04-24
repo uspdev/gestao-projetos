@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\Tags\HasTags;
 
 /**
  * @property int $id
@@ -46,11 +47,19 @@ use Illuminate\Database\Eloquent\Builder;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
  * @method static Builder<static>|Project accessibleBy(\App\Models\User $user)
  * @property-read \App\Models\ProjectUser|null $pivot
+ * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\Tag> $tags
+ * @property-read int|null $tags_count
+ * @method static Builder<static>|Project withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Project withAllTagsOfAnyType($tags)
+ * @method static Builder<static>|Project withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
+ * @method static Builder<static>|Project withAnyTagsOfAnyType($tags)
+ * @method static Builder<static>|Project withAnyTagsOfType(array|string $type)
+ * @method static Builder<static>|Project withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @mixin \Eloquent
  */
 class Project extends Model
 {
-    use HasFactory, SoftDeletes, Auditable;
+    use HasFactory, SoftDeletes, Auditable, HasTags;
 
     protected array $roleByUserCache = [];
 

@@ -20,16 +20,18 @@
                     {{-- Título --}}
                     <div class="row">
                         <div class="col-12">
-                            <x-form.input name="title" label="Título da Tarefa" value="{{ $task->title }}" required />
+                            <x-form.input name="title" label="Título da Tarefa" value="{{ $task->title }}"
+                                required />
                         </div>
                     </div>
 
-                    {{-- Classificações (Status, Prioridade e Label) --}}
+                    {{-- Classificações (Status, Prioridade e Tags) --}}
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label for="status">Status <span class="text-danger">*</span></label>
-                                <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
+                                <select name="status" id="status"
+                                    class="form-control @error('status') is-invalid @enderror" required>
                                     @foreach (\App\Enums\Task\TaskStatus::cases() as $status)
                                         <option value="{{ $status->value }}"
                                             {{ old('status', $task->status?->value) === $status->value ? 'selected' : '' }}>
@@ -46,7 +48,8 @@
                         <div class="col-md-4">
                             <div class="form-group mb-3">
                                 <label for="priority">Prioridade</label>
-                                <select name="priority" id="priority" class="form-control @error('priority') is-invalid @enderror">
+                                <select name="priority" id="priority"
+                                    class="form-control @error('priority') is-invalid @enderror">
                                     <option value="">Selecione...</option>
                                     @foreach (\App\Enums\Task\TaskPriority::cases() as $priority)
                                         <option value="{{ $priority->value }}"
@@ -63,17 +66,25 @@
 
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                <label for="label">Tag (Label)</label>
-                                <select name="label" id="label" class="form-control @error('label') is-invalid @enderror">
-                                    <option value="">Selecione...</option>
-                                    @foreach (\App\Enums\Task\TaskLabel::cases() as $label)
-                                        <option value="{{ $label->value }}"
-                                            {{ old('label', $task->label?->value) === $label->value ? 'selected' : '' }}>
-                                            {{ $label->label() }}
+                                <label for="tags">Tags</label>
+                                <select name="tags[]" id="tags" multiple
+                                    class="form-control @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
+                                    @php
+                                        $selectedTags = collect(old('tags', $task->tagsWithType('tasks')->pluck('id')->all()))
+                                            ->map(fn ($id) => (int) $id)
+                                            ->all();
+                                    @endphp
+                                    @foreach ($availableTags as $tag)
+                                        <option value="{{ $tag->id }}" {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
+                                            {{ $tag->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('label')
+                                <small class="form-text text-muted">Use Ctrl/Cmd para selecionar mais de uma tag.</small>
+                                @error('tags')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @error('tags.*')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -95,7 +106,8 @@
                     {{-- Descrição --}}
                     <div class="row">
                         <div class="col-12">
-                            <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $task->description }}" rows="4" />
+                            <x-form.textarea name="description" label="Descrição Detalhada"
+                                value="{{ $task->description }}" rows="4" />
                         </div>
                     </div>
                 </div>

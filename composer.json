@@ -21,6 +21,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.5",
         "spatie/commonmark-highlighter": "^3.0",
+        "spatie/laravel-tags": "^4.11",
         "uspdev/laravel-replicado": "^1.0",
         "uspdev/laravel-tools": "^1.6",
         "uspdev/laravel-usp-theme": "^2.8",
