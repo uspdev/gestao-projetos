@@ -25,7 +25,9 @@ class UserController extends Controller
         $user = $user->load([
             'roles:id,name',
             'projects:id,name,status',
-            'tasks:id,project_id,title,priority,status,label,start_date,due_date',
+            'tasks:id,project_id,title,priority,status,start_date,due_date',
+            'tasks.project:id,name',
+            'tasks.tags',
         ]);
 
         return view('users.show', compact('user'));

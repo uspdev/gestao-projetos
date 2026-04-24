@@ -12,6 +12,8 @@ class TagSeeder extends Seeder
         $initialTaskTags = [
             [
                 'name' => 'Fix',
+                //'name => 'Correção'
+                //'slug' => 'fix',
                 'type' => 'tasks',
                 'color' => 'badge-danger',
                 'description' => 'Correção de bugs ou falhas críticas.',

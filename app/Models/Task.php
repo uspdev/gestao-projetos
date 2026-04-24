@@ -19,7 +19,6 @@ use Spatie\Tags\HasTags;
  * @property string|null $description
  * @property string|null $priority
  * @property string $status
- * @property string|null $label
  * @property \Illuminate\Support\Carbon|null $start_date
  * @property \Illuminate\Support\Carbon|null $due_date
  * @property int|null $created_by

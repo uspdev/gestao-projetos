@@ -51,7 +51,8 @@ class ProjectTaskController extends Controller
             $task->users()->attach(Auth::id());
 
             if ($request->has('tags')) {
-                $task->syncTagsWithType($request->tags, 'tasks');
+                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
+                $task->syncTagsWithType($tagsToSync, 'tasks');
             }
 
             return $task;

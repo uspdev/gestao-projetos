@@ -23,14 +23,19 @@ class TaskController extends Controller
             'tags:id,name,color,description',
         ]);
 
-        return view('tasks.show', compact('task'));
+        $availableTags = Tag::withType('tasks')
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
+
+        return view('tasks.show', compact('task', 'availableTags'));
     }
 
     public function edit(Task $task)
     {
         Gate::authorize('update', $task);
 
-        $availableTags = Tag::getWithType('tasks')
+        $availableTags = Tag::withType('tasks')
                             ->select('id', 'name', 'color', 'description')
                             ->orderBy('name')
                             ->get();
@@ -46,8 +51,11 @@ class TaskController extends Controller
 
             $task->update($data);
 
-            $tags = $request->has('tags') ? $request->tags : [];
-            $task->syncTagsWithType($tags, 'tasks');
+            $tagsToSync = [];
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
+            }
+            $task->syncTagsWithType($tagsToSync, 'tasks');
         });
 
         return redirect()->route('tasks.show', $task)

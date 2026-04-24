@@ -17,6 +17,8 @@ return new class extends Migration
             $table->integer('order_column')->nullable();
 
             // Colunas Personalizadas
+            // $table->string('cor')->default('badge-dark');
+            // $table->text('descricao')->nullable();
             $table->string('color')->default('badge-dark');
             $table->text('description')->nullable();
 

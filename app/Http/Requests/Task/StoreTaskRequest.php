@@ -28,7 +28,7 @@ class StoreTaskRequest extends FormRequest
             'due_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
 
             'tags' => ['nullable', 'array'],
-            'tags.*' => ['string', 'max:50'],
+            'tags.*' => ['integer', 'exists:tags,id'],
         ];
     }
 

@@ -1,3 +1,8 @@
+@php
+    $resolvedProjectId = $project_id ?? $project->id;
+    $selectedTags = collect(old('tags', []))->map(fn ($id) => (int) $id)->all();
+@endphp
+
 <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask"
     title="Adicionar task">
     <i class="fas fa-plus"></i>
@@ -13,7 +18,7 @@
                 </button>
             </div>
 
-            <form action="{{ route('projects.tasks.store', $project_id) }}" method="POST">
+            <form action="{{ route('projects.tasks.store', $resolvedProjectId) }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     {{-- Título --}}
@@ -23,7 +28,7 @@
                         </div>
                     </div>
 
-                    {{-- Classificações (Status, Prioridade e Label) --}}
+                    {{-- Classificações (Status, Prioridade e Tags) --}}
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group mb-3">
@@ -64,17 +69,20 @@
 
                         <div class="col-md-4">
                             <div class="form-group mb-3">
-                                <label for="label">Label (Tag)</label>
-                                <select name="label" id="label"
-                                    class="form-control @error('label') is-invalid @enderror">
-                                    <option value="">Selecione...</option>
-                                    @foreach ($task->tagsWithType('tasks') as $tag)
-                                        <span class="badge {{ $tag->color }}" title="Tag">
-                                            <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
-                                        </span>
+                                <label for="tags">Tags</label>
+                                <select name="tags[]" id="tags" multiple
+                                    class="form-control @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
+                                    @foreach ($availableTags as $tag)
+                                        <option value="{{ $tag->id }}" {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
+                                            {{ $tag->name }}
+                                        </option>
                                     @endforeach
                                 </select>
-                                @error('label')
+                                <small class="form-text text-muted">Use Ctrl/Cmd para selecionar mais de uma tag.</small>
+                                @error('tags')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                @error('tags.*')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
