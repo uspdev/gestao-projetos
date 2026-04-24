@@ -1,47 +1,43 @@
 <?php
 
-namespace Database\Seeders;
-
 use App\Models\Tag;
-use Illuminate\Database\Seeder;
+use Illuminate\Database\Migrations\Migration;
 
-class TagSeeder extends Seeder
+return new class extends Migration
 {
-    public function run(): void
+    public function up(): void
     {
         $initialTaskTags = [
             [
-                'name' => 'Fix',
-                //'name => 'Correção'
-                //'slug' => 'fix',
+                'name' => 'Correção',
                 'type' => 'tasks',
                 'color' => 'badge-danger',
                 'description' => 'Correção de bugs ou falhas críticas.',
             ],
             [
-                'name' => 'Feature',
+                'name' => 'Funcionalidade',
                 'type' => 'tasks',
                 'color' => 'badge-primary',
                 'description' => 'Nova funcionalidade ou requisito.',
             ],
             [
-                'name' => 'Test',
+                'name' => 'Teste',
                 'type' => 'tasks',
                 'color' => 'badge-info',
                 'description' => 'Criação ou manutenção de testes.',
             ],
             [
-                'name' => 'Doc',
+                'name' => 'Documentação',
                 'type' => 'tasks',
                 'color' => 'badge-dark',
                 'description' => 'Atualização de documentação.',
             ],
             [
-                'name' => 'Refactor',
+                'name' => 'Refatoração',
                 'type' => 'tasks',
                 'color' => 'badge-secondary',
                 'description' => 'Melhoria de código sem alteração de comportamento.',
-            ],
+            ]
         ];
 
         foreach ($initialTaskTags as $tagData) {
@@ -51,4 +47,9 @@ class TagSeeder extends Seeder
             );
         }
     }
-}
+
+    public function down(): void
+    {
+        Tag::whereIn('name', ['Correção', 'Funcionalidade'])->where('type', 'tasks')->delete();
+    }
+};
