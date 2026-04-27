@@ -38,7 +38,15 @@
         </div>
       </div>
 
+    @include('project-tasks.partials.list')
+
+    <div class="col-md-4">
+      @include('projects.partials.show-card-membros')
+      @include('projects.partials.show-card-descricao')
     </div>
+  </div>
+
+  </div>
   </div>
 
 
