@@ -61,27 +61,29 @@
       </div>
     </div>
 
-    {{-- Seção de Tarefas Atribuídas --}}
-    <div>
-      <h4 class="mb-3 text-secondary">
-        <i class="fas fa-tasks mr-2"></i> Tarefas
-      </h4>
+    {{-- Seção de Tarefas Atribuídas (apenas para perfil do usuário logado) --}}
+    @if (auth()->id() === $user->id)
+      <div>
+        <h4 class="mb-3 text-secondary">
+          <i class="fas fa-tasks mr-2"></i> Tarefas
+        </h4>
 
-      <div class="row">
-        {{-- Assume que a relação belongsToMany 'tasks' está definida na Model User --}}
-        @forelse($user->tasks as $task)
-          <div class="col-md-6 col-lg-4 mb-3">
-            @include('partials.tasks.preview', ['task' => $task])
-          </div>
-        @empty
-          <div class="col-12">
-            <div class="alert alert-light border text-muted">
-              Este usuário não possui tarefas pendentes atribuídas a ele.
+        <div class="row">
+          {{-- Assume que a relação belongsToMany 'tasks' está definida na Model User --}}
+          @forelse($user->tasks as $task)
+            <div class="col-md-6 col-lg-4 mb-3">
+              @include('partials.tasks.preview', ['task' => $task])
             </div>
-          </div>
-        @endforelse
+          @empty
+            <div class="col-12">
+              <div class="alert alert-light border text-muted">
+                Este usuário não possui tarefas pendentes atribuídas a ele.
+              </div>
+            </div>
+          @endforelse
+        </div>
       </div>
-    </div>
+    @endif
 
   </div>
 @endsection
