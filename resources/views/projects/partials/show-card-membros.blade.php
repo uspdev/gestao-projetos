@@ -1,12 +1,14 @@
 {{-- Membros do Projeto --}}
 <div class="card mb-4 shadow-sm">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <h6 class="m-0 text-muted">
-      <i class="fas fa-users mr-1"></i> Membros do Projeto
-    </h6>
-    @includeWhen(auth()->user()->can('storeMember', $project), 'partials.projects.add-member', [
-        'project' => $project,
-    ])
+  <div class="card-header bg-white d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap">
+      <h6 class="m-0 text-muted mr-2">
+        <i class="fas fa-users mr-1"></i> Membros do Projeto
+      </h6>
+      @includeWhen(auth()->user()->can('storeMember', $project), 'partials.projects.add-member', [
+          'project' => $project,
+      ])
+    </div>
   </div>
   <ul class="list-group list-group-flush">
     @forelse($project->users as $user)
