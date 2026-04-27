@@ -30,7 +30,7 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-8">
-          {{-- @forelse($tasks as $task)
+          @forelse($tasks as $task)
             @include('partials.tasks.preview')
           @empty
             <div class="col-12">
@@ -43,10 +43,10 @@
               </div>
             </div>
           @endforelse
-        </div> --}}
+        </div>
         <div class="col-md-4">
-          {{-- @include('projects.partials.show-card-membros') --}}
-          {{-- @include('projects.partials.show-card-tasks') --}}
+          @include('projects.partials.show-card-membros')
+          @include('projects.partials.show-card-descricao')
         </div>
       </div>
 
