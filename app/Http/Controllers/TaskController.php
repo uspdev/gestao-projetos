@@ -58,8 +58,13 @@ class TaskController extends Controller
             $task->syncTagsWithType($tagsToSync, 'tasks');
         });
 
+        if ($request->has('action')) {
+            return redirect($request->action)
+                ->with('alert-success', 'Tarefa atualizada com sucesso!');
+        }
+
         return redirect()->route('tasks.show', $task)
-            ->with('success', 'Tarefa atualizada com sucesso!');
+            ->with('alert-success', 'Tarefa atualizada com sucesso!');
     }
 
     public function destroy(Task $task)
@@ -83,7 +88,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
-            ->with('success', 'Status da tarefa atualizado com sucesso!');
+            ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
     }
 
     public function storeAssignee(StoreTaskAssigneeRequest $request, Task $task)
