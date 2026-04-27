@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
@@ -29,7 +30,7 @@ class UserController extends Controller
         ];
         
         // Apenas o usuário logado pode ver suas próprias tasks
-        if (auth()->id() === $user->id) {
+        if (Auth::id() === $user->id) {
             $relations = array_merge($relations, [
                 'tasks:id,project_id,title,priority,status,start_date,due_date',
                 'tasks.project:id,name',
