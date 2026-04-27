@@ -38,8 +38,13 @@ Route::middleware('auth')->group(function () {
         });
 
     // PROJECT TASKS
-    Route::resource('projects.tasks', ProjectTaskController::class)
-        ->only(['index', 'create', 'store']);
+    Route::prefix('projects/{project}')
+        ->name('projects.tasks.')
+        ->group(function () {
+            Route::get('tasks', [ProjectTaskController::class, 'index'])->name('index');
+            Route::get('tasks/create', [ProjectTaskController::class, 'create'])->name('create');
+            Route::post('tasks', [ProjectTaskController::class, 'store'])->name('store');
+        });
 
     // ==========================================
     // TASKS
