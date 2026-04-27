@@ -51,12 +51,7 @@ class ProjectController extends Controller
             'tasks.tags',
         ]);
 
-        $availableTags = Tag::withType('tasks')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
-
-        return view('projects.show', compact('project', 'availableTags'));
+        return view('projects.show', compact('project'));
     }
 
     public function edit(Project $project)

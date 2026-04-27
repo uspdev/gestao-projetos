@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
+use App\Models\Tag;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -85,6 +86,14 @@ class Task extends Model
         'start_date',
         'due_date',
     ];
+
+    public function availableTags()
+    {
+        return Tag::withType('tasks')
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
+    }
 
     public function project(): BelongsTo
     {
