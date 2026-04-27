@@ -14,14 +14,13 @@
 
 {{-- Fim de blocos do laravel-usp-theme --}}
 
-@section('title')
-  @parent
-@endsection
-
 @section('styles')
   @parent
   <style>
     /*seus estilos*/
+    .gap-2>*+* {
+      margin-left: 0.5rem;
+    }
   </style>
 @endsection
 
