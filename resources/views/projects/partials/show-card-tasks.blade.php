@@ -7,7 +7,7 @@
     @include('tasks.partials.create-task-btn')
   </div>
   <div class="card-body">
-    @include('project-tasks.index', [
+    @include('project-tasks.partials.list', [
         'tasks' => $project->tasks,
         'taskCardColumnClass' => 'col-12',
     ])
