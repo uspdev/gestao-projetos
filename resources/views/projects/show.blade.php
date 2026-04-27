@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('title', 'Detalhes do Projeto')
-
 @section('content')
   {{-- Card: Título e Descrição --}}
   <div class="card">
@@ -29,13 +28,12 @@
         </div>
         <div class="col-md-4">
           @include('projects.partials.show-card-membros')
-          @include('projects.partials.show-card-tasks')
+          {{-- @include('projects.partials.show-card-tasks') --}}
         </div>
       </div>
 
     </div>
   </div>
-
 
   {{-- todo: alert em geral deve usar do theme. --}}
   @if (session('error'))
@@ -46,5 +44,6 @@
       </button>
     </div>
   @endif
+{{-- @dd($project) --}}
 
 @endsection
