@@ -33,6 +33,32 @@
           </div>
 
           <x-form.textarea name="description" label="Descrição do Projeto" rows="3" />
+
+          <div class="form-group mb-3">
+            <label for="tags">Tags</label>
+            <select name="tags[]" id="tags" multiple
+              class="form-control @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
+              @php
+                $availableTags = \App\Models\Tag::withType('projects')
+                  ->select('id', 'name', 'color')
+                  ->orderBy('name')
+                  ->get();
+                $selectedTags = collect(old('tags', []))->map(fn ($id) => (int) $id)->all();
+              @endphp
+              @foreach ($availableTags as $tag)
+                <option value="{{ $tag->id }}" {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
+                  {{ $tag->name }}
+                </option>
+              @endforeach
+            </select>
+            <small class="form-text text-muted">Use Ctrl/Cmd para selecionar mais de uma tag.</small>
+            @error('tags')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+            @error('tags.*')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
         </div>
 
         <div class="modal-footer">

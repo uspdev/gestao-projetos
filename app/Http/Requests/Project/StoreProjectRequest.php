@@ -20,6 +20,9 @@ class StoreProjectRequest extends FormRequest
             'name' => ['required', 'string', 'min:3', 'max:50'],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
             'description' => ['nullable', 'string', 'max:10000'],
+            
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['integer', 'exists:tags,id'],
         ];
     }
 
@@ -34,6 +37,9 @@ class StoreProjectRequest extends FormRequest
             'status.enum' => 'O status selecionado é inválido.',
 
             'description.max' => 'A descrição é muito longa. O limite é de :max caracteres.',
+            'tags.array' => 'As tags devem ser um array válido.',
+            'tags.*.integer' => 'Cada tag deve ser um ID válido.',
+            'tags.*.exists' => 'Uma ou mais tags selecionadas não existem.',
         ];
     }
 }

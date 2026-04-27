@@ -37,6 +37,11 @@ class ProjectController extends Controller
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::OWNER->value]);
 
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
+                $project->syncTagsWithType($tagsToSync, 'projects');
+            }
+
             return $project;
         });
 
@@ -49,11 +54,17 @@ class ProjectController extends Controller
         Gate::authorize('view', $project);
         $project = $project->load([
             'users:id,name,email',
+            'tags:id,name,color,description',
             'tasks:id,project_id,title,priority,status,start_date,due_date',
             'tasks.tags',
         ]);
 
-        return view('projects.show', compact('project'));
+        $availableTags = Tag::withType('projects')
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.show', compact('project', 'availableTags'));
     }
 
     public function edit(Project $project)
@@ -70,6 +81,12 @@ class ProjectController extends Controller
             $data['updated_by'] = Auth::id();
 
             $project->update($data);
+
+            $tagsToSync = [];
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
+            }
+            $project->syncTagsWithType($tagsToSync, 'projects');
         });
 
         return redirect()->route('projects.show', $project)

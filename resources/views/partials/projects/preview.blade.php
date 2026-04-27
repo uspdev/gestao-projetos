@@ -27,8 +27,12 @@
     </x-slot>
 
     <x-slot name="footer">
-        <div class="text-muted" style="font-size: 0.8rem; opacity: 0.5;" title="Métricas em breve">
-            <i class="fas fa-chart-line"></i>
+        <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem;">
+            @foreach ($project->tagsWithType('projects') as $tag)
+                <span class="badge {{ $tag->color }}" title="Tag">
+                    <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
+                </span>
+            @endforeach
         </div>
     </x-slot>
 </x-card.preview>

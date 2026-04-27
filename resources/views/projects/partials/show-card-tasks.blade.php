@@ -1,8 +1,16 @@
 {{-- Index: Lista de Tasks --}}
 <div class="card mb-4 shadow-sm">
+<<<<<<< Updated upstream
   <div class="card-header h4">
     <i class="fas fa-tasks mr-1"></i> Tarefas
     {{-- @include('tasks.partials.create-task-btn') --}}
+=======
+  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <h6 class="m-0 text-muted">
+      <i class="fas fa-tasks mr-1"></i> Tarefas
+    </h6>
+    @include('tasks.partials.create-task-btn', ['availableTags' => \App\Models\Tag::withType('tasks')->orderBy('name')->get()])
+>>>>>>> Stashed changes
   </div>
   <div class="card-body">
     <table class="table table-bordered datatable-simples">
