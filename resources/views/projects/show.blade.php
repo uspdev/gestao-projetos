@@ -11,7 +11,7 @@
         </a>
         <i class="fas fa-angle-right text-muted"></i> <span>{{ $project->name }}</span>
 
-        <a href="{{ route('projects.tasks.index', $project) }}" class="btn btn-sm btn-outline-secondary ms-3">Tarefas</a>
+       
       </div>
 
       <div class="d-flex align-items-center gap-2">
@@ -28,7 +28,7 @@
         </div>
         <div class="col-md-4">
           @include('projects.partials.show-card-membros')
-          {{-- @include('projects.partials.show-card-tasks') --}}
+          @include('projects.partials.show-card-tasks')
         </div>
       </div>
 
