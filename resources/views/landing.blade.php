@@ -175,7 +175,7 @@
 
           <div class="landing-actions">
             @auth
-              <a href="{{ route('users.projects.index', auth()->id()) }}" class="btn btn-primary btn-lg">Começar</a>
+              <a href="{{ route('projects.index') }}" class="btn btn-primary btn-lg">Começar</a>
             @else
               <a href="{{ url('/login') }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-sign-in-alt me-2"></i> Login com Senha Única

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Project;
 
@@ -20,8 +20,9 @@ class UserProjectController extends Controller
             return $next($request);
         });
     }
-    public function index(User $user)
+    public function index()
     {
+        $user = Auth::user();
         Gate::authorize('viewAny', [Project::class, $user]);
         $projects = $user->projects()
             ->with([

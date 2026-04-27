@@ -6,7 +6,7 @@
   {{-- Breadcrumb simplificado --}}
   <div class="mb-4 h4 d-flex align-items-center gap-2">
 
-    <a href="{{ route('users.projects.index', auth()->id()) }}" class="text-decoration-none text-secondary fw-medium">
+    <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary fw-medium">
       Meus Projetos
     </a>
 

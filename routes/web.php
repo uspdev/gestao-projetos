@@ -5,9 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ProjectTaskController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserProjectController;
 use App\Http\Controllers\UserTaskController;
-use App\Http\Controllers\UserController;
 
 Route::view('/', 'landing')->name('landing');
 
@@ -16,6 +16,8 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // PROJECT
     // ==========================================
+    Route::get('projects', [UserProjectController::class, 'index'])->name('projects.index');
+
     Route::resource('projects', ProjectController::class)
         ->only(['create', 'store', 'show', 'edit', 'update', 'destroy']);
 
@@ -49,6 +51,8 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // TASKS
     // ==========================================
+    Route::get('tasks', [UserTaskController::class, 'index'])->name('tasks.index');
+
     Route::resource('tasks', TaskController::class)
         ->only(['show', 'edit', 'update', 'destroy']);
 
@@ -70,19 +74,16 @@ Route::middleware('auth')->group(function () {
     // USER
     // ==========================================
     Route::resource('users', UserController::class)->only(['show']);
-    Route::resource('users.projects', UserProjectController::class)->only(['index']);
-    Route::resource('users.tasks', UserTaskController::class)->only(['index']);
-
 
     // ==========================================
     // MENU
     // ==========================================
     Route::get('/meus-projetos', function () {
-        return redirect()->route('users.projects.index', Auth::id());
+        return redirect()->route('projects.index');
     });
 
     Route::get('/minhas-tasks', function () {
-        return redirect()->route('users.tasks.index', Auth::id());
+        return redirect()->route('tasks.index');
     });
 
     Route::get('/meu-perfil', function () {
