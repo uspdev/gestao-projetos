@@ -12,9 +12,11 @@ use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Uspdev\Replicado\Pessoa;
 
 class ProjectController extends Controller
 {
@@ -58,7 +60,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('update', $project);
 
-        return view('projects.partials.edit', compact('project'));
+        return view('projects.partials.edit-btn', compact('project'));
     }
 
     public function update(UpdateProjectRequest $request, Project $project)
@@ -101,9 +103,22 @@ class ProjectController extends Controller
     public function storeMember(StoreProjectMemberRequest $request, Project $project)
     {
         $data = $request->validated();
+        $user = User::findOrCreateFromReplicado($data['codpes']);
 
-        DB::transaction(function () use ($project, $data) {
-            $project->users()->syncWithoutDetaching([$data['user_id'] => [
+        if (!($user instanceof User)) {
+            return redirect()->back()
+                ->withErrors(['codpes' => $user])
+                ->withInput();
+        }
+
+        if ($user->belongsToProject($project)) {
+            return redirect()->back()
+                ->withErrors(['codpes' => 'O usuário selecionado já faz parte do projeto.'])
+                ->withInput();
+        }
+
+        DB::transaction(function () use ($project, $user, $data) {
+            $project->users()->syncWithoutDetaching([$user->id => [
                 'role' => $data['role'],
             ]]);
         });
@@ -133,14 +148,68 @@ class ProjectController extends Controller
         return redirect()->route('projects.show', $project);
     }
 
-    public function selectableMembers(Project $project)
+    public function selectableMembers(Request $request, Project $project)
     {
         Gate::authorize('storeMember', $project);
 
-        $users = User::selectableToProject($project->id)
-            ->get(['id', 'name', 'email']);
+        $term = trim((string) $request->input('term', ''));
 
-        return response()->json($users);
+        if ($term === '' || !function_exists('hasReplicado') || !hasReplicado()) {
+            return response()->json(['results' => []]);
+        }
+
+        $excludedCodpes = $project->users()
+            ->whereNotNull('users.codpes')
+            ->pluck('users.codpes')
+            ->map(fn($codpes) => (string) $codpes)
+            ->all();
+
+        $results = [];
+
+        // Se for numérico com 4+ dígitos, tenta buscar por codpes
+        if (is_numeric($term) && strlen($term) >= 4) {
+            try {
+                $pessoa = Pessoa::dump((int) $term);
+
+                if ($pessoa && !in_array((string) $pessoa['codpes'], $excludedCodpes, true)) {
+                    $results[] = [
+                        'id' => $pessoa['codpes'],
+                        'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Se falhar a busca por codpes, continua para busca por nome
+            }
+
+            // Se encontrou por codpes, retorna
+            if (!empty($results)) {
+                return response()->json(['results' => $results]);
+            }
+        }
+
+        // Busca por nome (texto)
+        try {
+            $pessoas = Pessoa::procurarPorNome($term) ?? [];
+            $pessoas = collect($pessoas)
+                ->unique('codpes')
+                ->sortBy('nompesttd')
+                ->take(50);
+
+            foreach ($pessoas as $pessoa) {
+                if (in_array((string) $pessoa['codpes'], $excludedCodpes, true)) {
+                    continue;
+                }
+
+                $results[] = [
+                    'id' => $pessoa['codpes'],
+                    'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
+                ];
+            }
+        } catch (\Exception $e) {
+            // Se falhar a busca por nome, retorna vazio
+        }
+
+        return response()->json(['results' => $results]);
     }
 
     public function destroyMember(Project $project, User $user)
