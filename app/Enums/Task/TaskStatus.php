@@ -16,8 +16,8 @@ enum TaskStatus: string
             self::TO_DO => 'A Fazer',
             self::IN_PROGRESS => 'Em Andamento',
             self::IN_REVIEW => 'Em Revisão',
-            self::DONE => 'Concluída',
             self::HOLD => 'Em Espera',
+            self::DONE => 'Concluída',
         };
     }
 
