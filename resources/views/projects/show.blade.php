@@ -15,8 +15,8 @@
       </div>
 
       <div class="d-flex align-items-center gap-2">
-        @include('projects.partials.update-status')
         @include('projects.partials.edit-btn')
+        @include('projects.partials.update-status')
         @include('projects.partials.delete-btn')
       </div>
 

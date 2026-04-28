@@ -7,7 +7,7 @@
 
       {{ $project->status->label() }}
 
-      <i class="fas fa-chevron-down ml-1"></i>
+      <i class="fas fa-caret-down ml-1"></i>
     </button>
 
     <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="project-status-dropdown-{{ $project->id }}">
