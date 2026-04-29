@@ -7,7 +7,7 @@ $menu = [
         'can'  => 'user',
     ],
     [
-        'text' => '<i class="fas fa-tasks"></i> Minhas Tasks',
+        'text' => '<i class="fas fa-tasks"></i> Minhas Tarefas',
         'url'  => 'minhas-tasks',
         'can'  => 'user',
     ],
