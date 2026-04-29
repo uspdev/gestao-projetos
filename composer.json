@@ -1,17 +1,29 @@
 {
-    "name": "uspdev/starter",
+    "name": "uspdev/gestao-projetos",
     "type": "project",
-    "description": "Esqueleto para nova aplicação Uspdev",
+    "description": "Sistema de Gestão de Projetos",
     "authors": [
         {
             "name": "Masaki Kawabata Neto",
             "email": "kawabata@usp.br",
             "homepage": "https://github.com/masakik"
+        },
+        {
+            "name": "Eduardo Ferraz de Campos",
+            "email": "dudiferraz@gmail.com",
+            "homepage": "https://github.com/DudsFerraz"
+        },
+        {
+            "name": "Lucas Dalossa Lopes",
+            "email": "lopslucas12@gmail.com",
+            "homepage": "https://github.com/Lucalopezz"
         }
     ],
     "keywords": [
         "uspdev",
-        "starter"
+        "gestao-projetos",
+        "projetos",
+        "gestao"
     ],
     "license": "MIT",
     "require": {
