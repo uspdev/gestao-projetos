@@ -11,7 +11,7 @@
         </a>
         <i class="fas fa-angle-right text-muted"></i> <span>{{ $project->name }}</span>
 
-       
+
       </div>
 
       <div class="d-flex align-items-center gap-2">
@@ -34,16 +34,5 @@
 
     </div>
   </div>
-
-  {{-- todo: alert em geral deve usar do theme. --}}
-  @if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      {{ session('error') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-{{-- @dd($project) --}}
 
 @endsection
