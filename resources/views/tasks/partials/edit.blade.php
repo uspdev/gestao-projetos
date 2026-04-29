@@ -1,9 +1,10 @@
 <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
-data-target="#modalEditarTask-{{ $task->id }}">
+  data-target="#modalEditarTask-{{ $task->id }}">
   <i class="fas fa-edit"></i>
 </button>
 
-<div class="modal fade" id="modalEditarTask-{{ $task->id }}" tabindex="-1" aria-labelledby="modalEditarTaskLabel" aria-hidden="true">
+<div class="modal fade" id="modalEditarTask-{{ $task->id }}" tabindex="-1" aria-labelledby="modalEditarTaskLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -66,28 +67,33 @@ data-target="#modalEditarTask-{{ $task->id }}">
 
             <div class="col-md-4">
               <div class="form-group mb-3">
-                <label for="tags">Tags</label>
-                <select name="tags[]" id="tags" multiple
-                  class="form-control @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
-                  @php
-                    $selectedTags = collect(old('tags', $task->tagsWithType('tasks')->pluck('id')->all()))
-                        ->map(fn($id) => (int) $id)
-                        ->all();
-                  @endphp
-                  @foreach ($task->availableTags() as $tag)
+                <label>Tags</label>
+
+                <select name="tags[]" multiple style="width: 100%;"
+                  class="form-control select2-tags @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
+
+                  @foreach ($availableTaskTags as $tag)
+                    @php
+                      $currentSelected = collect(old('tags', $tasksSelectedTags[$task->id] ?? []))
+                          ->map(fn($id) => (int) $id)
+                          ->all();
+                    @endphp
+
                     <option value="{{ $tag->id }}"
-                      {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
+                      {{ in_array($tag->id, $currentSelected, true) ? 'selected' : '' }}>
                       {{ $tag->name }}
                     </option>
                   @endforeach
                 </select>
-                <small class="form-text text-muted">Use Ctrl/Cmd para selecionar mais de uma tag.</small>
+
                 @error('tags')
                   <div class="invalid-feedback d-block">{{ $message }}</div>
+                @else
+                  @error('tags.*')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
                 @enderror
-                @error('tags.*')
-                  <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
+
               </div>
             </div>
           </div>
@@ -123,3 +129,8 @@ data-target="#modalEditarTask-{{ $task->id }}">
     </div>
   </div>
 </div>
+
+@section('javascripts_bottom')
+  @parent
+  @include('partials.multi-select-script')
+@endsection

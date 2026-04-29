@@ -66,9 +66,9 @@
 
             <div class="col-md-4">
               <div class="form-group mb-3">
-                <label for="tags">Tags</label>
-                <select name="tags[]" id="tags" multiple
-                  class="form-control @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
+                <label>Tags</label>
+                <select name="tags[]" multiple style="width: 100%;"
+                  class="form-control select2-tags @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
                   @foreach ($availableTags as $tag)
                     <option value="{{ $tag->id }}"
                       {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
@@ -76,7 +76,6 @@
                     </option>
                   @endforeach
                 </select>
-                <small class="form-text text-muted">Use Ctrl/Cmd para selecionar mais de uma tag.</small>
                 @error('tags')
                   <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
@@ -116,12 +115,17 @@
   </div>
 </div>
 
-{{-- Reabrir Modal com Vanilla JS em caso de erro de validação --}}
-@if ($errors->any() && old('title') !== null && old('_method') === null)
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const openBtn = document.querySelector('[data-target="#modalNovaTask"]');
-      if (openBtn) openBtn.click();
-    });
-  </script>
-@endif
+@section('javascripts_bottom')
+  @parent
+  @include('partials.multi-select-script')
+  
+  {{-- Reabrir Modal com Vanilla JS em caso de erro de validação --}}
+  @if ($errors->any() && old('title') !== null && old('_method') === null)
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const openBtn = document.querySelector('[data-target="#modalNovaTask"]');
+        if (openBtn) openBtn.click();
+      });
+    </script>
+  @endif
+@endsection

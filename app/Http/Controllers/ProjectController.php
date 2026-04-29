@@ -56,9 +56,9 @@ class ProjectController extends Controller
         $showDone = request()->boolean('show_done');
         $project = $project->load([
             'users:id,name,email',
-            'tasks' => fn ($query) => $query
+            'tasks' => fn($query) => $query
                 ->select('id', 'project_id', 'title', 'priority', 'status', 'start_date', 'due_date', 'created_at')
-                ->when(! $showDone, fn ($query) => $query->where('status', '!=', TaskStatus::DONE->value)),
+                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value)),
             'tags:id,name,color,description',
             'tasks.tags',
         ]);
@@ -68,7 +68,23 @@ class ProjectController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('projects.show', compact('project', 'availableTags'));
+        $projectSelectedTags = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $availableTaskTags = Tag::withType('tasks')->orderBy('name')->get();
+
+        $tasksSelectedTags = $project->tasks->mapWithKeys(function ($task) {
+            return [$task->id => $task->tagsWithType('tasks')->pluck('id')->all()];
+        });
+
+        return view('projects.show', compact(
+            'project',
+            'availableTags',
+            'projectSelectedTags',
+            'availableTaskTags',
+            'tasksSelectedTags'
+        ));
     }
 
     public function edit(Project $project)

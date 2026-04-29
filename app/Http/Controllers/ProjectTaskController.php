@@ -17,23 +17,49 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('viewAny', [Task::class, $project]);
         $showDone = request()->boolean('show_done');
+        
         $tasks = $project->tasks()
             ->with('project:id,name,status')
             ->with('users:id,name')
             ->with('tags:id,name,color,description')
-            ->when(! $showDone, fn ($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy('priority', 'asc')
             ->latest()
             ->get();
 
-        return view('project-tasks.index', compact('tasks', 'project'));
+        $availableTags = Tag::withType('projects')
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
+
+        $projectSelectedTags = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $availableTaskTags = Tag::withType('tasks')
+            ->select('id', 'name', 'color', 'description')
+            ->orderBy('name')
+            ->get();
+
+        $tasksSelectedTags = $tasks->mapWithKeys(function ($task) {
+            return [$task->id => $task->tags->pluck('id')->all()];
+        });
+
+        return view('project-tasks.index', compact(
+            'tasks',
+            'project',
+            'availableTags',
+            'projectSelectedTags',
+            'availableTaskTags',
+            'tasksSelectedTags'
+        ));
     }
 
     public function create(Project $project)
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        $availableTags = Tag::getWithType('tasks')
+        $availableTags = Tag::withType('tasks')
             ->select('id', 'name', 'color')
             ->orderBy('name')
             ->get();

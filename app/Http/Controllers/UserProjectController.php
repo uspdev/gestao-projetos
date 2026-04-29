@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Project;
 
 class UserProjectController extends Controller
 {
@@ -32,6 +33,11 @@ class UserProjectController extends Controller
             ->latest()
             ->get();
 
-        return view('user-projects.index', compact('projects', 'user'));
+        $availableTags = Tag::withType('projects')
+            ->select('id', 'name', 'color')
+            ->orderBy('name')
+            ->get();
+
+        return view('user-projects.index', compact('projects', 'user', 'availableTags'));
     }
 }

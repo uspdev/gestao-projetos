@@ -35,6 +35,29 @@
                   rows="4" />
               </div>
             </div>
+
+            {{-- Tags adicionadas na edição --}}
+            <div class="row">
+              <div class="col-12">
+                <div class="form-group mb-3">
+                  <label>Tags</label>
+
+                  <select name="tags[]" multiple style="width: 100%;"
+                    class="form-control select2-tags @error('tags') is-invalid @enderror">
+                    @foreach ($availableTags as $tag)
+                      <option value="{{ $tag->id }}"
+                        {{ in_array($tag->id, $projectSelectedTags, true) ? 'selected' : '' }}>
+                        {{ $tag->name }}
+                      </option>
+                    @endforeach
+                  </select>
+
+                  @error('tags.*')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="modal-footer">
@@ -48,15 +71,19 @@
     </div>
   </div>
 
-  {{-- Reabre o modal caso haja erro de validação na edição --}}
-  {{-- todo: Em qual card vai estre JS ???????? --}}
-  @if ($errors->any() && old('_method') === 'PUT')
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const editBtn = document.querySelector('[data-target="#modalEditarProjeto"]');
-        if (editBtn) editBtn.click();
-      });
-    </script>
-  @endif
+  @section('javascripts_bottom')
+    @parent
+    @include('partials.multi-select-script')
 
+    {{-- Reabre o modal caso haja erro de validação na edição. 
+         Movido para dentro do section para melhor organização do JS --}}
+    @if ($errors->any() && old('_method') === 'PUT')
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const editBtn = document.querySelector('[data-target="#modalEditarProjeto"]');
+          if (editBtn) editBtn.click();
+        });
+      </script>
+    @endif
+  @endsection
 @endcan
