@@ -47,7 +47,7 @@
         <div class="card-body">
           {{-- Título --}}
           <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
-            <h2 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h2>
+            <h4 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h4>
             <div>
               @includeWhen(auth()->user()->can('update', $task), 'tasks.partials.edit', [
                   'task' => $task,
