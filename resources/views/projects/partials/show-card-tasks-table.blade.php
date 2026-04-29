@@ -1,9 +1,7 @@
 {{-- Index: Lista de Tasks --}}
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5">
-    <a href="{{ route('projects.tasks.index', $project) }}">
-      <i class="fas fa-tasks"></i> Tarefas
-    </a>
+     <i class="fas fa-tasks"></i> Tarefas
     @include('tasks.partials.create-task-btn')
   </div>
   <div class="card-body">
