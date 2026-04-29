@@ -5,7 +5,7 @@
   {{-- Card: Título e Descrição --}}
   <div class="card">
     <div class="card-header h4 d-flex justify-content-between align-items-center gap-2">
-      <div class="">
+      <div>
         <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
           Meus Projetos
         </a>
