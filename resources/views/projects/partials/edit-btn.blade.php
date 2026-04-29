@@ -20,28 +20,12 @@
           <div class="modal-body">
             <div class="row">
               {{-- Nome --}}
-              <div class="col-md-8">
+              <div class="col">
                 <x-form.input name="name" label="Nome do Projeto" value="{{ $project->name }}" required />
               </div>
 
-              {{-- Status --}}
-              <div class="col-md-4">
-                <div class="form-group mb-3">
-                  <label for="status">Status <span class="text-danger">*</span></label>
-                  <select name="status" id="status" class="form-control @error('status') is-invalid @enderror"
-                    required>
-                    @foreach (\App\Enums\Project\ProjectStatus::cases() as $status)
-                      <option value="{{ $status->value }}"
-                        {{ old('status', $project->status?->value) === $status->value ? 'selected' : '' }}>
-                        {{ $status->label() }}
-                      </option>
-                    @endforeach
-                  </select>
-                  @error('status')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
+              {{-- Status (oculto — atualizado por outro método) --}}
+              <input type="hidden" name="status" id="status" value="{{ old('status', $project->status?->value) }}">
             </div>
 
             <div class="row">
