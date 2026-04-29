@@ -12,6 +12,7 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->unique();
             $table->string('status'); //ProjectStatus Enum
             $table->text('description')->nullable();
 

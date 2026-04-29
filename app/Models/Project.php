@@ -4,64 +4,22 @@ namespace App\Models;
 
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
+use App\Traits\HasSlug;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Builder;
 use Spatie\Tags\HasTags;
 
-/**
- * @property int $id
- * @property string $name
- * @property ProjectStatus $status
- * @property string|null $description
- * @property int|null $created_by
- * @property int|null $updated_by
- * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Task> $tasks
- * @property-read int|null $tasks_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
- * @property-read int|null $users_count
- * @method static \Database\Factories\ProjectFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project onlyTrashed()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDescription($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereUpdatedBy($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withTrashed(bool $withTrashed = true)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Project withoutTrashed()
- * @method static Builder<static>|Project accessibleBy(\App\Models\User $user)
- * @property-read \App\Models\ProjectUser|null $pivot
- * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\Tag> $tags
- * @property-read int|null $tags_count
- * @method static Builder<static>|Project withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
- * @method static Builder<static>|Project withAllTagsOfAnyType($tags)
- * @method static Builder<static>|Project withAnyTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
- * @method static Builder<static>|Project withAnyTagsOfAnyType($tags)
- * @method static Builder<static>|Project withAnyTagsOfType(array|string $type)
- * @method static Builder<static>|Project withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
- * @mixin \Eloquent
- */
 class Project extends Model
 {
-    use HasFactory, SoftDeletes, Auditable, HasTags;
+    use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug;
 
     protected array $roleByUserCache = [];
+    protected string $slugSourceColumn = 'name';
 
     protected function casts(): array
     {
@@ -72,6 +30,7 @@ class Project extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'status',
         'description',
     ];
