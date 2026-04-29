@@ -16,7 +16,6 @@
 
         <i class="fas fa-angle-right text-muted"></i> <span>Tarefas</span>
 
-        {{-- <a href="{{ route('projects.tasks.index', $project) }}" class="btn btn-sm btn-outline-secondary ms-3">Tarefas</a> --}}
       </div>
 
       <!-- Lado direito -->
@@ -30,37 +29,13 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-8">
-          @include('projects.partials.show-card-tasks')
+          @include('projects.partials.show-card-tasks-table')
         </div>
         <div class="col-md-4">
           @include('projects.partials.show-card-membros')
           @include('projects.partials.show-card-descricao')
         </div>
       </div>
-
-    {{-- @include('project-tasks.partials.list')
-
-    <div class="col-md-4">
-      @include('projects.partials.show-card-membros')
-      @include('projects.partials.show-card-descricao')
-    </div> --}}
-  </div>
-
-  </div>
-  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-  <div class="row">
-
+    </div>
   </div>
 @endsection

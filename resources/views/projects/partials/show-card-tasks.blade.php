@@ -1,62 +1,20 @@
-{{-- Index: Lista de Tasks --}}
+{{-- Card: Lista de Tasks --}}
 <div class="card mb-4 shadow-sm">
-
-
   <div class="card-header h5">
     <a href="{{ route('projects.tasks.index', $project) }}">
-      <i class="fas fa-tasks"></i> Tarefas
+      <i class="fas fa-tasks"></i> <span class="mr-1">Tarefas</span>
     </a>
-    @include('tasks.partials.create-task-btn')
+    @include('tasks.partials.create-task-btn', ['project' => $project])
   </div>
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-bordered datatable-simples">
-        <thead>
-          <tr>
-            <th></th>
-            <th title="Prioridade">Prio.</th>
-            <th>Status</th>
-            <th>Título</th>
-            <th>Tags</th>
-            <th>Criado em</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach ($project->tasks as $task)
-            <tr>
-              <td>
-                @include('tasks.partials.edit')
-              </td>
-              <td>
-                <span class="badge {{ $task->priority?->color() }}">
-                  {{ $task->priority?->label() }}
-                </span>
-              </td>
-              <td>
-                <span class="badge {{ $task->status->color() }}">
-                  {{ $task->status->label() }}
-                </span>
-              </td>
 
-              <td>
-                <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">
-                  {{ $task->title }}
-                </a>
-              </td>
-              <td>
-                @foreach ($task->tags as $tag)
-                  <span class="badge badge-secondary">
-                    {{ $tag->name }}
-                  </span>
-                @endforeach
-              </td>
-              <td data-order="{{ $task->created_at?->format('Y-m-d H:i:s') }}">
-                {{ $task->created_at?->format('d/m/Y') ?? '-' }}
-              </td>
-            </tr>
-          @endforeach
-        </tbody>
-      </table>
-    </div>
+  <div class="card-body">
+    @forelse ($project->tasks as $task)
+      @include('partials.tasks.preview', ['task' => $task])
+    @empty
+      <div class="alert alert-secondary text-center p-3 shadow-sm mb-0" role="alert">
+        <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>
+        <h6 class="text-muted m-0">Nenhuma tarefa.</h6>
+      </div>
+    @endforelse
   </div>
 </div>
