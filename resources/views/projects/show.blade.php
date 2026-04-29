@@ -31,8 +31,6 @@
           @include('projects.partials.show-card-tasks')
         </div>
       </div>
-
     </div>
   </div>
-
 @endsection

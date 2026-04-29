@@ -3,174 +3,24 @@
 @section('title', 'Detalhes da Tarefa')
 
 @section('content')
-  {{-- Breadcrumb simplificado --}}
-  <div class="mb-4 h4 d-flex align-items-center gap-2">
+  {{-- Card único envolvendo todo o conteúdo --}}
+  <div class="card mb-4 shadow-sm">
+    @include('tasks.partials.show.header', ['task' => $task])
 
-    <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary fw-medium">
-      Meus Projetos
-    </a>
+    <div class="card-body">
+      <div class="row">
+        {{-- COLUNA PRINCIPAL: Título e Descrição --}}
+        <div class="col-md-8">
+          @include('tasks.partials.show.main-card', ['task' => $task])
+        </div>
 
-    <i class="fas fa-angle-right text-muted"></i>
+        {{-- COLUNA LATERAL (Direita): Metadados e Responsáveis --}}
+        <div class="col-md-4">
+          @include('tasks.partials.show.info-card', ['task' => $task])
+          @include('tasks.partials.show.assignees-card', ['task' => $task])
 
-    <a href="{{ route('projects.show', $task->project_id) }}" class="text-decoration-none text-secondary fw-medium">
-      {{ $task->project->name }}
-    </a>
-
-    <i class="fas fa-angle-right text-muted"></i>
-
-    <a href="{{ route('projects.tasks.index', $task->project) }}" class="text-decoration-none text-secondary fw-medium">
-      Tarefas
-    </a>
-
-    <i class="fas fa-angle-right text-muted"></i>
-
-    <span class="text-dark fw-semibold">
-      {{ $task->title }}
-    </span>
-    @include('tasks.partials.create-task-btn', ['project' => $task->project])
-
-  </div>
-
-  <div class="row">
-    {{-- COLUNA PRINCIPAL: Título e Descrição --}}
-    <div class="col-md-8">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-          {{-- Título --}}
-          <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
-            <h4 class="m-0 text-dark font-weight-bold">{{ $task->title }}</h4>
-            <div>
-              @includeWhen(auth()->user()->can('update', $task), 'tasks.partials.edit', [
-                  'task' => $task,
-              ])
-              @can('delete', $task)
-                <form method="POST" action="{{ route('tasks.destroy', $task) }}" class="d-inline-block ml-1"
-                  onsubmit="return confirm('Deseja realmente excluir esta tarefa? Esta ação não pode ser desfeita.');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-outline-danger btn-sm">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              @endcan
-            </div>
-          </div>
-
-          {{-- Descrição --}}
-          <div class="text-dark text-justify" style="font-size: 1.1rem; line-height: 1.6;">
-            @if ($task->description)
-              {!! nl2br(e($task->description)) !!}
-            @else
-              <div class="text-center text-muted p-5 bg-light rounded">
-                <i class="fas fa-align-left fa-3x mb-3 text-secondary"></i>
-                <h5>Sem descrição</h5>
-                <p class="mb-0">Nenhuma descrição foi fornecida para esta tarefa.</p>
-              </div>
-            @endif
-          </div>
         </div>
       </div>
-    </div>
-    {{-- COLUNA LATERAL (Direita): Metadados e Responsáveis --}}
-    <div class="col-md-4">
-
-      {{-- Informações --}}
-      <div class="card mb-4 shadow-sm border-top-primary">
-        <div class="card-header bg-white py-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="text-muted font-weight-bold">Status atual</span>
-            @include('tasks.partials.update-status', ['task' => $task])
-          </div>
-        </div>
-        <div class="card-body p-3">
-          <ul class="list-unstyled m-0">
-
-            {{-- Prioridade e Tag --}}
-            <li class="mb-3 border-bottom pb-2">
-              <div class="row no-gutters">
-                {{-- Prioridade --}}
-                <div class="col-6 border-right pr-2 d-flex align-items-center">
-                  <span class="text-muted small mr-2">Prioridade:</span>
-                  @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
-                    <span class="badge {{ $task->priority->color() }}">{{ $task->priority->label() }}</span>
-                  @else
-                    <span class="text-muted font-italic small">-</span>
-                  @endif
-                </div>
-                {{-- Tag --}}
-                <div class="col-6 pl-2 d-flex align-items-center">
-                  <span class="text-muted small mr-2">Tag:</span>
-                  @forelse ($task->tagsWithType('tasks') as $tag)
-                    <span class="badge {{ $tag->color }}">
-                      <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
-                    </span>
-                  @empty
-                    <span class="text-muted font-italic small">-</span>
-                  @endforelse
-                </div>
-              </div>
-            </li>
-
-            {{-- Datas --}}
-            <li class="mb-0">
-              <div class="row no-gutters">
-                {{-- Data de Início --}}
-                <div class="col-6 border-right pr-2 d-flex align-items-center">
-                  <span class="text-muted small mr-2">Início:</span>
-                  <span class="font-weight-bold">
-                    @if ($task->start_date)
-                      <time class="local-date"
-                        datetime="{{ $task->start_date->format('Y-m-d') }}">{{ $task->start_date->format('Y-m-d') }}</time>
-                    @else
-                      --/--/----
-                    @endif
-                  </span>
-                </div>
-                {{-- Prazo (Due Date) --}}
-                <div class="col-6 pl-2 d-flex align-items-center">
-                  <span class="text-muted small mr-2">Prazo:</span>
-                  <span
-                    class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}">
-                    @if ($task->due_date)
-                      <time class="local-date"
-                        datetime="{{ $task->due_date->format('Y-m-d') }}">{{ $task->due_date->format('Y-m-d') }}</time>
-                    @else
-                      --/--/----
-                    @endif
-                  </span>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {{-- Responsáveis --}}
-      <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h6 class="m-0 text-muted">
-            <i class="fas fa-users mr-1"></i> Responsáveis
-          </h6>
-          @includeWhen(auth()->user()->can('storeAssignee', $task), 'partials.tasks.add-assignee', [
-              'task' => $task,
-          ])
-        </div>
-        <ul class="list-group list-group-flush">
-          @forelse($task->users as $user)
-            @include('users.preview', [
-                'user' => $user,
-                'project' => $task->project,
-                'task' => $task,
-                'canManageTaskAssignees' => auth()->user()->can('storeAssignee', $task),
-            ])
-          @empty
-            <li class="list-group-item text-muted font-italic small text-center py-3">
-              Nenhum usuário atribuído.
-            </li>
-          @endforelse
-        </ul>
-      </div>
-
     </div>
   </div>
 
