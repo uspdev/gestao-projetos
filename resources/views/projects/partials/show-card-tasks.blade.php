@@ -14,9 +14,9 @@
         <thead>
           <tr>
             <th></th>
-            <th>Título</th>
+            <th title="Prioridade">Prio.</th>
             <th>Status</th>
-            <th>Prioridade</th>
+            <th>Título</th>
             <th>Tags</th>
             <th>Criado em</th>
           </tr>
@@ -28,19 +28,20 @@
                 @include('tasks.partials.edit')
               </td>
               <td>
-                <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">
-                  {{ $task->title }}
-                </a>
+                <span class="badge {{ $task->priority?->color() }}">
+                  {{ $task->priority?->label() }}
+                </span>
               </td>
               <td>
                 <span class="badge {{ $task->status->color() }}">
                   {{ $task->status->label() }}
                 </span>
               </td>
+
               <td>
-                <span class="badge {{ $task->priority?->color() }}">
-                  {{ $task->priority?->label() }}
-                </span>
+                <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">
+                  {{ $task->title }}
+                </a>
               </td>
               <td>
                 @foreach ($task->tags as $tag)
