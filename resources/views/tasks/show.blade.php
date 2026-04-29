@@ -31,15 +31,6 @@
 
   </div>
 
-  @if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      {{ session('error') }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  @endif
-
   <div class="row">
     {{-- COLUNA PRINCIPAL: Título e Descrição --}}
     <div class="col-md-8">

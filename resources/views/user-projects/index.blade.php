@@ -22,7 +22,7 @@
       @endforelse
     </div>
   </div>
-
+  {{-- Reabre o modal caso haja erro de validação na edição (Vanilla JS) --}}
   @if ($errors->any() && old('name') !== null)
     <script>
       document.addEventListener('DOMContentLoaded', function() {

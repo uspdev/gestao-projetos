@@ -59,6 +59,6 @@ class ProjectTaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
-            ->with('success', 'Tarefa criada com sucesso!');
+            ->with('alert-success', 'Tarefa criada com sucesso!');
     }
 }

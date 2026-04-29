@@ -75,7 +75,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('projects.show', $task->project)
-            ->with('success', 'Tarefa excluida com sucesso!');
+            ->with('alert-success', 'Tarefa excluida com sucesso!');
     }
 
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
@@ -99,14 +99,15 @@ class TaskController extends Controller
 
         if (!$user->isMemberOfProject($task->project)) {
             return redirect()->route('tasks.show', $task)
-                ->with('error', 'Somente membros do projeto podem ser atribuídos à tarefa.');
+                ->with('alert-danger', 'Somente membros do projeto podem ser atribuídos à tarefa.');
         }
 
         DB::transaction(function () use ($task, $user) {
             $task->users()->syncWithoutDetaching([$user->id]);
         });
 
-        return redirect()->route('tasks.show', $task);
+        return redirect()->route('tasks.show', $task)
+            ->with('alert-success', 'Membro atribuído à tarefa com sucesso!');
     }
 
     public function selectableAssignees(Task $task)
@@ -127,6 +128,7 @@ class TaskController extends Controller
             $task->users()->detach($user->id);
         });
 
-        return redirect()->route('tasks.show', $task);
+        return redirect()->route('tasks.show', $task)
+            ->with('alert-success', 'Membro removido da tarefa com sucesso!');
     }
 }

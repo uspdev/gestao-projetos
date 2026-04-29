@@ -45,8 +45,8 @@ class ProjectController extends Controller
             return $project;
         });
 
-        return redirect()->route('projects.show', $project)
-            ->with('success', 'Projeto criado com sucesso!');
+        return redirect()->back()
+            ->with('alert-success', 'Projeto criado com sucesso!');
     }
 
     public function show(Project $project)
@@ -90,7 +90,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->route('projects.show', $project)
-            ->with('success', 'Projeto atualizado com sucesso!');
+            ->with('alert-success', 'Projeto atualizado com sucesso!');
     }
 
     public function updateProjectStatus(UpdateProjectStatusRequest $request, Project $project)
@@ -102,8 +102,8 @@ class ProjectController extends Controller
             $project->update($data);
         });
 
-        return redirect()->route('projects.show', $project)
-            ->with('success', 'Status do projeto atualizado com sucesso!');
+        return redirect()->back()
+            ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
     public function destroy(Project $project)
@@ -113,8 +113,8 @@ class ProjectController extends Controller
             $project->delete();
         });
 
-        return redirect()->route('users.projects.index', Auth::id())
-            ->with('success', 'Projeto excluido com sucesso!');
+        return redirect()->route('projects.index', Auth::id())
+            ->with('alert-success', 'Projeto excluido com sucesso!');
     }
 
     public function storeMember(StoreProjectMemberRequest $request, Project $project)
@@ -140,8 +140,8 @@ class ProjectController extends Controller
             ]]);
         });
 
-        return redirect()->route('projects.show', $project)
-            ->with('success', 'Membro adicionado ao projeto com sucesso!');
+        return redirect()->back()
+            ->with('alert-success', 'Membro adicionado ao projeto com sucesso!');
     }
 
     public function updateMemberRole(UpdateProjectMemberRoleRequest $request, Project $project, User $user)
@@ -153,7 +153,7 @@ class ProjectController extends Controller
 
         if ($project->isLastOwner($user) && $newRole !== ProjectUserRole::OWNER) {
             return redirect()->route('projects.show', $project)
-                ->with('error', 'O último dono do projeto não pode ter sua role alterada.');
+                ->with('alert-danger', 'O último dono do projeto não pode ter sua role alterada.');
         }
 
         DB::transaction(function () use ($project, $user, $newRole) {
@@ -162,7 +162,8 @@ class ProjectController extends Controller
             ]);
         });
 
-        return redirect()->route('projects.show', $project);
+        return redirect()->back()
+            ->with('alert-success', 'Role do membro atualizada com sucesso!');
     }
 
     public function selectableMembers(Request $request, Project $project)
@@ -245,7 +246,7 @@ class ProjectController extends Controller
 
             if ($ownersCount <= 1) {
                 return redirect()->route('projects.show', $project)
-                    ->with('error', 'O projeto precisa ter pelo menos um dono.');
+                    ->with('alert-danger', 'O projeto precisa ter pelo menos um dono.');
             }
         }
 
@@ -253,7 +254,7 @@ class ProjectController extends Controller
             $project->users()->detach($user->id);
         });
 
-        return redirect()->route('projects.show', $project)
-            ->with('success', 'Membro removido do projeto com sucesso!');
+        return redirect()->back()
+            ->with('alert-success', 'Membro removido do projeto com sucesso!');
     }
 }
