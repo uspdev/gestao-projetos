@@ -4,15 +4,13 @@
 @section('content')
   {{-- Card: Título e Descrição --}}
   <div class="card">
-    <div class="card-header h4 d-flex justify-content-between align-items-center gap-2">
-      <div>
+    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+      <h4 class="h4 mb-0">
         <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
           Meus Projetos
         </a>
         <i class="fas fa-angle-right text-muted"></i> <span>{{ $project->name }}</span>
-
-
-      </div>
+      </h4>
 
       <div class="d-flex align-items-center gap-2">
         @include('projects.partials.edit-btn')

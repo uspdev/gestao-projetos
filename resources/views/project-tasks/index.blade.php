@@ -13,18 +13,8 @@
         <a href="{{ route('projects.show', $project) }}" class="text-decoration-none text-secondary">
           <span>{{ $project->name }}</span>
         </a>
-
         <i class="fas fa-angle-right text-muted"></i> <span>Tarefas</span>
-
       </div>
-
-      <!-- Lado direito -->
-      <div class="d-flex align-items-center gap-2">
-        @include('projects.partials.update-status')
-        @include('projects.partials.edit-btn')
-        @include('projects.partials.delete-btn')
-      </div>
-
     </div>
     <div class="card-body">
       <div class="row">
