@@ -2,13 +2,11 @@
 <div class="card mb-4 shadow-sm">
 
 
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
-    <a href="{{ route('projects.tasks.index', $project) }}" class="ms-3">
-      <i class="fas fa-tasks mr-1"></i> Tarefas
+  <div class="card-header h4">
+    <a href="{{ route('projects.tasks.index', $project) }}">
+      <i class="fas fa-tasks"></i> Tarefas
     </a>
-    @include('tasks.partials.create-task-btn', [
-        'availableTags' => \App\Models\Tag::withType('tasks')->orderBy('name')->get(),
-    ])
+    @include('tasks.partials.create-task-btn')
   </div>
   <div class="card-body">
     <div class="table-responsive">

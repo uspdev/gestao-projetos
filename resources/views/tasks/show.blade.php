@@ -18,10 +18,16 @@
 
     <i class="fas fa-angle-right text-muted"></i>
 
+    <a href="{{ route('projects.tasks.index', $task->project) }}" class="text-decoration-none text-secondary fw-medium">
+      Tarefas
+    </a>
+
+    <i class="fas fa-angle-right text-muted"></i>
+
     <span class="text-dark fw-semibold">
       {{ $task->title }}
     </span>
-      @include('tasks.partials.create-task-btn', ['project' => $task->project])
+    @include('tasks.partials.create-task-btn', ['project' => $task->project])
 
   </div>
 

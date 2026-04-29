@@ -70,7 +70,7 @@
                   <label for="tags">Tags</label>
                   <select name="tags[]" id="tags" multiple
                     class="form-control @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
-                    @foreach ($availableTags as $tag)
+                    @foreach (\App\Models\Tag::withType('tasks')->orderBy('name')->get() as $tag)
                       <option value="{{ $tag->id }}"
                         {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
                         {{ $tag->name }}
