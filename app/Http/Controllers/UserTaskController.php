@@ -25,7 +25,8 @@ class UserTaskController extends Controller
     {
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
-        $showDone = request()->boolean('show_done');
+        $kanbanView = request()->query('view') === 'kanban';
+        $showDone = $kanbanView || request()->boolean('show_done');
         $tasks = $user->tasks()
             ->with([
                 'project:id,name,status',
@@ -39,6 +40,6 @@ class UserTaskController extends Controller
             ->latest()
             ->get();
 
-        return view('user-tasks.index', compact('tasks', 'user'));
+        return view('user-tasks.index', compact('tasks', 'user', 'showDone', 'kanbanView'));
     }
 }

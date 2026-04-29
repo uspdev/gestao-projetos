@@ -87,7 +87,7 @@ class TaskController extends Controller
             $task->update($data);
         });
 
-        return redirect()->route('tasks.show', $task)
+        return back()
             ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
     }
 
