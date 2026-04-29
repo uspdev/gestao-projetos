@@ -5,6 +5,7 @@
       <i class="fas fa-tasks"></i> <span class="mr-1">Tarefas</span>
     </a>
     @include('tasks.partials.create-task-btn', ['project' => $project])
+    @include('tasks.partials.show-done-btn')
   </div>
 
   <div class="card-body">

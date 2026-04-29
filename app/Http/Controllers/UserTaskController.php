@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Task\TaskStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Models\Project;
@@ -24,11 +25,13 @@ class UserTaskController extends Controller
     {
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
+        $showDone = request()->boolean('show_done');
         $tasks = $user->tasks()
             ->with([
                 'project:id,name,status',
                 'users:id,name',
             ])
+            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy(
                 Project::select('name')
                     ->whereColumn('projects.id', 'tasks.project_id')

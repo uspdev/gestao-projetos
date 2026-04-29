@@ -4,8 +4,9 @@
 
 @section('content')
   <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Minhas Tarefas</h2>
+    <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+      <h2 class="mb-0">Minhas Tarefas</h2>
+      @include('tasks.partials.show-done-btn')
     </div>
 
     <div class="row">

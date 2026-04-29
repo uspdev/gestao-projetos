@@ -16,10 +16,12 @@ class ProjectTaskController extends Controller
     public function index(Project $project)
     {
         Gate::authorize('viewAny', [Task::class, $project]);
+        $showDone = request()->boolean('show_done');
         $tasks = $project->tasks()
             ->with('project:id,name,status')
             ->with('users:id,name')
             ->with('tags:id,name,color,description')
+            ->when(! $showDone, fn ($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy('priority', 'asc')
             ->latest()
             ->get();

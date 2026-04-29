@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Task\TaskStatus;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectRequest;
@@ -52,9 +53,12 @@ class ProjectController extends Controller
     public function show(Project $project)
     {
         Gate::authorize('view', $project);
+        $showDone = request()->boolean('show_done');
         $project = $project->load([
             'users:id,name,email',
-            'tasks:id,project_id,title,priority,status,start_date,due_date,created_at',
+            'tasks' => fn ($query) => $query
+                ->select('id', 'project_id', 'title', 'priority', 'status', 'start_date', 'due_date', 'created_at')
+                ->when(! $showDone, fn ($query) => $query->where('status', '!=', TaskStatus::DONE->value)),
             'tags:id,name,color,description',
             'tasks.tags',
         ]);

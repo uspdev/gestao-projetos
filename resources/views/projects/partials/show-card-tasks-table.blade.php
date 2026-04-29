@@ -3,6 +3,7 @@
   <div class="card-header h5">
      <i class="fas fa-tasks"></i> Tarefas
     @include('tasks.partials.create-task-btn')
+    @include('tasks.partials.show-done-btn')
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -18,7 +19,7 @@
           </tr>
         </thead>
         <tbody>
-          @foreach ($project->tasks as $task)
+          @foreach ($tasks as $task)
             <tr>
               <td>
                 @include('tasks.partials.edit')
