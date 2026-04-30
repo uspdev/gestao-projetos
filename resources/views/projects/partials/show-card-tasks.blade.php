@@ -1,7 +1,7 @@
 {{-- Card: Lista de Tasks --}}
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5">
-    <a href="{{ route('projects.tasks.index', $project) }}">
+    <a href="{{ route('projects.tasks.index', $project) }}?view=list">
       <i class="fas fa-tasks"></i> <span class="mr-1">Tarefas</span>
     </a>
     @include('tasks.partials.create-task-btn', ['project' => $project])
