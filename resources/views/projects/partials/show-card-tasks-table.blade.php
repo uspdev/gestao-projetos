@@ -24,7 +24,7 @@
           @foreach ($tasks as $task)
             <tr>
               <td>
-                @include('tasks.partials.edit')
+                @include('tasks.partials.edit-btn')
               </td>
               <td>
                 <span class="badge {{ $task->priority?->color() }}">{{ $task->priority?->label() }}</span>
