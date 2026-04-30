@@ -19,15 +19,19 @@
 
     <div class="flex-shrink-0" style="width: 320px;">
       <div class="card h-100 shadow-sm border-0">
-        <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
           <div class="font-weight-bold text-capitalize">{{ $columnLabels[$status->value] ?? $status->label() }}</div>
-          <span class="badge {{ $status->color() }}">{{ $statusTasks->count() }}</span>
+
+          <div class="d-flex align-items-center gap-2">
+            @include('user-tasks.partials.kanban-search')
+            <span class="badge {{ $status->color() }}">{{ $statusTasks->count() }}</span>
+          </div>
         </div>
 
         <div class="card-body bg-light">
           @forelse ($statusTasks as $task)
             <div class="mb-2">
-              @include('user-tasks.partials.kanban-task-card', ['task' => $task])
+              @include('user-tasks.partials.kanban-task-card')
             </div>
           @empty
             <div class="alert alert-light border text-center text-muted mb-0">

@@ -3,20 +3,20 @@
 @section('title', 'Minhas Tarefas')
 
 @section('content')
-  @php
+  {{-- @php
     $kanbanView = $kanbanView ?? request()->query('view') === 'kanban';
     $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
-  @endphp
+  @endphp --}}
 
   <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
-      <h2 class="mb-0">Minhas Tarefas</h2>
-      @includeIf('user-tasks.partials.toggle-layout-btn', ['kanbanView' => $kanbanView])
-      @include('tasks.partials.show-done-btn', ['showDone' => $showDone])
+      <h4 class="mb-0">Minhas Tarefas</h4>
+      @include('user-tasks.partials.toggle-layout-btn')
+      @include('tasks.partials.show-done-btn')
     </div>
 
-    @if ($kanbanView)
-      @includeIf('user-tasks.partials.kanban', ['tasks' => $tasks])
+    @if ($view === 'kanban')
+      @include('user-tasks.partials.kanban')
     @else
       <div class="row">
         @forelse($tasks as $task)

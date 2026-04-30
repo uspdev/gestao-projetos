@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Task\TaskStatus;
+use App\Models\Project;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use App\Models\Project;
 
 class UserTaskController extends Controller
 {
@@ -21,11 +23,13 @@ class UserTaskController extends Controller
             return $next($request);
         });
     }
-    public function index()
+
+    public function index(Request $request)
     {
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
-        $kanbanView = request()->query('view') === 'kanban';
+        $kanbanView = $request->view === 'kanban';
+        $view = $request->query('view') ?? 'kanban';
         $showDone = $kanbanView || request()->boolean('show_done');
         $tasks = $user->tasks()
             ->with([
@@ -40,6 +44,6 @@ class UserTaskController extends Controller
             ->latest()
             ->get();
 
-        return view('user-tasks.index', compact('tasks', 'user', 'showDone', 'kanbanView'));
+        return view('user-tasks.index', compact('tasks', 'user', 'showDone', 'kanbanView', 'view'));
     }
 }

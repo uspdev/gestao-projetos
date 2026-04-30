@@ -1,12 +1,13 @@
 @can('update', $task)
+
   <div class="dropdown flex-shrink-0">
-    <button class="btn btn-sm p-0 border-0 bg-transparent dropdown-toggle" type="button"
-      id="kanban-task-status-dropdown-{{ $task->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+    <button class="btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center" type="button" data-toggle="dropdown"
       title="Alterar status da task">
-      <span class="badge {{ $task->status->color() }} px-2 py-1" style="font-size: 0.75rem; line-height: 1;">
-        {{ $task->status->label() }}
+      <span class="d-inline-block {{ $task->status->color() }}" style="width: 15px; height: 15px; border-radius: 50%;">
       </span>
+      <i class="fas fa-chevron-down ml-1" style="font-size: 0.6rem; opacity: 0.6;"></i>
     </button>
+
     <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="kanban-task-status-dropdown-{{ $task->id }}">
       @foreach ([\App\Enums\Task\TaskStatus::TO_DO, \App\Enums\Task\TaskStatus::IN_PROGRESS, \App\Enums\Task\TaskStatus::IN_REVIEW, \App\Enums\Task\TaskStatus::HOLD, \App\Enums\Task\TaskStatus::DONE] as $status)
         <form method="POST" action="{{ route('tasks.updateTaskStatus', $task) }}" class="mb-1">
