@@ -15,6 +15,12 @@
         </a>
         <i class="fas fa-angle-right text-muted"></i> <span>Tarefas</span>
       </div>
+
+      <div class="d-flex align-items-center gap-2">
+        @include('projects.partials.edit-btn')
+        @include('projects.partials.update-status')
+        @include('projects.partials.delete-btn')
+      </div>
     </div>
     <div class="card-body">
       @php
