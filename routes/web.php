@@ -18,8 +18,11 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     Route::get('projects', [UserProjectController::class, 'index'])->name('projects.index');
 
-    Route::resource('projects', ProjectController::class)
-        ->only(['create', 'store', 'show', 'update', 'destroy']);
+    Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::patch('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
     Route::controller(ProjectController::class)
         ->prefix('projects/{project}')
@@ -53,8 +56,9 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     Route::get('tasks', [UserTaskController::class, 'index'])->name('tasks.index');
 
-    Route::resource('tasks', TaskController::class)
-        ->only(['show', 'update', 'destroy']);
+    Route::get('tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+    Route::patch('tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
     Route::controller(TaskController::class)
         ->prefix('tasks/{task}')
@@ -73,7 +77,7 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // USER
     // ==========================================
-    Route::resource('users', UserController::class)->only(['show']);
+    Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 
     // ==========================================
     // MENU
