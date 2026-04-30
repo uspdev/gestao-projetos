@@ -35,7 +35,8 @@
       $extraCount = max(0, $allTags->count() - $visibleTags->count());
     @endphp
 
-    <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem; max-height:2.6rem; overflow:hidden; font-size:0.9rem;">
+    <div class="d-flex align-items-center flex-wrap"
+      style="gap: 0.25rem; max-height:2.6rem; overflow:hidden; font-size:0.9rem;">
       @foreach ($visibleTags as $tag)
         <span class="badge {{ $tag->color }} d-inline-flex align-items-center" title="Tag"
           style="font-size:0.85rem;">
