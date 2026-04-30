@@ -4,7 +4,7 @@
 
 @section('content')
   @php
-    $view = $view ?? request()->query('view');
+    $view = $view ?? request()->query('view', 'kanban');
     $kanbanView = $kanbanView ?? $view === 'kanban';
     $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
   @endphp
@@ -16,7 +16,7 @@
       @include('tasks.partials.show-done-btn')
     </div>
 
-    @if ($view === 'kanban')
+    @if ($kanbanView)
       @include('user-tasks.partials.kanban')
     @else
       <div class="row">

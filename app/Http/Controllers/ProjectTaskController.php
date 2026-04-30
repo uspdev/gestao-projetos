@@ -18,7 +18,7 @@ class ProjectTaskController extends Controller
         \UspTheme::activeUrl('meus-projetos');
 
         Gate::authorize('viewAny', [Task::class, $project]);
-        $view = request()->query('view');
+        $view = request()->query('view', 'kanban');
         $kanbanView = $view === 'kanban';
         $showDone = $kanbanView || request()->boolean('show_done');
 

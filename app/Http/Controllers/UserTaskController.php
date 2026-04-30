@@ -27,7 +27,7 @@ class UserTaskController extends Controller
     {
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
-        $view = $request->query('view');
+        $view = $request->query('view', 'kanban');
         $kanbanView = $view === 'kanban';
         $showDone = $kanbanView || $request->boolean('show_done');
         $tasks = $user->tasks()

@@ -2,6 +2,7 @@
   <div class="card-header h5">
     <i class="fas fa-tasks"></i> Tarefas
     @include('tasks.partials.create-task-btn')
+    @includeIf('user-tasks.partials.toggle-layout-btn', ['view' => $view])
     @include('tasks.partials.show-done-btn')
   </div>
 

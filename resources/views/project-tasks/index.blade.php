@@ -18,17 +18,13 @@
     </div>
     <div class="card-body">
       @php
-        $view = $view ?? request()->query('view');
+        $view = $view ?? request()->query('view', 'kanban');
         $kanbanView = $kanbanView ?? $view === 'kanban';
         $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
       @endphp
 
       <div class="row">
         <div class="@if ($kanbanView) col-md-12 @else col-md-8 @endif">
-          <div class="mb-3">
-            @includeIf('user-tasks.partials.toggle-layout-btn', ['view' => $view])
-          </div>
-
           @if ($kanbanView)
             @include('project-tasks.partials.kanban')
           @else

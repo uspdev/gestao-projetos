@@ -1,7 +1,9 @@
 @php
-  $view = $view ?? request()->query('view');
+  $view = $view ?? request()->query('view', 'kanban');
   $isKanban = $view === 'kanban';
-  $href = $isKanban ? request()->fullUrlWithoutQuery('view') : request()->fullUrlWithQuery(['view' => 'kanban']);
+  $href = $isKanban
+      ? request()->fullUrlWithQuery(['view' => 'list'])
+      : request()->fullUrlWithQuery(['view' => 'kanban']);
 @endphp
 
 @if ($isKanban)
