@@ -18,7 +18,9 @@ class ProjectTaskController extends Controller
         \UspTheme::activeUrl('meus-projetos');
 
         Gate::authorize('viewAny', [Task::class, $project]);
-        $showDone = request()->boolean('show_done');
+        $view = request()->query('view');
+        $kanbanView = $view === 'kanban';
+        $showDone = $kanbanView || request()->boolean('show_done');
 
         $tasks = $project->tasks()
             ->with('project:id,name,status')
@@ -53,7 +55,10 @@ class ProjectTaskController extends Controller
             'availableTags',
             'projectSelectedTags',
             'availableTaskTags',
-            'tasksSelectedTags'
+            'tasksSelectedTags',
+            'showDone',
+            'kanbanView',
+            'view'
         ));
     }
 

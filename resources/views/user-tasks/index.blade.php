@@ -3,15 +3,16 @@
 @section('title', 'Minhas Tarefas')
 
 @section('content')
-  {{-- @php
-    $kanbanView = $kanbanView ?? request()->query('view') === 'kanban';
+  @php
+    $view = $view ?? request()->query('view');
+    $kanbanView = $kanbanView ?? $view === 'kanban';
     $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
-  @endphp --}}
+  @endphp
 
   <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
       <h4 class="mb-0">Minhas Tarefas</h4>
-      @include('user-tasks.partials.toggle-layout-btn')
+      @include('user-tasks.partials.toggle-layout-btn', ['view' => $view])
       @include('tasks.partials.show-done-btn')
     </div>
 

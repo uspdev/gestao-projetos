@@ -17,14 +17,30 @@
       </div>
     </div>
     <div class="card-body">
+      @php
+        $view = $view ?? request()->query('view');
+        $kanbanView = $kanbanView ?? $view === 'kanban';
+        $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
+      @endphp
+
       <div class="row">
-        <div class="col-md-8">
-          @include('projects.partials.show-card-tasks-table')
+        <div class="@if ($kanbanView) col-md-12 @else col-md-8 @endif">
+          <div class="mb-3">
+            @includeIf('user-tasks.partials.toggle-layout-btn', ['view' => $view])
+          </div>
+
+          @if ($kanbanView)
+            @include('project-tasks.partials.kanban')
+          @else
+            @include('projects.partials.show-card-tasks-table')
+          @endif
         </div>
-        <div class="col-md-4">
-          @include('projects.partials.show-card-membros')
-          @include('projects.partials.show-card-descricao')
-        </div>
+        @if (!$kanbanView)
+          <div class="col-md-4">
+            @include('projects.partials.show-card-membros')
+            @include('projects.partials.show-card-descricao')
+          </div>
+        @endif
       </div>
     </div>
   </div>

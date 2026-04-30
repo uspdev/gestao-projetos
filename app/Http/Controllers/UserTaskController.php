@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\Task\TaskStatus;
 use App\Models\Project;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -28,9 +27,9 @@ class UserTaskController extends Controller
     {
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
-        $kanbanView = $request->view === 'kanban';
-        $view = $request->query('view') ?? 'kanban';
-        $showDone = $kanbanView || request()->boolean('show_done');
+        $view = $request->query('view');
+        $kanbanView = $view === 'kanban';
+        $showDone = $kanbanView || $request->boolean('show_done');
         $tasks = $user->tasks()
             ->with([
                 'project:id,name,status',
