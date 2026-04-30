@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tarefas do Projeto')
+@section('title', $project->name . ' - Tarefas')
 
 @section('content')
   <div class="card">
