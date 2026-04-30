@@ -96,13 +96,6 @@ class ProjectController extends Controller
         ));
     }
 
-    public function edit(Project $project)
-    {
-        Gate::authorize('update', $project);
-
-        return view('projects.partials.edit-btn', compact('project'));
-    }
-
     public function update(UpdateProjectRequest $request, Project $project)
     {
         DB::transaction(function () use ($project, $request) {

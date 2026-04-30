@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::get('projects', [UserProjectController::class, 'index'])->name('projects.index');
 
     Route::resource('projects', ProjectController::class)
-        ->only(['create', 'store', 'show', 'edit', 'update', 'destroy']);
+        ->only(['create', 'store', 'show', 'update', 'destroy']);
 
     Route::controller(ProjectController::class)
         ->prefix('projects/{project}')
@@ -54,7 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('tasks', [UserTaskController::class, 'index'])->name('tasks.index');
 
     Route::resource('tasks', TaskController::class)
-        ->only(['show', 'edit', 'update', 'destroy']);
+        ->only(['show', 'update', 'destroy']);
 
     Route::controller(TaskController::class)
         ->prefix('tasks/{task}')

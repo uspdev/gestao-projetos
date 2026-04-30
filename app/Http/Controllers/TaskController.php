@@ -35,18 +35,6 @@ class TaskController extends Controller
         return view('tasks.show', compact('task', 'availableTaskTags', 'tasksSelectedTags'));
     }
 
-    public function edit(Task $task)
-    {
-        Gate::authorize('update', $task);
-
-        $availableTags = Tag::withType('tasks')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
-
-        return view('tasks.partials.edit', compact('task', 'availableTags'));
-    }
-
     public function update(UpdateTaskRequest $request, Task $task)
     {
         DB::transaction(function () use ($task, $request) {
