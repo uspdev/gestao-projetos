@@ -20,7 +20,7 @@ class TaskController extends Controller
         $task = $task->load([
             'project:id,name,slug,status',
             'users:id,name,email',
-            'tags:id,name,color,description',
+            'tags:id,name,color,description,type',
         ]);
 
         $availableTaskTags = Tag::withType('tasks')

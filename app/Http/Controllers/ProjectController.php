@@ -68,8 +68,8 @@ class ProjectController extends Controller
             'tasks' => fn($query) => $query
                 ->select('id', 'project_id', 'title', 'priority', 'status', 'start_date', 'due_date', 'created_at')
                 ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value)),
-            'tags:id,name,color,description',
-            'tasks.tags',
+            'tags:id,name,color,description,type',
+            'tasks.tags:id,name,color,description,type',
         ]);
 
         $availableTags = Tag::withType('projects')
