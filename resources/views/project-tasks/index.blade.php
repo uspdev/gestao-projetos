@@ -7,7 +7,7 @@
     <div class="card-header h4 d-flex justify-content-between align-items-center gap-2">
       <div class="">
         <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
-          Meus Projetos
+          <i class="fas fa-home"></i>
         </a>
         <i class="fas fa-angle-right text-muted"></i>
         <a href="{{ route('projects.show', $project) }}" class="text-decoration-none text-secondary">

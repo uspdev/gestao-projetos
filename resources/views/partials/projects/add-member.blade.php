@@ -1,4 +1,4 @@
-<button class="btn btn-sm btn-outline-success" title="Adicionar membro" type="button" data-toggle="modal"
+<button class="btn btn-sm btn-outline-success py-0" title="Adicionar membro" type="button" data-toggle="modal"
   data-target="#addProjectMemberModal">
   <i class="fas fa-plus"></i>
 </button>

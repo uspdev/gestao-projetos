@@ -1,5 +1,5 @@
 @can('update', $project)
-  <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#modalEditarProjeto">
+  <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="modal" data-target="#modalEditarProjeto">
     <i class="fas fa-edit"></i>
   </button>
 
@@ -75,7 +75,7 @@
     @parent
     @include('partials.multi-select-script')
 
-    {{-- Reabre o modal caso haja erro de validação na edição. 
+    {{-- Reabre o modal caso haja erro de validação na edição.
          Movido para dentro do section para melhor organização do JS --}}
     @if ($errors->any() && old('_method') === 'PUT')
       <script>

@@ -4,7 +4,7 @@
     $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
   @endphp
 
-  <button type="button" class="btn btn-sm btn-outline-success" data-toggle="modal" data-target="#modalNovaTask"
+  <button type="button" class="btn btn-sm btn-outline-success py-0" data-toggle="modal" data-target="#modalNovaTask"
     title="Adicionar task">
     <i class="fas fa-plus"></i>
   </button>
@@ -87,7 +87,7 @@
                     @error('tags.*')
                       <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
-                    
+
                   </div>
                 </div>
               </div>
