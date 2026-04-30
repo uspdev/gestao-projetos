@@ -20,7 +20,7 @@
             </button>
           </div>
 
-          <form action="{{ route('projects.tasks.store', $project->id) }}" method="POST">
+          <form action="{{ route('projects.tasks.store', $project) }}" method="POST">
             @csrf
             <div class="modal-body">
               {{-- Título --}}
