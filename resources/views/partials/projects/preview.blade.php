@@ -3,7 +3,7 @@
   $userRole = $user ? $project->userRole($user) : null;
 @endphp
 
-<x-card.preview class="mb-3 shadow-sm border-left-primary" href="{{ route('projects.show', $project->id) }}"
+<x-card.preview class="mb-3 shadow-sm border-left-primary" href="{{ route('projects.show', $project) }}"
   aria-label="Acessar projeto {{ $project->name }}">
   <x-slot name="header">
     <div class="d-flex align-items-center w-100" style="gap:0.5rem;">
