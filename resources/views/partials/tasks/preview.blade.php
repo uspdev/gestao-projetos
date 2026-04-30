@@ -21,18 +21,30 @@
   </x-slot>
 
   <x-slot name="footer">
-    <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem;">
+    @php
+      $allTags = $task->tagsWithType('tasks');
+      $visibleTags = $allTags->take(3);
+      $extraCount = max(0, $allTags->count() - $visibleTags->count());
+    @endphp
+
+    <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem; max-height:3.6rem; overflow:hidden;">
       @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
         <span class="badge {{ $task->priority->color() }}" title="Prioridade">
           <i class="fas fa-flag mr-1"></i>{{ $task->priority->label() }}
         </span>
       @endif
 
-      @foreach ($task->tagsWithType('tasks') as $tag)
-        <span class="badge {{ $tag->color }}" title="Tag">
-          <i class="fas fa-tag mr-1"></i>{{ $tag->name }}
+      @foreach ($visibleTags as $tag)
+        <span class="badge {{ $tag->color }} d-inline-flex align-items-center" title="Tag">
+          <i class="fas fa-tag mr-1"></i>
+          <span class="d-inline-block text-truncate" style="max-width:8rem;">{{ $tag->name }}</span>
         </span>
       @endforeach
+
+      @if ($extraCount > 0)
+        <span class="badge badge-light border text-muted"
+          title="+{{ $extraCount }} outras tags">+{{ $extraCount }}</span>
+      @endif
     </div>
 
     <div class="text-muted text-right text-nowrap pl-2" style="font-size: 0.85rem;">
