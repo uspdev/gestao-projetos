@@ -4,7 +4,7 @@
     <a href="{{ route('projects.tasks.index', $project) }}?view=list">
       <i class="fas fa-tasks"></i> <span class="mr-1">Tarefas</span>
     </a>
-    @include('tasks.partials.create-task-btn', ['project' => $project])
+    @include('tasks.partials.create-task-btn')
     @include('tasks.partials.show-done-btn')
   </div>
 
