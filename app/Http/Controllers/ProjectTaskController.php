@@ -15,9 +15,11 @@ class ProjectTaskController extends Controller
 {
     public function index(Project $project)
     {
+        \UspTheme::activeUrl('meus-projetos');
+
         Gate::authorize('viewAny', [Task::class, $project]);
         $showDone = request()->boolean('show_done');
-        
+
         $tasks = $project->tasks()
             ->with('project:id,name,status')
             ->with('users:id,name')
