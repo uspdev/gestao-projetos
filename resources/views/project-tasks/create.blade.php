@@ -1,5 +1,4 @@
 @php
-  $resolvedProjectId = $project_id ?? $project->id;
   $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
 @endphp
 
@@ -18,7 +17,7 @@
         </button>
       </div>
 
-      <form action="{{ route('projects.tasks.store', $resolvedProjectId) }}" method="POST">
+      <form action="{{ route('projects.tasks.store', $project) }}" method="POST">
         @csrf
         <div class="modal-body">
           {{-- Título --}}
@@ -118,7 +117,7 @@
 @section('javascripts_bottom')
   @parent
   @include('partials.multi-select-script')
-  
+
   {{-- Reabrir Modal com Vanilla JS em caso de erro de validação --}}
   @if ($errors->any() && old('title') !== null && old('_method') === null)
     <script>

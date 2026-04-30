@@ -35,6 +35,11 @@ class Project extends Model
         'description',
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)

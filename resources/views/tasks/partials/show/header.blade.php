@@ -4,7 +4,7 @@
       <i class="fas fa-home"></i>
     </a>
     <i class="fas fa-angle-right text-muted"></i>
-    <a href="{{ route('projects.show', $task->project_id) }}" class="text-decoration-none text-secondary fw-medium">
+    <a href="{{ route('projects.show', $task->project) }}" class="text-decoration-none text-secondary fw-medium">
       {{ $task->project->name }}
     </a>
     <i class="fas fa-angle-right text-muted"></i>
