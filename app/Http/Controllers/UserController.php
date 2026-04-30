@@ -23,21 +23,21 @@ class UserController extends Controller
     public function show(User $user)
     {
         Gate::authorize('view', $user);
-        
+
         $relations = [
             'roles:id,name',
-            'projects:id,name,status',
+            'projects:id,name,slug,status',
         ];
-        
+
         // Apenas o usuário logado pode ver suas próprias tasks
         if (Auth::id() === $user->id) {
             $relations = array_merge($relations, [
                 'tasks:id,project_id,title,priority,status,start_date,due_date',
-                'tasks.project:id,name',
+                'tasks.project:id,name,slug',
                 'tasks.tags',
             ]);
         }
-        
+
         $user = $user->load($relations);
 
         return view('users.show', compact('user'));
