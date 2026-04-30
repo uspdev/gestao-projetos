@@ -1,52 +1,85 @@
 
------
-
 # Sistema de Gestão de Projetos USP
 
-Sistema interno construído em Laravel que auxilia na organização, centralização e acompanhamento de projetos, tarefas e reuniões, desenhado para atender tanto o corpo de desenvolvedores quanto o setor administrativo.
+## Sobre o projeto
 
-## Funcionalidades
+Sistema interno construído em Laravel que organiza e centraliza projetos e tarefas, com base pronta para evoluir para reuniões e outras features do roadmap.
 
-  * Gera e gerencia Projetos com ciclo de vida.
-  * Fornece um sistema para mapear Tarefas com prioridades, datas, labels e status
-  * Autenticação unificada utilizando as credenciais da rede da instituição (Senha Única Socialite)
-  * Estrutura arquitetural preparada para expansão contínua.
+Documentação:
+- [docs/MVP.md](docs/MVP.md)
+- [docs/roadmap.md](docs/roadmap.md)
 
-## Documentação
+## Características
 
-  - [MVP - Minimum Viable Product](https://www.google.com/search?q=docs/MVP.md)
-  - [Roadmap - Features Futuras](https://www.google.com/search?q=docs/roadmap.md)
+- Gestão de projetos com status, descrição e membros.
+- Gestão de tarefas com prioridade, status, datas e responsáveis.
+- Visão de tarefas em lista ou kanban (por projeto e por usuário), com filtro de concluídas.
+- Tags por tipo para classificação de projetos e tarefas.
+- Gestão de membros com busca de pessoas via Replicado (codpes).
+- Autenticação por Senha Única Socialite.
+- Controle de acesso por roles e policies.
+- Arquitetura preparada para expansão.
+
+## Funcionamento
+
+Projetos têm membros com papéis (OWNER, MEMBER, VIEWER). Tarefas pertencem a projetos e podem ser atribuídas a múltiplos usuários. A busca de membros usa o Replicado quando disponível. O acesso é controlado por policies e as rotas de projeto usam slug.
 
 ## Requisitos
 
-Aplicação Laravel padrão (PHP 8.2+).
+- Servidor Linux (Ubuntu ou Debian).
+- PHP 8.2+.
+- Composer.
+- Git.
+- Banco de dados compatível com Laravel (ex: MariaDB/MySQL ou SQLite).
+- Credenciais de Senha Única.
+- Acesso ao Replicado para busca de pessoas e cadastro de membros por codpes.
 
 ## Instalação
 
-### Básico
-
 ```sh
-git clone [git@github.com:uspdev/gestao-projetos.git]
+git clone git@github.com:uspdev/gestao-projetos.git
+cd gestao-projetos
 composer install
-
-# Configure o .env conforme a necessidade
 cp .env.example .env
 php artisan key:generate
 ```
 
-### Senha Única
+Configure o `.env` (incluindo `SENHAUNICA_CALLBACK_ID`) e rode:
 
-Cadastre uma nova URL no configurador de senha única da USP utilizando o caminho `https://seu_app/callback`. Guarde o `callback_id` e adicione ao seu arquivo `.env`.
+```sh
+php artisan migrate
+```
 
-## Problemas e soluções
+## Configuração em ambiente de produção
 
-  * **Erro de Intelephense no VS Code após clonar o projeto:**
-    Certifique-se de ter rodado `composer install` e os comandos do IDE Helper descritos na seção de Instalação. O pacote recriará os mapeamentos dinâmicos que o `.gitignore` não rastreia.
+- Aponte o servidor web para a pasta `public/`.
+- Defina `APP_ENV=production` e `APP_DEBUG=false`.
+- Garanta permissão de escrita em `storage/` e `bootstrap/cache/`.
+
+## Configuração em ambiente de desenvolvimento
+
+```sh
+php artisan serve
+```
+
+## Histórico
+
+- Projeto iniciado em 2026 com foco no MVP de projetos e tarefas.
+
+## Detalhamento técnico
+
+- Laravel 12 com Eloquent.
+- Padrão FormRequest + Action para casos de uso.
+- Tags com `spatie/laravel-tags`.
+- Slugs e auditoria automática via traits.
 
 ## Changelog
 
+30/04/2026
+
+- Release do MVP.
+
 03/2026
 
-* Setup inicial da arquitetura do MVP (Projetos, Tarefas e Usuários)
-* Configuração de validações dinâmicas com Form Requests e Action Pattern
-* Implementação do `barryvdh/laravel-ide-helper` no fluxo de desenvolvimento local
+- Setup inicial da arquitetura do MVP (Projetos, Tarefas e Usuários).
+- Configuração de validações dinâmicas com Form Requests e Action Pattern.
