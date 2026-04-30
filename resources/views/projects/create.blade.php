@@ -16,6 +16,7 @@
         @csrf
         <div class="modal-body">
           <x-form.input name="name" label="Nome do Projeto" required />
+          <x-form.input name="slug" label="URL do Projeto (Slug)" />
 
           <div class="form-group mb-3">
             <label for="status">Status Inicial <span class="text-danger">*</span></label>
@@ -72,4 +73,43 @@
 @section('javascripts_bottom')
   @parent
   @include('partials.multi-select-script')
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('modalNovoProjeto');
+      if (!modal) return;
+
+      const nameInput = modal.querySelector('input[name="name"]');
+      const slugInput = modal.querySelector('input[name="slug"]');
+
+      if (!nameInput || !slugInput) return;
+
+      const slugify = (value) => {
+        return value
+          .toString()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '');
+      };
+
+      let isSlugDirty = false;
+
+      if (slugInput.value.trim() !== '' && slugInput.value !== slugify(nameInput.value)) {
+        isSlugDirty = true;
+      }
+
+      slugInput.addEventListener('input', function() {
+        isSlugDirty = true;
+      });
+
+      nameInput.addEventListener('input', function() {
+        if (isSlugDirty) {
+          return;
+        }
+
+        slugInput.value = slugify(nameInput.value);
+      });
+    });
+  </script>
 @endsection
