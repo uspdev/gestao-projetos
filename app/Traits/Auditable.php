@@ -19,6 +19,14 @@ trait Auditable
 
         static::deleting(function ($model) {
             $model->deleted_by = self::getCurrentUserId();
+            if (method_exists($model, 'slugColumn')) {
+                $slugColumn = $model->slugColumn();
+                $currentSlug = $model->getAttribute($slugColumn);
+
+                if (!empty($currentSlug) && !str_contains($currentSlug, '-deleted-')) {
+                    $model->setAttribute($slugColumn, $currentSlug . '-deleted-' . time());
+                }
+            }
             $model->saveQuietly();
         });
     }
