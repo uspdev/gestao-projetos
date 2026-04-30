@@ -29,6 +29,13 @@
             </div>
 
             <div class="row">
+              <div class="col-12">
+                <x-form.input name="slug" label="URL do Projeto (Slug)" value="{{ $project->slug }}" />
+                <small class="text-muted d-block">Aviso: Alterar a URL quebrará links antigos já compartilhados.</small>
+              </div>
+            </div>
+
+            <div class="row">
               {{-- Descrição --}}
               <div class="col-12">
                 <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $project->description }}"
