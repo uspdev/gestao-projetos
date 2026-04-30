@@ -18,7 +18,7 @@ class TaskController extends Controller
     {
         Gate::authorize('view', $task);
         $task = $task->load([
-            'project:id,name,status',
+            'project:id,name,slug,status',
             'users:id,name,email',
             'tags:id,name,color,description',
         ]);

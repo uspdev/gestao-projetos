@@ -23,7 +23,7 @@ class ProjectTaskController extends Controller
         $showDone = $kanbanView || request()->boolean('show_done');
 
         $tasks = $project->tasks()
-            ->with('project:id,name,status')
+            ->with('project:id,name,slug,status')
             ->with('users:id,name')
             ->with('tags:id,name,color,description')
             ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
