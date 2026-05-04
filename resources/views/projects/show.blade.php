@@ -9,7 +9,7 @@
         <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
           <i class="fas fa-home"></i>
         </a>
-        <i class="fas fa-angle-right text-muted"></i> <span>{{ $project->name }}</span>
+        <x-separator /> {{ $project->name }}
 
       </div>
 

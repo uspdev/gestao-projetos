@@ -3,7 +3,7 @@
   <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary fw-medium">
     Meus Projetos
   </a>
-  <i class="fas fa-angle-right text-muted"></i> {{ $project->name }}
+  <x-separator /> {{ $project->name }}
   @include('projects.partials.edit-btn')
 
   <a href="#" class="btn btn-sm btn-outline-secondary ml-3">

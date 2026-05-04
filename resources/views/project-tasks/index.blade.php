@@ -4,19 +4,20 @@
 
 @section('content')
   <div class="card">
-    <div class="card-header h4 d-flex justify-content-between align-items-center gap-2">
-      <div class="">
+    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+      <div class="h4 mb-0">
         <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
           <i class="fas fa-home"></i>
         </a>
-        <i class="fas fa-angle-right text-muted"></i>
+        <x-separator />
         <a href="{{ route('projects.show', $project) }}" class="text-decoration-none text-secondary">
-          <span>{{ $project->name }}</span>
+          {{ $project->name }}
         </a>
-        <i class="fas fa-angle-right text-muted"></i> <span>Tarefas</span>
+        <x-separator /> Tarefas
       </div>
 
       <div class="d-flex align-items-center gap-2">
+        @include('projects.partials.show-tag-badges')
         @include('projects.partials.edit-btn')
         @include('projects.partials.update-status')
         @include('projects.partials.delete-btn')

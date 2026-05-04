@@ -3,11 +3,11 @@
     <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary fw-medium">
       <i class="fas fa-home"></i>
     </a>
-    <i class="fas fa-angle-right text-muted"></i>
+    <x-separator />
     <a href="{{ route('projects.show', $task->project) }}" class="text-decoration-none text-secondary fw-medium">
       {{ $task->project->name }}
     </a>
-    <i class="fas fa-angle-right text-muted"></i>
+    <x-separator />
     <a href="{{ route('projects.tasks.index', $task->project) }}" class="text-decoration-none text-secondary fw-medium">
       Tarefas
     </a>
