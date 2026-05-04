@@ -48,12 +48,11 @@
               <div class="col-12">
                 <div class="form-group mb-3">
                   <label>Tags</label>
-
                   <select name="tags[]" multiple style="width: 100%;"
                     class="form-control select2-tags @error('tags') is-invalid @enderror">
-                    @foreach ($availableTags as $tag)
+                    @foreach (App\Models\Tag::forProjects() as $tag)
                       <option value="{{ $tag->id }}"
-                        {{ in_array($tag->id, $projectSelectedTags, true) ? 'selected' : '' }}>
+                        {{ in_array($tag->id, $project->tags->pluck('id')->toArray(), true) ? 'selected' : '' }}>
                         {{ $tag->name }}
                       </option>
                     @endforeach

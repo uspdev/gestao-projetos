@@ -72,15 +72,6 @@ class ProjectController extends Controller
             'tasks.tags:id,name,color,description,type',
         ]);
 
-        $availableTags = Tag::withType('projects')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
-
-        $projectSelectedTags = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
-            ->map(fn($id) => (int) $id)
-            ->all();
-
         $availableTaskTags = Tag::withType('tasks')->orderBy('name')->get();
 
         $tasksSelectedTags = $project->tasks->mapWithKeys(function ($task) {
@@ -89,8 +80,6 @@ class ProjectController extends Controller
 
         return view('projects.show', compact(
             'project',
-            'availableTags',
-            'projectSelectedTags',
             'availableTaskTags',
             'tasksSelectedTags'
         ));
