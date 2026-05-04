@@ -6,7 +6,7 @@
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Meus Projetos</h2>
-      @includeWhen(auth()->user()->can('create', \App\Models\Project::class), 'projects.create')
+      @include('projects.partials.create-btn')
     </div>
 
     {{-- Listagem de Previews --}}
@@ -22,13 +22,5 @@
       @endforelse
     </div>
   </div>
-  {{-- Reabre o modal caso haja erro de validação na edição (Vanilla JS) --}}
-  @if ($errors->any() && old('name') !== null)
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        $('#modalNovoProjeto').modal('show');
-      });
-    </script>
-  @endif
 
 @endsection
