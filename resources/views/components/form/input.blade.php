@@ -1,13 +1,17 @@
 @props(['name', 'label', 'type' => 'text', 'value' => '', 'required' => false])
+@php
+  $isRequired = $required || $attributes->has('required');
+@endphp
 
 <div class="form-group mb-3">
   <label for="{{ $name }}">{!! $label !!}
-    @if ($required)
+    @if ($isRequired)
       <span class="text-danger">*</span>
     @endif
   </label>
   <input type="{{ $type }}" name="{{ $name }}" id="{{ $name }}" value="{{ old($name, $value) }}"
-    {{ $attributes->merge(['class' => 'form-control ' . ($errors->has($name) ? 'is-invalid' : '')]) }}>
+    {{ $attributes->merge(['class' => 'form-control ' . ($errors->has($name) ? 'is-invalid' : '')]) }}
+    @required($isRequired)>
   @error($name)
     <div class="invalid-feedback d-block">{{ $message }}</div>
   @enderror
