@@ -2,8 +2,9 @@
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5">
     <a href="{{ route('projects.tasks.index', $project) }}?view=list">
-      <i class="fas fa-tasks"></i> <span class="mr-1">Tarefas</span>
+      <i class="fas fa-tasks"></i> Tarefas
     </a>
+    <span class="badge badge-pill badge-primary">{{ count($project->tasks) }}</span>
     @include('tasks.partials.create-task-btn')
     @include('tasks.partials.show-done-btn')
   </div>
