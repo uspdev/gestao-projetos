@@ -165,8 +165,7 @@
 
       <div class="landing-hero">
         <div class="landing-hero-content">
-          <span class="landing-badge">Sistema Institucional</span>
-          <h1 class="landing-title">Gestão de projetos USP</h1>
+          <h1 class="landing-title">Gestão de projetos</h1>
           <p class="landing-subtitle">
             Uma plataforma criada para centralizar seus projetos, simplificar a organização de tarefas e
             facilitar o acompanhamento de entregas, feita para atender desde equipes de desenvolvimento até
