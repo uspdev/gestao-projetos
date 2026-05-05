@@ -42,6 +42,16 @@ class Task extends Model
         return Tag::forTasks();
     }
 
+    public function syncTagsByIds(?array $tagIds): void
+    {
+        if ($tagIds === null) {
+            return;
+        }
+
+        $tagsToSync = Tag::whereIn('id', $tagIds)->get();
+        $this->syncTagsWithType($tagsToSync, Tag::TYPE_TASK);
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

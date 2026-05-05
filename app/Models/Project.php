@@ -79,6 +79,16 @@ class Project extends Model
         return $ownersCount <= 1;
     }
 
+    public function syncTagsByIds(?array $tagIds): void
+    {
+        if ($tagIds === null) {
+            return;
+        }
+
+        $tagsToSync = Tag::whereIn('id', $tagIds)->get();
+        $this->syncTagsWithType($tagsToSync, Tag::TYPE_PROJECT);
+    }
+
     private function parseProjectUserRole(mixed $roleValue): ?ProjectUserRole
     {
         if ($roleValue instanceof ProjectUserRole) {

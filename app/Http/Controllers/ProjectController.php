@@ -40,11 +40,7 @@ class ProjectController extends Controller
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::OWNER->value]);
 
-            // possivelmente extrair isso
-            if ($request->has('tags')) {
-                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
-                $project->syncTagsWithType($tagsToSync, 'projects');
-            }
+            $project->syncTagsByIds($request->tags ?? null);
 
             return $project;
         });
@@ -89,11 +85,7 @@ class ProjectController extends Controller
 
             $project->update($data);
 
-            $tagsToSync = [];
-            if ($request->has('tags')) {
-                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
-            }
-            $project->syncTagsWithType($tagsToSync, 'projects');
+            $project->syncTagsByIds($request->tags ?? []);
         });
 
         return redirect()->route('projects.show', $project)

@@ -40,11 +40,7 @@ class TaskController extends Controller
 
             $task->update($data);
 
-            $tagsToSync = [];
-            if ($request->has('tags')) {
-                $tagsToSync = Tag::whereIn('id', $request->tags)->get();
-            }
-            $task->syncTagsWithType($tagsToSync, 'tasks');
+            $task->syncTagsByIds($request->tags ?? []);
         });
 
         if ($request->has('action')) {
