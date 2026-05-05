@@ -113,11 +113,6 @@ class ProjectController extends Controller
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
-    /**
-     * Remove um projeto.
-     *
-     * @param  \App\Models\Project  $project
-     */
     public function destroy(Project $project)
     {
         Gate::authorize('delete', $project);
