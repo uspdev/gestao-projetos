@@ -24,17 +24,7 @@
     </div>
   </div>
 
-  {{-- Reabre o modal caso haja erro de validação na edição (Vanilla JS) --}}
-  @can('update', $task)
-    @if ($errors->any() && old('_method') === 'PUT')
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          const editBtn = document.querySelector('[data-target="#modalEditarTask"]');
-          if (editBtn) editBtn.click();
-        });
-      </script>
-    @endif
-  @endcan
+  @include('tasks.partials.task-form-modal', ['project' => $task->project])
 
 
 @endsection

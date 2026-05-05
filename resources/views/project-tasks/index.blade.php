@@ -47,4 +47,5 @@
       </div>
     </div>
   </div>
+  @include('tasks.partials.task-form-modal')
 @endsection

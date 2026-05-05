@@ -76,7 +76,16 @@ class ProjectTaskController extends Controller
             $task = Task::create($data);
             $task->users()->attach(Auth::id());
 
+<<<<<<< Updated upstream
             $task->syncTagsByIds($request->tags ?? null);
+=======
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::withType('tasks')
+                    ->whereIn('id', $request->tags)
+                    ->get();
+                $task->syncTagsWithType($tagsToSync, 'tasks');
+            }
+>>>>>>> Stashed changes
 
             return $task;
         });
