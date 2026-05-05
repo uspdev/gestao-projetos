@@ -267,20 +267,9 @@ class ProjectController extends Controller
     {
         Gate::authorize('storeMember', $project);
 
-        $destroyedIsOwner = $project->users()
-            ->where('users.id', $user->id)
-            ->wherePivot('role', ProjectUserRole::OWNER->value)
-            ->exists();
-
-        if ($destroyedIsOwner) {
-            $ownersCount = $project->users()
-                ->wherePivot('role', ProjectUserRole::OWNER->value)
-                ->count();
-
-            if ($ownersCount <= 1) {
-                return redirect()->route('projects.show', $project)
-                    ->with('alert-danger', 'O projeto precisa ter pelo menos um dono.');
-            }
+        if ($user->isOwnerOfProject($project) && $project->isLastOwner($user)) {
+            return redirect()->route('projects.show', $project)
+                ->with('alert-danger', 'O projeto precisa ter pelo menos um dono.');
         }
 
         DB::transaction(function () use ($project, $user) {
