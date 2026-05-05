@@ -27,8 +27,8 @@ class UserProjectController extends Controller
         Gate::authorize('viewAny', [Project::class, $user]);
         $projects = $user->projects()
             ->with([
-                'users:id,name',
-                'tasks:id,project_id,status',
+                'users',
+                'tasks',
             ])
             ->latest()
             ->get();

@@ -25,15 +25,15 @@ class UserController extends Controller
         Gate::authorize('view', $user);
 
         $relations = [
-            'roles:id,name',
-            'projects:id,name,slug,status',
+            'roles',
+            'projects',
         ];
 
         // Apenas o usuário logado pode ver suas próprias tasks
         if (Auth::id() === $user->id) {
             $relations = array_merge($relations, [
-                'tasks:id,project_id,title,priority,status,start_date,due_date',
-                'tasks.project:id,name,slug',
+                'tasks',
+                'tasks.project',
                 'tasks.tags',
             ]);
         }

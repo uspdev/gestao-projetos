@@ -32,8 +32,8 @@ class UserTaskController extends Controller
         $showDone = $kanbanView || $request->boolean('show_done');
         $tasks = $user->tasks()
             ->with([
-                'project:id,name,slug,status',
-                'users:id,name',
+                'project',
+                'users',
             ])
             ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy(
