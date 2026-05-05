@@ -30,4 +30,14 @@ class Tag extends SpatieTag
             ->orderBy('name')
             ->get();
     }
+
+    /**
+    * Retorna as tags do tipo "tasks"
+    */
+    public static function forTasks()
+    {
+        return static::withType(self::TYPE_TASK)
+            ->orderBy('name')
+            ->get();
+    }
 }

@@ -40,6 +40,7 @@ class ProjectController extends Controller
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::OWNER->value]);
 
+            // possivelmente extrair isso
             if ($request->has('tags')) {
                 $tagsToSync = Tag::whereIn('id', $request->tags)->get();
                 $project->syncTagsWithType($tagsToSync, 'projects');
@@ -66,7 +67,7 @@ class ProjectController extends Controller
         ]);
 
         $availableTags = Tag::forProjects();
-        $availableTaskTags = Tag::withType('tasks')->orderBy('name')->get();
+        $availableTaskTags = Tag::forTasks();
 
         $tasksSelectedTags = $project->tasks->mapWithKeys(function ($task) {
             return [$task->id => $task->tagsWithType('tasks')->pluck('id')->all()];

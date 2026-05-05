@@ -39,10 +39,7 @@ class Task extends Model
 
     public function availableTags()
     {
-        return Tag::withType('tasks')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
+        return Tag::forTasks();
     }
 
     public function project(): BelongsTo

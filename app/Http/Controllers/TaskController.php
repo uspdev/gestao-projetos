@@ -23,10 +23,7 @@ class TaskController extends Controller
             'tags:id,name,color,description,type',
         ]);
 
-        $availableTaskTags = Tag::withType('tasks')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
+        $availableTaskTags = Tag::forTasks();
 
         $tasksSelectedTags = [
             $task->id => $task->tags->pluck('id')->all()

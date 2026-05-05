@@ -37,10 +37,7 @@ class ProjectTaskController extends Controller
             ->map(fn($id) => (int) $id)
             ->all();
 
-        $availableTaskTags = Tag::withType('tasks')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
+        $availableTaskTags = Tag::forTasks();
 
         $tasksSelectedTags = $tasks->mapWithKeys(function ($task) {
             return [$task->id => $task->tags->pluck('id')->all()];
@@ -63,10 +60,7 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        $availableTags = Tag::withType('tasks')
-            ->select('id', 'name', 'color')
-            ->orderBy('name')
-            ->get();
+        $availableTags = Tag::forTasks();
 
         return view('project-tasks.create', compact('project', 'availableTags'));
     }

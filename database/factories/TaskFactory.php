@@ -43,7 +43,7 @@ class TaskFactory extends Factory
         return $this->afterCreating(function (Task $task) {
             // Cache de 1 minuto para não estourar o banco se criar 1000 tasks
             $availableTagIds = Cache::remember('factory_task_tags', 60, function () {
-                return Tag::getWithType('tasks')->pluck('id')->toArray();
+                return Tag::forTasks()->pluck('id')->toArray();
             });
 
             if (!empty($availableTagIds)) {
