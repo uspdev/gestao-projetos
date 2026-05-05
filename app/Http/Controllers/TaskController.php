@@ -40,9 +40,6 @@ class TaskController extends Controller
 
             $task->update($data);
 
-<<<<<<< Updated upstream
-            $task->syncTagsByIds($request->tags ?? []);
-=======
             $tagsToSync = [];
             if ($request->has('tags')) {
                 $tagsToSync = Tag::withType('tasks')
@@ -50,7 +47,6 @@ class TaskController extends Controller
                     ->get();
             }
             $task->syncTagsWithType($tagsToSync, 'tasks');
->>>>>>> Stashed changes
         });
 
         if ($request->has('action')) {
