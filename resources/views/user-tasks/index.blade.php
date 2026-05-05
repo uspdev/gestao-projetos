@@ -22,7 +22,7 @@
       <div class="row">
         @forelse($tasks as $task)
           <div class="col-md-6 col-lg-4 mb-2">
-            @include('partials.tasks.preview', ['task' => $task])
+            @include('tasks.partials.preview')
           </div>
         @empty
           <div class="col-12">

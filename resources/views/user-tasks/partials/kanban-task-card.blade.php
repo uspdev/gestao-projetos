@@ -1,4 +1,5 @@
-<div class="card border-0 shadow-sm kanban-task" data-search="{{ strtolower($task->title . $task->project?->name . $task->priority?->label()) }}">
+<div class="card border-0 shadow-sm kanban-task"
+  data-search="{{ strtolower($task->title . $task->project?->name . $task->priority?->label()) }}">
   <div class="card-body py-3">
     <div class="d-flex align-items-start justify-content-between gap-2">
       <a href="{{ route('tasks.show', $task->id) }}" class="text-reset text-decoration-none flex-grow-1 pr-2">
@@ -33,4 +34,6 @@
       @endif
     </div>
   </div>
+
+  @include('user-tasks.partials.date-formatter-script')
 </div>

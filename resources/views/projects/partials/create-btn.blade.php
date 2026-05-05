@@ -17,7 +17,7 @@
           @csrf
           <div class="modal-body">
             <x-form.input name="name" label="Nome" required />
-            <x-form.input name="slug" label="Slug (identificador amigável na URL)" required/>
+            <x-form.input name="slug" label="Slug (identificador amigável na URL)" required />
 
             <div class="form-group mb-3">
               <label for="status">Estado <span class="text-danger">*</span></label>
@@ -73,7 +73,7 @@
 
   @section('javascripts_bottom')
     @parent
-    @include('partials.multi-select-script')
+    @include('projects.partials.multi-select-script')
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('modalNovoProjeto');
@@ -117,10 +117,10 @@
   @endsection
 
   @if ($errors->any())
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          $('#modalNovoProjeto').modal('show');
-        });
-      </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        $('#modalNovoProjeto').modal('show');
+      });
+    </script>
   @endif
 @endcan

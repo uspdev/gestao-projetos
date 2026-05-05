@@ -73,3 +73,5 @@
     </div>
   </x-slot>
 </x-card.preview>
+
+@include('tasks.partials.date-formatter-script')

@@ -3,9 +3,7 @@
     <h6 class="m-0 text-muted">
       <i class="fas fa-users mr-1"></i> Responsáveis
     </h6>
-    @includeWhen(auth()->user()->can('storeAssignee', $task), 'partials.tasks.add-assignee', [
-        'task' => $task,
-    ])
+    @includeWhen(auth()->user()->can('storeAssignee', $task), 'tasks.partials.add-assignee-btn')
   </div>
   <ul class="list-group list-group-flush">
     @forelse($task->users as $user)

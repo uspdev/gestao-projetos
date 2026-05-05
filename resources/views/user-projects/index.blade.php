@@ -13,7 +13,7 @@
     <div class="row">
       @forelse($projects as $project)
         <div class="col-md-4">
-          @include('partials.projects.preview', ['project' => $project])
+          @include('projects.partials.preview')
         </div>
       @empty
         <div class="col-12">

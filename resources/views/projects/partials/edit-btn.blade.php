@@ -79,7 +79,7 @@
 
   @section('javascripts_bottom')
     @parent
-    @include('partials.multi-select-script')
+    @include('projects.partials.multi-select-script')
 
     {{-- Reabre o modal caso haja erro de validação na edição.
          Movido para dentro do section para melhor organização do JS --}}

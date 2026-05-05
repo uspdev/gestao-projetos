@@ -133,6 +133,6 @@
 
   @section('javascripts_bottom')
     @parent
-    @include('partials.multi-select-script')
+    @include('tasks.partials.multi-select-script')
   @endsection
 @endcan

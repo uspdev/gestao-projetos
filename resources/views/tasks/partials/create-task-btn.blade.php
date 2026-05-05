@@ -121,7 +121,7 @@
     </div>
 
     {{-- Script do Multi-select --}}
-    @include('partials.multi-select-script')
+    @include('tasks.partials.multi-select-script')
 
     {{-- Reabrir Modal com Vanilla JS em caso de erro de validação --}}
     @if ($errors->any() && old('title') !== null && old('_method') === null)

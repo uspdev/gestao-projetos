@@ -55,7 +55,6 @@
   </div>
 </div>
 
-{{-- Scripts do Modal 100% Vanilla JS --}}
 @if ($errors->has('codpes') || $errors->has('role'))
   <script>
     document.addEventListener('DOMContentLoaded', function() {

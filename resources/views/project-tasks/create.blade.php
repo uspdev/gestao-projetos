@@ -116,7 +116,7 @@
 
 @section('javascripts_bottom')
   @parent
-  @include('partials.multi-select-script')
+  @include('project-tasks.partials.multi-select-script')
 
   {{-- Reabrir Modal com Vanilla JS em caso de erro de validação --}}
   @if ($errors->any() && old('title') !== null && old('_method') === null)

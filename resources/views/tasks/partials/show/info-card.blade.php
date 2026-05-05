@@ -34,6 +34,8 @@
               @endif
             </div>
           </div>
+
+          @include('tasks.partials.date-formatter-script')
         </div>
       </li>
 
