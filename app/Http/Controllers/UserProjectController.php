@@ -33,10 +33,7 @@ class UserProjectController extends Controller
             ->latest()
             ->get();
 
-        $availableTags = Tag::withType('projects')
-            ->select('id', 'name', 'color')
-            ->orderBy('name')
-            ->get();
+        $availableTags = Tag::forProjects();
 
         return view('user-projects.index', compact('projects', 'user', 'availableTags'));
     }

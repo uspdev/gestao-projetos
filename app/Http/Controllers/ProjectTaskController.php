@@ -31,10 +31,7 @@ class ProjectTaskController extends Controller
             ->latest()
             ->get();
 
-        $availableTags = Tag::withType('projects')
-            ->select('id', 'name', 'color', 'description')
-            ->orderBy('name')
-            ->get();
+        $availableTags = Tag::forProjects();
 
         $projectSelectedTags = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
             ->map(fn($id) => (int) $id)

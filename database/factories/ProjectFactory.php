@@ -34,7 +34,7 @@ class ProjectFactory extends Factory
         return $this->afterCreating(function (Project $project) {
             // Cache de 1 minuto para não estourar o banco se criar 1000 projetos
             $availableTagIds = Cache::remember('factory_project_tags', 60, function () {
-                return Tag::withType('projects')->pluck('id')->toArray();
+                return Tag::forProjects()->pluck('id')->toArray();
             });
 
             if (!empty($availableTagIds)) {
