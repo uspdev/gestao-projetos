@@ -30,13 +30,6 @@ class ProjectController extends Controller
         });
     }
 
-    public function create()
-    {
-        Gate::authorize('create', Project::class);
-
-        return view('projects.create');
-    }
-
     public function store(StoreProjectRequest $request)
     {
         $project = DB::transaction(function () use ($request) {
@@ -117,6 +110,11 @@ class ProjectController extends Controller
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
+    /**
+     * Remove um projeto.
+     *
+     * @param  \App\Models\Project  $project
+     */
     public function destroy(Project $project)
     {
         Gate::authorize('delete', $project);
@@ -128,6 +126,12 @@ class ProjectController extends Controller
             ->with('alert-success', 'Projeto excluido com sucesso!');
     }
 
+    /**
+     * Adiciona um membro ao projeto.
+     *
+     * @param  \App\Http\Requests\Project\StoreProjectMemberRequest  $request
+     * @param  \App\Models\Project  $project
+     */
     public function storeMember(StoreProjectMemberRequest $request, Project $project)
     {
         $data = $request->validated();
@@ -155,6 +159,13 @@ class ProjectController extends Controller
             ->with('alert-success', 'Membro adicionado ao projeto com sucesso!');
     }
 
+    /**
+     * Atualiza a role de um membro do projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectMemberRoleRequest  $request
+     * @param  \App\Models\Project  $project
+     * @param  \App\Models\User  $user
+     */
     public function updateMemberRole(UpdateProjectMemberRoleRequest $request, Project $project, User $user)
     {
         abort_unless($user->belongsToProject($project), 404);
@@ -177,6 +188,13 @@ class ProjectController extends Controller
             ->with('alert-success', 'Role do membro atualizada com sucesso!');
     }
 
+    /**
+     * Retorna pessoas selecionáveis para adicionar como membros do projeto.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Project  $project
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function selectableMembers(Request $request, Project $project)
     {
         Gate::authorize('storeMember', $project);
@@ -241,6 +259,12 @@ class ProjectController extends Controller
         return response()->json(['results' => $results]);
     }
 
+    /**
+     * Remove um membro do projeto.
+     *
+     * @param  \App\Models\Project  $project
+     * @param  \App\Models\User  $user
+     */
     public function destroyMember(Project $project, User $user)
     {
         Gate::authorize('storeMember', $project);
