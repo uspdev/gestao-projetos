@@ -62,18 +62,18 @@ class ProjectController extends Controller
                 ->with('tags'),
         ]);
 
-        $availableTags = Tag::forProjects();
-        $availableTaskTags = Tag::forTasks();
+        $selectableProjectTags = Tag::forProjects();
+        $selectableTaskTags = Tag::forTasks();
 
-        $tasksSelectedTags = $project->tasks->mapWithKeys(function ($task) {
+        $selectedTasksTagsIds = $project->tasks->mapWithKeys(function ($task) {
             return [$task->id => $task->tagsWithType('tasks')->pluck('id')->all()];
         });
 
         return view('projects.show', compact(
             'project',
-            'availableTags',
-            'availableTaskTags',
-            'tasksSelectedTags'
+            'selectableProjectTags',
+            'selectableTaskTags',
+            'selectedTasksTagsIds'
         ));
     }
 

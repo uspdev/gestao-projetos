@@ -33,8 +33,8 @@ class UserProjectController extends Controller
             ->latest()
             ->get();
 
-        $availableTags = Tag::forProjects();
+        $selectableProjectTags = Tag::forProjects();
 
-        return view('user-projects.index', compact('projects', 'user', 'availableTags'));
+        return view('user-projects.index', compact('projects', 'user', 'selectableProjectTags'));
     }
 }

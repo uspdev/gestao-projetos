@@ -46,7 +46,7 @@
               <select name="tags[]" multiple style="width: 100%;"
                 class="form-control select2-tags @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
 
-                @foreach ($availableTags as $tag)
+                @foreach ($selectableProjectTags as $tag)
                   <option value="{{ $tag->id }}" {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
                     {{ $tag->name }}
                   </option>

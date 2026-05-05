@@ -23,13 +23,13 @@ class TaskController extends Controller
             'tags',
         ]);
 
-        $availableTaskTags = Tag::forTasks();
+        $selectableTaskTags = Tag::forTasks();
 
-        $tasksSelectedTags = [
+        $selectedTasksTagsIds = [
             $task->id => $task->tags->pluck('id')->all()
         ];
 
-        return view('tasks.show', compact('task', 'availableTaskTags', 'tasksSelectedTags'));
+        return view('tasks.show', compact('task', 'selectableTaskTags', 'selectedTasksTagsIds'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)

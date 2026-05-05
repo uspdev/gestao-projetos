@@ -1,6 +1,6 @@
 @php
   $modalId = $modalId ?? 'modalTaskForm';
-  $availableTags = $availableTaskTags ?? ($availableTags ?? \App\Models\Tag::withType('tasks')->orderBy('name')->get());
+  $selectableTaskTags = $selectableTaskTags ?? (isset($availableTaskTags) ? $availableTaskTags : \App\Models\Tag::withType('tasks')->orderBy('name')->get());
   $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
   $createAction = $createAction ?? route('projects.tasks.store', $project);
   $hasOldCreate = $errors->any() && old('_method') === null && old('title') !== null;
@@ -76,7 +76,7 @@
                 <label>Tags</label>
                 <select name="tags[]" multiple style="width: 100%;"
                   class="form-control select2-tags @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
-                  @foreach ($availableTags as $tag)
+                  @foreach ($selectableTaskTags as $tag)
                     <option value="{{ $tag->id }}"
                       {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
                       {{ $tag->name }}

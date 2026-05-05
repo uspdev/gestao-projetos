@@ -31,25 +31,25 @@ class ProjectTaskController extends Controller
             ->latest()
             ->get();
 
-        $availableTags = Tag::forProjects();
+        $selectableProjectTags = Tag::forProjects();
 
-        $projectSelectedTags = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
+        $selectedProjectTagIds = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
             ->map(fn($id) => (int) $id)
             ->all();
 
-        $availableTaskTags = Tag::forTasks();
+        $selectableTaskTags = Tag::forTasks();
 
-        $tasksSelectedTags = $tasks->mapWithKeys(function ($task) {
+        $selectedTasksTagsIds = $tasks->mapWithKeys(function ($task) {
             return [$task->id => $task->tags->pluck('id')->all()];
         });
 
         return view('project-tasks.index', compact(
             'tasks',
             'project',
-            'availableTags',
-            'projectSelectedTags',
-            'availableTaskTags',
-            'tasksSelectedTags',
+            'selectableProjectTags',
+            'selectedProjectTagIds',
+            'selectableTaskTags',
+            'selectedTasksTagsIds',
             'showDone',
             'kanbanView',
             'view'
@@ -60,9 +60,9 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        $availableTags = Tag::forTasks();
+        $selectableTaskTags = Tag::forTasks();
 
-        return view('project-tasks.create', compact('project', 'availableTags'));
+        return view('project-tasks.create', compact('project', 'selectableTaskTags'));
     }
 
     public function store(StoreTaskRequest $request, Project $project)
