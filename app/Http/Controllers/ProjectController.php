@@ -92,6 +92,23 @@ class ProjectController extends Controller
             ->with('alert-success', 'Projeto atualizado com sucesso!');
     }
 
+    public function destroy(Project $project)
+    {
+        Gate::authorize('delete', $project);
+        DB::transaction(function () use ($project) {
+            $project->delete();
+        });
+
+        return redirect()->route('projects.index', Auth::id())
+            ->with('alert-success', 'Projeto excluido com sucesso!');
+    }
+
+    /**
+     * Atualiza o status de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectStatusRequest $request
+     * @param  \App\Models\Project $project
+     */
     public function updateProjectStatus(UpdateProjectStatusRequest $request, Project $project)
     {
         DB::transaction(function () use ($project, $request) {
@@ -105,19 +122,8 @@ class ProjectController extends Controller
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
-    public function destroy(Project $project)
-    {
-        Gate::authorize('delete', $project);
-        DB::transaction(function () use ($project) {
-            $project->delete();
-        });
-
-        return redirect()->route('projects.index', Auth::id())
-            ->with('alert-success', 'Projeto excluido com sucesso!');
-    }
-
     /**
-     * Adiciona um membro ao projeto.
+     * Adiciona um membro a um projeto.
      *
      * @param  \App\Http\Requests\Project\StoreProjectMemberRequest  $request
      * @param  \App\Models\Project  $project
@@ -150,7 +156,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Atualiza a role de um membro do projeto.
+     * Atualiza a role de um membro num projeto.
      *
      * @param  \App\Http\Requests\Project\UpdateProjectMemberRoleRequest  $request
      * @param  \App\Models\Project  $project
@@ -179,7 +185,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Retorna pessoas selecionáveis para adicionar como membros do projeto.
+     * Retorna usuários selecionáveis para adicionar como membros de um projeto.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Project  $project
@@ -250,7 +256,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Remove um membro do projeto.
+     * Remove um membro de um projeto.
      *
      * @param  \App\Models\Project  $project
      * @param  \App\Models\User  $user

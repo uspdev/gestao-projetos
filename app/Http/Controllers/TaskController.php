@@ -69,6 +69,12 @@ class TaskController extends Controller
             ->with('alert-success', 'Tarefa excluida com sucesso!');
     }
 
+    /**
+     * Atualiza o status de uma tarefa.
+     *
+     * @param  \App\Http\Requests\Task\UpdateTaskStatusRequest  $request
+     * @param  \App\Models\Task  $task
+     */
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
     {
         DB::transaction(function () use ($task, $request) {
@@ -82,6 +88,12 @@ class TaskController extends Controller
             ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
     }
 
+    /**
+     * Atribui um usuário a uma tarefa.
+     *
+     * @param  \App\Http\Requests\Task\StoreTaskAssigneeRequest  $request
+     * @param  \App\Models\Task  $task
+     */
     public function storeAssignee(StoreTaskAssigneeRequest $request, Task $task)
     {
         $data = $request->validated();
@@ -101,6 +113,11 @@ class TaskController extends Controller
             ->with('alert-success', 'Membro atribuído à tarefa com sucesso!');
     }
 
+    /**
+     * Retorna usuários selecionáveis para atribuir a uma tarefa.
+     *
+     * @param  \App\Models\Task  $task
+     */
     public function selectableAssignees(Task $task)
     {
         Gate::authorize('storeAssignee', $task);
@@ -111,6 +128,12 @@ class TaskController extends Controller
         return response()->json($users);
     }
 
+    /**
+     * Remove a atribuição de um usuário a uma tarefa.
+     *
+     * @param  \App\Models\Task  $task
+     * @param  \App\Models\User  $user
+     */
     public function destroyAssignee(Task $task, User $user)
     {
         Gate::authorize('storeAssignee', $task);
