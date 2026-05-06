@@ -1,11 +1,12 @@
 <?php
 
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectMemberController;
+use App\Http\Controllers\ProjectTaskController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\ProjectTaskController;
-use App\Http\Controllers\UserController;
 
 Route::view('/', 'landing')->name('landing');
 
@@ -15,7 +16,7 @@ Route::middleware('auth')->group(function () {
     // PROJECT
     // ==========================================
     Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
-    
+
     Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::get('projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
@@ -30,14 +31,14 @@ Route::middleware('auth')->group(function () {
         });
 
     // PROJECT MEMBERS
-    Route::controller(ProjectController::class)
+    Route::controller(ProjectMemberController::class)
         ->prefix('projects/{project}/members')
         ->name('projects.members.')
         ->group(function () {
-            Route::get('selectable', 'selectableMembers')->name('selectable');
-            Route::post('/', 'storeMember')->name('store');
-            Route::patch('{user}/role', 'updateMemberRole')->name('updateRole');
-            Route::delete('{user}', 'destroyMember')->name('destroy');
+            Route::get('selectable', 'selectable')->name('selectable');
+            Route::post('/', 'store')->name('store');
+            Route::patch('{user}/role', 'updateRole')->name('updateRole');
+            Route::delete('{user}', 'destroy')->name('destroy');
         });
 
     // PROJECT TASKS
