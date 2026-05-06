@@ -20,10 +20,12 @@ class StoreProjectRequest extends FormRequest
         $slug = $this->input('slug');
 
         if ($slug === null || trim((string) $slug) === '') {
-            $this->merge([
-                'slug' => Str::slug((string) $this->input('name', '')),
-            ]);
+            $slug = (string) $this->input('name', '');
         }
+
+        $this->merge([
+            'slug' => Str::slug((string) $slug),
+        ]);
     }
 
     public function rules(): array

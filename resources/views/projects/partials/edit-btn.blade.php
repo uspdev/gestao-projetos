@@ -32,8 +32,11 @@
             <div class="row">
               <div class="col-12">
                 <x-form.input name="slug" label="URL do Projeto (Slug)" value="{{ $project->slug }}"
-                  maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+                  maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  title="Use apenas letras minusculas, numeros e hifens."
+                  autocomplete="off" autocapitalize="none" spellcheck="false" />
                 <small class="text-muted d-block">Aviso: Alterar a URL quebrará links antigos já compartilhados.</small>
+                <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens. Acentos serão removidos.</small>
               </div>
             </div>
 
@@ -82,6 +85,48 @@
   @section('javascripts_bottom')
     @parent
     @include('projects.partials.multi-select-script')
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('modalEditarProjeto');
+        if (!modal) return;
+
+        const slugInput = modal.querySelector('input[name="slug"]');
+        if (!slugInput) return;
+
+        const slugify = (value) => {
+          return value
+            .toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
+        };
+
+        const normalizeSlugInput = () => {
+          const normalized = slugify(slugInput.value);
+
+          if (slugInput.value !== normalized) {
+            slugInput.value = normalized;
+          }
+
+          if (slugInput.value.trim() === '') {
+            slugInput.setCustomValidity('Informe um slug valido usando letras minusculas, numeros e hifens.');
+            return;
+          }
+
+          slugInput.setCustomValidity('');
+        };
+
+        slugInput.addEventListener('input', normalizeSlugInput);
+        slugInput.addEventListener('blur', function() {
+          slugInput.reportValidity();
+        });
+
+        normalizeSlugInput();
+      });
+    </script>
 
     {{-- Reabre o modal caso haja erro de validação na edição.
          Movido para dentro do section para melhor organização do JS --}}

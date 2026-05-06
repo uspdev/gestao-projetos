@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Project;
 
 use App\Models\Project;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UpdateProjectRequest extends StoreProjectRequest
@@ -17,7 +18,11 @@ class UpdateProjectRequest extends StoreProjectRequest
 
     protected function prepareForValidation(): void
     {
-        // Intencionalmente vazio: sobrescreve o comportamento da classe pai para nao auto-preencher slug na edicao.
+        if ($this->has('slug')) {
+            $this->merge([
+                'slug' => Str::slug((string) $this->input('slug')),
+            ]);
+        }
     }
 
     public function rules(): array

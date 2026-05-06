@@ -18,7 +18,10 @@
           <div class="modal-body">
             <x-form.input name="name" label="Nome" required minlength="3" maxlength="50" />
             <x-form.input name="slug" label="Slug (identificador amigável na URL)" required maxlength="80"
-              pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
+              pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+              title="Use apenas letras minusculas, numeros e hifens."
+              autocomplete="off" autocapitalize="none" spellcheck="false" />
+            <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens. Acentos serão removidos.</small>
 
             <div class="form-group mb-3">
               <label for="status">Estado <span class="text-danger">*</span></label>
@@ -95,6 +98,21 @@
             .replace(/(^-|-$)+/g, '');
         };
 
+        const normalizeSlugInput = () => {
+          const normalized = slugify(slugInput.value);
+
+          if (slugInput.value !== normalized) {
+            slugInput.value = normalized;
+          }
+
+          if (slugInput.value.trim() === '') {
+            slugInput.setCustomValidity('Informe um slug valido usando letras minusculas, numeros e hifens.');
+            return;
+          }
+
+          slugInput.setCustomValidity('');
+        };
+
         let isSlugDirty = false;
 
         if (slugInput.value.trim() !== '' && slugInput.value !== slugify(nameInput.value)) {
@@ -103,6 +121,11 @@
 
         slugInput.addEventListener('input', function() {
           isSlugDirty = true;
+          normalizeSlugInput();
+        });
+
+        slugInput.addEventListener('blur', function() {
+          slugInput.reportValidity();
         });
 
         nameInput.addEventListener('input', function() {
@@ -111,7 +134,10 @@
           }
 
           slugInput.value = slugify(nameInput.value);
+          normalizeSlugInput();
         });
+
+        normalizeSlugInput();
 
       });
     </script>

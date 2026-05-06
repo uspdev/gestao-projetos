@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\Tags\HasTags;
 
 class Project extends Model
@@ -38,6 +39,11 @@ class Project extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function setSlugAttribute($value): void
+    {
+        $this->attributes['slug'] = $value === null ? null : Str::slug((string) $value);
     }
 
     public function userRole(?User $user): ?ProjectUserRole
