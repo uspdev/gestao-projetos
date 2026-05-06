@@ -20,14 +20,15 @@ use Illuminate\Support\Facades\Gate;
 use Uspdev\Replicado\Pessoa;
 
 class ProjectController extends Controller
-{
+{   
+
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
             \UspTheme::activeUrl('meus-projetos');
 
             return $next($request);
-        });
+        })->only(['index', 'create', 'show']); 
     }
 
     public function index()

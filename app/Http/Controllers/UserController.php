@@ -8,18 +8,16 @@ use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
-    /**
-     * Construtor do controlador.
-     * Configura o middleware para ativar a URL no tema.
-     */
+
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
             \UspTheme::activeUrl('meu-perfil');
 
             return $next($request);
-        });
+        })->only(['show']);
     }
+
     public function show(User $user)
     {
         Gate::authorize('view', $user);

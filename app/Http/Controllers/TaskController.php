@@ -16,10 +16,17 @@ use Illuminate\Http\Request;
 class TaskController extends Controller
 {
 
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \UspTheme::activeUrl('minhas-tasks');
+
+            return $next($request);
+        })->only('index'); 
+    }
+
     public function index(Request $request)
     {
-        \UspTheme::activeUrl('minhas-tasks');
-
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
 

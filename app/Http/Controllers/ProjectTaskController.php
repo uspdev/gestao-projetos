@@ -12,11 +12,19 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Tag;
 
 class ProjectTaskController extends Controller
-{
+{   
+
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \UspTheme::activeUrl('meus-projetos');
+
+            return $next($request);
+        })->only(['index', 'create']);
+    }
+
     public function index(Project $project)
     {
-        \UspTheme::activeUrl('meus-projetos');
-
         Gate::authorize('viewAny', [Task::class, $project]);
         $view = request()->query('view', 'kanban');
         $kanbanView = $view === 'kanban';
