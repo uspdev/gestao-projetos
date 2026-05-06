@@ -21,7 +21,7 @@
           <div class="form-group mb-0">
             <label for="task-assignee-user-id" class="font-weight-bold">Usuário</label>
             <select id="task-assignee-user-id" name="user_id"
-              class="form-control @error('user_id') is-invalid @enderror" disabled>
+              class="form-control @error('user_id') is-invalid @enderror" disabled required>
               <option value="">Carregando usuários...</option>
             </select>
             @error('user_id')

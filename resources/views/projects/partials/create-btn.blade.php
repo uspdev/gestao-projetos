@@ -16,8 +16,9 @@
         <form action="{{ route('projects.store') }}" method="POST">
           @csrf
           <div class="modal-body">
-            <x-form.input name="name" label="Nome" required />
-            <x-form.input name="slug" label="Slug (identificador amigável na URL)" required />
+            <x-form.input name="name" label="Nome" required minlength="3" maxlength="50" />
+            <x-form.input name="slug" label="Slug (identificador amigável na URL)" required maxlength="80"
+              pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
 
             <div class="form-group mb-3">
               <label for="status">Estado <span class="text-danger">*</span></label>
@@ -34,7 +35,7 @@
               @enderror
             </div>
 
-            <x-form.textarea name="description" label="Descrição" rows="3" />
+            <x-form.textarea name="description" label="Descrição" rows="3" maxlength="10000" />
 
             <div class="form-group mb-3">
               <label>Tags</label>

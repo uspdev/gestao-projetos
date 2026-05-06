@@ -21,7 +21,7 @@
           <div class="form-group">
             <label for="member-codpes" class="font-weight-bold">Usuário</label>
             <select id="member-codpes" name="codpes" class="form-control @error('codpes') is-invalid @enderror"
-              style="width: 100%;">
+              style="width: 100%;" required>
               <option value="">Digite o nome ou codpes..</option>
             </select>
             @error('codpes')
@@ -31,7 +31,7 @@
 
           <div class="form-group mb-0">
             <label for="member-role" class="font-weight-bold">Função no projeto</label>
-            <select id="member-role" name="role" class="form-control @error('role') is-invalid @enderror">
+            <select id="member-role" name="role" class="form-control @error('role') is-invalid @enderror" required>
               <option value="">Selecione...</option>
               @foreach (\App\Enums\Project\ProjectUserRole::cases() as $role)
                 <option value="{{ $role->value }}" @selected(old('role', \App\Enums\Project\ProjectUserRole::MEMBER->value) === $role->value)>

@@ -21,7 +21,8 @@
             <div class="row">
               {{-- Nome --}}
               <div class="col">
-                <x-form.input name="name" label="Nome do Projeto" value="{{ $project->name }}" required />
+                <x-form.input name="name" label="Nome do Projeto" value="{{ $project->name }}" required
+                  minlength="3" maxlength="50" />
               </div>
 
               {{-- Status (oculto — atualizado por outro método) --}}
@@ -30,7 +31,8 @@
 
             <div class="row">
               <div class="col-12">
-                <x-form.input name="slug" label="URL do Projeto (Slug)" value="{{ $project->slug }}" />
+                <x-form.input name="slug" label="URL do Projeto (Slug)" value="{{ $project->slug }}"
+                  maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" />
                 <small class="text-muted d-block">Aviso: Alterar a URL quebrará links antigos já compartilhados.</small>
               </div>
             </div>
@@ -39,7 +41,7 @@
               {{-- Descrição --}}
               <div class="col-12">
                 <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $project->description }}"
-                  rows="4" />
+                  rows="4" maxlength="10000" />
               </div>
             </div>
 

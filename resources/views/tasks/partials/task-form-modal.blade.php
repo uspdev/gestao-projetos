@@ -31,7 +31,8 @@
         <div class="modal-body">
           <div class="row">
             <div class="col-12">
-              <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required />
+              <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required
+                minlength="3" maxlength="120" />
             </div>
           </div>
 
@@ -106,7 +107,7 @@
           <div class="row">
             <div class="col-12">
               <x-form.textarea name="description" label="Descrição Detalhada" value="{{ old('description') }}"
-                rows="4" />
+                rows="4" maxlength="10000" />
             </div>
           </div>
         </div>
