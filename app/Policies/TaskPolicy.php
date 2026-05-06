@@ -29,7 +29,7 @@ class TaskPolicy
 
     public function create(User $user, Project $project): bool
     {
-        return $user->isMemberOfProject($project);
+        return $user->isContributorOfProject($project);
     }
 
     public function update(User $user, Task $task): bool

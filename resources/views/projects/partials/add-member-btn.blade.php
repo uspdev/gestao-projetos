@@ -34,7 +34,7 @@
             <select id="member-role" name="role" class="form-control @error('role') is-invalid @enderror" required>
               <option value="">Selecione...</option>
               @foreach (\App\Enums\Project\ProjectUserRole::cases() as $role)
-                <option value="{{ $role->value }}" @selected(old('role', \App\Enums\Project\ProjectUserRole::MEMBER->value) === $role->value)>
+                <option value="{{ $role->value }}" @selected(old('role', \App\Enums\Project\ProjectUserRole::CONTRIBUTOR->value) === $role->value)>
                   {{ $role->label() }}
                 </option>
               @endforeach

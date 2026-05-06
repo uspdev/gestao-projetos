@@ -5,14 +5,14 @@ namespace App\Enums\Project;
 enum ProjectUserRole: string
 {
     case OWNER = 'OWNER';
-    case MEMBER = 'MEMBER';
+    case CONTRIBUTOR = 'CONTRIBUTOR';
     case VIEWER = 'VIEWER';
 
     public function label(): string
     {
         return match ($this) {
             self::OWNER => 'Dono',
-            self::MEMBER => 'Membro',
+            self::CONTRIBUTOR => 'Colaborador',
             self::VIEWER => 'Visualizador',
         };
     }
@@ -21,7 +21,7 @@ enum ProjectUserRole: string
     {
         return match ($this) {
             self::OWNER => 'badge-success',
-            self::MEMBER => 'badge-primary',
+            self::CONTRIBUTOR => 'badge-primary',
             self::VIEWER => 'badge-secondary',
         };
     }

@@ -22,7 +22,7 @@ Documentação:
 
 ## Funcionamento
 
-Projetos têm membros com papéis (OWNER, MEMBER, VIEWER). Tarefas pertencem a projetos e podem ser atribuídas a múltiplos usuários. A busca de membros usa o Replicado quando disponível. O acesso é controlado por policies e as rotas de projeto usam slug.
+Projetos têm membros com papéis (OWNER, CONTRIBUTOR, VIEWER). Tarefas pertencem a projetos e podem ser atribuídas a múltiplos usuários. A busca de membros usa o Replicado quando disponível. O acesso é controlado por policies e as rotas de projeto usam slug.
 
 ## Requisitos
 

@@ -52,30 +52,33 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+        public function isMemberOfProject(Project $project): bool
+    {
+        return $this->projects()
+            ->where('project_id', $project->id)
+            ->exists();
+    }
+
     public function isViewerOfProject(Project $project): bool
     {
         return $this->projects()
             ->where('project_id', $project->id)
             ->wherePivotIn('role', [
                 ProjectUserRole::OWNER->value,
-                ProjectUserRole::MEMBER->value,
+                ProjectUserRole::CONTRIBUTOR->value,
                 ProjectUserRole::VIEWER->value,
             ])
             ->exists();
     }
 
-    public function belongsToProject(Project $project): bool
+    public function isContributorOfProject(Project $project): bool
     {
         return $this->projects()
             ->where('project_id', $project->id)
-            ->exists();
-    }
-
-    public function isMemberOfProject(Project $project): bool
-    {
-        return $this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivotIn('role', [ProjectUserRole::OWNER->value, ProjectUserRole::MEMBER->value])
+            ->wherePivotIn('role', [
+                ProjectUserRole::OWNER->value,
+                ProjectUserRole::CONTRIBUTOR->value,
+            ])
             ->exists();
     }
 
@@ -105,7 +108,7 @@ class User extends Authenticatable
             $q->where('projects.id', $projectId);
             $q->whereIn('project_user.role', [
                 ProjectUserRole::OWNER->value,
-                ProjectUserRole::MEMBER->value,
+                ProjectUserRole::CONTRIBUTOR->value,
             ]);
         })
             ->whereDoesntHave('tasks', function ($q) use ($taskId) {

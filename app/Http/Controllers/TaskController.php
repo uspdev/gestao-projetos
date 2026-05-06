@@ -94,9 +94,9 @@ class TaskController extends Controller
 
         $user = User::query()->findOrFail($data['user_id']);
 
-        if (!$user->isMemberOfProject($task->project)) {
+        if (!$user->isContributorOfProject($task->project)) {
             return redirect()->route('tasks.show', $task)
-                ->with('alert-danger', 'Somente membros do projeto podem ser atribuídos à tarefa.');
+                ->with('alert-danger', 'Somente colaboradores do projeto podem ser atribuídos à tarefa.');
         }
 
         DB::transaction(function () use ($task, $user) {
@@ -104,7 +104,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
-            ->with('alert-success', 'Membro atribuído à tarefa com sucesso!');
+            ->with('alert-success', 'Colaborador atribuído à tarefa com sucesso!');
     }
 
     /**

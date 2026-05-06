@@ -139,7 +139,7 @@ class ProjectController extends Controller
                 ->withInput();
         }
 
-        if ($user->belongsToProject($project)) {
+        if ($user->isMemberOfProject($project)) {
             return redirect()->back()
                 ->withErrors(['codpes' => 'O usuário selecionado já faz parte do projeto.'])
                 ->withInput();
@@ -164,7 +164,7 @@ class ProjectController extends Controller
      */
     public function updateMemberRole(UpdateProjectMemberRoleRequest $request, Project $project, User $user)
     {
-        abort_unless($user->belongsToProject($project), 404);
+        abort_unless($user->isMemberOfProject($project), 404);
 
         $data = $request->validated();
         $newRole = ProjectUserRole::from($data['role']);

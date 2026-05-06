@@ -38,7 +38,7 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
-        return $user->isMemberOfProject($project);
+        return $user->isContributorOfProject($project);
     }
 
     public function delete(User $user, Project $project): bool
