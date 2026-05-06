@@ -18,14 +18,6 @@ class User extends Authenticatable
     use \Spatie\Permission\Traits\HasRoles;
     use \Uspdev\SenhaunicaSocialite\Traits\HasSenhaunica;
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
-
     protected $fillable = [
         'name',
         'email',
@@ -37,6 +29,14 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
 
     public function projects(): BelongsToMany
     {
@@ -52,7 +52,29 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-        public function isMemberOfProject(Project $project): bool
+    public function scopeSelectableToProject(Builder $query, int $projectId): Builder
+    {
+        return $query->whereDoesntHave('projects', function ($q) use ($projectId) {
+            $q->where('projects.id', $projectId);
+        })->orderBy('name');
+    }
+
+    public function scopeSelectableToTask(Builder $query, int $taskId, int $projectId): Builder
+    {
+        return $query->whereHas('projects', function ($q) use ($projectId) {
+            $q->where('projects.id', $projectId);
+            $q->whereIn('project_user.role', [
+                ProjectUserRole::OWNER->value,
+                ProjectUserRole::CONTRIBUTOR->value,
+            ]);
+        })
+            ->whereDoesntHave('tasks', function ($q) use ($taskId) {
+                $q->where('tasks.id', $taskId);
+            })
+            ->orderBy('name');
+    }
+
+    public function isMemberOfProject(Project $project): bool
     {
         return $this->projects()
             ->where('project_id', $project->id)
@@ -93,28 +115,6 @@ class User extends Authenticatable
     public function isTaskAssignee(Task $task): bool
     {
         return $this->tasks()->where('task_id', $task->id)->exists();
-    }
-
-    public function scopeSelectableToProject(Builder $query, int $projectId): Builder
-    {
-        return $query->whereDoesntHave('projects', function ($q) use ($projectId) {
-            $q->where('projects.id', $projectId);
-        })->orderBy('name');
-    }
-
-    public function scopeSelectableToTask(Builder $query, int $taskId, int $projectId): Builder
-    {
-        return $query->whereHas('projects', function ($q) use ($projectId) {
-            $q->where('projects.id', $projectId);
-            $q->whereIn('project_user.role', [
-                ProjectUserRole::OWNER->value,
-                ProjectUserRole::CONTRIBUTOR->value,
-            ]);
-        })
-            ->whereDoesntHave('tasks', function ($q) use ($taskId) {
-                $q->where('tasks.id', $taskId);
-            })
-            ->orderBy('name');
     }
 
     public function isAdmin(): bool

@@ -17,6 +17,16 @@ class Task extends Model
 {
     use HasFactory, SoftDeletes, Auditable, HasTags;
 
+    protected $fillable = [
+        'project_id',
+        'title',
+        'description',
+        'priority',
+        'status',
+        'start_date',
+        'due_date',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -27,15 +37,16 @@ class Task extends Model
         ];
     }
 
-    protected $fillable = [
-        'project_id',
-        'title',
-        'description',
-        'priority',
-        'status',
-        'start_date',
-        'due_date',
-    ];
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->withTimestamps();
+    }
 
     public function availableTags()
     {
@@ -50,16 +61,5 @@ class Task extends Model
 
         $tagsToSync = Tag::whereIn('id', $tagIds)->get();
         $this->syncTagsWithType($tagsToSync, Tag::TYPE_TASK);
-    }
-
-    public function project(): BelongsTo
-    {
-        return $this->belongsTo(Project::class);
-    }
-
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class)
-            ->withTimestamps();
     }
 }

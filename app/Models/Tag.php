@@ -6,6 +6,9 @@ use Spatie\Tags\Tag as SpatieTag;
 
 class Tag extends SpatieTag
 {
+    public const TYPE_PROJECT = 'projects';
+    public const TYPE_TASK = 'tasks';
+
     public $fillable = [
         'name',
         'slug',
@@ -16,10 +19,6 @@ class Tag extends SpatieTag
         'color',
         'description',
     ];
-
-
-    public const TYPE_PROJECT = 'projects';
-    public const TYPE_TASK = 'tasks';
 
     /**
      * Retorna as tags do tipo "projects"
@@ -32,8 +31,8 @@ class Tag extends SpatieTag
     }
 
     /**
-    * Retorna as tags do tipo "tasks"
-    */
+     * Retorna as tags do tipo "tasks"
+     */
     public static function forTasks()
     {
         return static::withType(self::TYPE_TASK)

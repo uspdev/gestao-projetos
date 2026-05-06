@@ -19,6 +19,13 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug;
 
+    protected $fillable = [
+        'name',
+        'slug',
+        'status',
+        'description',
+    ];
+
     protected array $roleByUserCache = [];
     protected string $slugSourceColumn = 'name';
 
@@ -29,16 +36,39 @@ class Project extends Model
         ];
     }
 
-    protected $fillable = [
-        'name',
-        'slug',
-        'status',
-        'description',
-    ];
-
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /**
+     * Relacionamento com users N-N
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->using(ProjectUser::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Relacionamento com tasks 1-N
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->whereHas('users', function (Builder $q) use ($user) {
+            $q->where('users.id', $user->id);
+        });
     }
 
     public function setSlugAttribute($value): void
@@ -106,35 +136,5 @@ class Project extends Model
         }
 
         return ProjectUserRole::tryFrom((string) $roleValue);
-    }
-
-    public function scopeAccessibleBy(Builder $query, User $user): Builder
-    {
-        if ($user->isAdmin()) {
-            return $query;
-        }
-
-        return $query->whereHas('users', function (Builder $q) use ($user) {
-            $q->where('users.id', $user->id);
-        });
-    }
-
-    /**
-     * Relacionamento com users N-N
-     */
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class)
-            ->using(ProjectUser::class)
-            ->withPivot('role')
-            ->withTimestamps();
-    }
-
-    /**
-     * Relacionamento com tasks 1-N
-     */
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class);
     }
 }
