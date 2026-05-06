@@ -23,7 +23,7 @@
           <div class="font-weight-bold text-capitalize">{{ $columnLabels[$status->value] ?? $status->label() }}</div>
 
           <div class="d-flex align-items-center gap-2">
-            @include('user-tasks.partials.kanban-search')
+            @include('tasks.partials.kanban.kanban-search')
             <span class="badge {{ $status->color() }}">{{ $statusTasks->count() }}</span>
           </div>
         </div>
@@ -31,7 +31,7 @@
         <div class="card-body bg-light">
           @forelse ($statusTasks as $task)
             <div class="mb-2">
-              @include('user-tasks.partials.kanban-task-card')
+              @include('tasks.partials.kanban.kanban-task-card')
             </div>
           @empty
             <div class="alert alert-light border text-center text-muted mb-0">

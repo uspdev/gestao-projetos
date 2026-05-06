@@ -6,7 +6,6 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserTaskController;
 
 Route::view('/', 'landing')->name('landing');
 
@@ -53,7 +52,7 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // TASKS
     // ==========================================
-    Route::get('tasks', [UserTaskController::class, 'index'])->name('tasks.index');
+    Route::get('tasks', [TaskController::class, 'index'])->name('tasks.index');
 
     Route::get('tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
     Route::put('tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');

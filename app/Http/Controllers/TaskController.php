@@ -11,9 +11,39 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        \UspTheme::activeUrl('minhas-tasks');
+
+        $user = Auth::user();
+        Gate::authorize('viewTasks', $user);
+
+        $view = $request->query('view', 'kanban');
+        $kanbanView = $view === 'kanban';
+        $showDone = $kanbanView || $request->boolean('show_done');
+
+        $tasks = $user->tasks()
+            ->with([
+                'project',
+                'users',
+            ])
+            ->when(! $showDone, fn($query) => $query->where('status', '!=', \App\Enums\Task\TaskStatus::DONE->value))
+            ->orderBy(
+                \App\Models\Project::select('name')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+            )
+            ->latest()
+            ->get();
+
+        // O apontamento mudou para a pasta principal de tarefas
+        return view('tasks.index', compact('tasks', 'user', 'showDone', 'kanbanView', 'view'));
+    }
+
     public function show(Task $task)
     {
         Gate::authorize('view', $task);

@@ -12,12 +12,12 @@
   <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
       <h4 class="mb-0">Minhas Tarefas</h4>
-      @include('user-tasks.partials.toggle-layout-btn', ['view' => $view])
+      @include('tasks.partials.toggle-layout-btn', ['view' => $view])
       @include('tasks.partials.show-done-btn')
     </div>
 
     @if ($kanbanView)
-      @include('user-tasks.partials.kanban')
+      @include('tasks.partials.kanban.kanban')
     @else
       <div class="row">
         @forelse($tasks as $task)
