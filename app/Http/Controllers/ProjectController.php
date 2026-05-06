@@ -30,6 +30,26 @@ class ProjectController extends Controller
         });
     }
 
+    public function index()
+    {
+        $user = Auth::user();
+        
+        Gate::authorize('viewAny', [Project::class, $user]);
+
+        $projects = Project::accessibleBy($user)
+            ->with([
+                'users',
+                'tasks',
+            ])
+            ->latest()
+            ->get();
+
+        $selectableProjectTags = Tag::forProjects();
+
+        // O apontamento da view mudou para o diretório padrão de projetos
+        return view('projects.index', compact('projects', 'user', 'selectableProjectTags'));
+    }
+
     public function store(StoreProjectRequest $request)
     {
         $project = DB::transaction(function () use ($request) {

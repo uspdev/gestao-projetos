@@ -6,7 +6,6 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\UserProjectController;
 use App\Http\Controllers\UserTaskController;
 
 Route::view('/', 'landing')->name('landing');
@@ -16,8 +15,8 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // PROJECT
     // ==========================================
-    Route::get('projects', [UserProjectController::class, 'index'])->name('projects.index');
-
+    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
+    
     Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::get('projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
