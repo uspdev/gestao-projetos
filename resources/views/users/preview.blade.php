@@ -6,6 +6,16 @@
     </a>
   </div>
   <div class="d-flex align-items-center">
+    @php
+      $canManageMembers = isset($project) && auth()->user()->can('storeMember', $project);
+      $canManageTaskAssignees = isset($task) && auth()->user()->can('storeAssignee', $task);
+      // Variável para indicar se estamos no contexto de uma tarefa,
+      // usada para condicionar a exibição do botão de remoção de responsável
+      // Isso é neccessario devido a remoção da passagem de parametros específicos
+      // para o preview do usuário, como 'canManageMembers' e 'canManageTaskAssignees'
+      $isTaskContext = isset($task);
+    @endphp
+
     @if (isset($project))
       @if (!empty($canManageMembers))
         <div class="dropdown mr-2">
@@ -44,7 +54,7 @@
       <span class="badge badge-light border text-muted mr-2">Sem role</span>
     @endif
 
-    @if (!empty($canManageMembers) && isset($project))
+    @if (!empty($canManageMembers) && isset($project) && !$isTaskContext)
       <form method="POST" action="{{ route('projects.members.destroy', [$project, $user]) }}"
         onsubmit="return confirm('Deseja remover este membro do projeto?');">
         @csrf
@@ -55,7 +65,7 @@
       </form>
     @endif
 
-    @if (!empty($canManageTaskAssignees) && isset($task))
+    @if (!empty($canManageTaskAssignees) && $isTaskContext)
       <form method="POST" action="{{ route('tasks.assignees.destroy', [$task, $user]) }}"
         onsubmit="return confirm('Deseja remover este responsável da tarefa?');">
         @csrf

@@ -8,10 +8,7 @@
   <ul class="list-group list-group-flush">
     @forelse($task->users as $user)
       @include('users.preview', [
-          'user' => $user,
           'project' => $task->project,
-          'task' => $task,
-          'canManageTaskAssignees' => auth()->user()->can('storeAssignee', $task),
       ])
     @empty
       <li class="list-group-item text-muted font-italic small text-center py-3">

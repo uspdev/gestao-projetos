@@ -12,7 +12,7 @@
   <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
       <h4 class="mb-0">Minhas Tarefas</h4>
-      @include('tasks.partials.toggle-layout-btn', ['view' => $view])
+      @include('tasks.partials.toggle-layout-btn')
       @include('tasks.partials.show-done-btn')
     </div>
 

@@ -22,7 +22,7 @@ class TaskController extends Controller
             \UspTheme::activeUrl('minhas-tasks');
 
             return $next($request);
-        })->only('index'); 
+        })->only('index');
     }
 
     public function index(Request $request)
@@ -74,6 +74,12 @@ class TaskController extends Controller
         DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
+
+            // Decodifica as entidades HTML na
+            // descrição para evitar que sejam armazenadas como texto literal
+            if (array_key_exists('description', $data) && is_string($data['description'])) {
+                $data['description'] = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
 
             $task->update($data);
 
