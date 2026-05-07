@@ -4,15 +4,15 @@
 
 @section('content')
   <div class="card">
-    @include('projects.partials.show-header')
+    @include('projects.partials.show.show-header')
     <div class="card-body">
       <div class="row">
-        <div class="col-md-8">
-          @include('projects.partials.show-card-descricao')
+          <div class="col-md-8">
+          @include('projects.partials.show.show-card-descricao')
         </div>
         <div class="col-md-4">
-          @include('projects.partials.show-card-membros')
-          @include('projects.partials.show-card-modulos')
+          @include('projects.partials.show.show-card-membros')
+          @include('projects.partials.show.show-card-modulos')
         </div>
       </div>
     </div>

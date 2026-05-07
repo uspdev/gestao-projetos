@@ -5,7 +5,7 @@
       <h6 class="m-0 text-muted mr-2">
         <i class="fas fa-users mr-1"></i> Membros do Projeto
       </h6>
-      @includeWhen(auth()->user()->can('storeMember', $project), 'projects.partials.add-member-btn')
+      @includeWhen(auth()->user()->can('storeMember', $project), 'projects.partials.buttons.add-member-btn')
     </div>
   </div>
   <ul class="list-group list-group-flush">

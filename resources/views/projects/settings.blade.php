@@ -4,7 +4,7 @@
 @section('content')
   {{-- Card: Título e Descrição --}}
   <div class="card">
-    @include('projects.partials.show-header')
+    @include('projects.partials.show.show-header')
     <div class="card-body">
       <table class="table">
         <tbody>
@@ -18,11 +18,11 @@
           </tr>
           <tr>
             <td>Status</td>
-            <td>@include('projects.partials.update-status')</td>
+            <td>@include('projects.partials.components.update-status')</td>
           </tr>
           <tr>
             <td>Membros</td>
-            <td>@include('projects.partials.show-card-membros')</td>
+            <td>@include('projects.partials.show.show-card-membros')</td>
           </tr>
           <tr>
             <td>Módulos</td>
@@ -32,7 +32,7 @@
           </tr>
           <tr>
             <td>Remover projeto</td>
-            <td> @include('projects.partials.delete-btn')</td>
+            <td> @include('projects.partials.buttons.delete-btn')</td>
           </tr>
         </tbody>
       </table>

@@ -4,7 +4,7 @@
     Meus Projetos
   </a>
   <x-separator /> {{ $project->name }}
-  @include('projects.partials.edit-btn')
+  @include('projects.partials.buttons.edit-btn')
 
   <a href="#" class="btn btn-sm btn-outline-secondary ml-3">
     Tarefas

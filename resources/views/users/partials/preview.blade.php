@@ -55,7 +55,7 @@
     @endif
 
     @if (!empty($canManageMembers) && isset($project) && !$isTaskContext)
-      @include('projects.partials.remove-member-btn')
+      @include('projects.partials.buttons.remove-member-btn')
     @endif
 
     @if (!empty($canManageTaskAssignees) && $isTaskContext)

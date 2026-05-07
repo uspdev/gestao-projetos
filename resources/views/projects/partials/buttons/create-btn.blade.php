@@ -77,7 +77,7 @@
 
   @section('javascripts_bottom')
     @parent
-    @include('projects.partials.multi-select-script')
+    @include('projects.partials.scripts.multi-select-script')
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('modalNovoProjeto');

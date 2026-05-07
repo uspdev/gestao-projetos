@@ -49,7 +49,7 @@
         {{-- Assume que a relação belongsToMany 'projects' está definida na Model User --}}
         @forelse($user->projects as $project)
           <div class="col-md-6 col-lg-4 mb-3">
-            @include('projects.partials.preview')
+            @include('projects.partials.components.preview')
           </div>
         @empty
           <div class="col-12">

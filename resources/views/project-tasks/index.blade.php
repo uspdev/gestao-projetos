@@ -4,7 +4,7 @@
 
 @section('content')
   <div class="card">
-    @include('projects.partials.show-header')
+    @include('projects.partials.show.show-header')
     <div class="card-body">
       @php
         $view = $view ?? request()->query('view', 'kanban');
@@ -16,7 +16,7 @@
           @if ($kanbanView)
             @include('project-tasks.partials.kanban')
           @else
-            @include('projects.partials.show-card-tasks-table')
+            @include('projects.partials.show.show-card-tasks-table')
           @endif
       </div>
     </div>
