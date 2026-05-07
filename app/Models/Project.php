@@ -36,6 +36,39 @@ class Project extends Model
         ];
     }
 
+protected static function booted(): void
+    {
+        static::deleting(function (Project $project) {
+            if ($project->isForceDeleting()) {
+                $project->tasks()
+                    ->withTrashed()
+                    ->get()
+                    ->each(fn (Task $task) => $task->forceDelete());
+
+                return;
+            }
+
+            $project->tasks()->get()->each(function (Task $task) {
+                $task->deleted_via_project = true;
+                $task->saveQuietly();
+                
+                $task->delete();
+            });
+        });
+
+        static::restoring(function (Project $project) {
+            $project->tasks()
+                ->withTrashed()
+                ->where('deleted_via_project', true)
+                ->get()
+                ->each(function (Task $task) {
+                    $task->deleted_via_project = false;
+                    $task->saveQuietly();
+                    $task->restore();
+                });
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
