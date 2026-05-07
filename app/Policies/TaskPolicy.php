@@ -34,17 +34,17 @@ class TaskPolicy
 
     public function update(User $user, Task $task): bool
     {
-        return $user->isOwnerOfProject($task->project) || $user->isTaskAssignee($task);
+        return $user->isAdminOfProject($task->project) || $user->isTaskAssignee($task);
     }
 
     public function delete(User $user, Task $task): bool
     {
-        return $user->isOwnerOfProject($task->project) || $user->isTaskCreator($task);
+        return $user->isAdminOfProject($task->project) || $user->isTaskCreator($task);
     }
 
     public function storeAssignee(User $user, Task $task): bool
     {
-        return $user->isOwnerOfProject($task->project) || $user->isTaskCreator($task);
+        return $user->isAdminOfProject($task->project) || $user->isTaskCreator($task);
     }
 
     public function restore(User $user, Task $task): bool

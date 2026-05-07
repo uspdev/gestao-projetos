@@ -100,19 +100,19 @@ class Project extends Model
         return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($member?->pivot?->role ?? null);
     }
 
-    public function isLastOwner(User $user): bool
+    public function isLastAdmin(User $user): bool
     {
-        if ($this->userRole($user) !== ProjectUserRole::OWNER) {
+        if ($this->userRole($user) !== ProjectUserRole::ADMIN) {
             return false;
         }
 
-        $ownersCount = $this->relationLoaded('users')
+        $adminsCount = $this->relationLoaded('users')
             ? $this->users->filter(function (User $member) {
-                return $this->userRole($member) === ProjectUserRole::OWNER;
+                return $this->userRole($member) === ProjectUserRole::ADMIN;
             })->count()
-            : $this->users()->wherePivot('role', ProjectUserRole::OWNER->value)->count();
+            : $this->users()->wherePivot('role', ProjectUserRole::ADMIN->value)->count();
 
-        return $ownersCount <= 1;
+        return $adminsCount <= 1;
     }
 
     public function syncTagsByIds(?array $tagIds): void

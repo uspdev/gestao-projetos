@@ -54,9 +54,9 @@ class ProjectMemberController extends Controller
         $data = $request->validated();
         $newRole = ProjectUserRole::from($data['role']);
 
-        if ($project->isLastOwner($user) && $newRole !== ProjectUserRole::OWNER) {
+        if ($project->isLastAdmin($user) && $newRole !== ProjectUserRole::ADMIN) {
             return redirect()->route('projects.show', $project)
-                ->with('alert-danger', 'O último dono do projeto não pode ter sua role alterada.');
+            ->with('alert-danger', 'O último admin do projeto não pode ter sua role alterada.');
         }
 
         DB::transaction(function () use ($project, $user, $newRole) {
@@ -76,9 +76,9 @@ class ProjectMemberController extends Controller
     {
         Gate::authorize('storeMember', $project);
 
-        if ($user->isOwnerOfProject($project) && $project->isLastOwner($user)) {
+        if ($user->isAdminOfProject($project) && $project->isLastAdmin($user)) {
             return redirect()->route('projects.show', $project)
-                ->with('alert-danger', 'O projeto precisa ter pelo menos um dono.');
+            ->with('alert-danger', 'O projeto precisa ter pelo menos um admin.');
         }
 
         DB::transaction(function () use ($project, $user) {

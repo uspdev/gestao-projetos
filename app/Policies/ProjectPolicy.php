@@ -43,7 +43,7 @@ class ProjectPolicy
 
     public function delete(User $user, Project $project): bool
     {
-        return $user->isOwnerOfProject($project);
+        return $user->isAdminOfProject($project);
     }
 
     public function restore(User $user, Project $project): bool
@@ -58,6 +58,6 @@ class ProjectPolicy
 
     public function storeMember(User $user, Project $project): bool
     {
-        return $user->isOwnerOfProject($project);
+        return $user->isAdminOfProject($project);
     }
 }

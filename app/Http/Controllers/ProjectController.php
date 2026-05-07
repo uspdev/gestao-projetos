@@ -54,7 +54,7 @@ class ProjectController extends Controller
             $data['status'] = $data['status'] ?? ProjectStatus::PLANNING->value;
 
             $project = Project::create($data);
-            $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::OWNER->value]);
+            $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::ADMIN->value]);
 
             $project->syncTagsByIds($request->tags ?? null);
 
