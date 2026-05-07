@@ -15,12 +15,19 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // BLOCO 1: PROJETOS
     // ==========================================
+
+    // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
     Route::resource('projects', ProjectController::class)->only([
-        'index', 'create', 'store', 'show', 'update', 'destroy'
-]);
+        'index',
+        'create',
+        'store',
+        'show',
+        'update',
+        'destroy'
+    ]);
 
     // Sub-recurso: Membros
     Route::controller(ProjectMemberController::class)
@@ -39,7 +46,9 @@ Route::middleware('auth')->group(function () {
     // BLOCO 2: TAREFAS DO PROJETO 
     // ==========================================
     Route::resource('projects.tasks', ProjectTaskController::class)->only([
-        'index', 'create', 'store'
+        'index',
+        'create',
+        'store'
     ]);
 
 
@@ -47,10 +56,15 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // BLOCO 3: TAREFAS (Ações Diretas)
     // ==========================================
+
+    // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
     Route::resource('tasks', TaskController::class)->only([
-        'index', 'show', 'update', 'destroy'
+        'index',
+        'show',
+        'update',
+        'destroy'
     ]);
 
     // Sub-recurso: Atribuições
