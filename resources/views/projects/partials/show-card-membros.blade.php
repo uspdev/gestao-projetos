@@ -1,6 +1,6 @@
 {{-- Membros do Projeto --}}
-<div class="card mb-4 shadow-sm">
-  <div class="card-header bg-white d-flex align-items-center">
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">
         <i class="fas fa-users mr-1"></i> Membros do Projeto

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
-{   
+{
 
     public function __construct()
     {
@@ -23,13 +23,13 @@ class ProjectController extends Controller
             \UspTheme::activeUrl('meus-projetos');
 
             return $next($request);
-        })->only(['index', 'create', 'show']); 
+        })->only(['index', 'create', 'show']);
     }
 
     public function index()
     {
         $user = Auth::user();
-        
+
         Gate::authorize('viewAny', [Project::class, $user]);
 
         $projects = Project::accessibleBy($user)
@@ -136,5 +136,11 @@ class ProjectController extends Controller
 
         return redirect()->back()
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
+    }
+
+    public function settings(Project $project)
+    {
+        return view('projects.settings', compact('project'));
+
     }
 }
