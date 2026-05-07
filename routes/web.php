@@ -20,13 +20,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
-    Route::resource('projects', ProjectController::class)->only([
-        'index',
-        'create',
-        'store',
-        'show',
-        'update',
-        'destroy'
+    Route::resource('projects', ProjectController::class)->except([
+        'edit'
     ]);
 
     // Sub-recurso: Membros
@@ -45,10 +40,13 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // BLOCO 2: TAREFAS DO PROJETO 
     // ==========================================
-    Route::resource('projects.tasks', ProjectTaskController::class)->only([
-        'index',
-        'create',
-        'store'
+    
+
+    Route::resource('projects.tasks', ProjectTaskController::class)->except([
+        'show',
+        'edit',
+        'update',
+        'destroy'
     ]);
 
 
@@ -60,11 +58,10 @@ Route::middleware('auth')->group(function () {
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
-    Route::resource('tasks', TaskController::class)->only([
-        'index',
-        'show',
-        'update',
-        'destroy'
+    Route::resource('tasks', TaskController::class)->except([
+        'create',
+        'store',
+        'edit'
     ]);
 
     // Sub-recurso: Atribuições
@@ -82,7 +79,15 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // USUÁRIOS
     // ==========================================
-    Route::resource('users', UserController::class)->only(['show']);
+    
+    Route::resource('users', UserController::class)->except([
+        'index',
+        'create',
+        'store',
+        'edit',
+        'update',
+        'destroy'
+    ]);
 
     // ==========================================
     // MENU / REDIRECTS 
