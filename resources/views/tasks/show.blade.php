@@ -11,13 +11,13 @@
       <div class="row">
         {{-- COLUNA PRINCIPAL: Título e Descrição --}}
         <div class="col-md-8">
-          @include('tasks.partials.show.main-card', ['task' => $task])
+          @include('tasks.partials.show.main-card')
         </div>
 
         {{-- COLUNA LATERAL (Direita): Metadados e Responsáveis --}}
         <div class="col-md-4">
-          @include('tasks.partials.show.info-card', ['task' => $task])
-          @include('tasks.partials.show.assignees-card', ['task' => $task])
+          @include('tasks.partials.show.info-card')
+          @include('tasks.partials.show.assignees-card')
 
         </div>
       </div>
