@@ -128,7 +128,7 @@
 @once
   @section('javascripts_bottom')
     @parent
-    @include('tasks.partials.multi-select-script')
+    @include('tasks.partials.scripts.multi-select-script')
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -138,7 +138,7 @@
         var form = modal.querySelector('form');
         var methodInput = form.querySelector('input[name="_method"]');
         var taskIdInput = form.querySelector('input[name="task_id"]');
-        var titleInput = form.querySelector('[name="title"]');
+        var titleInput = modal.querySelector('[name="title"]');
         var statusSelect = form.querySelector('[name="status"]');
         var prioritySelect = form.querySelector('[name="priority"]');
         var startDateInput = form.querySelector('[name="start_date"]');
@@ -148,7 +148,6 @@
         var modalTitle = modal.querySelector('[data-role="modal-title"]');
         var submitBtn = modal.querySelector('[data-role="submit-btn"]');
 
-        // Função para definir o valor selecionado em um campo de seleção simples
         function setSelectValue(select, value) {
           if (!select) return;
           var options = Array.prototype.slice.call(select.options || []);
@@ -156,13 +155,12 @@
             option.selected = String(option.value) === String(value || '');
           });
         }
-        // Função para definir os valores selecionados em um campo de múltipla seleção, como o de tags
+
         function setMultiSelect(select, values) {
           if (!select) return;
           var normalized = (values || []).map(function(value) {
             return String(value);
           });
-          // Itera sobre as opções do select e marca como selecionada aquelas cujo valor está presente no array de valores fornecido
           Array.prototype.slice.call(select.options || []).forEach(function(option) {
             option.selected = normalized.indexOf(String(option.value)) !== -1;
           });
@@ -174,8 +172,7 @@
             }
           }
         }
-        // Função para decodificar entidades HTML em uma string,
-        // garantindo que caracteres especiais sejam exibidos corretamente no formulário de edição
+
         function decodeHtmlEntities(value) {
           if (value === null || value === undefined) {
             return '';
@@ -197,7 +194,7 @@
 
           return current;
         }
-        // Função para preparar o formulário para criação, definindo a ação e limpando os campos relevantes
+
         function prepareCreate(action) {
           if (!form) return;
           form.action = action || modal.dataset.createAction || form.action;
@@ -216,7 +213,7 @@
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Criar Tarefa';
           }
         }
-        // Função para resetar o formulário para o estado de criação, limpando os campos e definindo a ação correta
+
         function resetToCreate(action) {
           prepareCreate(action);
           if (titleInput) {
@@ -241,7 +238,7 @@
             setMultiSelect(tagsSelect, []);
           }
         }
-        // Função para preencher o formulário com os dados da tarefa a ser editada
+
         function applyEditData(data) {
           form.action = data.action || form.action;
           if (methodInput) {
@@ -282,8 +279,6 @@
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
           }
         }
-        // Adiciona um listener de clique a todos os botões que devem abrir o modal para criação ou edição de tarefas,
-        // utilizando os atributos data-* para determinar o modo e os dados a serem preenchidos no formulário
         document.querySelectorAll('[data-task-modal="task-form"]').forEach(function(button) {
           button.addEventListener('click', function() {
             var mode = button.getAttribute('data-mode') || 'create';
@@ -318,17 +313,12 @@
             }
           });
         });
-        // Ao carregar a página, verifica se há dados de criação ou
-        // edição pendentes (por exemplo, após uma validação falhada) e prepara o modal para exibir esses dados,
-        // abrindo-o automaticamente se necessário
         if (modal.dataset.hasOldCreate === '1') {
           prepareCreate(modal.dataset.createAction);
           if (window.jQuery) {
             window.jQuery(modal).modal('show');
           }
         }
-        // Se houver dados de edição pendentes, preenche o formulário com esses dados
-        // e exibe o modal para que o usuário possa corrigir os erros e salvar as alterações
         if (modal.dataset.hasOldEdit === '1') {
           applyEditData({
             action: modal.dataset.oldUpdateAction,

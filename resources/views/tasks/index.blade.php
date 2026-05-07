@@ -12,8 +12,8 @@
   <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
       <h4 class="mb-0">Minhas Tarefas</h4>
-      @include('tasks.partials.toggle-layout-btn')
-      @include('tasks.partials.show-done-btn')
+      @include('tasks.partials.buttons.toggle-layout-btn')
+      @include('tasks.partials.buttons.show-done-btn')
     </div>
 
     @if ($kanbanView)
@@ -22,7 +22,7 @@
       <div class="row">
         @forelse($tasks as $task)
           <div class="col-md-6 col-lg-4 mb-2">
-            @include('tasks.partials.preview')
+            @include('tasks.partials.components.preview')
           </div>
         @empty
           <div class="col-12">

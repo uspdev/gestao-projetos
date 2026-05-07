@@ -35,5 +35,5 @@
     </div>
   </div>
 
-  @include('tasks.partials.date-formatter-script')
+  @include('tasks.partials.scripts.date-formatter-script')
 </div>

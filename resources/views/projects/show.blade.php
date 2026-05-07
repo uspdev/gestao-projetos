@@ -7,7 +7,7 @@
     @include('projects.partials.show.show-header')
     <div class="card-body">
       <div class="row">
-          <div class="col-md-8">
+        <div class="col-md-8">
           @include('projects.partials.show.show-card-descricao')
         </div>
         <div class="col-md-4">
@@ -17,5 +17,5 @@
       </div>
     </div>
   </div>
-  @include('tasks.partials.task-form-modal')
+  @include('tasks.partials.components.task-form-modal')
 @endsection

@@ -59,7 +59,7 @@
     @endif
 
     @if (!empty($canManageTaskAssignees) && $isTaskContext)
-      @include('tasks.partials.remove-assignee-btn')
+      @include('tasks.partials.buttons.remove-assignee-btn')
     @endif
   </div>
 </li>
