@@ -13,26 +13,16 @@ Route::view('/', 'landing')->name('landing');
 Route::middleware('auth')->group(function () {
 
     // ==========================================
-    // PROJECT
+    // BLOCO 1: PROJETOS
     // ==========================================
-    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
-
-    Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
-    Route::get('projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
-    Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
-    Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
-
+    Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
-    Route::controller(ProjectController::class)
-        ->prefix('projects/{project}')
-        ->name('projects.')
-        ->group(function () {
-            Route::patch('status', 'updateProjectStatus')->name('updateStatus');
-        });
+    Route::resource('projects', ProjectController::class)->only([
+        'index', 'create', 'store', 'show', 'update', 'destroy'
+]);
 
-    // PROJECT MEMBERS
+    // Sub-recurso: Membros
     Route::controller(ProjectMemberController::class)
         ->prefix('projects/{project}/members')
         ->name('projects.members.')
@@ -43,59 +33,49 @@ Route::middleware('auth')->group(function () {
             Route::delete('{user}', 'destroy')->name('destroy');
         });
 
-    // PROJECT TASKS
-    Route::prefix('projects/{project}')
-        ->name('projects.tasks.')
-        ->group(function () {
-            Route::get('tasks', [ProjectTaskController::class, 'index'])->name('index');
-            Route::get('tasks/create', [ProjectTaskController::class, 'create'])->name('create');
-            Route::post('tasks', [ProjectTaskController::class, 'store'])->name('store');
-        });
+
 
     // ==========================================
-    // TASKS
+    // BLOCO 2: TAREFAS DO PROJETO 
     // ==========================================
-    Route::get('tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::resource('projects.tasks', ProjectTaskController::class)->only([
+        'index', 'create', 'store'
+    ]);
 
-    Route::get('tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
-    Route::put('tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
-    Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
+
+    // ==========================================
+    // BLOCO 3: TAREFAS (Ações Diretas)
+    // ==========================================
+    Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
+
+    Route::resource('tasks', TaskController::class)->only([
+        'index', 'show', 'update', 'destroy'
+    ]);
+
+    // Sub-recurso: Atribuições
     Route::controller(TaskController::class)
-        ->prefix('tasks/{task}')
-        ->name('tasks.')
+        ->prefix('tasks/{task}/assignees')
+        ->name('tasks.assignees.')
         ->group(function () {
-            Route::patch('status', 'updateTaskStatus')->name('updateTaskStatus');
-
-            Route::prefix('assignees')->name('assignees.')->group(function () {
-                Route::get('selectable', 'selectableAssignees')->name('selectable');
-                Route::post('/', 'storeAssignee')->name('store');
-                Route::delete('{user}', 'destroyAssignee')->name('destroy');
-            });
+            Route::get('selectable', 'selectableAssignees')->name('selectable');
+            Route::post('/', 'storeAssignee')->name('store');
+            Route::delete('{user}', 'destroyAssignee')->name('destroy');
         });
 
 
-    // ==========================================
-    // USER
-    // ==========================================
-    Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 
     // ==========================================
-    // MENU
+    // USUÁRIOS
     // ==========================================
-    Route::get('/meus-projetos', function () {
-        return redirect()->route('projects.index');
-    });
+    Route::resource('users', UserController::class)->only(['show']);
 
-    Route::get('/minhas-tasks', function () {
-        return redirect()->route('tasks.index');
-    });
-
-    Route::get('/meu-perfil', function () {
-        return redirect()->route('users.show', Auth::id());
-    });
+    // ==========================================
+    // MENU / REDIRECTS 
+    // ==========================================
+    Route::get('/meus-projetos', fn() => redirect()->route('projects.index'));
+    Route::get('/minhas-tasks', fn() => redirect()->route('tasks.index'));
+    Route::get('/meu-perfil', fn() => redirect()->route('users.show', Auth::id()));
 });
 
-Route::fallback(function () {
-    abort(404);
-});
+Route::fallback(fn() => abort(404));
