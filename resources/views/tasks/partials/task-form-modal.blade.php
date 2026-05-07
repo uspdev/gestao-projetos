@@ -1,6 +1,8 @@
 @php
   $modalId = $modalId ?? 'modalTaskForm';
-  $selectableTaskTags = $selectableTaskTags ?? (isset($availableTaskTags) ? $availableTaskTags : \App\Models\Tag::withType('tasks')->orderBy('name')->get());
+  $selectableTaskTags =
+      $selectableTaskTags ??
+      (isset($availableTaskTags) ? $availableTaskTags : \App\Models\Tag::withType('tasks')->orderBy('name')->get());
   $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
   $createAction = $createAction ?? route('projects.tasks.store', $project);
   $hasOldCreate = $errors->any() && old('_method') === null && old('title') !== null;
@@ -31,8 +33,8 @@
         <div class="modal-body">
           <div class="row">
             <div class="col-12">
-              <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required
-                minlength="3" maxlength="120" />
+              <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required minlength="3"
+                maxlength="120" />
             </div>
           </div>
 
@@ -172,6 +174,29 @@
             }
           }
         }
+        // Função para decodificar entidades HTML em uma string,
+        // garantindo que caracteres especiais sejam exibidos corretamente no formulário de edição
+        function decodeHtmlEntities(value) {
+          if (value === null || value === undefined) {
+            return '';
+          }
+
+          var current = String(value);
+
+          for (var i = 0; i < 5; i++) {
+            var textarea = document.createElement('textarea');
+            textarea.innerHTML = current;
+
+            var decoded = textarea.value;
+            if (decoded === current) {
+              return decoded;
+            }
+
+            current = decoded;
+          }
+
+          return current;
+        }
         // Função para preparar o formulário para criação, definindo a ação e limpando os campos relevantes
         function prepareCreate(action) {
           if (!form) return;
@@ -242,7 +267,7 @@
             dueDateInput.value = data.dueDate || '';
           }
           if (descriptionInput && data.description !== undefined) {
-            descriptionInput.value = data.description || '';
+            descriptionInput.value = decodeHtmlEntities(data.description || '');
           }
           if (tagsSelect && data.tags !== undefined) {
             setMultiSelect(tagsSelect, data.tags || []);
