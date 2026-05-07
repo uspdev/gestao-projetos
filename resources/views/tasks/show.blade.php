@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  @include('tasks.partials.task-form-modal', ['project' => $task->project])
+  @include('tasks.partials.components.task-form-modal', ['project' => $task->project])
 
 
 @endsection

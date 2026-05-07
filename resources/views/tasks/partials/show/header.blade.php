@@ -11,6 +11,6 @@
     <a href="{{ route('projects.tasks.index', $task->project) }}" class="text-decoration-none text-secondary fw-medium">
       Tarefas
     </a>
-    @include('tasks.partials.create-task-btn', ['project' => $task->project])
+    @include('tasks.partials.buttons.create-task-btn', ['project' => $task->project])
   </div>
 </div>

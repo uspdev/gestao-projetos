@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-md-8">
       @forelse($tasks as $task)
-        @include('tasks.partials.preview')
+        @include('tasks.partials.components.preview')
       @empty
         <div class="col-12">
           <div class="alert alert-secondary text-center p-4 shadow-sm" role="alert">

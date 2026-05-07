@@ -6,14 +6,14 @@
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Meus Projetos</h2>
-      @include('projects.partials.create-btn')
+      @include('projects.partials.buttons.create-btn')
     </div>
 
     {{-- Listagem de Previews --}}
     <div class="row">
       @forelse($projects as $project)
         <div class="col-md-4">
-          @include('projects.partials.preview')
+          @include('projects.partials.components.preview')
         </div>
       @empty
         <div class="col-12">

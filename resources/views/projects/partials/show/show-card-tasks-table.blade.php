@@ -2,9 +2,9 @@
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5">
     <i class="fas fa-tasks"></i> Tarefas
-    @include('tasks.partials.create-task-btn')
-    @include('tasks.partials.toggle-layout-btn')
-    @include('tasks.partials.show-done-btn')
+    @include('tasks.partials.buttons.create-task-btn')
+    @include('tasks.partials.buttons.toggle-layout-btn')
+    @include('tasks.partials.buttons.show-done-btn')
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -24,7 +24,7 @@
           @foreach ($tasks as $task)
             <tr>
               <td>
-                @include('tasks.partials.edit-btn')
+                @include('tasks.partials.buttons.edit-btn')
               </td>
               <td>
                 <span class="badge {{ $task->priority?->color() }}">{{ $task->priority?->label() }}</span>

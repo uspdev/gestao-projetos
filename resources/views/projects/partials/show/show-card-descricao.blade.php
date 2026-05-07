@@ -2,7 +2,7 @@
 <div class="card mb-4">
   <div class="card-header h5">
     Descrição
-    @include('projects.partials.edit-btn')
+    @include('projects.partials.buttons.edit-btn')
   </div>
 
   <div class="card-body">

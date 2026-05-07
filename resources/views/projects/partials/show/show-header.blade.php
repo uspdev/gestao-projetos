@@ -23,7 +23,7 @@
   </div>
 
   <div class="d-flex align-items-center gap-2">
-    @include('projects.partials.show-tag-badges')
+    @include('projects.partials.show.show-tag-badges')
 
     <a href="{{ route('projects.settings', $project) }}"
       class="btn btn-sm

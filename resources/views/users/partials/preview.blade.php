@@ -23,7 +23,7 @@
             id="member-role-dropdown-{{ $user->id }}" data-toggle="dropdown" aria-haspopup="true"
             aria-expanded="false" title="Alterar role do membro">
             <span class="badge {{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }}">
-              {{ $project->userRole($user)?->label() ?? 'Sem role' }}
+              {{ $project->userRole($user)?->label() ?? 'Sem função' }}
             </span>
           </button>
           <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="member-role-dropdown-{{ $user->id }}">
@@ -47,33 +47,19 @@
         </div>
       @else
         <span class="badge {{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }} mr-2">
-          {{ $project->userRole($user)?->label() ?? 'Sem role' }}
+          {{ $project->userRole($user)?->label() ?? 'Sem função' }}
         </span>
       @endif
     @else
-      <span class="badge badge-light border text-muted mr-2">Sem role</span>
+      <span class="badge badge-light border text-muted mr-2">Sem função</span>
     @endif
 
     @if (!empty($canManageMembers) && isset($project) && !$isTaskContext)
-      <form method="POST" action="{{ route('projects.members.destroy', [$project, $user]) }}"
-        onsubmit="return confirm('Deseja remover este membro do projeto?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-sm btn-outline-danger py-0" title="Remover membro">
-          <i class="fas fa-trash"></i>
-        </button>
-      </form>
+      @include('projects.partials.buttons.remove-member-btn')
     @endif
 
     @if (!empty($canManageTaskAssignees) && $isTaskContext)
-      <form method="POST" action="{{ route('tasks.assignees.destroy', [$task, $user]) }}"
-        onsubmit="return confirm('Deseja remover este responsável da tarefa?');">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="btn btn-sm btn-outline-danger" title="Remover responsável">
-          <i class="fas fa-trash"></i>
-        </button>
-      </form>
+      @include('tasks.partials.buttons.remove-assignee-btn')
     @endif
   </div>
 </li>
