@@ -10,7 +10,7 @@
   </div>
   <ul class="list-group list-group-flush">
     @forelse($project->users as $user)
-      @include('users.preview')
+      @include('users.partials.preview')
     @empty
       <li class="list-group-item text-muted font-italic small text-center py-3">
         Nenhum membro vinculado.

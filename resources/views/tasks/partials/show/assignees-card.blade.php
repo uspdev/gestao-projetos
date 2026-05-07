@@ -7,7 +7,7 @@
   </div>
   <ul class="list-group list-group-flush">
     @forelse($task->users as $user)
-      @include('users.preview', [
+      @include('users.partials.preview', [
           'project' => $task->project,
       ])
     @empty
