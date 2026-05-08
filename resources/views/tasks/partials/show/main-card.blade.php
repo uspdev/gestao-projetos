@@ -1,6 +1,6 @@
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5 d-flex justify-content-between align-items-center gap-2">
-    <div class="d-flex justify-content-between gap-2 m-0 text-dark font-weight-bold">
+  <div class="card-header h5 d-flex justify-content-between align-items-center gap-2 py-2">
+    <div class="d-flex justify-content-between gap-2">
       <span>{{ $task->title }}</span>
       @include('tasks.partials.components.update-status')
     </div>

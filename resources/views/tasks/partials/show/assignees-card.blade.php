@@ -1,19 +1,19 @@
-<div class="card mb-4 shadow-sm border-top-primary">
-  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-    <h6 class="m-0 text-muted">
-      <i class="fas fa-users mr-1"></i> Responsáveis
-    </h6>
-    @includeWhen(auth()->user()->can('storeAssignee', $task), 'tasks.partials.buttons.add-assignee-btn')
+<div class="card mb-4 shadow-sm">
+  <div class="card-header py-2">
+    <i class="fas fa-users"></i> Responsáveis
+    @include('tasks.partials.buttons.add-assignee-btn')
   </div>
-  <ul class="list-group list-group-flush">
-    @forelse($task->users as $user)
-      @include('users.partials.preview', [
-          'project' => $task->project,
-      ])
-    @empty
-      <li class="list-group-item text-muted font-italic small text-center py-3">
-        Nenhum usuário atribuído.
-      </li>
-    @endforelse
-  </ul>
+  <div class="card-body p-0">
+    <ul class="list-group list-group-flush">
+      @forelse($task->users as $user)
+        <li class="list-group-item d-flex gap-2 justify-content-between align-items-center">
+          @include('users.partials.preview', ['project' => $task->project])
+        </li>
+      @empty
+        <li class="list-group-item text-muted font-italic small text-center py-3">
+          Nenhum usuário atribuído.
+        </li>
+      @endforelse
+    </ul>
+  </div>
 </div>
