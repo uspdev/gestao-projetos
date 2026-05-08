@@ -25,7 +25,7 @@ class Task extends Model
         'status',
         'start_date',
         'due_date',
-        'completed_date'
+        'completed_at'
     ];
 
     protected function casts(): array
@@ -34,7 +34,7 @@ class Task extends Model
             'status' => TaskStatus::class,
             'start_date' => 'date',
             'due_date' => 'date',
-            'completed_date' => 'datetime',
+            'completed_at' => 'datetime',
             'priority' => TaskPriority::class
         ];
     }
@@ -69,5 +69,10 @@ class Task extends Model
     {
         return $this->due_date?->isPast()
             && !($this->status === \App\Enums\Task\TaskStatus::DONE);
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->status === \App\Enums\Task\TaskStatus::DONE;
     }
 }

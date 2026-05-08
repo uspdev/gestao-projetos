@@ -13,8 +13,9 @@ class UpdateTaskStatusRequest extends FormRequest
     {
         /** @var Task $task */
         $task = $this->route('task');
+        $user = $this->user();
 
-        return $this->user()->can('update', $task);
+        return $user->can('update', $task) || $user->can('updateStatus', $task);
     }
 
     public function rules(): array

@@ -116,6 +116,12 @@ class TaskController extends Controller
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
 
+            if ($data['status'] === \App\Enums\Task\TaskStatus::DONE->value) {
+                $data['completed_at'] = now();
+            } else {
+                $data['completed_at'] = null;
+            }
+
             $task->update($data);
         });
 
