@@ -73,7 +73,7 @@
 <div {{ $attributes->class(['card preview-card position-relative']) }}>
   <div class="card-body p-3 d-flex flex-column h-100">
     @isset($header)
-      <div class="d-flex justify-content-between align-items-start mb-3">
+      <div class="d-flex justify-content-between align-items-start mb-1">
         {{ $header }}
       </div>
     @endisset
