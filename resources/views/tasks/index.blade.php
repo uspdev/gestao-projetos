@@ -3,11 +3,6 @@
 @section('title', 'Minhas Tarefas')
 
 @section('content')
-  @php
-    $view = $view ?? request()->query('view', 'kanban');
-    $kanbanView = $kanbanView ?? $view === 'kanban';
-    $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
-  @endphp
 
   <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
@@ -16,7 +11,7 @@
       @include('tasks.partials.buttons.show-done-btn')
     </div>
 
-    @if ($kanbanView)
+    @if ($taskView === 'kanban')
       @include('tasks.partials.kanban.kanban')
     @else
       <div class="row">

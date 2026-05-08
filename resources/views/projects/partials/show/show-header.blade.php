@@ -16,7 +16,7 @@
       Visão geral
     </a>
 
-    <a href="{{ route('projects.tasks.index', $project) }}?view=list"
+    <a href="{{ route('projects.tasks.index', $project) }}"
       class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
       Tarefas
     </a>

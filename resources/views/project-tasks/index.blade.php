@@ -6,18 +6,21 @@
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
-      @php
-        $view = $view ?? request()->query('view', 'kanban');
-        $kanbanView = $kanbanView ?? $view === 'kanban';
-        $showDone = $showDone ?? $kanbanView || request()->boolean('show_done');
-      @endphp
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header h5">
+          <i class="fas fa-tasks"></i> Tarefas
+          @include('tasks.partials.buttons.create-task-btn')
+          @include('tasks.partials.buttons.toggle-layout-btn')
+          @include('tasks.partials.buttons.show-done-btn')
+        </div>
 
-      <div class="row">
-        @if ($kanbanView)
-          @include('project-tasks.partials.kanban')
-        @else
-          @include('projects.partials.show.show-card-tasks-table')
-        @endif
+        <div class="card-body">
+          @if ($taskView === 'kanban')
+            @include('tasks.partials.kanban.kanban')
+          @else
+            @include('projects.partials.show.show-card-tasks-table')
+          @endif
+        </div>
       </div>
     </div>
   </div>

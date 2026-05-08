@@ -30,9 +30,10 @@ class TaskController extends Controller
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
 
-        $view = $request->query('view', 'kanban');
-        $kanbanView = $view === 'kanban';
-        $showDone = $kanbanView || $request->boolean('show_done');
+        $taskView = request()->query('view') ?? session('tasks_view', 'list'); //list ou kanban
+        session(['tasks_view' => $taskView]);
+
+        $showDone = $request->boolean('show_done');
 
         $tasks = $user->tasks()
             ->with([
@@ -48,7 +49,7 @@ class TaskController extends Controller
             ->get();
 
         // O apontamento mudou para a pasta principal de tarefas
-        return view('tasks.index', compact('tasks', 'user', 'showDone', 'kanbanView', 'view'));
+        return view('tasks.index', compact('tasks', 'user', 'showDone', 'taskView'));
     }
 
     public function show(Task $task)
