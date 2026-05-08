@@ -98,6 +98,7 @@ class ProjectMemberController extends Controller
 
         $term = trim((string) $request->input('term', ''));
 
+        //todo: se não houver replicado precisa buscar na base local
         if ($term === '' || !function_exists('hasReplicado') || !hasReplicado()) {
             return response()->json(['results' => []]);
         }
@@ -110,6 +111,9 @@ class ProjectMemberController extends Controller
 
         $results = [];
 
+
+        //todo: poderia ter um método no replicado procurarPorNomeouCodpes. Poderá ser usado no senhaunica-socialite também
+        // este método todo poderia ser usado de lá. é necessário ajustar o findUsersGate no config.
         if (is_numeric($term) && strlen($term) >= 4) {
             try {
                 $pessoa = Pessoa::dump((int) $term);
