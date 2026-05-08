@@ -1,8 +1,6 @@
 @php
   $modalId = $modalId ?? 'modalTaskForm';
-  $selectableTaskTags =
-      $selectableTaskTags ??
-      (isset($availableTaskTags) ? $availableTaskTags : \App\Models\Tag::withType('tasks')->orderBy('name')->get());
+  $selectableTaskTags = $availableTaskTags ?? \App\Models\Tag::forTasks();
   $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
   $createAction = $createAction ?? route('projects.tasks.store', $project);
   $hasOldCreate = $errors->any() && old('_method') === null && old('title') !== null;

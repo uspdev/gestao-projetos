@@ -3,87 +3,88 @@
     <i class="fas fa-edit"></i>
   </button>
 
-  <div class="modal fade" id="modalEditarProjeto" tabindex="-1" aria-labelledby="modalEditarProjetoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEditarProjetoLabel">Editar Projeto: {{ $project->name }}</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
+  @push('scripts')
+    <div class="modal fade" id="modalEditarProjeto" tabindex="-1" aria-labelledby="modalEditarProjetoLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditarProjetoLabel">Editar Projeto: {{ $project->name }}</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
 
-        <form action="{{ route('projects.update', $project) }}" method="POST">
-          @csrf
-          @method('PUT')
+          <form action="{{ route('projects.update', $project) }}" method="POST">
+            @csrf
+            @method('PUT')
 
-          <div class="modal-body">
-            <div class="row">
-              {{-- Nome --}}
-              <div class="col">
-                <x-form.input name="name" label="Nome do Projeto" value="{{ $project->name }}" required
-                  minlength="3" maxlength="50" />
+            <div class="modal-body">
+              <div class="row">
+                {{-- Nome --}}
+                <div class="col">
+                  <x-form.input name="name" label="Nome do Projeto" value="{{ $project->name }}" required minlength="3"
+                    maxlength="50" />
+                </div>
+
+                {{-- Status (oculto — atualizado por outro método) --}}
+                <input type="hidden" name="status" id="status" value="{{ old('status', $project->status?->value) }}">
               </div>
 
-              {{-- Status (oculto — atualizado por outro método) --}}
-              <input type="hidden" name="status" id="status" value="{{ old('status', $project->status?->value) }}">
-            </div>
-
-            <div class="row">
-              <div class="col-12">
-                <x-form.input name="slug" label="URL do Projeto (Slug)" value="{{ $project->slug }}"
-                  maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                  title="Use apenas letras minusculas, numeros e hifens."
-                  autocomplete="off" autocapitalize="none" spellcheck="false" />
-                <small class="text-muted d-block">Aviso: Alterar a URL quebrará links antigos já compartilhados.</small>
-                <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens. Acentos serão removidos.</small>
+              <div class="row">
+                <div class="col-12">
+                  <x-form.input name="slug" label="URL do Projeto (Slug)" value="{{ $project->slug }}" maxlength="80"
+                    pattern="[a-z0-9]+(?:-[a-z0-9]+)*" title="Use apenas letras minusculas, numeros e hifens."
+                    autocomplete="off" autocapitalize="none" spellcheck="false" />
+                  <small class="text-muted d-block">Aviso: Alterar a URL quebrará links antigos já compartilhados.</small>
+                  <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens. Acentos serão
+                    removidos.</small>
+                </div>
               </div>
-            </div>
 
-            <div class="row">
-              {{-- Descrição --}}
-              <div class="col-12">
-                <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $project->description }}"
-                  rows="4" maxlength="10000" />
+              <div class="row">
+                {{-- Descrição --}}
+                <div class="col-12">
+                  <x-form.textarea name="description" label="Descrição Detalhada" value="{{ $project->description }}"
+                    rows="4" maxlength="10000" />
+                </div>
               </div>
-            </div>
 
-            {{-- Tags adicionadas na edição --}}
-            <div class="row">
-              <div class="col-12">
-                <div class="form-group mb-3">
-                  <label>Tags</label>
-                  <select name="tags[]" multiple style="width: 100%;"
-                    class="form-control select2-tags @error('tags') is-invalid @enderror">
-                    @foreach ($selectableProjectTags as $tag)
-                      <option value="{{ $tag->id }}"
-                        {{ in_array($tag->id, $project->tags->pluck('id')->toArray(), true) ? 'selected' : '' }}>
-                        {{ $tag->name }}
-                      </option>
-                    @endforeach
-                  </select>
+              {{-- Tags adicionadas na edição --}}
+              <div class="row">
+                <div class="col-12">
+                  <div class="form-group mb-3">
+                    <label>Tags</label>
+                    <select name="tags[]" multiple style="width: 100%;"
+                      class="form-control select2-tags @error('tags') is-invalid @enderror">
+                      @foreach (App\Models\Tag::forProjects() as $tag)
+                        <option value="{{ $tag->id }}"
+                          {{ in_array($tag->id, $project->tags->pluck('id')->toArray(), true) ? 'selected' : '' }}>
+                          {{ $tag->name }}
+                        </option>
+                      @endforeach
+                    </select>
 
-                  @error('tags.*')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                  @enderror
+                    @error('tags.*')
+                      <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save"></i> Salvar Alterações
-            </button>
-          </div>
-        </form>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Salvar Alterações
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
+  @endpush
 
-  @section('javascripts_bottom')
-    @parent
+  @push('scripts')
     @include('projects.partials.scripts.multi-select-script')
 
     <script>
@@ -138,5 +139,5 @@
         });
       </script>
     @endif
-  @endsection
+  @endpush
 @endcan

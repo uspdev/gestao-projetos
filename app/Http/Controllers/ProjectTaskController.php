@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Tag;
 
 class ProjectTaskController extends Controller
-{   
+{
 
     public function __construct()
     {
@@ -39,13 +39,9 @@ class ProjectTaskController extends Controller
             ->latest()
             ->get();
 
-        $selectableProjectTags = Tag::forProjects();
-
         $selectedProjectTagIds = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
             ->map(fn($id) => (int) $id)
             ->all();
-
-        $selectableTaskTags = Tag::forTasks();
 
         $selectedTasksTagsIds = $tasks->mapWithKeys(function ($task) {
             return [$task->id => $task->tags->pluck('id')->all()];
@@ -54,9 +50,7 @@ class ProjectTaskController extends Controller
         return view('project-tasks.index', compact(
             'tasks',
             'project',
-            'selectableProjectTags',
             'selectedProjectTagIds',
-            'selectableTaskTags',
             'selectedTasksTagsIds',
             'showDone',
             'kanbanView',
@@ -68,9 +62,7 @@ class ProjectTaskController extends Controller
     {
         Gate::authorize('create', [Task::class, $project]);
 
-        $selectableTaskTags = Tag::forTasks();
-
-        return view('project-tasks.create', compact('project', 'selectableTaskTags'));
+        return view('project-tasks.create', compact('project'));
     }
 
     public function store(StoreTaskRequest $request, Project $project)

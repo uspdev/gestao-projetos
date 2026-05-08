@@ -40,10 +40,8 @@ class ProjectController extends Controller
             ->latest()
             ->get();
 
-        $selectableProjectTags = Tag::forProjects();
-
         // O apontamento da view mudou para o diretório padrão de projetos
-        return view('projects.index', compact('projects', 'user', 'selectableProjectTags'));
+        return view('projects.index', compact('projects', 'user'));
     }
 
     public function store(StoreProjectRequest $request)
@@ -78,8 +76,6 @@ class ProjectController extends Controller
                 ->with('tags'),
         ]);
 
-        $selectableProjectTags = Tag::forProjects();
-        $selectableTaskTags = Tag::forTasks();
 
         $selectedTasksTagsIds = $project->tasks->mapWithKeys(function ($task) {
             return [$task->id => $task->tagsWithType('tasks')->pluck('id')->all()];
@@ -87,8 +83,6 @@ class ProjectController extends Controller
 
         return view('projects.show', compact(
             'project',
-            'selectableProjectTags',
-            'selectableTaskTags',
             'selectedTasksTagsIds'
         ));
     }
