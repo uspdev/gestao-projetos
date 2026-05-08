@@ -40,19 +40,9 @@ class ProjectTaskController extends Controller
             ->latest()
             ->get();
 
-        $selectedProjectTagIds = collect(old('tags', $project->tagsWithType('projects')->pluck('id')->all()))
-            ->map(fn($id) => (int) $id)
-            ->all();
-
-        $selectedTasksTagsIds = $tasks->mapWithKeys(function ($task) {
-            return [$task->id => $task->tags->pluck('id')->all()];
-        });
-
         return view('project-tasks.index', compact(
             'tasks',
             'project',
-            'selectedProjectTagIds',
-            'selectedTasksTagsIds',
             'showDone',
             // 'kanbanView',
             // 'taskView'

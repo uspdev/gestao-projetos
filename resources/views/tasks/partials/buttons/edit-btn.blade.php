@@ -5,7 +5,7 @@
     data-status="{{ $task->status?->value }}" data-priority="{{ $task->priority?->value }}"
     data-start-date="{{ $task->start_date ? $task->start_date->format('Y-m-d') : '' }}"
     data-due-date="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
-    data-description="{{ e($task->description) }}" data-tags='@json($task->tags->pluck('id')->values())'>
+    data-description="{{ e($task->description) }}" data-tags='@json($taskTagIds)'>
     <i class="fas fa-edit"></i>
   </button>
 @endcan

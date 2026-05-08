@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
-use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -63,11 +62,7 @@ class TaskController extends Controller
             'tags',
         ]);
 
-        $selectedTasksTagsIds = [
-            $task->id => $task->tags->pluck('id')->all()
-        ];
-
-        return view('tasks.show', compact('task', 'selectedTasksTagsIds'));
+        return view('tasks.show', compact('task'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)

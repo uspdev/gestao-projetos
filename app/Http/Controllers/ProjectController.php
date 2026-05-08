@@ -75,15 +75,7 @@ class ProjectController extends Controller
                 ->with('tags'),
         ]);
 
-
-        $selectedTasksTagsIds = $project->tasks->mapWithKeys(function ($task) {
-            return [$task->id => $task->tagsWithType('tasks')->pluck('id')->all()];
-        });
-
-        return view('projects.show', compact(
-            'project',
-            'selectedTasksTagsIds'
-        ));
+        return view('projects.show', compact('project'));
     }
 
     public function update(UpdateProjectRequest $request, Project $project)

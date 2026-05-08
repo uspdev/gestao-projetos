@@ -7,6 +7,7 @@ use App\Enums\Project\ProjectUserRole;
 use App\Traits\HasSlug;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -36,14 +37,14 @@ class Project extends Model
         ];
     }
 
-protected static function booted(): void
+    protected static function booted(): void
     {
         static::deleting(function (Project $project) {
             if ($project->isForceDeleting()) {
                 $project->tasks()
                     ->withTrashed()
                     ->get()
-                    ->each(fn (Task $task) => $task->forceDelete());
+                    ->each(fn(Task $task) => $task->forceDelete());
 
                 return;
             }
@@ -51,7 +52,7 @@ protected static function booted(): void
             $project->tasks()->get()->each(function (Task $task) {
                 $task->deleted_via_project = true;
                 $task->saveQuietly();
-                
+
                 $task->delete();
             });
         });
@@ -91,6 +92,33 @@ protected static function booted(): void
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function tasksTagsIds(?Collection $tasks = null): array
+    {
+        $tasks = $tasks ?? ($this->relationLoaded('tasks') ? $this->tasks : $this->tasks()->get());
+        $tasks->loadMissing('tags');
+
+        return $tasks->mapWithKeys(function (Task $task) {
+            $tagIds = $task->tags
+                ->where('type', Tag::TYPE_TASK)
+                ->pluck('id')
+                ->all();
+
+            return [$task->id => $tagIds];
+        })->all();
+    }
+
+    public function tagsIds(): array
+    {
+        $tags = $this->relationLoaded('tags')
+            ? $this->tags->where('type', Tag::TYPE_PROJECT)
+            : $this->tagsWithType(Tag::TYPE_PROJECT);
+
+        return $tags
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
     }
 
     public function scopeAccessibleBy(Builder $query, User $user): Builder

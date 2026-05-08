@@ -1,3 +1,7 @@
+@php
+  $taskTagIds = $task->project->tasksTagsIds($task->newCollection([$task]))[$task->id];
+@endphp
+
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5 d-flex justify-content-between align-items-center gap-2 py-2">
     <div class="d-flex justify-content-between gap-2">

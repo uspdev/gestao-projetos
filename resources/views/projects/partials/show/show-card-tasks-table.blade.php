@@ -15,6 +15,9 @@
     @foreach ($tasks as $task)
       <tr>
         <td>
+                @php
+                  $taskTagIds = $tasksTagsIds[$task->id];
+                @endphp
           @include('tasks.partials.buttons.edit-btn')
         </td>
         <td>
