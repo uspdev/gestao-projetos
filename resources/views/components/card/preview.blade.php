@@ -30,7 +30,7 @@
 
   $normalizedFooterTags = collect($footerTags ?? []);
   $visibleFooterTags = $normalizedFooterTags->take($footerTagsLimit);
-  $extraFooterTagsCount = max(0, $normalizedFooterTags->count() - $visibleFooterTags->count());;
+  $extraFooterTagsCount = max(0, $normalizedFooterTags->count() - $visibleFooterTags->count());
 @endphp
 
 @once
@@ -166,6 +166,7 @@
               @endif
           </div>
         </div>
+        {{-- Date formatting handled by x-local-date component (includes its own script) --}}
       @endif
     @endisset
 
@@ -258,21 +259,13 @@
             <i class="far fa-calendar-alt mr-1"></i>
 
             <span title="Data de Início">
-              @if ($startDate)
-                <time class="local-date" datetime="{{ $startDate }}">{{ $startDate }}</time>
-              @else
-                --/--/----
-              @endif
+              <x-local-date :date="$startDate" empty="--/--/----" />
             </span>
 
             <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
 
             <span title="Prazo de Entrega" class="font-weight-bold {{ $dueDateIsLate ? 'text-danger' : 'text-dark' }}">
-              @if ($dueDate)
-                <time class="local-date" datetime="{{ $dueDate }}">{{ $dueDate }}</time>
-              @else
-                --/--/----
-              @endif
+              <x-local-date :date="$dueDate" :overdue="$dueDateIsLate" />
             </span>
           </div>
         </div>
