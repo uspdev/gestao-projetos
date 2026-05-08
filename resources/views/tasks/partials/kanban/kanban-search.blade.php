@@ -31,9 +31,7 @@
   </style>
 @endsection
 
-
-@section('javascripts_bottom')
-  @parent
+@pushOnce('scripts')
   <script>
     // ignora acentos
     const normalize = str =>
@@ -87,4 +85,5 @@
       });
     });
   </script>
-@endsection
+@endPushOnce
+
