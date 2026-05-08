@@ -25,6 +25,7 @@
 @endsection
 
 @section('javascripts_bottom')
+  @stack('modals')
   @parent
   @stack('scripts')
   <script>
