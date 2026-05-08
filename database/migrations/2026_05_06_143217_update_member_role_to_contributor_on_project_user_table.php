@@ -14,6 +14,10 @@ return new class extends Migration
             ->where('role', 'MEMBER')
             ->update(['role' => 'CONTRIBUTOR']);
 
+        DB::table('project_user')
+            ->where('role', 'OWNER')
+            ->update(['role' => 'ADMIN']);
+
         // 2. Altera a estrutura da tabela para o novo valor default
         Schema::table('project_user', function (Blueprint $table) {
             $table->string('role')->default('CONTRIBUTOR')->change();
@@ -32,5 +36,9 @@ return new class extends Migration
         DB::table('project_user')
             ->where('role', 'CONTRIBUTOR')
             ->update(['role' => 'MEMBER']);
+
+        DB::table('project_user')
+            ->where('role', 'ADMIN')
+            ->update(['role' => 'OWNER']);
     }
 };

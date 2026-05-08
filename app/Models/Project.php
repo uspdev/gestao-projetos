@@ -36,6 +36,39 @@ class Project extends Model
         ];
     }
 
+protected static function booted(): void
+    {
+        static::deleting(function (Project $project) {
+            if ($project->isForceDeleting()) {
+                $project->tasks()
+                    ->withTrashed()
+                    ->get()
+                    ->each(fn (Task $task) => $task->forceDelete());
+
+                return;
+            }
+
+            $project->tasks()->get()->each(function (Task $task) {
+                $task->deleted_via_project = true;
+                $task->saveQuietly();
+                
+                $task->delete();
+            });
+        });
+
+        static::restoring(function (Project $project) {
+            $project->tasks()
+                ->withTrashed()
+                ->where('deleted_via_project', true)
+                ->get()
+                ->each(function (Task $task) {
+                    $task->deleted_via_project = false;
+                    $task->saveQuietly();
+                    $task->restore();
+                });
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -100,19 +133,19 @@ class Project extends Model
         return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($member?->pivot?->role ?? null);
     }
 
-    public function isLastOwner(User $user): bool
+    public function isLastAdmin(User $user): bool
     {
-        if ($this->userRole($user) !== ProjectUserRole::OWNER) {
+        if ($this->userRole($user) !== ProjectUserRole::ADMIN) {
             return false;
         }
 
-        $ownersCount = $this->relationLoaded('users')
+        $adminsCount = $this->relationLoaded('users')
             ? $this->users->filter(function (User $member) {
-                return $this->userRole($member) === ProjectUserRole::OWNER;
+                return $this->userRole($member) === ProjectUserRole::ADMIN;
             })->count()
-            : $this->users()->wherePivot('role', ProjectUserRole::OWNER->value)->count();
+            : $this->users()->wherePivot('role', ProjectUserRole::ADMIN->value)->count();
 
-        return $ownersCount <= 1;
+        return $adminsCount <= 1;
     }
 
     public function syncTagsByIds(?array $tagIds): void

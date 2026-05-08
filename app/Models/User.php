@@ -64,7 +64,7 @@ class User extends Authenticatable
         return $query->whereHas('projects', function ($q) use ($projectId) {
             $q->where('projects.id', $projectId);
             $q->whereIn('project_user.role', [
-                ProjectUserRole::OWNER->value,
+                ProjectUserRole::ADMIN->value,
                 ProjectUserRole::CONTRIBUTOR->value,
             ]);
         })
@@ -86,7 +86,7 @@ class User extends Authenticatable
         return $this->projects()
             ->where('project_id', $project->id)
             ->wherePivotIn('role', [
-                ProjectUserRole::OWNER->value,
+                ProjectUserRole::ADMIN->value,
                 ProjectUserRole::CONTRIBUTOR->value,
                 ProjectUserRole::VIEWER->value,
             ])
@@ -98,17 +98,17 @@ class User extends Authenticatable
         return $this->projects()
             ->where('project_id', $project->id)
             ->wherePivotIn('role', [
-                ProjectUserRole::OWNER->value,
+                ProjectUserRole::ADMIN->value,
                 ProjectUserRole::CONTRIBUTOR->value,
             ])
             ->exists();
     }
 
-    public function isOwnerOfProject(Project $project): bool
+    public function isAdminOfProject(Project $project): bool
     {
         return $this->projects()
             ->where('project_id', $project->id)
-            ->wherePivot('role', ProjectUserRole::OWNER->value)
+            ->wherePivot('role', ProjectUserRole::ADMIN->value)
             ->exists();
     }
 

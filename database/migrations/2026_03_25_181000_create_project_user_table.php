@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Project\ProjectUserRole;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +14,7 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
 
-            $table->string('role')->default(ProjectUserRole::MEMBER->value);
+            $table->string('role')->default('MEMBER');
 
             $table->unique(['project_id', 'user_id']);
         });

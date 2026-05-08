@@ -20,9 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
-    Route::resource('projects', ProjectController::class)->except([
-        'edit'
-    ]);
+    Route::resource('projects', ProjectController::class)->except(['edit']);
 
     // Sub-recurso: Membros
     Route::controller(ProjectMemberController::class)
@@ -41,7 +39,6 @@ Route::middleware('auth')->group(function () {
     // BLOCO 2: TAREFAS DO PROJETO 
     // ==========================================
     
-
     Route::resource('projects.tasks', ProjectTaskController::class)->except([
         'show',
         'edit',

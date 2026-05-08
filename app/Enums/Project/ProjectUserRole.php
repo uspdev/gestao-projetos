@@ -4,14 +4,14 @@ namespace App\Enums\Project;
 
 enum ProjectUserRole: string
 {
-    case OWNER = 'OWNER';
+    case ADMIN = 'ADMIN';
     case CONTRIBUTOR = 'CONTRIBUTOR';
     case VIEWER = 'VIEWER';
 
     public function label(): string
     {
         return match ($this) {
-            self::OWNER => 'Dono',
+            self::ADMIN => 'Admin',
             self::CONTRIBUTOR => 'Colaborador',
             self::VIEWER => 'Visualizador',
         };
@@ -20,7 +20,7 @@ enum ProjectUserRole: string
     public function color(): string
     {
         return match ($this) {
-            self::OWNER => 'badge-success',
+            self::ADMIN => 'badge-success',
             self::CONTRIBUTOR => 'badge-primary',
             self::VIEWER => 'badge-secondary',
         };
