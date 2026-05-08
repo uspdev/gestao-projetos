@@ -1,21 +1,51 @@
 @props([
     'href' => null,
     'ariaLabel' => null,
+    'title' => null,
+    'titleVariant' => 'project',
+    'titleTag' => 'h5',
+    'titleClass' => '',
+    'statusLabel' => null,
+    'statusClass' => 'badge-light border text-muted',
+    'tasksCount' => null,
+    'projectName' => null,
+    'showProject' => true,
+    'roleLabel' => null,
+    'roleClass' => 'badge-light border text-muted',
+    'tags' => [],
+    'tagsLimit' => 2,
+    'footerPriorityLabel' => null,
+    'footerPriorityClass' => null,
+    'footerTags' => [],
+    'footerTagsLimit' => 3,
+    'startDate' => null,
+    'dueDate' => null,
+    'dueDateIsLate' => false,
 ])
+
+@php
+  $normalizedTags = collect($tags ?? []);
+  $visibleTags = $normalizedTags->take($tagsLimit);
+  $extraTagsCount = max(0, $normalizedTags->count() - $visibleTags->count());
+
+  $normalizedFooterTags = collect($footerTags ?? []);
+  $visibleFooterTags = $normalizedFooterTags->take($footerTagsLimit);
+  $extraFooterTagsCount = max(0, $normalizedFooterTags->count() - $visibleFooterTags->count());;
+@endphp
 
 @once
   <style>
     .preview-card {
       cursor: pointer;
-      border-radius: 0.9rem;
+      border-radius: 0.75rem;
       overflow: hidden;
       transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
         box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .preview-card:hover {
-      transform: translateY(-6px) scale(1.01);
-      box-shadow: 0 1.1rem 2.2rem rgba(0, 0, 0, 0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 0.85rem 1.7rem rgba(0, 0, 0, 0.16);
     }
 
     .preview-card__title {
@@ -29,21 +59,18 @@
     }
 
     .preview-card__title--project {
-      font-size: 1.25rem;
+      font-size: 1.12rem;
       -webkit-line-clamp: 2;
-      min-height: 3.25rem;
     }
 
     .preview-card__title--task {
-      font-size: 1.12rem;
+      font-size: 1.06rem;
       -webkit-line-clamp: 2;
-      min-height: 2.91rem;
     }
 
     .preview-card__title--feature {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       -webkit-line-clamp: 2;
-      min-height: 2.99rem;
     }
 
     .preview-card__meta {
@@ -67,6 +94,52 @@
       line-height: 1.5;
       margin: 0;
     }
+
+    .preview-card__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 0.5rem;
+    }
+
+    .preview-card__role-tags {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 0.6rem;
+      flex-wrap: nowrap;
+    }
+
+    .preview-card__role {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+      flex-shrink: 0;
+      gap: 0.35rem;
+    }
+
+    .preview-card__tags {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      min-width: 0;
+      overflow: hidden;
+      gap: 0.25rem;
+    }
+
+    .preview-card__tags .badge {
+      font-size: 0.78rem;
+      padding: 0.29rem 0.42rem;
+      max-width: 7rem;
+    }
+
+    .preview-card__tasks-count {
+      font-size: 0.83rem;
+      color: #5f6c7b;
+      white-space: nowrap;
+    }
   </style>
 @endonce
 
@@ -76,12 +149,77 @@
       <div class="d-flex justify-content-between align-items-start mb-1">
         {{ $header }}
       </div>
+    @else
+      @if ($title || $statusLabel)
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="preview-card__row">
+            <{{ $titleTag }}
+              class="m-0 preview-card__title preview-card__title--{{ $titleVariant }} {{ $titleClass }}"
+              title="{{ $title }}">
+              {{ $title }}
+              </{{ $titleTag }}>
+
+              @if ($statusLabel)
+                <span class="badge {{ $statusClass }} text-nowrap shadow-sm ml-2">
+                  {{ $statusLabel }}
+                </span>
+              @endif
+          </div>
+        </div>
+      @endif
     @endisset
 
     @isset($body)
-      <div class="mt-2">
+      <div>
         {{ $body }}
       </div>
+    @else
+      @if (!is_null($tasksCount) || ($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty())
+        <div>
+          @if (!is_null($tasksCount))
+            <div class="d-flex justify-content-start w-100 mb-2">
+              <span class="preview-card__tasks-count" title="Quantidade de tarefas">
+                <i class="fas fa-tasks mr-1"></i>{{ $tasksCount }}
+                {{ \Illuminate\Support\Str::plural('tarefa', $tasksCount) }}
+              </span>
+            </div>
+          @endif
+
+          @if ($showProject && $projectName)
+            <div class="preview-card__project mb-2">
+              <i class="fas fa-folder-open mr-1"></i>
+              {{ $projectName }}
+            </div>
+          @endif
+
+          <div class="preview-card__meta preview-card__role-tags">
+            <div class="preview-card__role">
+              @if ($roleLabel)
+                <span class="text-muted small mb-0"><i class="fas fa-user-circle"></i> Meu papel:</span>
+                <span class="badge {{ $roleClass }} small text-truncate"
+                  style="max-width:8.5rem;">{{ $roleLabel }}</span>
+              @endif
+            </div>
+
+            <div class="preview-card__tags" aria-label="Tags">
+              @foreach ($visibleTags as $tag)
+                <span
+                  class="badge {{ data_get($tag, 'color', 'badge-light border text-muted') }} d-inline-flex align-items-center"
+                  title="Tag {{ data_get($tag, 'name') }}">
+                  <i class="fas fa-tag mr-1"></i>
+                  <span class="d-inline-block text-truncate">{{ data_get($tag, 'name') }}</span>
+                </span>
+              @endforeach
+
+              @if ($extraTagsCount > 0)
+                <span class="badge badge-light border text-muted" title="+{{ $extraTagsCount }} outras tags">
+                  +{{ $extraTagsCount }}
+                </span>
+              @endif
+            </div>
+          </div>
+        </div>
+      @endif
     @endisset
 
     {{ $slot }}
@@ -90,6 +228,55 @@
       <div class="d-flex justify-content-between align-items-end mt-auto">
         {{ $footer }}
       </div>
+    @else
+      @if ($footerPriorityLabel || $visibleFooterTags->isNotEmpty() || !is_null($startDate) || !is_null($dueDate))
+        <div class="d-flex justify-content-between align-items-end mt-auto">
+          <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem; max-height:3.6rem; overflow:hidden;">
+            @if ($footerPriorityLabel)
+              <span class="badge {{ $footerPriorityClass ?? 'badge-light border text-muted' }}" title="Prioridade">
+                <i class="fas fa-flag mr-1"></i>{{ $footerPriorityLabel }}
+              </span>
+            @endif
+
+            @foreach ($visibleFooterTags as $tag)
+              <span
+                class="badge {{ data_get($tag, 'color', 'badge-light border text-muted') }} d-inline-flex align-items-center"
+                title="Tag">
+                <i class="fas fa-tag mr-1"></i>
+                <span class="d-inline-block text-truncate" style="max-width:8rem;">{{ data_get($tag, 'name') }}</span>
+              </span>
+            @endforeach
+
+            @if ($extraFooterTagsCount > 0)
+              <span class="badge badge-light border text-muted" title="+{{ $extraFooterTagsCount }} outras tags">
+                +{{ $extraFooterTagsCount }}
+              </span>
+            @endif
+          </div>
+
+          <div class="text-muted text-right text-nowrap pl-2" style="font-size: 0.85rem;">
+            <i class="far fa-calendar-alt mr-1"></i>
+
+            <span title="Data de Início">
+              @if ($startDate)
+                <time class="local-date" datetime="{{ $startDate }}">{{ $startDate }}</time>
+              @else
+                --/--/----
+              @endif
+            </span>
+
+            <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
+
+            <span title="Prazo de Entrega" class="font-weight-bold {{ $dueDateIsLate ? 'text-danger' : 'text-dark' }}">
+              @if ($dueDate)
+                <time class="local-date" datetime="{{ $dueDate }}">{{ $dueDate }}</time>
+              @else
+                --/--/----
+              @endif
+            </span>
+          </div>
+        </div>
+      @endif
     @endisset
 
     @if ($href)

@@ -9,7 +9,6 @@ use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Models\Project;
-use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -35,8 +34,8 @@ class ProjectController extends Controller
         $projects = Project::accessibleBy($user)
             ->with([
                 'users',
-                'tasks',
             ])
+            ->withCount('tasks')
             ->latest()
             ->get();
 
