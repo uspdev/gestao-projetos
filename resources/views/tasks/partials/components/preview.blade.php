@@ -49,29 +49,12 @@
 
     <div class="text-muted text-right text-nowrap pl-2" style="font-size: 0.85rem;">
       <i class="far fa-calendar-alt mr-1"></i>
+      <x-local-date :date="$task->start_date" title="Data de Início" />
 
-      <span title="Data de Início">
-        @if ($task->start_date)
-          <time class="local-date"
-            datetime="{{ $task->start_date->format('Y-m-d') }}">{{ $task->start_date->format('Y-m-d') }}</time>
-        @else
-          --/--/----
-        @endif
-      </span>
+      <i class="fas fa-arrow-right mx-1" style="font-size: .7em"></i>
+      <x-local-date :date="$task->due_date" title="Prazo de Entrega"
+        class="{{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}" />
 
-      <i class="fas fa-arrow-right mx-1" style="font-size: 0.7em; color: #adb5bd;"></i>
-
-      <span title="Prazo de Entrega"
-        class="font-weight-bold {{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}">
-        @if ($task->due_date)
-          <time class="local-date"
-            datetime="{{ $task->due_date->format('Y-m-d') }}">{{ $task->due_date->format('Y-m-d') }}</time>
-        @else
-          --/--/----
-        @endif
-      </span>
     </div>
   </x-slot>
 </x-card.preview>
-
-@include('tasks.partials.scripts.date-formatter-script')

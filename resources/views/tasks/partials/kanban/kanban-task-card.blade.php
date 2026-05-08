@@ -19,12 +19,8 @@
     <div class="d-flex align-items-center justify-content-between small text-muted">
       <span>
         <i class="far fa-calendar-alt mr-1"></i>
-        @if ($task->due_date)
-          <time class="local-date"
-            datetime="{{ $task->due_date->format('Y-m-d') }}">{{ $task->due_date->format('Y-m-d') }}</time>
-        @else
-          --/--/----
-        @endif
+        <x-local-date :date="$task->due_date"
+          class="{{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}" />
       </span>
 
       @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
@@ -34,6 +30,4 @@
       @endif
     </div>
   </div>
-
-  @include('tasks.partials.scripts.date-formatter-script')
 </div>
