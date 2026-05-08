@@ -71,8 +71,8 @@ class ProjectController extends Controller
         $project = $project->load([
             'users',
             'tags',
-            'tasks' => fn ($query) => $query
-                ->when(! $showDone, fn ($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            'tasks' => fn($query) => $query
+                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
                 ->with('tags'),
         ]);
 
@@ -92,6 +92,10 @@ class ProjectController extends Controller
         DB::transaction(function () use ($project, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
+
+            if (array_key_exists('description', $data) && is_string($data['description'])) {
+                $data['description'] = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
 
             $project->update($data);
 
@@ -135,6 +139,5 @@ class ProjectController extends Controller
     public function settings(Project $project)
     {
         return view('projects.settings', compact('project'));
-
     }
 }
