@@ -14,10 +14,12 @@
             <th></th>
             <th title="Prioridade">Prio.</th>
             <th>Status</th>
+            <th>Início</th>
+            <th>Prazo</th>
             <th>Título</th>
             <th>Responsável</th>
             <th>Tags</th>
-            <th>Criado em</th>
+
           </tr>
         </thead>
         <tbody>
@@ -32,6 +34,12 @@
               <td>
                 <span class="badge {{ $task->status->color() }}">{{ $task->status->label() }}</span>
               </td>
+              <td data-order="{{ $task->start_date?->format('Y-m-d H:i:s') }}">
+                <x-local-date :date="$task->start_date" empty="-" />
+              </td>
+              <td data-order="{{ $task->due_date?->format('Y-m-d H:i:s') }}">
+                <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" empty="-" />
+              </td>
               <td>
                 <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">
                   {{ $task->title }}
@@ -45,13 +53,12 @@
                   <span class="badge badge-secondary">{{ $tag->name }}</span>
                 @endforeach
               </td>
-              <td data-order="{{ $task->created_at?->format('Y-m-d H:i:s') }}">
-                {{ $task->created_at?->format('d/m/Y') ?? '-' }}
-              </td>
+
             </tr>
           @endforeach
         </tbody>
       </table>
+      {{-- @dd($tasks) --}}
     </div>
   </div>
 </div>

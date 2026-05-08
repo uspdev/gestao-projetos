@@ -21,14 +21,11 @@
         <div class="row no-gutters">
           <div class="col-6 border-right pr-2">
             <span class="text-muted small mr-2">Início:</span>
-            <span class="font-weight-bold">
               <x-local-date :date="$task->start_date" />
-            </span>
           </div>
           <div class="col-6 pl-2">
             <span class="text-muted small mr-2">Prazo:</span>
-            <x-local-date :date="$task->due_date"
-              class="{{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}" />
+            <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" />
           </div>
         </div>
       </li>

@@ -19,15 +19,14 @@
     <div class="d-flex align-items-center justify-content-between small text-muted">
       <span>
         <i class="far fa-calendar-alt mr-1"></i>
-        <x-local-date :date="$task->due_date"
-          class="{{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}" />
+        <x-local-date :date="$task->start_date" />
+        <i class="fas fa-arrow-right fa-sm mx-1"></i>
+        <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" />
       </span>
 
-      @if ($task->priority instanceof \App\Enums\Task\TaskPriority)
-        <span class="badge {{ $task->priority->color() }}">
-          {{ $task->priority->label() }}
-        </span>
-      @endif
+      <span class="badge {{ $task->priority?->color() }}">
+        {{ $task->priority?->label() }}
+      </span>
     </div>
   </div>
 </div>

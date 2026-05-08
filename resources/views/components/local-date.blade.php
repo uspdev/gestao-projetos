@@ -1,9 +1,11 @@
 @props([
     'date' => null,
+    'overdue' => false,
     'empty' => '--/--/----',
 ])
 
-<span {{ $attributes->class('font-weight-bold') }}>
+<span
+  {{ $attributes->class(['text-danger font-weight-bold' => $overdue, 'text-dark' => !$overdue]) }}>
   <time class="local-date" datetime="{{ $date?->toDateString() }}">
     {{ $date?->toDateString() ?? $empty }}
   </time>

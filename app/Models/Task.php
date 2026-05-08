@@ -25,6 +25,7 @@ class Task extends Model
         'status',
         'start_date',
         'due_date',
+        'completed_date'
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class Task extends Model
             'status' => TaskStatus::class,
             'start_date' => 'date',
             'due_date' => 'date',
+            'completed_date' => 'datetime',
             'priority' => TaskPriority::class
         ];
     }
@@ -61,5 +63,11 @@ class Task extends Model
 
         $tagsToSync = Tag::whereIn('id', $tagIds)->get();
         $this->syncTagsWithType($tagsToSync, Tag::TYPE_TASK);
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->due_date?->isPast()
+            && !($this->status === \App\Enums\Task\TaskStatus::DONE);
     }
 }

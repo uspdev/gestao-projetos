@@ -52,8 +52,7 @@
       <x-local-date :date="$task->start_date" title="Data de Início" />
 
       <i class="fas fa-arrow-right mx-1" style="font-size: .7em"></i>
-      <x-local-date :date="$task->due_date" title="Prazo de Entrega"
-        class="{{ $task->due_date && \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value ? 'text-danger' : 'text-dark' }}" />
+      <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" title="Prazo de Entrega" />
 
     </div>
   </x-slot>
