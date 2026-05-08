@@ -7,7 +7,11 @@
     <ul class="list-group list-group-flush">
       @forelse($task->users as $user)
         <li class="list-group-item d-flex gap-2 justify-content-between align-items-center">
-          @include('users.partials.preview', ['project' => $task->project])
+          @include('users.partials.preview')
+          <div class="d-flex align-items-center gap-2">
+            @include('users.partials.user-task-badge', ['project' => $task->project])
+            @include('users.partials.remove-member-assignee-btn')
+          </div>
         </li>
       @empty
         <li class="list-group-item text-muted font-italic small text-center py-3">

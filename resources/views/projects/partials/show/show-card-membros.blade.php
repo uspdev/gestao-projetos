@@ -8,6 +8,10 @@
       @forelse($project->users as $user)
         <li class="list-group-item d-flex gap-2 justify-content-between align-items-center">
           @include('users.partials.preview')
+          <div class="d-flex align-items-center gap-2">
+            @include('projects.partials.buttons.member-role-dropdown')
+            @include('users.partials.remove-member-assignee-btn')
+          </div>
         </li>
       @empty
         <li class="list-group-item">Nenhum membro adicionado ao projeto.

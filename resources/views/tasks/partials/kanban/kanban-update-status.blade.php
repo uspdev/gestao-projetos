@@ -1,4 +1,4 @@
-@can('update', $task)
+@canAny(['update', 'updateStatus'], $task)
 
   <div class="dropdown flex-shrink-0">
 
@@ -33,16 +33,16 @@
   <span class="badge {{ $task->status->color() }} text-nowrap flex-shrink-0" style="font-size: 0.75rem; line-height: 1;">
     {{ $task->status->label() }}
   </span>
-@endcan
 
-@pushOnce('scripts')
-  <script>
-    document.addEventListener('click', function(e) {
-      const button = e.target.closest('.task-status-change');
-      if (!button) return;
-      const form = document.getElementById(button.dataset.form);
-      form.querySelector('[name="status"]').value = button.dataset.status;
-      form.submit();
-    });
-  </script>
-@endPushOnce
+  @pushOnce('scripts')
+    <script>
+      document.addEventListener('click', function(e) {
+        const button = e.target.closest('.task-status-change');
+        if (!button) return;
+        const form = document.getElementById(button.dataset.form);
+        form.querySelector('[name="status"]').value = button.dataset.status;
+        form.submit();
+      });
+    </script>
+  @endPushOnce
+@endcanAny

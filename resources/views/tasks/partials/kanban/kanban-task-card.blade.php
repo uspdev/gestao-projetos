@@ -19,9 +19,13 @@
     <div class="d-flex align-items-center justify-content-between small text-muted">
       <span>
         <i class="far fa-calendar-alt mr-1"></i>
-        <x-local-date :date="$task->start_date" />
-        <i class="fas fa-arrow-right fa-sm mx-1"></i>
-        <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" />
+        @if ($task->completed_at)
+          <x-local-date :date="$task->completed_at" /> <i class="fas fa-check"></i>
+        @else
+          <x-local-date :date="$task->start_date" />
+          <i class="fas fa-arrow-right fa-sm mx-1"></i>
+          <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" />
+        @endif
       </span>
 
       <span class="badge {{ $task->priority?->color() }}">

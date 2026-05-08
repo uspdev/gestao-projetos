@@ -1,11 +1,9 @@
 @if (auth()->user()->can('storeMember', $project))
-  <div class="dropdown mr-2">
+  <div class="dropdown">
     <button class="btn btn-sm p-0 border-0 bg-transparent dropdown-toggle" type="button"
       id="member-role-dropdown-{{ $user->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
       title="Alterar role do membro">
-      <span class="badge {{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }}">
-        {{ $project->userRole($user)?->label() ?? 'Sem função' }}
-      </span>
+      @include('users.partials.user-task-badge')
     </button>
     <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="member-role-dropdown-{{ $user->id }}">
       @foreach (\App\Enums\Project\ProjectUserRole::cases() as $role)
