@@ -1,3 +1,7 @@
+@php
+  $tasksTagsIds = $project->tasksTagsIds($tasks);
+@endphp
+
 <table class="table table-bordered datatable-simples">
   <thead>
     <tr>
@@ -15,9 +19,9 @@
     @foreach ($tasks as $task)
       <tr>
         <td>
-                @php
-                  $taskTagIds = $tasksTagsIds[$task->id];
-                @endphp
+          @php
+            $taskTagIds = $tasksTagsIds[$task->id] ?? [];
+          @endphp
           @include('tasks.partials.buttons.edit-btn')
         </td>
         <td>

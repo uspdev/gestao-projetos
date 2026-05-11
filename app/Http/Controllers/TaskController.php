@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Task\TaskStatus;
+use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
+use App\Models\Project;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -18,37 +22,103 @@ class TaskController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            \UspTheme::activeUrl('minhas-tasks');
+            if ($request->route('project')) {
+                \UspTheme::activeUrl('meus-projetos');
+            } else {
+                \UspTheme::activeUrl('minhas-tasks');
+            }
 
             return $next($request);
-        })->only('index');
+        })->only(['userIndex', 'projectIndex', 'create']);
     }
 
-    public function index(Request $request)
+    /**
+     * Lista as tarefas do usuario autenticado.
+     */
+    public function userIndex(Request $request)
     {
-        $user = Auth::user();
-        Gate::authorize('viewTasks', $user);
-
         $taskView = request()->query('view') ?? session('tasks_view', 'list'); //list ou kanban
         session(['tasks_view' => $taskView]);
 
         $showDone = $request->boolean('show_done');
+
+        $user = Auth::user();
+        Gate::authorize('viewTasks', $user);
 
         $tasks = $user->tasks()
             ->with([
                 'project',
                 'users',
             ])
-            ->when(! $showDone, fn($query) => $query->where('status', '!=', \App\Enums\Task\TaskStatus::DONE->value))
+            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy(
-                \App\Models\Project::select('name')
+                Project::select('name')
                     ->whereColumn('projects.id', 'tasks.project_id')
             )
             ->latest()
             ->get();
 
-        // O apontamento mudou para a pasta principal de tarefas
         return view('tasks.index', compact('tasks', 'user', 'showDone'));
+    }
+
+    /**
+     * Lista as tarefas de um projeto especifico.
+     */
+    public function projectIndex(Request $request, Project $project)
+    {
+        $taskView = $request->query('view') ?? session('tasks_view', 'list'); //list ou kanban
+        session(['tasks_view' => $taskView]);
+
+        $showDone = $request->boolean('show_done');
+
+        Gate::authorize('viewAny', [Task::class, $project]);
+
+        $tasks = $project->tasks()
+            ->with('project')
+            ->with('users')
+            ->with('tags')
+            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->orderBy('priority', 'asc')
+            ->latest()
+            ->get();
+
+        return view('project-tasks.index', compact(
+            'tasks',
+            'project',
+            'showDone'
+        ));
+    }
+
+    public function create(Project $project)
+    {
+        Gate::authorize('create', [Task::class, $project]);
+
+        return view('project-tasks.create', compact('project'));
+    }
+
+    public function store(StoreTaskRequest $request, Project $project)
+    {
+        $task = DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['project_id'] = $project->id;
+            $data['created_by'] = Auth::id();
+            $data['status'] = $data['status'] ?? TaskStatus::TO_DO->value;
+
+            $task = Task::create($data);
+            $task->users()->attach(Auth::id());
+
+            if ($request->has('tags')) {
+                $tagsToSync = Tag::withType(Tag::TYPE_TASK)
+                    ->whereIn('id', $request->tags)
+                    ->get();
+                $task->syncTagsWithType($tagsToSync, Tag::TYPE_TASK);
+            }
+
+            return $task;
+        });
+
+        return redirect()->route('tasks.show', $task)
+            ->with('alert-success', 'Tarefa criada com sucesso!');
     }
 
     public function show(Task $task)

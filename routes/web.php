@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
-use App\Http\Controllers\ProjectTaskController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
@@ -36,26 +35,26 @@ Route::middleware('auth')->group(function () {
 
 
     // ==========================================
-    // BLOCO 2: TAREFAS DO PROJETO 
+    // BLOCO 2: TAREFAS
     // ==========================================
-    
-    Route::resource('projects.tasks', ProjectTaskController::class)->except([
+
+    // Tarefas do projeto
+    Route::get('projects/{project}/tasks', [TaskController::class, 'projectIndex'])->name('projects.tasks.index');
+    Route::resource('projects.tasks', TaskController::class)->except([
+        'index',
         'show',
         'edit',
         'update',
         'destroy'
     ]);
 
-
-
-    // ==========================================
-    // BLOCO 3: TAREFAS (Ações Diretas)
-    // ==========================================
-
+    // Tarefas (Ações Diretas)
+    Route::get('tasks', [TaskController::class, 'userIndex'])->name('tasks.index');
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
     Route::resource('tasks', TaskController::class)->except([
+        'index',
         'create',
         'store',
         'edit'
