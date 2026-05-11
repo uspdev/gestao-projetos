@@ -105,7 +105,6 @@ class TaskController extends Controller
             $data['status'] = $data['status'] ?? TaskStatus::TO_DO->value;
 
             $task = Task::create($data);
-            $task->users()->attach(Auth::id());
 
             if ($request->has('tags')) {
                 $tagsToSync = Tag::withType(Tag::TYPE_TASK)

@@ -1,8 +1,16 @@
 {{-- os kanban-tasks precisam ter data-search que é o campo de busca --}}
 
+@php
+  // extrai o valor do status para usar como data-status
+  // isso foi feito pois não existe um status "backlog" na enum,
+  // por que esse status seria o a fazer sem responsável,
+  // então ele é tratado como um caso especial
+  $statusKey = is_object($status) && isset($status->value) ? $status->value : $status;
+@endphp
+
 <div style="position: relative;">
   <input type="text" class="form-control form-control-sm kanban-search pr-4 py-0 my-0" placeholder="🔍"
-    data-status="{{ $status->value }}">
+    data-status="{{ $statusKey }}">
 
   <span class="kanban-clear">&times;</span>
 </div>
@@ -86,4 +94,3 @@
     });
   </script>
 @endPushOnce
-

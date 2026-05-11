@@ -8,8 +8,8 @@
       <i class="fas fa-home"></i>
     </a>
     <x-separator />
-    <span class="badge badge-pill badge-primary" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;"> {{ $project->status?->label() }}</span>
     {{ $project->name }}
+    <span class="badge badge-pill badge-primary" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;"> {{ $project->status?->label() }}</span>
 
     <a href="{{ route('projects.show', $project) }}"
       class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
