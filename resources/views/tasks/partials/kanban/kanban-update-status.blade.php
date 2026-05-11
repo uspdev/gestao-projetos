@@ -29,11 +29,6 @@
     </form>
 
   </div>
-@else
-  <span class="badge {{ $task->status->color() }} text-nowrap flex-shrink-0" style="font-size: 0.75rem; line-height: 1;">
-    {{ $task->status->label() }}
-  </span>
-
   @pushOnce('scripts')
     <script>
       document.addEventListener('click', function(e) {
@@ -45,4 +40,8 @@
       });
     </script>
   @endPushOnce
+@else
+  <span class="badge {{ $task->status->color() }} text-nowrap flex-shrink-0" style="font-size: 0.75rem; line-height: 1;">
+    {{ $task->status->label() }}
+  </span>
 @endcanAny
