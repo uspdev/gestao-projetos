@@ -4,34 +4,36 @@ namespace App\Enums\Project;
 
 enum ProjectStatus: string
 {
-    case PLANNING = 'PLANNING';
-    case DEVELOPMENT = 'DEVELOPMENT';
-    case PRODUCTION = 'PRODUCTION';
-    case DEACTIVATED = 'DEACTIVATED';
-    case MIGRATED = 'MIGRATED';
-    case HOLD = 'HOLD';
+    case DRAFT = 'DRAFT';
+    case PLANNED = 'PLANNED';
+    case ACTIVE = 'ACTIVE';
+    case HOLD = 'HOLD';            
+    case COMPLETED = 'COMPLETED';
+    case CANCELLED = 'CANCELLED';
+    case ARCHIVED = 'ARCHIVED';
 
     public function label(): string
     {
         return match ($this) {
-            self::PLANNING => 'Planejamento',
-            self::DEVELOPMENT => 'Desenvolvimento',
-            self::PRODUCTION => 'Produção',
-            self::DEACTIVATED => 'Desativado',
-            self::MIGRATED => 'Migrado',
+            self::DRAFT => 'Rascunho',
+            self::PLANNED => 'Planejado',
+            self::ACTIVE => 'Ativo',
             self::HOLD => 'Em Espera',
+            self::COMPLETED => 'Concluído',
+            self::CANCELLED => 'Cancelado',
+            self::ARCHIVED => 'Arquivado',
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::PLANNING => 'badge-light text-dark',
-            self::DEVELOPMENT => 'badge-primary',
-            self::PRODUCTION => 'badge-success',
+            self::DRAFT, self::PLANNED => 'badge-light text-dark',
+            self::ACTIVE => 'badge-primary',
+            self::COMPLETED => 'badge-success',
             self::HOLD => 'badge-warning',
-            self::MIGRATED => 'badge-info',
-            self::DEACTIVATED => 'badge-dark',
+            self::CANCELLED => 'badge-danger',
+            self::ARCHIVED => 'badge-dark',
         };
     }
 }
