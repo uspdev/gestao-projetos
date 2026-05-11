@@ -22,7 +22,7 @@ class TaskController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if ($request->route('project')) {
+            if ($request->route()?->hasParameter('project')) {
                 \UspTheme::activeUrl('meus-projetos');
             } else {
                 \UspTheme::activeUrl('minhas-tasks');
