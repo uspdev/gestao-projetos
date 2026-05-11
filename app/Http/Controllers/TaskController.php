@@ -49,7 +49,7 @@ class TaskController extends Controller
             ->get();
 
         // O apontamento mudou para a pasta principal de tarefas
-        return view('tasks.index', compact('tasks', 'user', 'showDone', 'taskView'));
+        return view('tasks.index', compact('tasks', 'user', 'showDone'));
     }
 
     public function show(Task $task)

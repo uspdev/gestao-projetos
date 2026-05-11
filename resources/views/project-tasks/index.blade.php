@@ -15,7 +15,7 @@
         </div>
 
         <div class="card-body">
-          @if ($taskView === 'kanban')
+          @if (session('tasks_view') === 'kanban')
             @include('tasks.partials.kanban.kanban')
           @else
             @include('projects.partials.show.show-card-tasks-table')

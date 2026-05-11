@@ -26,9 +26,10 @@ class ProjectTaskController extends Controller
     public function index(Project $project)
     {
         Gate::authorize('viewAny', [Task::class, $project]);
-        $view = request()->query('view', 'kanban');
-        $kanbanView = $view === 'kanban';
-        $showDone = $kanbanView || request()->boolean('show_done');
+        $taskView = request()->query('view') ?? session('tasks_view', 'list'); //list ou kanban
+        session(['tasks_view' => $taskView]);
+
+        $showDone = request()->boolean('show_done');
 
         $tasks = $project->tasks()
             ->with('project')
@@ -53,8 +54,8 @@ class ProjectTaskController extends Controller
             'selectedProjectTagIds',
             'selectedTasksTagsIds',
             'showDone',
-            'kanbanView',
-            'view'
+            // 'kanbanView',
+            // 'taskView'
         ));
     }
 

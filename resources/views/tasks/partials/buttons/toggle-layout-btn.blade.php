@@ -1,4 +1,4 @@
-@if ($taskView === 'kanban')
+@if (session('tasks_view') === 'kanban')
   <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="btn btn-sm btn-outline-secondary py-0" title="Ver em lista">
     <i class="fas fa-list"></i>
     <span class="ml-1">Ver em lista</span>

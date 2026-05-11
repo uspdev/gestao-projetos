@@ -11,7 +11,7 @@
       @include('tasks.partials.buttons.show-done-btn')
     </div>
 
-    @if ($taskView === 'kanban')
+    @if (session('tasks_view') === 'kanban')
       @include('tasks.partials.kanban.kanban')
     @else
       <div class="row">
