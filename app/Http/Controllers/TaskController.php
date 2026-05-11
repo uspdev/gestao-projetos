@@ -55,6 +55,8 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         Gate::authorize('view', $task);
+        \UspTheme::activeUrl('meus-projetos');
+
         $task = $task->load([
             'project',
             'users',
