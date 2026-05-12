@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Enums\Project\ProjectPermissionInheritance;
+use App\Enums\Project\ProjectPhase;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
+use App\Enums\Project\ProjectVisibility;
 use App\Traits\HasSlug;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,6 +29,11 @@ class Project extends Model
         'slug',
         'status',
         'description',
+        'project_type_id',
+        'parent_id',
+        'visibility',
+        'permission_inheritance',
+        'phase',
     ];
 
     protected array $roleByUserCache = [];
@@ -34,6 +43,9 @@ class Project extends Model
     {
         return [
             'status' => ProjectStatus::class,
+            'visibility' => ProjectVisibility::class,
+            'permission_inheritance' => ProjectPermissionInheritance::class,
+            'phase' => ProjectPhase::class,
         ];
     }
 
@@ -92,6 +104,30 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Relacionamento com tipo de projeto N-1
+     */
+    public function projectType(): BelongsTo
+    {
+        return $this->belongsTo(ProjectType::class);
+    }
+
+    /**
+     * Relacionamento com projeto pai N-1
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'parent_id');
+    }
+
+    /**
+     * Relacionamento com projetos filhos 1-N
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Project::class, 'parent_id');
     }
 
     public function projectModules(): HasMany
