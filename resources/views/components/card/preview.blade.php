@@ -77,6 +77,10 @@
       font-size: 0.85rem;
     }
 
+    .preview-card__content {
+      min-height: 2.5rem;
+    }
+
     .preview-card__project {
       font-size: 0.9rem;
       color: #6b7280;
@@ -144,7 +148,7 @@
 @endonce
 
 <div {{ $attributes->class(['card preview-card position-relative']) }}>
-  <div class="card-body p-3 d-flex flex-column h-100">
+  <div class="card-body p-3 d-flex flex-column">
     @isset($header)
       <div class="d-flex justify-content-between align-items-start mb-1">
         {{ $header }}
@@ -176,7 +180,7 @@
       </div>
     @else
       @if (!is_null($tasksCount) || ($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty())
-        <div>
+        <div class="preview-card__content">
           @if (!is_null($tasksCount))
             <div class="d-flex justify-content-start w-100 mb-2">
               <span class="preview-card__tasks-count" title="Quantidade de tarefas">

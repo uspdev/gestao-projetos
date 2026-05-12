@@ -3,6 +3,10 @@
 @section('title', 'Detalhes do Projeto')
 
 @section('content')
+  @php
+    $tasksEnabled = $project->isModuleEnabled('tasks');
+  @endphp
+
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
@@ -17,5 +21,7 @@
       </div>
     </div>
   </div>
-  @include('tasks.partials.components.task-form-modal')
+  @if ($tasksEnabled)
+    @include('tasks.partials.components.task-form-modal')
+  @endif
 @endsection

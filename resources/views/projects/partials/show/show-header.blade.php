@@ -1,5 +1,6 @@
 @php
   $routeName = Route::currentRouteName();
+  $tasksEnabled = $project->isModuleEnabled('tasks');
 @endphp
 
 <div class="card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky">
@@ -9,17 +10,20 @@
     </a>
     <x-separator />
     {{ $project->name }}
-    <span class="badge badge-pill badge-primary" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;"> {{ $project->status?->label() }}</span>
+    <span class="badge badge-pill badge-primary" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;">
+      {{ $project->status?->label() }}</span>
 
     <a href="{{ route('projects.show', $project) }}"
       class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
       Visão geral
     </a>
 
-    <a href="{{ route('projects.tasks.index', $project) }}"
-      class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-      Tarefas
-    </a>
+    @if ($tasksEnabled)
+      <a href="{{ route('projects.tasks.index', $project) }}"
+        class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+        Tarefas
+      </a>
+    @endif
   </div>
 
   <div class="d-flex align-items-center gap-2">

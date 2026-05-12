@@ -68,15 +68,19 @@ class ProjectController extends Controller
         Gate::authorize('view', $project);
 
         $showDone = request()->boolean('show_done');
+        $tasksEnabled = $project->isModuleEnabled('tasks');
         // Carrega os módulos resolvidos para o projeto,
         // garantindo que as configurações específicas do projeto sejam consideradas
         $resolvedModules = Module::resolveForProject($project);
         $project = $project->load([
             'users',
             'tags',
+            // Filtra as tarefas para retornar apenas aquelas cujo projeto
+            // tem o módulo de tarefas habilitado, e considerando o filtro de mostrar ou não as tarefas concluídas
             'tasks' => fn($query) => $query
-                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-                ->with('tags'),
+                ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
+                ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->when($tasksEnabled, fn($query) => $query->with('tags')),
         ]);
 
         return view('projects.show', compact('project', 'resolvedModules'));

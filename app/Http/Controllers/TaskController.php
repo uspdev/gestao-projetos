@@ -9,12 +9,14 @@ use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
 use App\Models\Project;
 use App\Models\Tag;
+use App\Models\Module;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class TaskController extends Controller
 {
@@ -58,6 +60,8 @@ class TaskController extends Controller
             ->latest()
             ->get();
 
+        $tasks = $this->filterTasksByEnabledModule($tasks);
+
         return view('tasks.index', compact('tasks', 'user', 'showDone'));
     }
 
@@ -66,6 +70,8 @@ class TaskController extends Controller
      */
     public function projectIndex(Request $request, Project $project)
     {
+        $this->ensureTasksModuleEnabled($project);
+
         $taskView = $request->query('view') ?? session('tasks_view', 'list'); //list ou kanban
         session(['tasks_view' => $taskView]);
 
@@ -91,6 +97,8 @@ class TaskController extends Controller
 
     public function create(Project $project)
     {
+        $this->ensureTasksModuleEnabled($project);
+
         Gate::authorize('create', [Task::class, $project]);
 
         return view('project-tasks.create', compact('project'));
@@ -98,6 +106,8 @@ class TaskController extends Controller
 
     public function store(StoreTaskRequest $request, Project $project)
     {
+        $this->ensureTasksModuleEnabled($project);
+
         $task = DB::transaction(function () use ($project, $request) {
             $data = $request->validated();
             $data['project_id'] = $project->id;
@@ -122,6 +132,8 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('view', $task);
         \UspTheme::activeUrl('meus-projetos');
 
@@ -136,6 +148,8 @@ class TaskController extends Controller
 
     public function update(UpdateTaskRequest $request, Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
@@ -162,6 +176,8 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('delete', $task);
         DB::transaction(function () use ($task) {
             $task->delete();
@@ -179,6 +195,8 @@ class TaskController extends Controller
      */
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
@@ -204,6 +222,8 @@ class TaskController extends Controller
      */
     public function storeAssignee(StoreTaskAssigneeRequest $request, Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         $data = $request->validated();
 
         $user = User::query()->findOrFail($data['user_id']);
@@ -228,6 +248,8 @@ class TaskController extends Controller
      */
     public function selectableAssignees(Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('storeAssignee', $task);
 
         $users = User::selectableToTask($task->id, $task->project_id)
@@ -244,6 +266,8 @@ class TaskController extends Controller
      */
     public function destroyAssignee(Task $task, User $user)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('storeAssignee', $task);
 
         DB::transaction(function () use ($task, $user) {
@@ -252,5 +276,19 @@ class TaskController extends Controller
 
         return redirect()->route('tasks.show', $task)
             ->with('alert-success', 'Membro removido da tarefa com sucesso!');
+    }
+
+    // Verifica se o módulo de tarefas está habilitado para o projeto
+    private function ensureTasksModuleEnabled(Project $project): void
+    {
+        abort_unless(Module::isEnabledForProject($project, 'tasks'), 403);
+    }
+
+    // Filtra as tarefas para retornar apenas aquelas cujo projeto tem o módulo de tarefas habilitado
+    private function filterTasksByEnabledModule(Collection $tasks): Collection
+    {
+        return $tasks
+            ->filter(fn(Task $task) => $task->project?->isModuleEnabled('tasks'))
+            ->values();
     }
 }
