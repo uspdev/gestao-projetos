@@ -27,7 +27,19 @@
           <tr>
             <td>Módulos</td>
             <td>
-              Tarefas, Reuniões (a implementar)
+              @forelse (($resolvedModules ?? []) as $module)
+                <div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">
+                  <span>
+                    {{ $module['name'] }}
+                    <small class="text-muted">({{ $module['slug'] }})</small>
+                  </span>
+                  <span class="badge {{ $module['enabled'] ? 'badge-success' : 'badge-secondary' }}">
+                    {{ $module['enabled'] ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </div>
+              @empty
+                <span class="text-muted">Nenhum módulo configurado.</span>
+              @endforelse
             </td>
           </tr>
           <tr>

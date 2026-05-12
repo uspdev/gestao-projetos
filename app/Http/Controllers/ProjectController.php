@@ -8,6 +8,7 @@ use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
+use App\Models\Module;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,9 +16,9 @@ use Illuminate\Support\Facades\Gate;
 
 class ProjectController extends Controller
 {
-
     public function __construct()
     {
+
         $this->middleware(function ($request, $next) {
             \UspTheme::activeUrl('meus-projetos');
 
@@ -67,6 +68,9 @@ class ProjectController extends Controller
         Gate::authorize('view', $project);
 
         $showDone = request()->boolean('show_done');
+        // Carrega os módulos resolvidos para o projeto,
+        // garantindo que as configurações específicas do projeto sejam consideradas
+        $resolvedModules = Module::resolveForProject($project);
         $project = $project->load([
             'users',
             'tags',
@@ -75,7 +79,7 @@ class ProjectController extends Controller
                 ->with('tags'),
         ]);
 
-        return view('projects.show', compact('project'));
+        return view('projects.show', compact('project', 'resolvedModules'));
     }
 
     public function update(UpdateProjectRequest $request, Project $project)
@@ -129,6 +133,10 @@ class ProjectController extends Controller
 
     public function settings(Project $project)
     {
-        return view('projects.settings', compact('project'));
+        Gate::authorize('view', $project);
+
+        $resolvedModules = Module::resolveForProject($project);
+
+        return view('projects.settings', compact('project', 'resolvedModules'));
     }
 }

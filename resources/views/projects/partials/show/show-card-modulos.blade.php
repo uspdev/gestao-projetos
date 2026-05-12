@@ -7,7 +7,15 @@
     </div>
   </div>
   <ul class="list-group list-group-flush">
-    <li class="list-group-item">Tarefas</li>
-    <li class="list-group-item">Reuniões</li>
+    @forelse (($resolvedModules ?? []) as $module)
+      <li class="list-group-item d-flex align-items-center justify-content-between">
+        <span>{{ $module['name'] }}</span>
+        <span class="badge {{ $module['enabled'] ? 'badge-success' : 'badge-secondary' }}">
+          {{ $module['enabled'] ? 'Ativo' : 'Inativo' }}
+        </span>
+      </li>
+    @empty
+      <li class="list-group-item text-muted">Nenhum módulo configurado.</li>
+    @endforelse
   </ul>
 </div>
