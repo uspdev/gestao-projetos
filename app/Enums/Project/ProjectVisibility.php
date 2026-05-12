@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Enums\Project;
+
 enum ProjectVisibility: string
 {
     case PUBLIC = 'PUBLIC';
