@@ -7,7 +7,10 @@ use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Requests\Project\UpdateProjectPhaseRequest;
+use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
+use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
 use App\Models\Module;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
@@ -136,10 +139,68 @@ class ProjectController extends Controller
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
+    /**
+     * Atualiza a fase de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectPhaseRequest $request
+     * @param  \App\Models\Project $project
+     */
+    public function updateProjectPhase(UpdateProjectPhaseRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Fase do projeto atualizada com sucesso!');
+    }
+
+    /**
+     * Atualiza a visibilidade de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectVisibilityRequest $request
+     * @param  \App\Models\Project $project
+     */
+    public function updateProjectVisibility(UpdateProjectVisibilityRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Visibilidade do projeto atualizada com sucesso!');
+    }
+
+    /**
+     * Atualiza a heranca de permissoes de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest $request
+     * @param  \App\Models\Project $project
+     */
+    public function updateProjectPermissionInheritance(UpdateProjectPermissionInheritanceRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Heranca de permissoes atualizada com sucesso!');
+    }
+
     public function settings(Project $project)
     {
         Gate::authorize('view', $project);
 
+        $project->load('projectType');
         $resolvedModules = Module::resolveForProject($project);
 
         return view('projects.settings', compact('project', 'resolvedModules'));

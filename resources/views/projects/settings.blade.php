@@ -6,8 +6,6 @@
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
-      @include('projects.partials.show.show-card-detalhes')
-
       <table class="table">
         <tbody>
           <tr>
@@ -21,6 +19,34 @@
           <tr>
             <td>Status</td>
             <td>@include('projects.partials.components.update-status')</td>
+          </tr>
+          <tr>
+            <td>Fase</td>
+            <td>@include('projects.partials.components.update-phase')</td>
+          </tr>
+          <tr>
+            <td>Visibilidade</td>
+            <td>@include('projects.partials.components.update-visibility')</td>
+          </tr>
+          <tr>
+            <td>Heranca de permissoes</td>
+            <td>@include('projects.partials.components.update-permission-inheritance')</td>
+          </tr>
+          <tr>
+            <td>Tipo de projeto</td>
+            <td>
+              @if ($project->projectType)
+                <div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">
+                  <span>
+                    {{ $project->projectType->name }}
+                    <small class="text-muted">({{ $project->projectType->slug }})</small>
+                  </span>
+                  <span class="badge badge-info">Definido</span>
+                </div>
+              @else
+                <span class="text-muted">Sem tipo definido.</span>
+              @endif
+            </td>
           </tr>
           <tr>
             <td>Membros</td>

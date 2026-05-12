@@ -17,6 +17,10 @@ Route::middleware('auth')->group(function () {
 
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
+    Route::patch('projects/{project}/phase', [ProjectController::class, 'updateProjectPhase'])->name('projects.updatePhase');
+    Route::patch('projects/{project}/visibility', [ProjectController::class, 'updateProjectVisibility'])->name('projects.updateVisibility');
+    Route::patch('projects/{project}/permission-inheritance', [ProjectController::class, 'updateProjectPermissionInheritance'])
+        ->name('projects.updatePermissionInheritance');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
     Route::resource('projects', ProjectController::class)->except(['edit']);
