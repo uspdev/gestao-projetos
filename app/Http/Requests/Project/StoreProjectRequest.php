@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests\Project;
 
+use App\Enums\Project\ProjectPermissionInheritance;
+use App\Enums\Project\ProjectPhase;
 use App\Enums\Project\ProjectStatus;
+use App\Enums\Project\ProjectVisibility;
 use App\Models\Project;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -41,6 +44,10 @@ class StoreProjectRequest extends FormRequest
                 Rule::notIn($this->slugBlocklist()),
             ],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
+            'project_type_id' => ['nullable', 'integer', 'exists:project_types,id'],
+            'visibility' => ['required', Rule::enum(ProjectVisibility::class)],
+            'permission_inheritance' => ['required', Rule::enum(ProjectPermissionInheritance::class)],
+            'phase' => ['required', Rule::enum(ProjectPhase::class)],
             'description' => ['nullable', 'string', 'max:10000'],
 
             'tags' => ['nullable', 'array'],
@@ -57,6 +64,17 @@ class StoreProjectRequest extends FormRequest
 
             'status.required' => 'É necessário definir um status para o projeto.',
             'status.enum' => 'O status selecionado é inválido.',
+
+            'project_type_id.exists' => 'O tipo de projeto selecionado é inválido.',
+
+            'visibility.required' => 'É necessário definir a visibilidade do projeto.',
+            'visibility.enum' => 'A visibilidade selecionada é inválida.',
+
+            'permission_inheritance.required' => 'É necessário definir a herança de permissões.',
+            'permission_inheritance.enum' => 'A herança de permissões selecionada é inválida.',
+
+            'phase.required' => 'É necessário definir a fase do projeto.',
+            'phase.enum' => 'A fase selecionada é inválida.',
 
             'description.max' => 'A descrição é muito longa. O limite é de :max caracteres.',
             'slug.not_in' => 'Esta URL não pode ser utilizada.',

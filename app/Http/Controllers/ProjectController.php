@@ -49,7 +49,7 @@ class ProjectController extends Controller
         $project = DB::transaction(function () use ($request) {
             $data = $request->validated();
             $data['created_by'] = Auth::id();
-            $data['status'] = $data['status'] ?? ProjectStatus::PLANNING->value;
+            $data['status'] = $data['status'] ?? ProjectStatus::DRAFT->value;
 
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::ADMIN->value]);
@@ -77,6 +77,7 @@ class ProjectController extends Controller
             'tags',
             // Filtra as tarefas para retornar apenas aquelas cujo projeto
             // tem o módulo de tarefas habilitado, e considerando o filtro de mostrar ou não as tarefas concluídas
+            'projectType',
             'tasks' => fn($query) => $query
                 ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
                 ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))

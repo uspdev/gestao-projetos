@@ -6,6 +6,8 @@
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
+      @include('projects.partials.show.show-card-detalhes')
+
       <table class="table">
         <tbody>
           <tr>

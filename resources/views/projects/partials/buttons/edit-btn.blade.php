@@ -41,6 +41,96 @@
                 </div>
               </div>
 
+              @php
+                $projectTypeValue = old('project_type_id', $project->project_type_id);
+                $visibilityValue = old(
+                    'visibility',
+                    $project->visibility?->value ?? \App\Enums\Project\ProjectVisibility::PRIVATE->value,
+                );
+                $permissionValue = old(
+                    'permission_inheritance',
+                    $project->permission_inheritance?->value ??
+                        \App\Enums\Project\ProjectPermissionInheritance::FULL->value,
+                );
+                $phaseValue = old('phase', $project->phase?->value ?? \App\Enums\Project\ProjectPhase::PLANNING->value);
+              @endphp
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="project_type_id">Tipo de projeto</label>
+                    <select name="project_type_id" id="project_type_id"
+                      class="form-control @error('project_type_id') is-invalid @enderror">
+                      <option value="">Sem tipo</option>
+                      @foreach (App\Models\ProjectType::query()->orderBy('name')->get() as $projectType)
+                        <option value="{{ $projectType->id }}"
+                          {{ (string) $projectTypeValue === (string) $projectType->id ? 'selected' : '' }}>
+                          {{ $projectType->name }}
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('project_type_id')
+                      <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="visibility">Visibilidade <span class="text-danger">*</span></label>
+                    <select name="visibility" id="visibility" class="form-control @error('visibility') is-invalid @enderror"
+                      required>
+                      @foreach (\App\Enums\Project\ProjectVisibility::cases() as $visibility)
+                        <option value="{{ $visibility->value }}"
+                          {{ $visibilityValue === $visibility->value ? 'selected' : '' }}>
+                          {{ $visibility->label() }}
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('visibility')
+                      <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="permission_inheritance">Herança de permissões <span class="text-danger">*</span></label>
+                    <select name="permission_inheritance" id="permission_inheritance"
+                      class="form-control @error('permission_inheritance') is-invalid @enderror" required>
+                      @foreach (\App\Enums\Project\ProjectPermissionInheritance::cases() as $permissionInheritance)
+                        <option value="{{ $permissionInheritance->value }}"
+                          {{ $permissionValue === $permissionInheritance->value ? 'selected' : '' }}>
+                          {{ $permissionInheritance->label() }}
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('permission_inheritance')
+                      <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="phase">Fase <span class="text-danger">*</span></label>
+                    <select name="phase" id="phase" class="form-control @error('phase') is-invalid @enderror"
+                      required>
+                      @foreach (\App\Enums\Project\ProjectPhase::cases() as $phase)
+                        <option value="{{ $phase->value }}" {{ $phaseValue === $phase->value ? 'selected' : '' }}>
+                          {{ $phase->label() }}
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('phase')
+                      <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                  </div>
+                </div>
+              </div>
+
               <div class="row">
                 {{-- Descrição --}}
                 <div class="col-12">
