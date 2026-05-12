@@ -94,6 +94,23 @@ class Project extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function projectModules(): HasMany
+    {
+        return $this->hasMany(ProjectModule::class);
+    }
+
+    public function modules(): BelongsToMany
+    {
+        return $this->belongsToMany(Module::class, 'project_modules')
+            ->withPivot('enabled')
+            ->withTimestamps();
+    }
+
+    public function isModuleEnabled(string $moduleSlug): bool
+    {
+        return Module::isEnabledForProject($this, $moduleSlug);
+    }
+
     public function tasksTagsIds(?Collection $tasks = null): array
     {
         $tasks = $tasks ?? ($this->relationLoaded('tasks') ? $this->tasks : $this->tasks()->get());
