@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/visibility', [ProjectController::class, 'updateProjectVisibility'])->name('projects.updateVisibility');
     Route::patch('projects/{project}/permission-inheritance', [ProjectController::class, 'updateProjectPermissionInheritance'])
         ->name('projects.updatePermissionInheritance');
+    Route::patch('projects/{project}/pin', [ProjectController::class, 'togglePin'])->name('projects.togglePin');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
     Route::resource('projects', ProjectController::class)->except(['edit']);
@@ -79,7 +80,7 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // USUÁRIOS
     // ==========================================
-    
+
     Route::resource('users', UserController::class)->except([
         'index',
         'create',
@@ -90,7 +91,7 @@ Route::middleware('auth')->group(function () {
     ]);
 
     // ==========================================
-    // MENU / REDIRECTS 
+    // MENU / REDIRECTS
     // ==========================================
     Route::get('/meus-projetos', fn() => redirect()->route('projects.index'));
     Route::get('/minhas-tasks', fn() => redirect()->route('tasks.index'));

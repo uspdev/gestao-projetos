@@ -7,6 +7,7 @@
     'titleClass' => '',
     'statusLabel' => null,
     'statusClass' => 'badge-light border text-muted',
+    'actionClass' => '',
     'projectName' => null,
     'showProject' => true,
     'projectType' => null,
@@ -158,11 +159,19 @@
               {{ $title }}
               </{{ $titleTag }}>
 
-              @if ($statusLabel)
-                <span class="badge {{ $statusClass }} text-nowrap shadow-sm ml-2">
-                  {{ $statusLabel }}
-                </span>
-              @endif
+              <div class="d-flex align-items-center ml-2 position-relative" style="z-index: 2; gap: 0.35rem;">
+                @if ($statusLabel)
+                  <span class="badge {{ $statusClass }} text-nowrap shadow-sm">
+                    {{ $statusLabel }}
+                  </span>
+                @endif
+
+                @isset($action)
+                  <div class="{{ $actionClass }}">
+                    {{ $action }}
+                  </div>
+                @endisset
+              </div>
           </div>
         </div>
       @endif

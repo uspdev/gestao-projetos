@@ -32,19 +32,51 @@ class ProjectController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $search = trim((string) request()->input('search', ''));
 
         Gate::authorize('viewAny', [Project::class, $user]);
 
-        $projects = Project::accessibleBy($user)
+        $projectsQuery = Project::accessibleBy($user)
             ->with([
-                'users',
+                'users' => fn($query) => $query->where('users.id', $user->id),
             ])
             ->withCount('tasks')
-            ->latest()
-            ->get();
+            ->latest();
+
+        if ($search !== '') {
+            $projectsQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $projects = $projectsQuery->get();
+        $pinnedProjects = $projects->filter(fn(Project $project) => $project->isPinnedBy($user))->values();
 
         // O apontamento da view mudou para o diretório padrão de projetos
-        return view('projects.index', compact('projects', 'user'));
+        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search'));
+    }
+
+    public function togglePin(Project $project)
+    {
+        $user = Auth::user();
+
+        Gate::authorize('view', $project);
+
+        $membership = $project->users()->where('users.id', $user->id)->first();
+
+        abort_unless($membership, 403);
+
+        $isPinned = (bool) ($membership->pivot->pinned ?? false);
+
+        $project->users()->updateExistingPivot($user->id, [
+            'pinned' => ! $isPinned,
+        ]);
+
+        return redirect()->back()
+            ->with('alert-success', $isPinned
+                ? 'Projeto removido dos pinados com sucesso!'
+                : 'Projeto fixado com sucesso!');
     }
 
     public function store(StoreProjectRequest $request)

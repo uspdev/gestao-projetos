@@ -95,7 +95,7 @@ class Project extends Model
     {
         return $this->belongsToMany(User::class)
             ->using(ProjectUser::class)
-            ->withPivot('role')
+            ->withPivot('role', 'pinned')
             ->withTimestamps();
     }
 
@@ -221,6 +221,27 @@ class Project extends Model
         $member = $this->users()->where('users.id', $user->id)->first();
 
         return $this->roleByUserCache[$user->id] = $this->parseProjectUserRole($member?->pivot?->role ?? null);
+    }
+
+    public function isPinnedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if (isset($this->pivot) && (int) ($this->pivot->user_id ?? 0) === (int) $user->id) {
+            return (bool) ($this->pivot->pinned ?? false);
+        }
+
+        if ($this->relationLoaded('users')) {
+            $member = $this->users->firstWhere('id', $user->id);
+
+            return (bool) ($member?->pivot?->pinned ?? false);
+        }
+
+        $member = $this->users()->where('users.id', $user->id)->first();
+
+        return (bool) ($member?->pivot?->pinned ?? false);
     }
 
     public function isLastAdmin(User $user): bool

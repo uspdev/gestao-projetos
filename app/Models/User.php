@@ -42,7 +42,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Project::class)
             ->using(ProjectUser::class)
-            ->withPivot('role')
+            ->withPivot('role', 'pinned')
             ->withTimestamps();
     }
 
