@@ -13,7 +13,7 @@ enum ProjectPermissionInheritance: string
         return match ($this) {
             self::NONE => 'Sem Herança',
             self::READ => 'Apenas Leitura',
-            self::FULL => 'Acesso Total',
+            self::FULL => 'Herança Total',
         };
     }
 
