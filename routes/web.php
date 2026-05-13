@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
@@ -89,6 +90,11 @@ Route::middleware('auth')->group(function () {
         'update',
         'destroy'
     ]);
+
+    // ==========================================
+    // COMMENTS
+    // ==========================================
+    Route::post('comments', [CommentController::class, 'store'])->name('comments.store');
 
     // ==========================================
     // MENU / REDIRECTS
