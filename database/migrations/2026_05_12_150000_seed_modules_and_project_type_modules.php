@@ -23,7 +23,7 @@ return new class extends Migration
         $developmentType = [
             'name' => 'Desenvolvimento',
             'slug' => 'desenvolvimento',
-            'description' => 'Tipo de projeto para desenvolvimento.',
+            'description' => 'Tipo de projeto para desenvolvimento. Inclui módulos de tarefas e reuniões.',
             'created_at' => $now,
             'updated_at' => $now,
         ];

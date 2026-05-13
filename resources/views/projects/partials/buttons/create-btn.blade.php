@@ -4,7 +4,7 @@
   </button>
 
   <div class="modal fade" id="modalNovoProjeto" tabindex="-1" aria-labelledby="modalNovoProjetoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="modalNovoProjetoLabel">Novo Projeto</h5>
@@ -16,28 +16,6 @@
         <form action="{{ route('projects.store') }}" method="POST">
           @csrf
           <div class="modal-body">
-            <x-form.input name="name" label="Nome" required minlength="3" maxlength="50" />
-            <x-form.input name="slug" label="Slug (identificador amigável na URL)" required maxlength="80"
-              pattern="[a-z0-9]+(?:-[a-z0-9]+)*" title="Use apenas letras minusculas, numeros e hifens."
-              autocomplete="off" autocapitalize="none" spellcheck="false" />
-            <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens. Acentos serão
-              removidos.</small>
-
-            <div class="form-group mb-3">
-              <label for="status">Estado <span class="text-danger">*</span></label>
-              <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
-                <option value="">Selecione o estado...</option>
-                @foreach (\App\Enums\Project\ProjectStatus::cases() as $status)
-                  <option value="{{ $status->value }}" {{ old('status') === $status->value ? 'selected' : '' }}>
-                    {{ $status->label() }}
-                  </option>
-                @endforeach
-              </select>
-              @error('status')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-              @enderror
-            </div>
-
             @php
               $projectTypeValue = old('project_type_id');
               $visibilityValue = old('visibility', \App\Enums\Project\ProjectVisibility::PRIVATE->value);
@@ -48,93 +26,142 @@
               $phaseValue = old('phase', \App\Enums\Project\ProjectPhase::PLANNING->value);
             @endphp
 
+            <!-- Row 1: Nome e Slug -->
+            <div class="row">
+              <div class="col-md-8">
+                <x-form.input name="name" label="Nome" required minlength="3" maxlength="50" />
+              </div>
+              <div class="col-md-4">
+                <x-form.input name="slug" label="Slug" required maxlength="80" pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                  title="Use apenas letras minusculas, numeros e hifens." autocomplete="off" autocapitalize="none"
+                  spellcheck="false" />
+                <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens.</small>
+              </div>
+            </div>
+
+            <!-- Row 2: Estado, Fase, Visibilidade -->
+            <div class="row">
+              <div class="col-md-4">
+                <div class="form-group mb-3">
+                  <label for="status">Estado <span class="text-danger">*</span></label>
+                  <select name="status" id="status" class="form-control @error('status') is-invalid @enderror"
+                    required>
+                    <option value="">Selecione...</option>
+                    @foreach (\App\Enums\Project\ProjectStatus::cases() as $status)
+                      <option value="{{ $status->value }}" {{ old('status') === $status->value ? 'selected' : '' }}>
+                        {{ $status->label() }}
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('status')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group mb-3">
+                  <label for="phase">Fase <span class="text-danger">*</span></label>
+                  <select name="phase" id="phase" class="form-control @error('phase') is-invalid @enderror"
+                    required>
+                    @foreach (\App\Enums\Project\ProjectPhase::cases() as $phase)
+                      <option value="{{ $phase->value }}" {{ $phaseValue === $phase->value ? 'selected' : '' }}>
+                        {{ $phase->label() }}
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('phase')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group mb-3">
+                  <label for="visibility">Visibilidade <span class="text-danger">*</span></label>
+                  <select name="visibility" id="visibility" class="form-control @error('visibility') is-invalid @enderror"
+                    required>
+                    @foreach (\App\Enums\Project\ProjectVisibility::cases() as $visibility)
+                      <option value="{{ $visibility->value }}"
+                        {{ $visibilityValue === $visibility->value ? 'selected' : '' }}>
+                        {{ $visibility->label() }}
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('visibility')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 3: Tags e Herança de Permissões -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label>Tags</label>
+
+                  @php
+                    $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
+                  @endphp
+
+                  <select name="tags[]" multiple style="width: 100%;"
+                    class="form-control select2-tags @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
+
+                    @foreach (App\Models\Tag::forProjects() as $tag)
+                      <option value="{{ $tag->id }}"
+                        {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
+                        {{ $tag->name }}
+                      </option>
+                    @endforeach
+                  </select>
+
+                  @error('tags.*')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group mb-3">
+                  <label for="permission_inheritance">Herança de permissões <span class="text-danger">*</span></label>
+                  <select name="permission_inheritance" id="permission_inheritance"
+                    class="form-control @error('permission_inheritance') is-invalid @enderror" required>
+                    @foreach (\App\Enums\Project\ProjectPermissionInheritance::cases() as $permissionInheritance)
+                      <option value="{{ $permissionInheritance->value }}"
+                        {{ $permissionValue === $permissionInheritance->value ? 'selected' : '' }}>
+                        {{ $permissionInheritance->label() }}
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('permission_inheritance')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 4: Tipo de Projeto -->
             <div class="form-group mb-3">
-              <label for="project_type_id">Tipo de projeto</label>
+              <label for="project_type_id">Tipo de projeto <span class="text-danger">*</span></label>
               <select name="project_type_id" id="project_type_id"
-                class="form-control @error('project_type_id') is-invalid @enderror">
-                <option value="">Sem tipo</option>
+                class="form-control @error('project_type_id') is-invalid @enderror" required>
+                <option value="">Selecione...</option>
                 @foreach (App\Models\ProjectType::query()->orderBy('name')->get() as $projectType)
                   <option value="{{ $projectType->id }}"
-                    {{ (string) $projectTypeValue === (string) $projectType->id ? 'selected' : '' }}>
+                    {{ (string) $projectTypeValue === (string) $projectType->id ? 'selected' : '' }}
+                    @if ($projectType->description) data-description="{{ $projectType->description }}" @endif>
                     {{ $projectType->name }}
                   </option>
                 @endforeach
               </select>
+              @if (count(App\Models\ProjectType::query()->orderBy('name')->get()) > 0)
+                <small id="projectTypeDescription" class="text-muted d-block mt-1"></small>
+              @endif
               @error('project_type_id')
                 <div class="invalid-feedback d-block">{{ $message }}</div>
               @enderror
             </div>
 
-            <div class="form-group mb-3">
-              <label for="visibility">Visibilidade <span class="text-danger">*</span></label>
-              <select name="visibility" id="visibility" class="form-control @error('visibility') is-invalid @enderror"
-                required>
-                @foreach (\App\Enums\Project\ProjectVisibility::cases() as $visibility)
-                  <option value="{{ $visibility->value }}"
-                    {{ $visibilityValue === $visibility->value ? 'selected' : '' }}>
-                    {{ $visibility->label() }}
-                  </option>
-                @endforeach
-              </select>
-              @error('visibility')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="form-group mb-3">
-              <label for="permission_inheritance">Herança de permissões <span class="text-danger">*</span></label>
-              <select name="permission_inheritance" id="permission_inheritance"
-                class="form-control @error('permission_inheritance') is-invalid @enderror" required>
-                @foreach (\App\Enums\Project\ProjectPermissionInheritance::cases() as $permissionInheritance)
-                  <option value="{{ $permissionInheritance->value }}"
-                    {{ $permissionValue === $permissionInheritance->value ? 'selected' : '' }}>
-                    {{ $permissionInheritance->label() }}
-                  </option>
-                @endforeach
-              </select>
-              @error('permission_inheritance')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-              @enderror
-            </div>
-
-            <div class="form-group mb-3">
-              <label for="phase">Fase <span class="text-danger">*</span></label>
-              <select name="phase" id="phase" class="form-control @error('phase') is-invalid @enderror" required>
-                @foreach (\App\Enums\Project\ProjectPhase::cases() as $phase)
-                  <option value="{{ $phase->value }}" {{ $phaseValue === $phase->value ? 'selected' : '' }}>
-                    {{ $phase->label() }}
-                  </option>
-                @endforeach
-              </select>
-              @error('phase')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-              @enderror
-            </div>
-
+            <!-- Row 5: Descrição -->
             <x-form.textarea name="description" label="Descrição" rows="3" maxlength="10000" />
-
-            <div class="form-group mb-3">
-              <label>Tags</label>
-
-              @php
-                $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
-              @endphp
-
-              <select name="tags[]" multiple style="width: 100%;"
-                class="form-control select2-tags @error('tags') is-invalid @enderror @error('tags.*') is-invalid @enderror">
-
-                @foreach (App\Models\Tag::forProjects() as $tag)
-                  <option value="{{ $tag->id }}" {{ in_array($tag->id, $selectedTags, true) ? 'selected' : '' }}>
-                    {{ $tag->name }}
-                  </option>
-                @endforeach
-              </select>
-
-              @error('tags.*')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-              @enderror
-
-            </div>
           </div>
 
           <div class="modal-footer">
@@ -148,8 +175,7 @@
     </div>
   </div>
 
-  @section('javascripts_bottom')
-    @parent
+  @push('scripts')
     @include('projects.partials.scripts.multi-select-script')
     <script>
       document.addEventListener('DOMContentLoaded', function() {
@@ -158,6 +184,8 @@
 
         const nameInput = modal.querySelector('input[name="name"]');
         const slugInput = modal.querySelector('input[name="slug"]');
+        const projectTypeSelect = modal.querySelector('select[name="project_type_id"]');
+        const projectTypeDescription = document.getElementById('projectTypeDescription');
 
         if (!nameInput || !slugInput) return;
 
@@ -212,9 +240,25 @@
 
         normalizeSlugInput();
 
+        // Atualizar descrição do tipo de projeto
+        if (projectTypeSelect && projectTypeDescription) {
+          const updateProjectTypeDescription = () => {
+            const selectedOption = projectTypeSelect.options[projectTypeSelect.selectedIndex];
+            const description = selectedOption.getAttribute('data-description');
+
+            if (description) {
+              projectTypeDescription.textContent = description;
+            } else {
+              projectTypeDescription.textContent = '';
+            }
+          };
+
+          projectTypeSelect.addEventListener('change', updateProjectTypeDescription);
+          updateProjectTypeDescription();
+        }
       });
     </script>
-  @endsection
+  @endpush
 
   @if ($errors->any())
     <script>

@@ -44,7 +44,7 @@ class StoreProjectRequest extends FormRequest
                 Rule::notIn($this->slugBlocklist()),
             ],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
-            'project_type_id' => ['nullable', 'integer', 'exists:project_types,id'],
+            'project_type_id' => ['required', 'integer', 'exists:project_types,id'],
             'visibility' => ['required', Rule::enum(ProjectVisibility::class)],
             'permission_inheritance' => ['required', Rule::enum(ProjectPermissionInheritance::class)],
             'phase' => ['required', Rule::enum(ProjectPhase::class)],
