@@ -7,9 +7,10 @@
     'titleClass' => '',
     'statusLabel' => null,
     'statusClass' => 'badge-light border text-muted',
-    'tasksCount' => null,
     'projectName' => null,
     'showProject' => true,
+    'projectType' => null,
+    'projectTypeIcon' => 'fa-sitemap',
     'roleLabel' => null,
     'roleClass' => 'badge-light border text-muted',
     'tags' => [],
@@ -138,12 +139,6 @@
       padding: 0.29rem 0.42rem;
       max-width: 7rem;
     }
-
-    .preview-card__tasks-count {
-      font-size: 0.83rem;
-      color: #5f6c7b;
-      white-space: nowrap;
-    }
   </style>
 @endonce
 
@@ -170,7 +165,6 @@
               @endif
           </div>
         </div>
-        {{-- Date formatting handled by x-local-date component (includes its own script) --}}
       @endif
     @endisset
 
@@ -179,14 +173,14 @@
         {{ $body }}
       </div>
     @else
-      @if (!is_null($tasksCount) || ($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty())
+      @if (($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty() || $projectType)
         <div class="preview-card__content">
-          @if (!is_null($tasksCount))
+          @if ($projectType)
             <div class="d-flex justify-content-start w-100 mb-2">
-              <span class="preview-card__tasks-count" title="Quantidade de tarefas">
-                <i class="fas fa-tasks mr-1"></i>{{ $tasksCount }}
-                {{ \Illuminate\Support\Str::plural('tarefa', $tasksCount) }}
-              </span>
+              <small class="text-muted d-flex align-items-center">
+                <i class="fas {{ $projectTypeIcon }} mr-1" title="Tipo de projeto"></i>
+                <span>{{ $projectType }}</span>
+              </small>
             </div>
           @endif
 
