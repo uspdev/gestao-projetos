@@ -12,6 +12,7 @@
     <div class="dropdown-menu dropdown-menu-right p-2"
       aria-labelledby="project-permission-inheritance-dropdown-{{ $project->id }}">
       @foreach (\App\Enums\Project\ProjectPermissionInheritance::cases() as $permissionInheritance)
+        @continue($permissionInheritance !== \App\Enums\Project\ProjectPermissionInheritance::FULL) {{-- Comentar essa linha se for permitir outras opcoes de herança --}}
         <form method="POST" action="{{ route('projects.updatePermissionInheritance', $project) }}" class="mb-1">
           @csrf
           @method('PATCH')
