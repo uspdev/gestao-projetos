@@ -46,6 +46,11 @@ class ProjectPolicy
         return $user->isAdminOfProject($project);
     }
 
+    public function comment(User $user, Project $project): bool
+    {
+        return $user->isContributorOfProject($project);
+    }
+
     public function restore(User $user, Project $project): bool
     {
         return false;

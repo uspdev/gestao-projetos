@@ -71,6 +71,12 @@ class TaskPolicy
         return $user->isAdminOfProject($task->project) || $user->isTaskCreator($task);
     }
 
+    public function comment(User $user, Task $task): bool
+    {
+        return $this->tasksModuleEnabled($task->project)
+            && $user->isContributorOfProject($task->project);
+    }
+
     public function restore(User $user, Task $task): bool
     {
         return false;
