@@ -16,4 +16,13 @@ enum ProjectVisibility: string
             self::PRIVATE => 'Privado',
         };
     }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::PUBLIC => 'badge-success',
+            self::AUTHENTICATED => 'badge-info',
+            self::PRIVATE => 'badge-secondary',
+        };
+    }
 }

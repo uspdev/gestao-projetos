@@ -1,8 +1,7 @@
 @can('update', $project)
   <div class="dropdown">
-    <button class="btn btn-sm btn-outline-secondary" type="button"
-      id="project-phase-dropdown-{{ $project->id }}"
-      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+    <button class="btn btn-sm {{ $project->phase?->color() ?? 'badge-light text-dark' }}" type="button"
+      id="project-phase-dropdown-{{ $project->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
       title="Alterar fase do projeto">
 
       {{ $project->phase?->label() ?? 'Nao definido' }}
@@ -17,7 +16,7 @@
           @method('PATCH')
           <input type="hidden" name="phase" value="{{ $phase->value }}">
           <button type="submit" class="btn btn-sm btn-block text-left" @disabled($project->phase?->value === $phase->value)>
-            <span class="badge badge-light border">{{ $phase->label() }}</span>
+            <span class="badge {{ $phase->color() }}">{{ $phase->label() }}</span>
             @if ($project->phase?->value === $phase->value)
               <small class="text-muted ml-1">(atual)</small>
             @endif
@@ -27,7 +26,7 @@
     </div>
   </div>
 @else
-  <span class="btn btn-sm btn-outline-secondary">
+  <span class="btn btn-sm {{ $project->phase?->color() ?? 'badge-light text-dark' }}">
     {{ $project->phase?->label() ?? 'Nao definido' }}
   </span>
 @endcan

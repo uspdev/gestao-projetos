@@ -16,4 +16,13 @@ enum ProjectPermissionInheritance: string
             self::FULL => 'Acesso Total',
         };
     }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::NONE => 'badge-secondary',
+            self::READ => 'badge-info',
+            self::FULL => 'badge-success',
+        };
+    }
 }
