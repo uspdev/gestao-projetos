@@ -109,6 +109,14 @@ class Project extends Model
     }
 
     /**
+     * Relacionamento com reunioes N-N
+     */
+    public function meetings(): BelongsToMany
+    {
+        return $this->belongsToMany(Meeting::class, 'meeting_projects');
+    }
+
+    /**
      * Relacionamento com comentarios (morph)
      */
     public function comments(): MorphMany
@@ -232,6 +240,16 @@ class Project extends Model
         return $query->whereHas('users', function (Builder $q) use ($user) {
             $q->where('users.id', $user->id);
         });
+    }
+
+public function scopeAvailableForMeetings(Builder $query, User $user): Builder
+    {
+        return $query
+            ->accessibleBy($user)
+            ->whereHas('modules', function (Builder $q) {
+                $q->where('modules.slug', 'meetings')
+                  ->where('project_modules.enabled', true);
+            });
     }
 
     public function setSlugAttribute($value): void

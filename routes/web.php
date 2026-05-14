@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
@@ -83,6 +84,13 @@ Route::middleware('auth')->group(function () {
             Route::post('/', 'storeAssignee')->name('store');
             Route::delete('{user}', 'destroyAssignee')->name('destroy');
         });
+
+
+
+    // ==========================================
+    // BLOCO 3: REUNIOES
+    // ==========================================
+    Route::resource('projects.meetings', MeetingController::class);
 
 
 

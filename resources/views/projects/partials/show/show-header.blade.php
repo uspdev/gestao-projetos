@@ -1,6 +1,7 @@
 @php
   $routeName = Route::currentRouteName();
   $tasksEnabled = $project->isModuleEnabled('tasks');
+  $meetingsEnabled = $project->isModuleEnabled('meetings');
 @endphp
 
 <div class="card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky">
@@ -18,6 +19,24 @@
         <x-separator />
       @endif
       <span>{{ $project->name }}</span>
+      <a href="{{ route('projects.show', $project) }}"
+        class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+        Visão geral
+      </a>
+
+      @if ($tasksEnabled)
+        <a href="{{ route('projects.tasks.index', $project) }}"
+          class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+          Tarefas
+        </a>
+      @endif
+
+      @if ($meetingsEnabled)
+        <a href="{{ route('projects.meetings.index', $project) }}"
+          class="btn btn-sm {{ $routeName === 'projects.meetings.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+          Reuniões
+        </a>
+      @endif
       <a href="{{ route('projects.show', $project) }}"
         class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
         Visão geral
