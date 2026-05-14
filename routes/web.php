@@ -28,6 +28,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/description', [ProjectController::class, 'updateDescription'])->name('projects.updateDescription');
     Route::patch('projects/{project}/tags', [ProjectController::class, 'updateTags'])->name('projects.updateTags');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
+    Route::get('projects/{project}/subprojects/selectable', [ProjectController::class, 'selectableSubprojects'])
+        ->name('projects.subprojects.selectable');
+    Route::post('projects/{project}/subprojects/link', [ProjectController::class, 'linkSubproject'])
+        ->name('projects.subprojects.link');
 
     Route::resource('projects', ProjectController::class)->except(['edit', 'update']);
 

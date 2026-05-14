@@ -7,6 +7,8 @@
     'titleClass' => '',
     'statusLabel' => null,
     'statusClass' => 'badge-light border text-muted',
+    'subprojectLabel' => null,
+    'subprojectClass' => 'badge-light border text-muted',
     'actionClass' => '',
     'projectName' => null,
     'showProject' => true,
@@ -163,6 +165,12 @@
                 @if ($statusLabel)
                   <span class="badge {{ $statusClass }} text-nowrap shadow-sm">
                     {{ $statusLabel }}
+                  </span>
+                @endif
+
+                @if ($subprojectLabel)
+                  <span class="badge {{ $subprojectClass }} text-nowrap shadow-sm">
+                    {{ $subprojectLabel }}
                   </span>
                 @endif
 

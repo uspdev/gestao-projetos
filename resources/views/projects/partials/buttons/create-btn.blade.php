@@ -1,7 +1,13 @@
 @can('create', \App\Models\Project::class)
-  <button class="btn btn-success" type="button" data-toggle="modal" data-target="#modalNovoProjeto">
-    <i class="fas fa-plus"></i> Novo Projeto
-  </button>
+  @php
+    $showCreateButton = $showCreateButton ?? true;
+  @endphp
+
+  @if ($showCreateButton)
+    <button class="btn btn-success" type="button" data-toggle="modal" data-target="#modalNovoProjeto">
+      <i class="fas fa-plus"></i> Novo Projeto
+    </button>
+  @endif
 
   <div class="modal fade" id="modalNovoProjeto" tabindex="-1" aria-labelledby="modalNovoProjetoLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -24,6 +30,12 @@
                   \App\Enums\Project\ProjectPermissionInheritance::FULL->value,
               );
               $phaseValue = old('phase', \App\Enums\Project\ProjectPhase::PLANNING->value);
+              $structureValue = old(
+                  'structure_type',
+                  isset($contextParentProject) && $contextParentProject ? 'subproject' : 'independent',
+              );
+              $parentIdValue = old('parent_id', $contextParentProject?->id ?? null);
+              $parentProjects = $parentProjects ?? collect();
             @endphp
 
             <!-- Row 1: Nome e Slug -->
@@ -36,6 +48,47 @@
                   title="Use apenas letras minusculas, numeros e hifens." autocomplete="off" autocapitalize="none"
                   spellcheck="false" />
                 <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens.</small>
+              </div>
+            </div>
+
+            <!-- Row 1.5: Estrutura do Projeto -->
+            <div class="card border mb-3">
+              <div class="card-header bg-light font-weight-bold">
+                Estrutura do projeto
+              </div>
+              <div class="card-body">
+                <div class="form-group mb-3">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="structure_type" id="structureIndependent"
+                      value="independent" {{ $structureValue === 'independent' ? 'checked' : '' }}>
+                    <label class="form-check-label" for="structureIndependent">Projeto independente</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="structure_type" id="structureSubproject"
+                      value="subproject" {{ $structureValue === 'subproject' ? 'checked' : '' }}>
+                    <label class="form-check-label" for="structureSubproject">Subprojeto</label>
+                  </div>
+                  @error('structure_type')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
+
+                <div id="projectParentGroup" class="form-group mb-0">
+                  <label for="parent_id">Projeto pai <span class="text-danger">*</span></label>
+                  <select name="parent_id" id="parent_id" class="form-control @error('parent_id') is-invalid @enderror">
+                    <option value="">Selecione...</option>
+                    @foreach ($parentProjects as $parentProject)
+                      <option value="{{ $parentProject->id }}"
+                        {{ (string) $parentIdValue === (string) $parentProject->id ? 'selected' : '' }}>
+                        {{ $parentProject->name }}
+                      </option>
+                    @endforeach
+                  </select>
+                  <input type="hidden" name="parent_id" id="parent_id_hidden" value="{{ $parentIdValue }}" disabled>
+                  @error('parent_id')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                  @enderror
+                </div>
               </div>
             </div>
 
@@ -77,8 +130,8 @@
               <div class="col-md-4">
                 <div class="form-group mb-3">
                   <label for="visibility">Visibilidade <span class="text-danger">*</span></label>
-                  <select name="visibility" id="visibility" class="form-control @error('visibility') is-invalid @enderror"
-                    required>
+                  <select name="visibility" id="visibility"
+                    class="form-control @error('visibility') is-invalid @enderror" required>
                     @foreach (\App\Enums\Project\ProjectVisibility::cases() as $visibility)
                       <option value="{{ $visibility->value }}"
                         {{ $visibilityValue === $visibility->value ? 'selected' : '' }}>
@@ -186,6 +239,10 @@
         const slugInput = modal.querySelector('input[name="slug"]');
         const projectTypeSelect = modal.querySelector('select[name="project_type_id"]');
         const projectTypeDescription = document.getElementById('projectTypeDescription');
+        const parentGroup = modal.querySelector('#projectParentGroup');
+        const parentSelect = modal.querySelector('select[name="parent_id"]');
+        const parentHidden = modal.querySelector('#parent_id_hidden');
+        const structureInputs = modal.querySelectorAll('input[name="structure_type"]');
 
         if (!nameInput || !slugInput) return;
 
@@ -255,6 +312,60 @@
 
           projectTypeSelect.addEventListener('change', updateProjectTypeDescription);
           updateProjectTypeDescription();
+        }
+
+        const setStructureState = (structureValue, parentId = null, lockParent = false) => {
+          if (!parentGroup || !parentSelect || !parentHidden) return;
+
+          const isSubproject = structureValue === 'subproject';
+          parentGroup.style.display = isSubproject ? 'block' : 'none';
+          parentSelect.required = isSubproject;
+
+          if (parentId !== null) {
+            parentSelect.value = String(parentId);
+            parentHidden.value = String(parentId);
+          }
+
+          if (lockParent && isSubproject) {
+            parentSelect.setAttribute('disabled', 'disabled');
+            parentHidden.removeAttribute('disabled');
+          } else {
+            parentSelect.removeAttribute('disabled');
+            parentHidden.setAttribute('disabled', 'disabled');
+          }
+        };
+
+        const updateStructureFromInputs = () => {
+          const selected = modal.querySelector('input[name="structure_type"]:checked');
+          setStructureState(selected ? selected.value : 'independent');
+        };
+
+        if (structureInputs.length) {
+          structureInputs.forEach((input) => {
+            input.addEventListener('change', updateStructureFromInputs);
+          });
+          updateStructureFromInputs();
+        }
+
+        if (window.jQuery && typeof jQuery === 'function') {
+          jQuery(modal).on('show.bs.modal', function(event) {
+            const trigger = event.relatedTarget;
+            if (!trigger) return;
+
+            const structure = trigger.getAttribute('data-structure');
+            const parentId = trigger.getAttribute('data-parent-id');
+            const lockParent = trigger.getAttribute('data-lock-parent') === 'true';
+
+            if (structure) {
+              const inputToCheck = modal.querySelector(
+                `input[name="structure_type"][value="${structure}"]`,
+              );
+              if (inputToCheck) {
+                inputToCheck.checked = true;
+              }
+              setStructureState(structure, parentId, lockParent);
+            }
+          });
         }
       });
     </script>

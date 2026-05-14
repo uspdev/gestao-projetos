@@ -13,6 +13,9 @@
       <div class="row">
         <div class="col-md-8">
           @include('projects.partials.show.show-card-descricao')
+          @if (!$project->isSubproject())
+            @include('projects.partials.show.show-card-subprojects')
+          @endif
           @include('comments.partials.thread', ['commentable' => $project, 'commentableType' => 'project'])
         </div>
         <div class="col-md-4">
@@ -24,5 +27,12 @@
   </div>
   @if ($tasksEnabled)
     @include('tasks.partials.components.task-form-modal')
+  @endif
+
+  @if (!$project->isSubproject())
+    @include('projects.partials.buttons.create-btn', [
+        'showCreateButton' => false,
+        'contextParentProject' => $project,
+    ])
   @endif
 @endsection

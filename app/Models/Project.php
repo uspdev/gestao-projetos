@@ -11,6 +11,7 @@ use App\Traits\HasSlug;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -137,6 +138,45 @@ class Project extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Project::class, 'parent_id');
+    }
+
+    public function isSubproject(): bool
+    {
+        return ! is_null($this->parent_id);
+    }
+
+    public function isRootProject(): bool
+    {
+        return is_null($this->parent_id);
+    }
+
+    public function hasSubprojects(): bool
+    {
+        return $this->relationLoaded('children')
+            ? $this->children->isNotEmpty()
+            : $this->children()->exists();
+    }
+    public function adminIds(): SupportCollection
+    {
+        if ($this->relationLoaded('users')) {
+            return $this->users
+                ->filter(fn(User $user) => $this->userRole($user) === ProjectUserRole::ADMIN)
+                ->pluck('id')
+                ->values();
+        }
+
+        return $this->users()
+            ->wherePivot('role', ProjectUserRole::ADMIN->value)
+            ->pluck('users.id')
+            ->values();
+    }
+
+    public function sharesAnyAdmin(Project $other): bool
+    {
+        $adminIds = $this->adminIds();
+        $otherAdminIds = $other->adminIds();
+
+        return $adminIds->intersect($otherAdminIds)->isNotEmpty();
     }
 
     public function projectModules(): HasMany

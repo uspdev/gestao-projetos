@@ -16,6 +16,7 @@ use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
 use App\Models\Module;
 use App\Models\Project;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -55,9 +56,13 @@ class ProjectController extends Controller
 
         $projects = $projectsQuery->get();
         $pinnedProjects = $projects->filter(fn(Project $project) => $project->isPinnedBy($user))->values();
+        $parentProjects = Project::accessibleBy($user)
+            ->whereNull('parent_id')
+            ->orderBy('name')
+            ->get();
 
         // O apontamento da view mudou para o diretório padrão de projetos
-        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search'));
+        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search', 'parentProjects'));
     }
 
     public function togglePin(Project $project)
@@ -88,6 +93,10 @@ class ProjectController extends Controller
             $data = $request->validated();
             $data['created_by'] = Auth::id();
             $data['status'] = $data['status'] ?? ProjectStatus::DRAFT->value;
+            $data['parent_id'] = ($data['structure_type'] ?? 'independent') === 'subproject'
+                ? ($data['parent_id'] ?? null)
+                : null;
+            unset($data['structure_type']);
 
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::ADMIN->value]);
@@ -105,6 +114,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
+        $user = Auth::user();
         $showDone = request()->boolean('show_done');
         $tasksEnabled = $project->isModuleEnabled('tasks');
         // Carrega os módulos resolvidos para o projeto,
@@ -113,6 +123,7 @@ class ProjectController extends Controller
         $project = $project->load([
             'users',
             'tags',
+            'parent',
             'projectType',
             'tasks' => fn($query) => $query
                 ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
@@ -120,7 +131,183 @@ class ProjectController extends Controller
                 ->when($tasksEnabled, fn($query) => $query->with('tags')),
         ]);
 
-        return view('projects.show', compact('project', 'resolvedModules'));
+        $subprojects = collect();
+        $contextParentProject = null;
+        $linkableSubprojects = collect();
+
+        if (! $project->isSubproject()) {
+            // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
+            $contextParentProject = $project;
+            $subprojects = $project->children()
+                ->with(['tags', 'projectType'])
+                ->withCount(['tasks', 'users'])
+                ->orderBy('name')
+                ->get();
+            // E também carrega os projetos elegíveis para vincular como subprojetos,
+            // que são projetos raiz sem subprojetos e com pelo menos um admin em comum
+            $linkableSubprojects = Project::query()
+                ->whereNull('parent_id')
+                ->whereKeyNot($project->getKey())
+                // children gera uma subconsulta para verificar a existência de subprojetos
+                ->doesntHave('children')
+                // A verificação de admin em comum é feita com whereHas na relação de usuários,
+                // filtrando por projetos que compartilhem pelo menos um admin com o projeto atual
+                ->whereHas('users', function ($q) use ($user) {
+                    $q->where('users.id', $user->id)
+                        ->where('project_user.role', ProjectUserRole::ADMIN->value);
+                })
+                // Carrega os tipos de projeto e os admins para exibição nos resultados, facilitando a identificação dos projetos candidatos
+                ->with([
+                    'projectType',
+                    'users' => function ($q) {
+                        $q->where('project_user.role', ProjectUserRole::ADMIN->value)
+                            ->orderBy('project_user.created_at');
+                    },
+                ])
+                ->orderBy('name')
+                ->get();
+        }
+        // Para subprojetos, carrega os projetos irmãos (mesmo parent_id) para exibição e possível navegação
+        $parentProjects = Project::accessibleBy($user)
+            ->whereNull('parent_id')
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.show', compact(
+            'project',
+            'resolvedModules',
+            'subprojects',
+            'parentProjects',
+            'contextParentProject',
+            'linkableSubprojects'
+        ));
+    }
+
+    /**
+     * Retorna projetos elegiveis para vincular como subprojeto.
+     */
+    public function selectableSubprojects(Request $request, Project $project)
+    {
+        Gate::authorize('storeMember', $project);
+
+        if ($project->isSubproject()) {
+            return response()->json(['results' => []]);
+        }
+        // O endpoint de busca para vincular subprojetos precisa retornar projetos raiz,
+        // sem subprojetos, e que compartilhem pelo menos um admin com o projeto pai,
+        // garantindo que o usuário tenha permissão de update nesses projetos candidatos
+        $term = trim((string) $request->input('term', ''));
+        $selectedId = $request->input('id');
+        if ($term === '' && ! $selectedId) {
+            return response()->json(['results' => []]);
+        }
+
+        $adminIds = $project->adminIds();
+        if ($adminIds->isEmpty()) {
+            return response()->json(['results' => []]);
+        }
+        // A consulta busca projetos raiz, excluindo o projeto atual, sem subprojetos, e com pelo menos um admin em comum,
+        // e carrega os tipos de projeto e os admins para exibição nos resultados
+        $query = Project::accessibleBy($request->user())
+            ->whereNull('parent_id')
+            ->whereKeyNot($project->getKey())
+            ->doesntHave('children')
+            ->whereHas('users', function ($q) use ($adminIds) {
+                $q->whereIn('users.id', $adminIds)
+                    ->wherePivot('role', ProjectUserRole::ADMIN->value);
+            })
+            ->with([
+                'projectType',
+                'users' => function ($q) use ($adminIds) {
+                    $q->whereIn('users.id', $adminIds)
+                        ->wherePivot('role', ProjectUserRole::ADMIN->value);
+                },
+            ])
+            ->orderBy('name');
+
+        if ($selectedId) {
+            $query->whereKey($selectedId);
+        } else {
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%");
+            });
+        }
+
+        $projects = $query->take(50)->get();
+        // Tratativa para exibir o nome do admin (ou N/A) e o tipo de projeto nos resultados,
+        // para auxiliar na identificação dos projetos candidatos
+        $results = $projects->map(function (Project $candidate) {
+            $adminName = $candidate->users->first()?->name ?? 'N/A';
+
+            return [
+                'id' => $candidate->id,
+                'text' => $candidate->name,
+                'status' => $candidate->status?->label(),
+                'admin' => $adminName,
+                'type' => $candidate->projectType?->name,
+            ];
+        })->values();
+
+        return response()->json(['results' => $results]);
+    }
+
+    /**
+     * Vincula um projeto existente como subprojeto.
+     */
+    public function linkSubproject(Request $request, Project $project)
+    {
+        Gate::authorize('storeMember', $project);
+
+        if ($project->isSubproject()) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'Não é possivel vincular subprojetos a um subprojeto.']);
+        }
+
+        $data = $request->validate([
+            'subproject_id' => ['required', 'integer', 'exists:projects,id'],
+        ]);
+
+        $subproject = Project::with(['users', 'children'])->findOrFail($data['subproject_id']);
+
+        Gate::authorize('update', $subproject);
+
+        // ========Validações======
+        if ($subproject->getKey() === $project->getKey()) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'Selecione um projeto diferente do projeto atual.']);
+        }
+
+        if (! $subproject->isRootProject()) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'O projeto selecionado ja e um subprojeto.']);
+        }
+
+        if ($subproject->hasSubprojects()) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'O projeto selecionado possui subprojetos e nao pode ser vinculado.']);
+        }
+
+        if (! $project->isRootProject()) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'O projeto pai nao pode ser um subprojeto.']);
+        }
+
+        if (! $subproject->sharesAnyAdmin($project)) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'O projeto selecionado possui administrador diferente do projeto pai.']);
+        }
+
+        // Se passar pelas validações, vincula o subprojeto ao projeto pai atualizando o parent_id do subprojeto
+        DB::transaction(function () use ($subproject, $project) {
+            $subproject->update([
+                'parent_id' => $project->id,
+                'updated_by' => Auth::id(),
+            ]);
+        });
+
+        return redirect()->route('projects.show', $project)
+            ->with('alert-success', 'Subprojeto vinculado com sucesso!');
     }
 
     /**

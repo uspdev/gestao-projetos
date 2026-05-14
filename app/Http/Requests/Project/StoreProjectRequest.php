@@ -21,6 +21,7 @@ class StoreProjectRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $slug = $this->input('slug');
+        $parentId = $this->input('parent_id');
 
         if ($slug === null || trim((string) $slug) === '') {
             $slug = (string) $this->input('name', '');
@@ -28,6 +29,7 @@ class StoreProjectRequest extends FormRequest
 
         $this->merge([
             'slug' => Str::slug((string) $slug),
+            'parent_id' => $parentId !== null && trim((string) $parentId) !== '' ? (int) $parentId : null,
         ]);
     }
 
@@ -49,6 +51,13 @@ class StoreProjectRequest extends FormRequest
             'permission_inheritance' => ['required', Rule::enum(ProjectPermissionInheritance::class)],
             'phase' => ['required', Rule::enum(ProjectPhase::class)],
             'description' => ['nullable', 'string', 'max:10000'],
+            'structure_type' => ['required', Rule::in(['independent', 'subproject'])],
+            'parent_id' => [
+                'nullable',
+                'integer',
+                'required_if:structure_type,subproject',
+                Rule::exists('projects', 'id')->whereNull('parent_id'),
+            ],
 
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
@@ -81,6 +90,10 @@ class StoreProjectRequest extends FormRequest
             'tags.array' => 'As tags devem ser um array válido.',
             'tags.*.integer' => 'Cada tag deve ser um ID válido.',
             'tags.*.exists' => 'Uma ou mais tags selecionadas não existem.',
+            'structure_type.required' => 'É necessário definir a estrutura do projeto.',
+            'structure_type.in' => 'A estrutura selecionada é inválida.',
+            'parent_id.required_if' => 'Selecione o projeto pai para criar um subprojeto.',
+            'parent_id.exists' => 'O projeto pai selecionado é inválido.',
         ];
     }
 
