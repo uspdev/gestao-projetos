@@ -113,8 +113,6 @@ class ProjectController extends Controller
         $project = $project->load([
             'users',
             'tags',
-            // Filtra as tarefas para retornar apenas aquelas cujo projeto
-            // tem o módulo de tarefas habilitado, e considerando o filtro de mostrar ou não as tarefas concluídas
             'projectType',
             'tasks' => fn($query) => $query
                 ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
