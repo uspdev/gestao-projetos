@@ -5,7 +5,7 @@
 @can('storeMember', $project)
   @if (!$project->isSubproject())
     <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="modal" data-target="#linkSubprojectModal">
-      <i class="fas fa-link"></i> Vincular Subprojeto
+      <i class="fas fa-link"></i>
     </button>
 
     @push('modals')

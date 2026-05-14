@@ -13,14 +13,13 @@
       <div class="row">
         <div class="col-md-8">
           @include('projects.partials.show.show-card-descricao')
-          @if (!$project->isSubproject())
-            @include('projects.partials.show.show-card-subprojects')
-          @endif
           @include('comments.partials.thread', ['commentable' => $project, 'commentableType' => 'project'])
         </div>
         <div class="col-md-4">
-          @include('projects.partials.show.show-card-membros')
           @include('projects.partials.show.show-card-modulos')
+          @if (!$project->isSubproject())
+            @include('projects.partials.show.show-card-subprojects')
+          @endif
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card mb-4">
   <div class="card-header d-flex align-items-center">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">
