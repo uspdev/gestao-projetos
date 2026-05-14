@@ -2,84 +2,76 @@
 
 @section('title', 'Configurações do Projeto')
 @section('content')
-  {{-- Card: Título e Descrição --}}
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>
-              <strong>Nome do Projeto</strong>
-            </td>
-            <td>
-              <input type="text" name="name" class="form-control" value="{{ $project->name }}">
-            </td>
-          </tr>
-          <tr>
-            <td>Status</td>
-            <td>@include('projects.partials.components.update-status')</td>
-          </tr>
-          <tr>
-            <td>Fase</td>
-            <td>@include('projects.partials.components.update-phase')</td>
-          </tr>
-          <tr>
-            <td>Visibilidade</td>
-            <td>@include('projects.partials.components.update-visibility')</td>
-          </tr>
-          <tr>
-            <td>Heranca de permissoes</td>
-            <td>@include('projects.partials.components.update-permission-inheritance')</td>
-          </tr>
-          <tr>
-            <td>Tipo de projeto</td>
-            <td>
-              @if ($project->projectType)
-                <div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">
-                  <span>
-                    {{ $project->projectType->name }}
-                    <small class="text-muted">({{ $project->projectType->slug }})</small>
-                  </span>
-                  <span class="badge badge-info">Definido</span>
-                </div>
-              @else
-                <span class="text-muted">Sem tipo definido.</span>
-              @endif
-            </td>
-          </tr>
-          <tr>
-            <td>Membros</td>
-            <td>@include('projects.partials.show.show-card-membros')</td>
-          </tr>
-          <tr>
-            <td>Módulos</td>
-            <td>
-              @forelse (($resolvedModules ?? []) as $module)
-                <div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">
-                  <span>
-                    {{ $module['name'] }}
-                    <small class="text-muted">({{ $module['slug'] }})</small>
-                  </span>
-                  <span class="badge {{ $module['enabled'] ? 'badge-success' : 'badge-secondary' }}">
-                    {{ $module['enabled'] ? 'Ativo' : 'Inativo' }}
-                  </span>
-                </div>
-              @empty
-                <span class="text-muted">Nenhum módulo configurado.</span>
-              @endforelse
-            </td>
-          </tr>
-          <tr>
-            <td>Remover projeto</td>
-            <td> @include('projects.partials.buttons.delete-btn')</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="row mb-4">
-      </div>
       <div class="row">
+        <div class="col-lg-8 mb-4">
+          <div class="card h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-0">Configurações principais</h5>
+                <small class="text-muted">Dados básicos e controles de acesso do projeto.</small>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <table class="table table-sm mb-0 align-middle">
+                <tbody>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small" style="width: 34%;">Nome do Projeto</td>
+                    <td>@include('projects.partials.components.update-name')</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small">URL do Projeto (Slug)</td>
+                    <td>@include('projects.partials.components.update-slug')</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small">Status</td>
+                    <td>@include('projects.partials.components.update-status')</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small">Fase</td>
+                    <td>@include('projects.partials.components.update-phase')</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small">Visibilidade</td>
+                    <td>@include('projects.partials.components.update-visibility')</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small">Herança de permissões</td>
+                    <td>@include('projects.partials.components.update-permission-inheritance')</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted font-weight-bold text-uppercase small">Tags</td>
+                    <td>@include('projects.partials.components.update-tags')</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="mb-4">
+            @include('projects.partials.show.show-card-membros')
+          </div>
+
+          <div class="mb-4">
+            @include('projects.partials.show.show-card-modulos')
+          </div>
+
+          <div class="card border-danger">
+            <div class="card-header bg-light text-danger font-weight-bold">
+              Área de risco
+            </div>
+            <div class="card-body">
+              <p class="text-muted mb-3">
+                A remoção do projeto é permanente e deve ser usada com cuidado.
+              </p>
+              @include('projects.partials.buttons.delete-btn')
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -23,9 +23,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/permission-inheritance', [ProjectController::class, 'updateProjectPermissionInheritance'])
         ->name('projects.updatePermissionInheritance');
     Route::patch('projects/{project}/pin', [ProjectController::class, 'togglePin'])->name('projects.togglePin');
+    Route::patch('projects/{project}/name', [ProjectController::class, 'updateName'])->name('projects.updateName');
+    Route::patch('projects/{project}/slug', [ProjectController::class, 'updateSlug'])->name('projects.updateSlug');
+    Route::patch('projects/{project}/description', [ProjectController::class, 'updateDescription'])->name('projects.updateDescription');
+    Route::patch('projects/{project}/tags', [ProjectController::class, 'updateTags'])->name('projects.updateTags');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
 
-    Route::resource('projects', ProjectController::class)->except(['edit']);
+    Route::resource('projects', ProjectController::class)->except(['edit', 'update']);
 
     // Sub-recurso: Membros
     Route::controller(ProjectMemberController::class)

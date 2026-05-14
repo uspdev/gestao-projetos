@@ -6,7 +6,10 @@ use App\Enums\Task\TaskStatus;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectRequest;
-use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Requests\Project\UpdateProjectDescriptionRequest;
+use App\Http\Requests\Project\UpdateProjectNameRequest;
+use App\Http\Requests\Project\UpdateProjectSlugRequest;
+use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectPhaseRequest;
 use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
@@ -122,7 +125,54 @@ class ProjectController extends Controller
         return view('projects.show', compact('project', 'resolvedModules'));
     }
 
-    public function update(UpdateProjectRequest $request, Project $project)
+    /**
+     * Atualiza o nome de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectNameRequest $request
+     * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateName(UpdateProjectNameRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Nome do projeto atualizado com sucesso!');
+    }
+
+    /**
+     * Atualiza a URL (slug) de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectSlugRequest $request
+     * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateSlug(UpdateProjectSlugRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $project->update($data);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'URL do projeto atualizada com sucesso!');
+    }
+
+    /**
+     * Atualiza a descrição de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectDescriptionRequest $request
+     * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateDescription(UpdateProjectDescriptionRequest $request, Project $project)
     {
         DB::transaction(function () use ($project, $request) {
             $data = $request->validated();
@@ -133,12 +183,29 @@ class ProjectController extends Controller
             }
 
             $project->update($data);
-
-            $project->syncTagsByIds($request->tags ?? []);
         });
 
-        return redirect()->route('projects.show', $project)
-            ->with('alert-success', 'Projeto atualizado com sucesso!');
+        return redirect()->back()
+            ->with('alert-success', 'Descrição do projeto atualizada com sucesso!');
+    }
+
+    /**
+     * Atualiza as tags de um projeto.
+     *
+     * @param  \App\Http\Requests\Project\UpdateProjectTagsRequest $request
+     * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateTags(UpdateProjectTagsRequest $request, Project $project)
+    {
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+
+            $project->syncTagsByIds($data['tags'] ?? []);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Tags do projeto atualizado com sucesso!');
     }
 
     public function destroy(Project $project)
@@ -157,6 +224,7 @@ class ProjectController extends Controller
      *
      * @param  \App\Http\Requests\Project\UpdateProjectStatusRequest $request
      * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updateProjectStatus(UpdateProjectStatusRequest $request, Project $project)
     {
@@ -176,6 +244,7 @@ class ProjectController extends Controller
      *
      * @param  \App\Http\Requests\Project\UpdateProjectPhaseRequest $request
      * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updateProjectPhase(UpdateProjectPhaseRequest $request, Project $project)
     {
@@ -195,6 +264,7 @@ class ProjectController extends Controller
      *
      * @param  \App\Http\Requests\Project\UpdateProjectVisibilityRequest $request
      * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updateProjectVisibility(UpdateProjectVisibilityRequest $request, Project $project)
     {
@@ -214,6 +284,7 @@ class ProjectController extends Controller
      *
      * @param  \App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest $request
      * @param  \App\Models\Project $project
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updateProjectPermissionInheritance(UpdateProjectPermissionInheritanceRequest $request, Project $project)
     {
