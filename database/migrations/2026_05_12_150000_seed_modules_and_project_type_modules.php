@@ -69,12 +69,11 @@ return new class extends Migration
 
         if ($developmentTypeId) {
             foreach ($moduleIds as $slug => $moduleId) {
-                $enabled = $slug === 'tasks';
 
                 DB::table('project_type_modules')->updateOrInsert(
                     ['project_type_id' => $developmentTypeId, 'module_id' => $moduleId],
                     [
-                        'enabled' => $enabled,
+                        'enabled' => true,
                         'required' => false,
                         'editable' => true,
                         'config' => null,
