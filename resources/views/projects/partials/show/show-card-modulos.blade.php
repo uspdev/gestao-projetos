@@ -1,5 +1,5 @@
 <div class="card mb-4">
-  <div class="card-header d-flex align-items-center">
+  <div class="card-header d-flex align-items-center py-2">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">
         <i class="fas fa-puzzle-piece mr-1"></i> Módulos
@@ -8,7 +8,9 @@
   </div>
   <ul class="list-group list-group-flush">
     @forelse (($resolvedModules ?? []) as $module)
-      <li class="list-group-item d-flex align-items-center justify-content-between">
+      <li
+        class="list-group-item d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between"
+        style="gap: 0.5rem;">
         <span>{{ $module['name'] }}</span>
         <span class="badge {{ $module['enabled'] ? 'badge-success' : 'badge-secondary' }}">
           {{ $module['enabled'] ? 'Ativo' : 'Inativo' }}
