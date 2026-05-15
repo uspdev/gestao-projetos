@@ -50,49 +50,7 @@
                 <small class="text-muted d-block">Use apenas letras minúsculas, números e hifens.</small>
               </div>
             </div>
-
-            <!-- Row 1.5: Estrutura do Projeto -->
-            <div class="card border mb-3">
-              <div class="card-header bg-light font-weight-bold">
-                Estrutura do projeto
-              </div>
-              <div class="card-body">
-                <div class="form-group mb-3">
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="structure_type" id="structureIndependent"
-                      value="independent" {{ $structureValue === 'independent' ? 'checked' : '' }}>
-                    <label class="form-check-label" for="structureIndependent">Projeto independente</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="structure_type" id="structureSubproject"
-                      value="subproject" {{ $structureValue === 'subproject' ? 'checked' : '' }}>
-                    <label class="form-check-label" for="structureSubproject">Subprojeto</label>
-                  </div>
-                  @error('structure_type')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                  @enderror
-                </div>
-
-                <div id="projectParentGroup" class="form-group mb-0">
-                  <label for="parent_id">Projeto pai <span class="text-danger">*</span></label>
-                  <select name="parent_id" id="parent_id" class="form-control @error('parent_id') is-invalid @enderror">
-                    <option value="">Selecione...</option>
-                    @foreach ($parentProjects as $parentProject)
-                      <option value="{{ $parentProject->id }}"
-                        {{ (string) $parentIdValue === (string) $parentProject->id ? 'selected' : '' }}>
-                        {{ $parentProject->name }}
-                      </option>
-                    @endforeach
-                  </select>
-                  <input type="hidden" name="parent_id" id="parent_id_hidden" value="{{ $parentIdValue }}" disabled>
-                  @error('parent_id')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                  @enderror
-                </div>
-              </div>
-            </div>
-
-            <!-- Row 2: Estado, Fase, Visibilidade -->
+            <!-- Row 3: Estado, Fase, Visibilidade -->
             <div class="row">
               <div class="col-md-4">
                 <div class="form-group mb-3">

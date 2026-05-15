@@ -4,13 +4,6 @@
       <i class="fas fa-sitemap"></i> Subprojetos
     </span>
     <div class="d-flex align-items-center gap-2 ml-2">
-      @can('create', \App\Models\Project::class)
-        <button class="btn btn-sm btn-success" type="button" data-toggle="modal" data-target="#modalNovoProjeto"
-          data-structure="subproject" data-parent-id="{{ $project->id }}" data-lock-parent="true">
-          <i class="fas fa-plus"></i>
-        </button>
-      @endcan
-
       @include('projects.partials.buttons.link-subproject-btn')
     </div>
   </div>

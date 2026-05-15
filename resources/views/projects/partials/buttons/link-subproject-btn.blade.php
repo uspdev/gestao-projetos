@@ -1,7 +1,7 @@
 @php
   $linkableSubprojects = $linkableSubprojects ?? collect();
 @endphp
-
+{{-- Permissão de storeMember atende os requesitos de que o usuário possa vincular subprojetos a este projeto --}}
 @can('storeMember', $project)
   @if (!$project->isSubproject())
     <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="modal" data-target="#linkSubprojectModal">

@@ -93,10 +93,6 @@ class ProjectController extends Controller
             $data = $request->validated();
             $data['created_by'] = Auth::id();
             $data['status'] = $data['status'] ?? ProjectStatus::DRAFT->value;
-            $data['parent_id'] = ($data['structure_type'] ?? 'independent') === 'subproject'
-                ? ($data['parent_id'] ?? null)
-                : null;
-            unset($data['structure_type']);
 
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::ADMIN->value]);
