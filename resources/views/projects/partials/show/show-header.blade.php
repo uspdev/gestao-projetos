@@ -12,7 +12,6 @@
       </a>
       <x-separator />
       @if ($project->isSubproject() && $project->parent)
-        <x-separator />
         <a href="{{ route('projects.show', $project->parent) }}" class="text-decoration-none text-secondary">
           {{ $project->parent->name }}
         </a>
@@ -37,17 +36,6 @@
           Reuniões
         </a>
       @endif
-      <a href="{{ route('projects.show', $project) }}"
-        class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-        Visão geral
-      </a>
-
-      @if ($tasksEnabled)
-        <a href="{{ route('projects.tasks.index', $project) }}"
-          class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-          Tarefas
-        </a>
-      @endif
       <span class="badge badge-pill badge-primary" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;">
         {{ $project->status?->label() }}</span>
       @if ($project->isSubproject())
@@ -56,14 +44,6 @@
         </span>
       @endif
     </div>
-    @if ($project->isSubproject() && $project->parent)
-      <div class="text-muted small mt-1">
-        Subprojeto de:
-        <a href="{{ route('projects.show', $project->parent) }}" class="text-decoration-none">
-          {{ $project->parent->name }}
-        </a>
-      </div>
-    @endif
   </div>
 
   <div class="d-flex align-items-center gap-2">
