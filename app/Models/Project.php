@@ -125,6 +125,14 @@ class Project extends Model
     }
 
     /**
+     * Relacionamento com meeting items via morph (Project pode ser um meeting item)
+     */
+    public function meetingItems(): MorphMany
+    {
+        return $this->morphMany(MeetingItem::class, 'discussable');
+    }
+
+    /**
      * Relacionamento com tipo de projeto N-1
      */
     public function projectType(): BelongsTo

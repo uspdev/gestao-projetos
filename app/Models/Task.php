@@ -59,6 +59,14 @@ class Task extends Model
         return $this->morphMany(Comment::class, 'commentable');
     }
 
+    /**
+     * Relacionamento com meeting items via morph (Task pode ser um meeting item)
+     */
+    public function meetingItems(): MorphMany
+    {
+        return $this->morphMany(MeetingItem::class, 'discussable');
+    }
+
     public function availableTags()
     {
         return Tag::forTasks();
