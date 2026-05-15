@@ -14,8 +14,7 @@
               {{ $meeting->status?->label() ?? '-' }}
             </span>
             @can('update', [$meeting, $project])
-              <a href="{{ route('projects.meetings.edit', [$project, $meeting]) }}"
-                class="btn btn-sm btn-outline-primary">
+              <a href="{{ route('projects.meetings.edit', [$project, $meeting]) }}" class="btn btn-sm btn-outline-primary">
                 <i class="fas fa-edit"></i>
               </a>
             @endcan
@@ -73,6 +72,16 @@
           </div>
         </div>
       </div>
+
+      @include('projects.meetings.partials.items-list', ['meetingItems' => $meetingItems])
+      @include('projects.meetings.partials.items-form', [
+          'project' => $project,
+          'meeting' => $meeting,
+          'meetingItems' => $meetingItems,
+          'meetingProjects' => $meetingProjects,
+      ])
+
+      @include('comments.partials.thread', ['commentable' => $meeting])
     </div>
   </div>
 @endsection

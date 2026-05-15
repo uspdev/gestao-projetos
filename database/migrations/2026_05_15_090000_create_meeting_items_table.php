@@ -13,8 +13,9 @@ return new class extends Migration
             $table->foreignId('meeting_id')->constrained('meetings')->cascadeOnDelete();
             $table->morphs('discussable');
             $table->unsignedInteger('order');
-
             $table->index(['meeting_id', 'order']);
+
+            $table->timestamps();
         });
     }
 

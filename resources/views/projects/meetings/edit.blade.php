@@ -20,6 +20,16 @@
           ])
         </div>
       </div>
+
+      @include('projects.meetings.partials.items-list', ['meetingItems' => $meetingItems])
+      @include('projects.meetings.partials.items-form', [
+          'project' => $project,
+          'meeting' => $meeting,
+          'meetingItems' => $meetingItems,
+          'meetingProjects' => $meetingProjects,
+      ])
+
+      @include('comments.partials.thread', ['commentable' => $meeting])
     </div>
   </div>
 @endsection

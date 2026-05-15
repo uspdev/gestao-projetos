@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\Meeting\MeetingStatus;
 use App\Http\Requests\Meeting\StoreMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingRequest;
+use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
 use App\Models\Meeting;
 use App\Models\Project;
+use App\Models\MeetingItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -77,16 +79,34 @@ class MeetingController extends Controller
     {
         Gate::authorize('view', [$meeting, $project]);
 
-        $meeting->load('projects');
+        $meetingItems = $meeting->meetingItems()
+            ->with('discussable')
+            ->orderBy('order')
+            ->get();
 
-        return view('projects.meetings.show', compact('project', 'meeting'));
+        $meetingProjects = $meeting->projects()
+            ->with(['tasks', 'children'])
+            ->get();
+
+        $meeting->setRelation('projects', $meetingProjects);
+
+        return view('projects.meetings.show', compact('project', 'meeting', 'meetingItems', 'meetingProjects'));
     }
 
     public function edit(Project $project, Meeting $meeting)
     {
         Gate::authorize('update', [$meeting, $project]);
 
-        $meeting->load('projects');
+        $meetingItems = $meeting->meetingItems()
+            ->with('discussable')
+            ->orderBy('order')
+            ->get();
+
+        $meetingProjects = $meeting->projects()
+            ->with(['tasks', 'children'])
+            ->get();
+
+        $meeting->setRelation('projects', $meetingProjects);
 
         $user = Auth::user();
 
@@ -99,7 +119,14 @@ class MeetingController extends Controller
         }
         $selectedProjects = old('projects', $meeting->projects->pluck('id')->all());
 
-        return view('projects.meetings.edit', compact('project', 'meeting', 'availableProjects', 'selectedProjects'));
+        return view('projects.meetings.edit', compact(
+            'project',
+            'meeting',
+            'availableProjects',
+            'selectedProjects',
+            'meetingItems',
+            'meetingProjects'
+        ));
     }
 
     public function update(UpdateMeetingRequest $request, Project $project, Meeting $meeting)
@@ -131,5 +158,26 @@ class MeetingController extends Controller
 
         return redirect()->route('projects.meetings.index', $project)
             ->with('alert-success', 'Reuniao removida com sucesso!');
+    }
+
+    public function storeItem(StoreMeetingItemRequest $request, Project $project, Meeting $meeting)
+    {
+        $discussable = $request->discussable();
+
+        abort_unless($discussable, 404);
+
+        DB::transaction(function () use ($request, $meeting, $discussable) {
+            $data = $request->validated();
+
+            MeetingItem::create([
+                'meeting_id' => $meeting->id,
+                'discussable_type' => $discussable::class,
+                'discussable_id' => $discussable->getKey(),
+                'order' => $data['order'],
+            ]);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Item de pauta adicionado com sucesso!');
     }
 }
