@@ -21,9 +21,9 @@ return new class extends Migration
         $now = date('Y-m-d H:i:s');
 
         $developmentType = [
-            'name' => 'Desenvolvimento',
-            'slug' => 'desenvolvimento',
-            'description' => 'Tipo de projeto para desenvolvimento. Inclui módulos de tarefas e reuniões.',
+            'name' => 'Software',
+            'slug' => 'software',
+            'description' => 'Tipo de projeto para acompanhar o ciclo de vida de um software.',
             'created_at' => $now,
             'updated_at' => $now,
         ];
