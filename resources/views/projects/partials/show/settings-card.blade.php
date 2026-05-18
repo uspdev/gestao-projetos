@@ -200,15 +200,17 @@
         </td>
         <td>@include('projects.partials.components.update-visibility')</td>
       </tr>
-      <tr>
-        <td>
-          <div class="settings-label">
-            <i class="ti ti-shield-check" aria-hidden="true"></i>
-            Herança de permissões
-          </div>
-        </td>
-        <td>@include('projects.partials.components.update-permission-inheritance')</td>
-      </tr>
+      @if ($project->isSubproject())
+        <tr>
+          <td>
+            <div class="settings-label">
+              <i class="ti ti-shield-check" aria-hidden="true"></i>
+              Herança de permissões
+            </div>
+          </td>
+          <td>@include('projects.partials.components.update-permission-inheritance')</td>
+        </tr>
+      @endif
     </tbody>
   </table>
 </div>

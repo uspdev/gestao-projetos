@@ -14,6 +14,11 @@ class UpdateProjectPermissionInheritanceRequest extends FormRequest
         /** @var Project $project */
         $project = $this->route('project');
 
+        // Herança de permissões só é permitida para subprojetos
+        if (!$project->isSubproject()) {
+            return false;
+        }
+
         return $this->user()->can('update', $project);
     }
 
