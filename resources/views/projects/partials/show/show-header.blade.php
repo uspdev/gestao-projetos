@@ -19,6 +19,9 @@
     <a href="{{ route('projects.tasks.index', $project) }}"
       class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
       Tarefas
+      <span class="badge badge-pill badge-info">
+      {{ $project->tasks->where('status', '!==', \App\Enums\Task\TaskStatus::DONE)->count() }}
+      </span>
     </a>
   </div>
 
