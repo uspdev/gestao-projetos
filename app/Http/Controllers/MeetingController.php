@@ -184,8 +184,7 @@ class MeetingController extends Controller
 
     public function updateStatus(UpdateMeetingStatusRequest $request, Project $project, Meeting $meeting)
     {
-
-        DB::transaction(function () use ($project, $request) {
+        DB::transaction(function () use ($request, $meeting) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
 
