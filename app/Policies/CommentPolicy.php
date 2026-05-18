@@ -25,6 +25,10 @@ class CommentPolicy
 
     public function delete(User $user, Comment $comment): bool
     {
+        if ($comment->user_id !== $user->id) {
+            return false;
+        }
+
         return $this->canInteract($user, $comment->commentable);
     }
 

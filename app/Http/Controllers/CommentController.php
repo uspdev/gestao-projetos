@@ -6,6 +6,7 @@ use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Models\Comment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
@@ -28,5 +29,19 @@ class CommentController extends Controller
 
         return redirect()->back()
             ->with('alert-success', 'Comentario adicionado com sucesso!');
+    }
+
+    public function destroy(Comment $comment)
+    {
+        Gate::authorize('delete', $comment);
+
+        DB::transaction(function () use ($comment) {
+            $comment->update([
+                'is_active' => false,
+            ]);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Comentario removido com sucesso!');
     }
 }

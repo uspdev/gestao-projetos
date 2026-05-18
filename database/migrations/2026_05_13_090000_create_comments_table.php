@@ -14,6 +14,7 @@ return new class extends Migration
             $table->morphs('commentable');
             $table->foreignId('parent_id')->nullable()->constrained('comments')->nullOnDelete();
             $table->text('text');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
