@@ -73,7 +73,11 @@
         </div>
       </div>
 
-      @include('projects.meetings.partials.items-list', ['meetingItems' => $meetingItems])
+        @include('projects.meetings.partials.items-list', [
+          'meetingItems' => $meetingItems,
+          'meeting' => $meeting,
+          'project' => $project,
+        ])
       @include('projects.meetings.partials.items-form', [
           'project' => $project,
           'meeting' => $meeting,

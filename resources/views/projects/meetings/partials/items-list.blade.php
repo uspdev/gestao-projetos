@@ -1,5 +1,10 @@
 @php
   $meetingItems = $meetingItems ?? collect();
+  $meeting = $meeting ?? null;
+  $project = $project ?? null;
+  $canRemove = $meeting
+      && $project
+      && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
 <div class="card mb-4 shadow-sm">
@@ -39,6 +44,18 @@
                 @endif
               </div>
             </div>
+            @if ($canRemove)
+              @can('update', [$meeting, $project])
+                <form method="POST" action="{{ route('projects.meetings.items.destroy', [$project, $meeting, $item]) }}"
+                  class="d-inline-block" onsubmit="return confirm('Deseja remover este item de pauta?');">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-outline-danger btn-sm py-0">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              @endcan
+            @endif
           </li>
         @endforeach
       </ul>

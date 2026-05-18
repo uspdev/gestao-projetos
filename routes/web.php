@@ -94,6 +94,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])->name('meetings.updateStatus');
     Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
         ->name('projects.meetings.items.store');
+    Route::delete('projects/{project}/meetings/{meeting}/items/{meetingItem}', [MeetingController::class, 'destroyItem'])
+        ->name('projects.meetings.items.destroy');
 
     Route::resource('projects.meetings', MeetingController::class);
 

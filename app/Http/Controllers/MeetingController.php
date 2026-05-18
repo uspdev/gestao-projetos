@@ -190,6 +190,33 @@ public function storeItem(StoreMeetingItemRequest $request, Project $project, Me
             ->with('alert-success', 'Item de pauta adicionado com sucesso!');
     }
 
+    public function destroyItem(Project $project, Meeting $meeting, MeetingItem $meetingItem)
+    {
+        Gate::authorize('update', [$meeting, $project]);
+
+        if ($meetingItem->meeting_id !== $meeting->id) {
+            abort(404);
+        }
+
+        if ($meeting->status === MeetingStatus::COMPLETED) {
+            return redirect()->back()
+                ->withErrors(['meeting_item' => 'Nao é possivel remover itens de uma reunião já concluida.']);
+        }
+
+        DB::transaction(function () use ($meeting, $meetingItem) {
+            $removedOrder = $meetingItem->order;
+
+            $meetingItem->delete();
+
+            $meeting->meetingItems()
+                ->where('order', '>', $removedOrder)
+                ->decrement('order');
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Item de pauta removido com sucesso!');
+    }
+
     public function updateStatus(UpdateMeetingStatusRequest $request, Project $project, Meeting $meeting)
     {
         DB::transaction(function () use ($request, $meeting) {
