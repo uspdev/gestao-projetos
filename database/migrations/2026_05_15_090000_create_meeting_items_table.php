@@ -14,6 +14,7 @@ return new class extends Migration
             $table->morphs('discussable');
             $table->unsignedInteger('order');
             $table->index(['meeting_id', 'order']);
+            $table->unique(['meeting_id', 'discussable_type', 'discussable_id']);
 
             $table->timestamps();
         });
