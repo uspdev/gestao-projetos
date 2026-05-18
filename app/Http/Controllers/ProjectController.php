@@ -40,15 +40,26 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         $search = trim((string) request()->input('search', ''));
+        $viewAll = session('admin_view_all', false);
 
         Gate::authorize('viewAny', [Project::class, $user]);
 
-        $projectsQuery = Project::accessibleBy($user)
-            ->with([
-                'users' => fn($query) => $query->where('users.id', $user->id),
-            ])
-            ->withCount('tasks')
-            ->latest();
+        // Se o usuário é admin mas não quer ver tudo, mostrar apenas seus projetos
+        if ($user->isAdmin() && !$viewAll) {
+            $projectsQuery = $user->projects()
+                ->with([
+                    'users' => fn($query) => $query->where('users.id', $user->id),
+                ])
+                ->withCount('tasks')
+                ->latest();
+        } else {
+            $projectsQuery = Project::accessibleBy($user)
+                ->with([
+                    'users' => fn($query) => $query->where('users.id', $user->id),
+                ])
+                ->withCount('tasks')
+                ->latest();
+        }
 
         if ($search !== '') {
             $projectsQuery->where(function ($query) use ($search) {
@@ -59,13 +70,22 @@ class ProjectController extends Controller
 
         $projects = $projectsQuery->get();
         $pinnedProjects = $projects->filter(fn(Project $project) => $project->isPinnedBy($user))->values();
-        $parentProjects = Project::accessibleBy($user)
-            ->whereNull('parent_id')
-            ->orderBy('name')
-            ->get();
+
+        // Para parentProjects também respeitar a preferência de view
+        if ($user->isAdmin() && !$viewAll) {
+            $parentProjects = $user->projects()
+                ->whereNull('parent_id')
+                ->orderBy('name')
+                ->get();
+        } else {
+            $parentProjects = Project::accessibleBy($user)
+                ->whereNull('parent_id')
+                ->orderBy('name')
+                ->get();
+        }
 
         // O apontamento da view mudou para o diretório padrão de projetos
-        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search', 'parentProjects'));
+        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search', 'parentProjects', 'viewAll'));
     }
 
     public function create(Request $request)

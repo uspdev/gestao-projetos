@@ -94,4 +94,19 @@ class AdminController extends Controller
     {
         //
     }
+
+    /**
+     * Alterna a view de admin entre "apenas deles" e "tudo".
+     * Salva a preferência na sessão.
+     */
+    public function toggleViewAll()
+    {
+        // Alterna o valor na sessão (padrão é false - ver apenas os deles)
+        $currentValue = session('admin_view_all', false);
+        $newValue = !$currentValue;
+
+        session(['admin_view_all' => $newValue]);
+
+        return redirect()->back();
+    }
 }

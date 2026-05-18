@@ -133,6 +133,7 @@ Route::middleware('auth')->group(function () {
 // ==========================================
 Route::middleware(['auth', 'can:admin'])->group(function () {
     Route::resource('admin', AdminController::class);
+    Route::post('admin-view-toggle', [AdminController::class, 'toggleViewAll'])->name('admin.view-toggle');
 });
 
 Route::fallback(fn() => abort(404));

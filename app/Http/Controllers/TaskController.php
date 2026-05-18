@@ -43,26 +43,42 @@ class TaskController extends Controller
         session(['tasks_view' => $taskView]);
 
         $showDone = $request->boolean('show_done');
+        $viewAll = session('admin_view_all', false);
 
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
 
-        $tasks = $user->tasks()
-            ->with([
-                'project',
-                'users',
-            ])
-            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-            ->orderBy(
-                Project::select('name')
-                    ->whereColumn('projects.id', 'tasks.project_id')
-            )
-            ->latest()
-            ->get();
+        // Se o usuário é admin e quer ver todas as tasks, buscar de todos os projetos
+        if ($user->isAdmin() && $viewAll) {
+            $tasksQuery = Task::query()
+                ->with([
+                    'project',
+                    'users',
+                ])
+                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->orderBy(
+                    Project::select('name')
+                        ->whereColumn('projects.id', 'tasks.project_id')
+                )
+                ->latest();
+        } else {
+            $tasksQuery = $user->tasks()
+                ->with([
+                    'project',
+                    'users',
+                ])
+                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->orderBy(
+                    Project::select('name')
+                        ->whereColumn('projects.id', 'tasks.project_id')
+                )
+                ->latest();
+        }
 
+        $tasks = $tasksQuery->get();
         $tasks = $this->filterTasksByEnabledModule($tasks);
 
-        return view('tasks.index', compact('tasks', 'user', 'showDone'));
+        return view('tasks.index', compact('tasks', 'user', 'showDone', 'viewAll'));
     }
 
     /**

@@ -10,8 +10,14 @@
 
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center gap-2">
         <h2 class="mb-0">Meus Projetos</h2>
+        @include('projects.partials.components.admin-view-toggle-btn', [
+            'allViewLabel' => 'Ver todos',
+            'myViewLabel' => 'Ver meus',
+            'allViewTitle' => 'Mostrando todos os projetos',
+            'myViewTitle' => 'Mostrando apenas meus projetos',
+        ])
         @include('projects.partials.components.search-project-form')
       </div>
     </div>
