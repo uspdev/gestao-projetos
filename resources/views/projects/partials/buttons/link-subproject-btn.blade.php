@@ -1,9 +1,10 @@
 @php
   $linkableSubprojects = $linkableSubprojects ?? collect();
+  $canLinkSubprojects = !$project->isSubproject() && $project->projectType?->slug === 'organizacional';
 @endphp
 {{-- Permissão de storeMember atende os requesitos de que o usuário possa vincular subprojetos a este projeto --}}
 @can('storeMember', $project)
-  @if (!$project->isSubproject())
+  @if ($canLinkSubprojects)
     <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="modal" data-target="#linkSubprojectModal">
       <i class="fas fa-link"></i>
     </button>

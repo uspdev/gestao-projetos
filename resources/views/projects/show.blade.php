@@ -5,6 +5,10 @@
 @section('content')
   @php
     $tasksEnabled = $project->isModuleEnabled('tasks');
+    $activeResolvedModules = collect($resolvedModules ?? [])
+        ->filter(fn($module) => (bool) ($module['enabled'] ?? false))
+        ->values()
+        ->all();
   @endphp
 
   <div class="card">
@@ -16,10 +20,12 @@
           @include('comments.partials.thread', ['commentable' => $project, 'commentableType' => 'project'])
         </div>
         <div class="col-md-4">
-          @if (!$project->isSubproject())
+          @if (!$project->isSubproject() && $project->projectType?->slug === 'organizacional')
             @include('projects.partials.show.show-card-subprojects')
           @endif
-          @include('projects.partials.show.show-card-modulos')
+          @include('projects.partials.show.show-card-modulos', [
+              'resolvedModules' => $activeResolvedModules,
+          ])
         </div>
       </div>
     </div>
@@ -28,10 +34,4 @@
     @include('tasks.partials.components.task-form-modal')
   @endif
 
-  @if (!$project->isSubproject())
-    @include('projects.partials.buttons.create-btn', [
-        'showCreateButton' => false,
-        'contextParentProject' => $project,
-    ])
-  @endif
 @endsection

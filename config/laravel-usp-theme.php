@@ -21,6 +21,12 @@ $menu = [
         'url'  => 'admin',
         'can'  => 'admin',
     ],
+    [
+        'text' => '<span class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Novo Projeto</span>',
+        'url'  => 'projects/create',
+        'can'  => 'user',
+    ],
+
 ];
 
 $active_menu = [];

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     // Esta migration é responsável por popular as tabelas de módulos,
     // tipos de projeto e suas relações, garantindo que tenhamos uma configuração inicial
-    // para o tipo de projeto "Desenvolvimento" com os módulos "Tarefas" e "Reuniões".
+    // para os tipos de projeto "Software" e "Organizacional".
     // Ela também atualiza os projetos existentes para associá-los ao tipo de projeto "Desenvolvimento"
     // caso ainda não tenham um tipo definido. Isso foi feito para garantir que os projetos existentes tenham
     // uma configuração de módulos, não quebrando com essa implementação
@@ -23,7 +23,7 @@ return new class extends Migration
         $developmentType = [
             'name' => 'Software',
             'slug' => 'software',
-            'description' => 'Tipo de projeto para acompanhar o ciclo de vida de um software.',
+            'description' => 'Projeto operacional com fluxo de desenvolvimento, acompanhamento, gerenciamento de entregas, produção e atualizações.',
             'created_at' => $now,
             'updated_at' => $now,
         ];
@@ -35,6 +35,25 @@ return new class extends Migration
 
         $developmentTypeId = DB::table('project_types')
             ->where('slug', $developmentType['slug'])
+            ->value('id');
+
+        $organizationalType = [
+            'name' => 'Organizacional',
+            'slug' => 'organizacional',
+            'description' =>  'Estrutura organizacional para agrupar múltiplos projetos relacionados, permitindo gestão centralizada e visão
+            consolidada.<br>
+            Dentro do <b>container</b> pode-se criar quaisquer outros tipos de projetos.',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+
+        DB::table('project_types')->updateOrInsert(
+            ['slug' => $organizationalType['slug']],
+            $organizationalType
+        );
+
+        $organizationalTypeId = DB::table('project_types')
+            ->where('slug', $organizationalType['slug'])
             ->value('id');
 
         $modules = [
@@ -72,6 +91,24 @@ return new class extends Migration
 
                 DB::table('project_type_modules')->updateOrInsert(
                     ['project_type_id' => $developmentTypeId, 'module_id' => $moduleId],
+                    [
+                        'enabled' => true,
+                        'required' => false,
+                        'editable' => true,
+                        'config' => null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]
+                );
+            }
+        }
+
+        $organizationalModuleIds = DB::table('modules')->whereIn('slug', ['meetings'])->pluck('id', 'slug');
+
+        if ($organizationalTypeId) {
+            foreach ($organizationalModuleIds as $slug => $moduleId) {
+                DB::table('project_type_modules')->updateOrInsert(
+                    ['project_type_id' => $organizationalTypeId, 'module_id' => $moduleId],
                     [
                         'enabled' => true,
                         'required' => false,

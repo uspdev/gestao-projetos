@@ -14,7 +14,6 @@
         <h2 class="mb-0">Meus Projetos</h2>
         @include('projects.partials.components.search-project-form')
       </div>
-      @include('projects.partials.buttons.create-btn')
     </div>
 
     <section id="projetos-pinnados" class="mb-5">
