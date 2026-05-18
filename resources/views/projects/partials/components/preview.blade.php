@@ -18,8 +18,10 @@
         @method('PATCH')
 
         <button type="submit"
-          class="btn btn-sm {{ $isPinned ? 'btn-warning text-dark' : 'btn-outline-secondary' }} shadow-sm text-nowrap">
-          <i class="fas fa-thumbtack mr-1"></i>
+          class="badge badge-pill {{ $isPinned ? 'badge-warning text-dark' : 'badge-secondary' }} border-0 shadow-sm"
+          style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.75'"
+          onmouseout="this.style.opacity='1'">
+          <i class="fas fa-thumbtack"></i>
         </button>
       </form>
     </x-slot:action>
