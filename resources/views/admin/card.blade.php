@@ -30,7 +30,7 @@
       <div class="card h-100">
         <div class="card-body d-flex flex-column">
           <div class="d-flex justify-content-between align-items-start mb-3">
-            <h5 class="card-title mb-0">Programa / Container <span class="badge badge-success">Comece aqui</span></h5>
+            <h5 class="card-title mb-0">Organização / Programa / Container <span class="badge badge-success">Comece aqui</span></h5>
           </div>
           <p class="text-muted">
             Estrutura organizacional para agrupar múltiplos projetos relacionados, permitindo gestão centralizada e visão
@@ -56,7 +56,7 @@
             <h5 class="card-title mb-0">Software</h5>
           </div>
           <p class="text-muted">
-            Projeto operacional com fluxo completo de desenvolvimento, acompanhamento técnico e gerenciamento de entregas.
+            Projeto operacional com fluxo de desenvolvimento, acompanhamento, gerenciamento de entregas, produção e atualizações.
           </p>
           <div class="mb-3">
             <strong class="d-block mb-2">Módulos ativos</strong>

@@ -27,6 +27,9 @@ class AdminController extends Controller
      */
     public function index()
     {
+
+        // return view('admin.card');
+
         $stats['projects'] = Project::count();
         $stats['tasks'] = Task::count();
         $stats['users'] = User::count();
