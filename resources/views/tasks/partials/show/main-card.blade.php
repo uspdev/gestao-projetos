@@ -17,7 +17,7 @@
   <div class="card-body">
     <div class="text-dark text-justify" style="font-size: 1.1rem; line-height: 1.6;">
       @if ($task->description)
-        {!! linkify(nl2br(e($task->description))) !!}
+        <x-markdown-content :text="$task->description" />
       @else
         <div class="text-center text-muted p-5 bg-light rounded">
           <i class="fas fa-align-left fa-3x mb-3 text-secondary"></i>

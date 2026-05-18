@@ -38,7 +38,7 @@
             </div>
           </div>
           <div class="mt-2 text-dark">
-            {!! linkify(nl2br(e($comment->text))) !!}
+            <x-markdown-content :text="$comment->text" />
           </div>
         </li>
       @endforeach

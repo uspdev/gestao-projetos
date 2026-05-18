@@ -64,7 +64,7 @@
             <small class="text-muted d-block">Notas</small>
             @if ($meeting->notes)
               <div class="text-dark mt-2">
-                {!! linkify(nl2br(e($meeting->notes))) !!}
+                <x-markdown-content :text="$meeting->notes" />
               </div>
             @else
               <div class="text-muted">Nenhuma nota registrada.</div>

@@ -9,7 +9,7 @@
     {{-- Descrição --}}
     <div class="text-justify">
       @if ($project->description)
-        {!! md2html(linkify(nl2br(e($project->description)))) !!}
+        <x-markdown-content :text="$project->description" />
       @else
         <div class="text-center text-muted p-5 bg-light rounded">
           <i class="fas fa-align-left fa-3x mb-3 text-secondary"></i>
