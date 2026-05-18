@@ -16,10 +16,10 @@
           @include('comments.partials.thread', ['commentable' => $project, 'commentableType' => 'project'])
         </div>
         <div class="col-md-4">
-          @include('projects.partials.show.show-card-modulos')
           @if (!$project->isSubproject())
             @include('projects.partials.show.show-card-subprojects')
           @endif
+          @include('projects.partials.show.show-card-modulos')
         </div>
       </div>
     </div>
