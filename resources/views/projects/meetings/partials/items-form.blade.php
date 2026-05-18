@@ -80,7 +80,7 @@
 
       <div class="row">
         <div class="col-md-4">
-          <x-form.input type="number" name="order" label="Ordem" value="{{ $orderValue }}" min="0"
+          <x-form.input type="number" name="order" label="Ordem" value="{{ $orderValue }}" min="1"
             required />
         </div>
       </div>

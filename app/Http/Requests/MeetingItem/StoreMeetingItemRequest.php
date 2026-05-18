@@ -58,7 +58,7 @@ class StoreMeetingItemRequest extends FormRequest
 
         return [
             'discussable_type' => ['required', 'string', Rule::in(['project', 'task'])],
-            'order'            => ['required', 'integer', 'min:0'],
+            'order'            => ['required', 'integer', 'min:1'],
 
             'discussable_id'   => [
                 'required',

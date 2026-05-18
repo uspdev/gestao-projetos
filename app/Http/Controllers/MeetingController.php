@@ -165,12 +165,24 @@ public function storeItem(StoreMeetingItemRequest $request, Project $project, Me
     {
         $discussable = $request->discussable();
 
-        DB::transaction(function () use ($request, $meeting, $discussable) {
+        $requestedOrder = (int) $request->validated('order');
+        DB::transaction(function () use ($meeting, $discussable, $requestedOrder) {
+            $maxOrder = (int) ($meeting->meetingItems()->max('order') ?? 0);
+            $order = $requestedOrder;
+
+            if ($order > $maxOrder + 1) {
+                $order = $maxOrder + 1;
+            }
+
+            $meeting->meetingItems()
+                ->where('order', '>=', $order)
+                ->increment('order');
+
             MeetingItem::create([
                 'meeting_id'       => $meeting->id,
                 'discussable_type' => $discussable::class,
                 'discussable_id'   => $discussable->getKey(),
-                'order'            => $request->validated('order'),
+                'order'            => $order,
             ]);
         });
 
