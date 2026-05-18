@@ -35,15 +35,25 @@
 
       @if ($tasksEnabled)
         <a href="{{ route('projects.tasks.index', $project) }}"
-          class="btn btn-sm {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+          class="btn btn-sm position-relative {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
           Tarefas
+          @if ($project->getIncompleteTasksCount() > 0)
+            <span class="badge badge-pill badge-warning" style="position: absolute; top: -8px; right: -8px;">
+              {{ $project->getIncompleteTasksCount() }}
+            </span>
+          @endif
         </a>
       @endif
 
       @if ($meetingsEnabled)
         <a href="{{ route('projects.meetings.index', $project) }}"
-          class="btn btn-sm {{ $routeName === 'projects.meetings.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+          class="btn btn-sm position-relative {{ $routeName === 'projects.meetings.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
           Reuniões
+          @if ($project->getIncompleteMeetingsCount() > 0)
+            <span class="badge badge-pill badge-warning" style="position: absolute; top: -8px; right: -8px;">
+              {{ $project->getIncompleteMeetingsCount() }}
+            </span>
+          @endif
         </a>
       @endif
 
@@ -57,7 +67,8 @@
   <div class="d-flex align-items-center gap-2">
     @include('projects.partials.show.show-tag-badges')
 
-    <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm
+    <a href="{{ route('projects.settings', $project) }}"
+      class="btn btn-sm
      {{ $routeName === 'projects.settings' ? 'btn-warning' : 'btn-outline-warning' }}">
       <i class="fas fa-cog"></i>
     </a>

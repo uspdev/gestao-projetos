@@ -250,13 +250,13 @@ class Project extends Model
         });
     }
 
-public function scopeAvailableForMeetings(Builder $query, User $user): Builder
+    public function scopeAvailableForMeetings(Builder $query, User $user): Builder
     {
         return $query
             ->accessibleBy($user)
             ->whereHas('modules', function (Builder $q) {
                 $q->where('modules.slug', 'meetings')
-                  ->where('project_modules.enabled', true);
+                    ->where('project_modules.enabled', true);
             });
     }
 
@@ -333,6 +333,20 @@ public function scopeAvailableForMeetings(Builder $query, User $user): Builder
 
         $tagsToSync = Tag::whereIn('id', $tagIds)->get();
         $this->syncTagsWithType($tagsToSync, Tag::TYPE_PROJECT);
+    }
+
+    public function getIncompleteTasksCount(): int
+    {
+        return $this->tasks()
+            ->where('status', '!=', \App\Enums\Task\TaskStatus::DONE)
+            ->count();
+    }
+
+    public function getIncompleteMeetingsCount(): int
+    {
+        return $this->meetings()
+            ->where('status', '!=', \App\Enums\Meeting\MeetingStatus::COMPLETED)
+            ->count();
     }
 
     private function parseProjectUserRole(mixed $roleValue): ?ProjectUserRole
