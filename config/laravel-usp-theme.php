@@ -16,6 +16,11 @@ $menu = [
         'url'  => 'meu-perfil',
         'can'  => 'user',
     ],
+    [
+        'text' => '<span class="text-danger">Admin</span>',
+        'url'  => 'admin',
+        'can'  => 'admin',
+    ],
 ];
 
 $active_menu = [];
@@ -58,7 +63,7 @@ return [
     # menus
     'menu' => $menu,
     'right_menu' => $right_menu,
-    'active_menu' => $active_menu,
+    // 'active_menu' => $active_menu,
 
     # mensagens flash - https://uspdev.github.io/laravel#31-mensagens-flash
     'mensagensFlash' => true,

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\ProjectController;
@@ -120,6 +121,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/meus-projetos', fn() => redirect()->route('projects.index'));
     Route::get('/minhas-tasks', fn() => redirect()->route('tasks.index'));
     Route::get('/meu-perfil', fn() => redirect()->route('users.show', Auth::id()));
+});
+
+// ==========================================
+// ADMIN
+// ==========================================
+Route::middleware(['auth', 'can:admin'])->group(function () {
+    Route::resource('admin', AdminController::class);
 });
 
 Route::fallback(fn() => abort(404));
