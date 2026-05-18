@@ -91,9 +91,11 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // BLOCO 3: REUNIOES
     // ==========================================
-    Route::resource('projects.meetings', MeetingController::class);
+    Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])->name('meetings.updateStatus');
     Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
         ->name('projects.meetings.items.store');
+
+    Route::resource('projects.meetings', MeetingController::class);
 
 
 

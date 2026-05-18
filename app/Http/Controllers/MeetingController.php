@@ -6,6 +6,7 @@ use App\Enums\Meeting\MeetingStatus;
 use App\Http\Requests\Meeting\StoreMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingRequest;
 use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
+use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\MeetingItem;
@@ -179,5 +180,19 @@ class MeetingController extends Controller
 
         return redirect()->back()
             ->with('alert-success', 'Item de pauta adicionado com sucesso!');
+    }
+
+    public function updateStatus(UpdateMeetingStatusRequest $request, Project $project, Meeting $meeting)
+    {
+
+        DB::transaction(function () use ($project, $request) {
+            $data = $request->validated();
+            $data['updated_by'] = Auth::id();
+
+            $meeting->update($data);
+        });
+
+        return redirect()->route('projects.meetings.show', [$project, $meeting])
+            ->with('alert-success', 'Status da reunião atualizado com sucesso!');
     }
 }
