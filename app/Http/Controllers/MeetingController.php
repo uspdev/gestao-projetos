@@ -161,20 +161,16 @@ class MeetingController extends Controller
             ->with('alert-success', 'Reuniao removida com sucesso!');
     }
 
-    public function storeItem(StoreMeetingItemRequest $request, Project $project, Meeting $meeting)
+public function storeItem(StoreMeetingItemRequest $request, Project $project, Meeting $meeting)
     {
         $discussable = $request->discussable();
 
-        abort_unless($discussable, 404);
-
         DB::transaction(function () use ($request, $meeting, $discussable) {
-            $data = $request->validated();
-
             MeetingItem::create([
-                'meeting_id' => $meeting->id,
+                'meeting_id'       => $meeting->id,
                 'discussable_type' => $discussable::class,
-                'discussable_id' => $discussable->getKey(),
-                'order' => $data['order'],
+                'discussable_id'   => $discussable->getKey(),
+                'order'            => $request->validated('order'),
             ]);
         });
 
