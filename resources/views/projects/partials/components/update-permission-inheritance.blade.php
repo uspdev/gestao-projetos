@@ -1,5 +1,5 @@
 @can('update', $project)
-  <div class="dropdown">
+  <div class="dropdown position-static">
     <button class="btn btn-sm {{ $project->permission_inheritance?->color() ?? 'badge-light text-dark' }}" type="button"
       id="project-permission-inheritance-dropdown-{{ $project->id }}" data-toggle="dropdown" aria-haspopup="true"
       aria-expanded="false" title="Alterar heranca de permissoes">

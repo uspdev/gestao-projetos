@@ -137,8 +137,7 @@
   }
 </style>
 
-<div class="settings-card">
-
+<div class="settings-card mb-3">
   {{-- Seção: Informações gerais --}}
   <div class="settings-section-header">Informações gerais</div>
   <table class="table settings-table">
@@ -185,7 +184,9 @@
       </tr>
     </tbody>
   </table>
+</div>
 
+<div class="settings-card mb-3">
   {{-- Seção: Acesso e permissões --}}
   <div class="settings-section-header">Acesso e permissões</div>
   <table class="table settings-table">
@@ -210,7 +211,9 @@
       </tr>
     </tbody>
   </table>
+</div>
 
+<div class="settings-card mb-3">
   {{-- Seção: Classificação --}}
   <div class="settings-section-header">Classificação</div>
   <table class="table settings-table">
