@@ -11,13 +11,23 @@
         <i class="fas fa-home"></i>
       </a>
       <x-separator />
+
       @if ($project->isSubproject() && $project->parent)
         <a href="{{ route('projects.show', $project->parent) }}" class="text-decoration-none text-secondary">
           {{ $project->parent->name }}
         </a>
         <x-separator />
       @endif
+
       <span>{{ $project->name }}</span>
+
+      @if ($project->isSubproject())
+        <span class="badge badge-pill badge-info" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;"
+          title="Este projeto é um subprojeto">
+          SUB
+        </span>
+      @endif
+
       <a href="{{ route('projects.show', $project) }}"
         class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
         Visão geral
@@ -36,21 +46,18 @@
           Reuniões
         </a>
       @endif
-      <span class="badge badge-pill badge-primary" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;">
-        {{ $project->status?->label() }}</span>
-      @if ($project->isSubproject())
-        <span class="badge badge-pill badge-info" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">
-          SUBPROJETO
-        </span>
-      @endif
+
+      <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm btn-outline-secondary">
+        Fase > <span class="badge {{ $project->phase->color() }}">{{ $project->phase->label() }}</span>
+      </a>
+
     </div>
   </div>
 
   <div class="d-flex align-items-center gap-2">
     @include('projects.partials.show.show-tag-badges')
 
-    <a href="{{ route('projects.settings', $project) }}"
-      class="btn btn-sm
+    <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm
      {{ $routeName === 'projects.settings' ? 'btn-warning' : 'btn-outline-warning' }}">
       <i class="fas fa-cog"></i>
     </a>
