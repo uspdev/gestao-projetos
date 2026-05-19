@@ -1,7 +1,16 @@
 @php
   $meetingItems = $meetingItems ?? collect();
   $meetingProjects = $meetingProjects ?? collect();
-  $typeValue = old('discussable_type', 'task');
+  $discussableOptions = \App\Support\MorphTypes::discussableOptions();
+  
+  $projectTypeKey = array_search(\App\Models\Project::class, $discussableOptions) ?: 'project';
+  $taskTypeKey = array_search(\App\Models\Task::class, $discussableOptions) ?: 'task';
+  
+  $defaultType = array_key_exists($taskTypeKey, $discussableOptions)
+      ? $taskTypeKey
+      : (array_key_first($discussableOptions) ?: $taskTypeKey);
+      
+  $typeValue = old('discussable_type', $defaultType);
   $nextOrder = (int) ($meetingItems->max('order') ?? 0) + 1;
   $orderValue = old('order', $nextOrder);
 @endphp
@@ -20,8 +29,11 @@
             <label for="meeting-item-type">Tipo <span class="text-danger">*</span></label>
             <select name="discussable_type" id="meeting-item-type"
               class="form-control @error('discussable_type') is-invalid @enderror" required>
-              <option value="project" {{ $typeValue === 'project' ? 'selected' : '' }}>Projeto</option>
-              <option value="task" {{ $typeValue === 'task' ? 'selected' : '' }}>Tarefa</option>
+              @foreach ($discussableOptions as $typeKey => $className)
+                <option value="{{ $typeKey }}" {{ $typeValue === $typeKey ? 'selected' : '' }}>
+                  {{ $typeKey === 'project' ? 'Projeto' : ($typeKey === 'task' ? 'Tarefa' : ucfirst($typeKey)) }}
+                </option>
+              @endforeach
             </select>
             @error('discussable_type')
               <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -31,11 +43,11 @@
 
         <div class="col-md-8">
           <div class="form-group mb-3" id="meeting-item-project-group"
-            @if ($typeValue !== 'project') style="display:none;" @endif>
+            @if ($typeValue !== $projectTypeKey) style="display:none;" @endif>
             <label for="meeting-item-project">Projeto <span class="text-danger">*</span></label>
             <select name="discussable_id" id="meeting-item-project"
               class="form-control @error('discussable_id') is-invalid @enderror"
-              @if ($typeValue !== 'project') disabled @endif>
+              @if ($typeValue !== $projectTypeKey) disabled @endif>
               <option value="">Selecione...</option>
               @foreach ($meetingProjects as $meetingProject)
                 <option value="{{ $meetingProject->id }}"
@@ -56,11 +68,11 @@
           </div>
 
           <div class="form-group mb-3" id="meeting-item-task-group"
-            @if ($typeValue !== 'task') style="display:none;" @endif>
+            @if ($typeValue !== $taskTypeKey) style="display:none;" @endif>
             <label for="meeting-item-task">Tarefa <span class="text-danger">*</span></label>
             <select name="discussable_id" id="meeting-item-task"
               class="form-control @error('discussable_id') is-invalid @enderror"
-              @if ($typeValue !== 'task') disabled @endif>
+              @if ($typeValue !== $taskTypeKey) disabled @endif>
               <option value="">Selecione...</option>
               @foreach ($meetingProjects as $meetingProject)
                 @foreach ($meetingProject->tasks as $task)
@@ -103,6 +115,8 @@
         var taskGroup = document.getElementById('meeting-item-task-group');
         var projectSelect = document.getElementById('meeting-item-project');
         var taskSelect = document.getElementById('meeting-item-task');
+        var projectType = @json($projectTypeKey);
+        var taskType = @json($taskTypeKey);
 
         if (!typeSelect || !projectGroup || !taskGroup || !projectSelect || !taskSelect) {
           return;
@@ -110,12 +124,13 @@
 
         function toggleDiscussable() {
           var type = typeSelect.value;
-          var isProject = type === 'project';
+          var isProject = type === projectType;
+          var isTask = type === taskType;
 
           projectGroup.style.display = isProject ? '' : 'none';
-          taskGroup.style.display = isProject ? 'none' : '';
+          taskGroup.style.display = isTask ? '' : 'none';
           projectSelect.disabled = !isProject;
-          taskSelect.disabled = isProject;
+          taskSelect.disabled = !isTask;
         }
 
         typeSelect.addEventListener('change', toggleDiscussable);

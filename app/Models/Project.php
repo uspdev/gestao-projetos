@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Discussable;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectPhase;
 use App\Enums\Project\ProjectStatus;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Tags\HasTags;
 
-class Project extends Model
+class Project extends Model implements Discussable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug;
 
@@ -130,6 +131,11 @@ class Project extends Model
     public function meetingItems(): MorphMany
     {
         return $this->morphMany(MeetingItem::class, 'discussable');
+    }
+
+    public function parentProjectId(): ?int
+    {
+        return $this->parent_id ?: $this->getKey();
     }
 
     /**

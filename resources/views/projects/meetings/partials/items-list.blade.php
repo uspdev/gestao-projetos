@@ -2,9 +2,7 @@
   $meetingItems = $meetingItems ?? collect();
   $meeting = $meeting ?? null;
   $project = $project ?? null;
-  $canRemove = $meeting
-      && $project
-      && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
+  $canRemove = $meeting && $project && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
 <div class="card mb-4 shadow-sm">
@@ -20,15 +18,27 @@
         @foreach ($meetingItems as $item)
           @php
             $discussable = $item->discussable;
-            $isTask = $discussable instanceof \App\Models\Task;
-            $isProject = $discussable instanceof \App\Models\Project;
-            $title = $isTask ? $discussable->title : ($isProject ? $discussable->name : 'Item removido');
-            $link = $isTask
-                ? route('tasks.show', $discussable)
-                : ($isProject
-                    ? route('projects.show', $discussable)
-                    : null);
-            $typeLabel = $isTask ? 'Tarefa' : ($isProject ? 'Projeto' : 'Outro');
+            $title = 'Item removido';
+            $link = null;
+            $typeLabel = 'Outro';
+
+            if ($discussable) {
+                $morphClass = $discussable->getMorphClass();
+
+                $typeLabel = match ($morphClass) {
+                    'project' => 'Projeto',
+                    'task'    => 'Tarefa',
+                    default   => ucfirst($morphClass),
+                };
+
+                $title = $discussable->title ?? $discussable->name ?? "Item #{$discussable->id}";
+
+                $link = match ($morphClass) {
+                    'task'    => route('tasks.show', $discussable),
+                    'project' => route('projects.show', $discussable),
+                    default   => null,
+                };
+            }
           @endphp
           <li class="list-group-item d-flex align-items-start justify-content-between">
             <div>

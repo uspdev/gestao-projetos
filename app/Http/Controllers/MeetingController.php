@@ -161,7 +161,7 @@ class MeetingController extends Controller
             ->with('alert-success', 'Reuniao removida com sucesso!');
     }
 
-public function storeItem(StoreMeetingItemRequest $request, Project $project, Meeting $meeting)
+    public function storeItem(StoreMeetingItemRequest $request, Project $project, Meeting $meeting)
     {
         $discussable = $request->discussable();
 
@@ -180,7 +180,7 @@ public function storeItem(StoreMeetingItemRequest $request, Project $project, Me
 
             MeetingItem::create([
                 'meeting_id'       => $meeting->id,
-                'discussable_type' => $discussable::class,
+                'discussable_type' => $discussable->getMorphClass(),
                 'discussable_id'   => $discussable->getKey(),
                 'order'            => $order,
             ]);

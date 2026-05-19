@@ -9,7 +9,7 @@
       <div class="row">
         <div class="col-md-8">
           @include('tasks.partials.show.main-card')
-          @include('comments.partials.thread', ['commentable' => $task, 'commentableType' => 'task'])
+          @include('comments.partials.thread', ['commentable' => $task])
         </div>
         <div class="col-md-4">
           @include('tasks.partials.show.info-card')

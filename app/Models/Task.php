@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Discussable;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Tag;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Tags\HasTags;
 
-class Task extends Model
+class Task extends Model implements Discussable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags;
 
@@ -65,6 +66,11 @@ class Task extends Model
     public function meetingItems(): MorphMany
     {
         return $this->morphMany(MeetingItem::class, 'discussable');
+    }
+
+    public function parentProjectId(): ?int
+    {
+        return $this->project_id ?: null;
     }
 
     public function availableTags()

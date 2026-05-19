@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\MeetingItem;
 
+use App\Contracts\Discussable;
 use App\Models\Meeting;
 use App\Models\Project;
-use App\Models\Task;
+use App\Support\MorphTypes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -37,11 +38,12 @@ class StoreMeetingItemRequest extends FormRequest
             abort(404, 'O item (projeto ou tarefa) que você está tentando vincular não foi encontrado.');
         }
 
-        $projectId = $discussable instanceof Project
-            ? $discussable->id
-            : $discussable->project_id;
+        $parentProjectId = $this->resolveParentProjectId($discussable);
+        if (!$parentProjectId) {
+            throw new AuthorizationException('O item de pauta é inválido.');
+        }
 
-        if (!$meeting->projects()->where('projects.id', $projectId)->exists()) {
+        if (!$meeting->projects()->where('projects.id', $parentProjectId)->exists()) {
             throw new AuthorizationException('Este item pertence a um projeto que não está vinculado a esta reunião.');
         }
 
@@ -52,20 +54,25 @@ class StoreMeetingItemRequest extends FormRequest
     {
         $meeting = $this->route('meeting');
 
-        // Resolve a classe completa baseada no input (ex: 'task' vira 'App\Models\Task')
         $typeInput = (string) $this->input('discussable_type', '');
-        $discussableClass = $this->resolveDiscussableClass($typeInput);
+        $discussableClass = MorphTypes::resolveDiscussableClass($typeInput);
+
+        $discussableType = $discussableClass
+            ? (new $discussableClass)->getMorphClass()
+            : $typeInput;
+
+        $allowedTypes = MorphTypes::allowedDiscussableValues();
 
         return [
-            'discussable_type' => ['required', 'string', Rule::in(['project', 'task'])],
+            'discussable_type' => ['required', 'string', Rule::in($allowedTypes)],
             'order'            => ['required', 'integer', 'min:1'],
 
             'discussable_id'   => [
                 'required',
                 'integer',
-                Rule::unique('meeting_items')->where(function ($query) use ($meeting, $discussableClass) {
+                Rule::unique('meeting_items')->where(function ($query) use ($meeting, $discussableType) {
                     return $query->where('meeting_id', $meeting->id)
-                        ->where('discussable_type', $discussableClass);
+                        ->where('discussable_type', $discussableType);
                 }),
             ],
         ];
@@ -75,14 +82,14 @@ class StoreMeetingItemRequest extends FormRequest
     {
         return [
             'discussable_type.required' => 'Informe o tipo do item de pauta.',
-            'discussable_type.string' => 'O tipo do item de pauta e invalido.',
-            'discussable_type.in' => 'O tipo do item de pauta e invalido.',
-            'discussable_id.required' => 'Informe o item de pauta.',
-            'discussable_id.integer' => 'O item de pauta e invalido.',
-            'discussable_id.unique' => 'Este item já foi adicionado à pauta desta reunião.',
-            'order.required' => 'Informe a ordem do item.',
-            'order.integer' => 'A ordem do item e invalida.',
-            'order.min' => 'A ordem do item deve ser maior ou igual a :min.',
+            'discussable_type.string'   => 'O tipo do item de pauta é inválido.',
+            'discussable_type.in'       => 'O tipo do item de pauta é inválido.',
+            'discussable_id.required'   => 'Informe o item de pauta.',
+            'discussable_id.integer'    => 'O item de pauta é inválido.',
+            'discussable_id.unique'     => 'Este item já foi adicionado à pauta desta reunião.',
+            'order.required'            => 'Informe a ordem do item.',
+            'order.integer'             => 'A ordem do item é inválida.',
+            'order.min'                 => 'A ordem do item deve ser maior ou igual a :min.',
         ];
     }
 
@@ -100,13 +107,13 @@ class StoreMeetingItemRequest extends FormRequest
 
             $discussable = $this->discussable();
             if (!$discussable) {
-                $validator->errors()->add('discussable_id', 'O item de pauta nao foi encontrado.');
+                $validator->errors()->add('discussable_id', 'O item de pauta não foi encontrado.');
                 return;
             }
 
             $parentProjectId = $this->resolveParentProjectId($discussable);
             if (!$parentProjectId) {
-                $validator->errors()->add('discussable_id', 'O item de pauta e invalido.');
+                $validator->errors()->add('discussable_id', 'O item de pauta é inválido.');
                 return;
             }
 
@@ -117,7 +124,7 @@ class StoreMeetingItemRequest extends FormRequest
             if (!$linked) {
                 $validator->errors()->add(
                     'discussable_id',
-                    'A reuniao nao esta vinculada ao projeto pai deste item.'
+                    'A reunião não está vinculada ao projeto pai deste item.'
                 );
             }
         });
@@ -132,7 +139,7 @@ class StoreMeetingItemRequest extends FormRequest
             return null;
         }
 
-        $class = $this->resolveDiscussableClass($type);
+        $class = MorphTypes::resolveDiscussableClass($type);
         if (!$class) {
             return null;
         }
@@ -140,25 +147,12 @@ class StoreMeetingItemRequest extends FormRequest
         return $class::query()->find($id);
     }
 
-    private function resolveDiscussableClass(string $type): ?string
-    {
-        return match (strtolower($type)) {
-            'project' => Project::class,
-            'task' => Task::class,
-            default => null,
-        };
-    }
-
     private function resolveParentProjectId(Model $discussable): ?int
     {
-        if ($discussable instanceof Task) {
-            return $discussable->project_id ?: null;
+        if (!$discussable instanceof Discussable) {
+            return null;
         }
 
-        if ($discussable instanceof Project) {
-            return $discussable->parent_id ?: $discussable->getKey();
-        }
-
-        return null;
+        return $discussable->parentProjectId();
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Comment;
 
-use App\Models\Project;
-use App\Models\Task;
+use App\Support\MorphTypes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCommentRequest extends FormRequest
 {
@@ -23,7 +23,7 @@ class StoreCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'commentable_type' => ['required', 'string'],
+            'commentable_type' => ['required', 'string', Rule::in(MorphTypes::allowedCommentableValues())],
             'commentable_id' => ['required', 'integer'],
             'text' => ['required', 'string', 'max:10000'],
             'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
@@ -35,6 +35,7 @@ class StoreCommentRequest extends FormRequest
         return [
             'commentable_type.required' => 'Informe o tipo da entidade comentada.',
             'commentable_type.string' => 'O tipo da entidade comentada é inválido.',
+            'commentable_type.in' => 'O tipo da entidade comentada é inválido.',
             'commentable_id.required' => 'Informe a entidade comentada.',
             'commentable_id.integer' => 'A entidade comentada é inválida.',
             'text.required' => 'O comentário é obrigatório.',
@@ -53,33 +54,12 @@ class StoreCommentRequest extends FormRequest
             return null;
         }
 
-        $commentableClass = $this->normalizeCommentableType($type);
+        $commentableClass = MorphTypes::resolveCommentableClass($type);
 
         if (!$commentableClass) {
             return null;
         }
 
         return $commentableClass::query()->find($id);
-    }
-
-    private function normalizeCommentableType(string $type): ?string
-    {
-        $map = [
-            'project' => Project::class,
-            'task' => Task::class,
-        ];
-
-        $normalized = strtolower($type);
-        $candidate = $map[$normalized] ?? $type;
-
-        if (!class_exists($candidate)) {
-            return null;
-        }
-
-        if (!is_subclass_of($candidate, Model::class)) {
-            return null;
-        }
-
-        return $candidate;
     }
 }

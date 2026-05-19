@@ -20,7 +20,7 @@ class CommentController extends Controller
 
             Comment::create([
                 'user_id' => Auth::id(),
-                'commentable_type' => $commentable::class,
+                'commentable_type' => $commentable->getMorphClass(),
                 'commentable_id' => $commentable->getKey(),
                 'parent_id' => $data['parent_id'] ?? null,
                 'text' => $data['text'],

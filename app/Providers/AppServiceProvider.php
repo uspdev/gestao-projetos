@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Support\MorphTypes;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Support\Facades\Event;
@@ -28,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Relation::morphMap(MorphTypes::morphMap());
+
         View::composer('laravel-usp-theme::master', function () {
             $routeName = request()->route()?->getName();
 

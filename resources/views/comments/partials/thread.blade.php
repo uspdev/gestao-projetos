@@ -1,12 +1,5 @@
 @php
-  $commentableType =
-      $commentableType ??
-      ($commentable instanceof \App\Models\Project
-          ? 'project'
-          : ($commentable instanceof \App\Models\Task
-              ? 'task'
-              : get_class($commentable)));
-
+  $commentableType = $commentableType ?? $commentable->getMorphClass();
   $comments = $commentable->comments()->active()->with('user')->oldest()->get();
 @endphp
 
