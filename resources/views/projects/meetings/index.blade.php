@@ -6,37 +6,40 @@
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-header h5 d-flex align-items-center justify-content-between">
-          <span><i class="far fa-calendar-alt mr-1"></i> Reunioes</span>
-          @can('create', [\App\Models\Meeting::class, $project])
-            <a href="{{ route('projects.meetings.create', $project) }}" class="btn btn-sm btn-outline-success">
-              <i class="fas fa-plus"></i> Nova reuniao
-            </a>
-          @endcan
+      <div class="row">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+          <div class="card shadow-sm">
+            <div class="card-header h5 d-flex align-items-center justify-content-between">
+              <span><i class="far fa-calendar-alt mr-1"></i> Reunioes</span>
+              <span class="badge badge-secondary">{{ $meetings->count() }}</span>
+            </div>
+
+            <div class="card-body d-flex flex-column">
+              <p class="text-muted mb-4">
+                Acompanhe as reunioes do projeto em uma visualizacao mais direta e responsiva.
+              </p>
+
+              @can('create', [\App\Models\Meeting::class, $project])
+                <a href="{{ route('projects.meetings.create', $project) }}" class="btn btn-success btn-block mt-auto">
+                  <i class="fas fa-plus"></i> Nova reuniao
+                </a>
+              @endcan
+            </div>
+          </div>
         </div>
 
-        <div class="card-body">
+        <div class="col-lg-8">
           @if ($meetings->isEmpty())
             <div class="alert alert-light border text-muted mb-0">Nenhuma reuniao cadastrada.</div>
           @else
-            <div class="list-group">
+            <div class="row">
               @foreach ($meetings as $meeting)
-                <a href="{{ route('projects.meetings.show', [$project, $meeting]) }}"
-                  class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                  <div>
-                    <div class="font-weight-bold">{{ $meeting->title }}</div>
-                    <small class="text-muted">
-                      <x-local-date :date="$meeting->scheduled_at" empty="-" />
-                      @if ($meeting->location)
-                        <span class="ml-1">- {{ $meeting->location }}</span>
-                      @endif
-                    </small>
-                  </div>
-                  <span class="badge {{ $meeting->status?->color() ?? 'badge-light text-dark' }}">
-                    {{ $meeting->status?->label() ?? '-' }}
-                  </span>
-                </a>
+                <div class="col-md-6 mb-4">
+                  @include('projects.meetings.partials.index-item', [
+                      'project' => $project,
+                      'meeting' => $meeting,
+                  ])
+                </div>
               @endforeach
             </div>
           @endif

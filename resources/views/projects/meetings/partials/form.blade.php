@@ -1,5 +1,4 @@
 @php
-  $meeting = $meeting ?? null;
   $method = $method ?? 'POST';
   $statusValue = old('status', $meeting?->status?->value ?? \App\Enums\Meeting\MeetingStatus::SCHEDULED->value);
   $scheduledValue = old('scheduled_at', $meeting?->scheduled_at?->format('Y-m-d\TH:i'));
@@ -57,8 +56,8 @@
     <div class="col-12">
       <div class="form-group mb-3">
         <label for="projects">Projetos vinculados <span class="text-danger">*</span></label>
-        <select name="projects[]" id="projects" multiple
-          class="form-control @error('projects') is-invalid @enderror @error('projects.*') is-invalid @enderror">
+        <select name="projects[]" id="projects" multiple style="width: 100%;"
+          class="form-control select2-meeting-projects @error('projects') is-invalid @enderror @error('projects.*') is-invalid @enderror">
           @foreach ($availableProjects as $availableProject)
             <option value="{{ $availableProject->id }}"
               {{ in_array($availableProject->id, $selectedProjects, true) ? 'selected' : '' }}>
@@ -75,6 +74,30 @@
       </div>
     </div>
   </div>
+
+  @once
+    @push('scripts')
+      <script>
+        $(document).ready(function() {
+          $('.select2-meeting-projects').each(function() {
+            var $element = $(this);
+            var $modal = $element.closest('.modal');
+
+            $element.select2({
+              placeholder: 'Selecione os projetos...',
+              allowClear: true,
+              dropdownParent: $modal.length ? $modal : $(document.body),
+              width: '100%'
+            });
+          });
+
+          if ($.fn.modal) {
+            $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+          }
+        });
+      </script>
+    @endpush
+  @endonce
 
   <div class="d-flex justify-content-end">
     <button type="submit" class="btn btn-primary">

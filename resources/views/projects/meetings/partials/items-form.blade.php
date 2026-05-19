@@ -2,14 +2,14 @@
   $meetingItems = $meetingItems ?? collect();
   $meetingProjects = $meetingProjects ?? collect();
   $discussableOptions = \App\Support\MorphTypes::discussableOptions();
-  
+
   $projectTypeKey = array_search(\App\Models\Project::class, $discussableOptions) ?: 'project';
   $taskTypeKey = array_search(\App\Models\Task::class, $discussableOptions) ?: 'task';
-  
+
   $defaultType = array_key_exists($taskTypeKey, $discussableOptions)
       ? $taskTypeKey
       : (array_key_first($discussableOptions) ?: $taskTypeKey);
-      
+
   $typeValue = old('discussable_type', $defaultType);
   $nextOrder = (int) ($meetingItems->max('order') ?? 0) + 1;
   $orderValue = old('order', $nextOrder);

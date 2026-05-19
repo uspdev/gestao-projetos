@@ -6,34 +6,31 @@
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
-      <div class="card mb-4 shadow-sm">
-        <div class="card-header h5">
-          <i class="far fa-edit mr-1"></i> Editar reuniao
+      <div class="row">
+        <div class="col-lg-8 mb-4 mb-lg-0">
+          <div class="card shadow-sm mb-4">
+            <div class="card-header h5">
+              <i class="far fa-edit mr-1"></i> Editar reuniao
+            </div>
+            <div class="card-body">
+              @include('projects.meetings.partials.form', [
+                  'action' => route('projects.meetings.update', [$project, $meeting]),
+                  'method' => 'PUT',
+              ])
+            </div>
+          </div>
+
+          @include('comments.partials.thread', ['commentable' => $meeting])
         </div>
-        <div class="card-body">
-          @include('projects.meetings.partials.form', [
-              'action' => route('projects.meetings.update', [$project, $meeting]),
-              'method' => 'PUT',
-              'meeting' => $meeting,
-              'availableProjects' => $availableProjects,
-              'selectedProjects' => $selectedProjects,
+
+        <div class="col-lg-4">
+          @include('projects.meetings.partials.overview-card', [
+              'showActions' => false,
           ])
+          @include('projects.meetings.partials.items-form')
+          @include('projects.meetings.partials.items-list')
         </div>
       </div>
-
-        @include('projects.meetings.partials.items-list', [
-          'meetingItems' => $meetingItems,
-          'meeting' => $meeting,
-          'project' => $project,
-        ])
-      @include('projects.meetings.partials.items-form', [
-          'project' => $project,
-          'meeting' => $meeting,
-          'meetingItems' => $meetingItems,
-          'meetingProjects' => $meetingProjects,
-      ])
-
-      @include('comments.partials.thread', ['commentable' => $meeting])
     </div>
   </div>
 @endsection

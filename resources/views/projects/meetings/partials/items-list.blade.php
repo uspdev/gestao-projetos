@@ -12,7 +12,11 @@
   </div>
   <div class="card-body">
     @if ($meetingItems->isEmpty())
-      <div class="alert alert-light border text-muted mb-0">Nenhum item cadastrado.</div>
+      <div class="text-center text-muted p-4 bg-light rounded border">
+        <i class="fas fa-clipboard-list fa-2x mb-3 text-secondary"></i>
+        <div class="font-weight-bold mb-1">Nenhum item cadastrado</div>
+        <div>Adicione projetos ou tarefas para montar a pauta da reunião.</div>
+      </div>
     @else
       <ul class="list-group list-group-flush">
         @foreach ($meetingItems as $item)
@@ -40,32 +44,44 @@
                 };
             }
           @endphp
-          <li class="list-group-item d-flex align-items-start justify-content-between">
-            <div>
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge badge-light border text-muted">#{{ $item->order }}</span>
-                <span class="badge badge-secondary">{{ $typeLabel }}</span>
+          <li class="list-group-item px-0 py-3">
+            <div class="d-flex align-items-start justify-content-between gap-3">
+              <div class="d-flex align-items-start" style="gap: 0.75rem;">
+                <div class="badge badge-light border text-muted px-2 py-2">#{{ $item->order }}</div>
+
+                <div>
+                  <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+                    <span class="badge {{ $badgeClass }}">{{ $typeLabel }}</span>
+
+                    @if ($link)
+                      <a href="{{ $link }}" class="text-decoration-none font-weight-bold text-dark">
+                        {{ $title }}
+                      </a>
+                    @else
+                      <span class="font-weight-bold text-muted">{{ $title }}</span>
+                    @endif
+                  </div>
+
+                  <div class="text-muted small mt-1">
+                    {{ $subtitle }}
+                  </div>
+                </div>
               </div>
-              <div class="mt-2">
-                @if ($link)
-                  <a href="{{ $link }}" class="text-decoration-none font-weight-bold">{{ $title }}</a>
-                @else
-                  <span class="text-muted">{{ $title }}</span>
-                @endif
-              </div>
+
+              @if ($canRemove)
+                @can('update', [$meeting, $project])
+                  <form method="POST"
+                    action="{{ route('projects.meetings.items.destroy', [$project, $meeting, $item]) }}"
+                    class="d-inline-block" onsubmit="return confirm('Deseja remover este item de pauta?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                @endcan
+              @endif
             </div>
-            @if ($canRemove)
-              @can('update', [$meeting, $project])
-                <form method="POST" action="{{ route('projects.meetings.items.destroy', [$project, $meeting, $item]) }}"
-                  class="d-inline-block" onsubmit="return confirm('Deseja remover este item de pauta?');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-outline-danger btn-sm py-0">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              @endcan
-            @endif
           </li>
         @endforeach
       </ul>
