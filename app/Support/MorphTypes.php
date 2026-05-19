@@ -9,12 +9,12 @@ class MorphTypes
 {
     public static function discussableOptions(): array
     {
-        return config('morphs.discussable', []);
+        return config('projetos.morphs.discussable', []);
     }
 
     public static function commentableOptions(): array
     {
-        return config('morphs.commentable', []);
+        return config('projetos.morphs.commentable', []);
     }
 
     public static function allowedDiscussableValues(): array
@@ -42,7 +42,7 @@ class MorphTypes
         $options = array_merge(self::discussableOptions(), self::commentableOptions());
         $map = [];
 
-        foreach ($options as $alias => $class) {
+        fore    $options as $alias => $class) {
             $validatedClass = self::validateClass($class, null);
             if ($validatedClass) {
                 $map[$alias] = $validatedClass;

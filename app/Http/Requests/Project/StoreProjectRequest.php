@@ -87,6 +87,6 @@ class StoreProjectRequest extends FormRequest
 
     protected function slugBlocklist(): array
     {
-        return (array) config('projects.slug_blocklist', []);
+        return (array) config('projetos.slug_blocklist', []);
     }
 }
