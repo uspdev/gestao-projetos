@@ -39,7 +39,6 @@ class ProjectController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $search = trim((string) request()->input('search', ''));
         $viewAll = session('admin_view_all', false);
 
         Gate::authorize('viewAny', [Project::class, $user]);
@@ -49,23 +48,16 @@ class ProjectController extends Controller
             $projectsQuery = $user->projects()
                 ->with([
                     'users' => fn($query) => $query->where('users.id', $user->id),
+                    'tags',
                 ])
-                ->withCount('tasks')
                 ->latest();
         } else {
             $projectsQuery = Project::accessibleBy($user)
                 ->with([
                     'users' => fn($query) => $query->where('users.id', $user->id),
+                    'tags',
                 ])
-                ->withCount('tasks')
                 ->latest();
-        }
-
-        if ($search !== '') {
-            $projectsQuery->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
         }
 
         $projects = $projectsQuery->get();
@@ -86,10 +78,10 @@ class ProjectController extends Controller
 
         // O apontamento da view mudou para o diretório padrão de projetos
 
-        if($projects->isEmpty()) {
+        if ($projects->isEmpty()) {
             return view('projects.index-no-project');
         }
-        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search', 'parentProjects', 'viewAll'));
+        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'parentProjects', 'viewAll'));
     }
 
     public function create(Request $request)
