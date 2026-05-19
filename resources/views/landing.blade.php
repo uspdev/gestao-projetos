@@ -1,4 +1,4 @@
-@extends('laravel-usp-theme::master')
+@extends('layouts.app')
 
 @section('title', 'Gestão de Projetos USP')
 

@@ -85,6 +85,10 @@ class ProjectController extends Controller
         }
 
         // O apontamento da view mudou para o diretório padrão de projetos
+
+        if($projects->isEmpty()) {
+            return view('projects.index-no-project');
+        }
         return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'search', 'parentProjects', 'viewAll'));
     }
 

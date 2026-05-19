@@ -10,7 +10,11 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'landing')->name('landing');
+Route::redirect('/', 'about')->name('landing');
+Route::get('about', function () {
+    \UspTheme::activeUrl('about');
+    return view('landing');
+})->name('about');
 
 Route::middleware('auth')->group(function () {
 
