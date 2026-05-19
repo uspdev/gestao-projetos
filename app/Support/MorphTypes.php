@@ -42,7 +42,7 @@ class MorphTypes
         $options = array_merge(self::discussableOptions(), self::commentableOptions());
         $map = [];
 
-        fore    $options as $alias => $class) {
+        foreach ($options as $alias => $class) {
             $validatedClass = self::validateClass($class, null);
             if ($validatedClass) {
                 $map[$alias] = $validatedClass;
