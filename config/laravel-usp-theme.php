@@ -2,6 +2,10 @@
 
 $menu = [
     [
+        // menu utilizado para views da biblioteca senhaunica-socialite.
+        'key' => 'gestao-projetos',
+    ],
+    [
         'text' => '<i class="fas fa-home"></i> Meus Projetos',
         'url'  => 'meus-projetos',
         'can'  => 'user',
@@ -17,14 +21,9 @@ $menu = [
         'can'  => 'user',
     ],
     [
-        'text' => '<span class="text-danger">Admin</span>',
-        'url'  => 'admin',
-        'can'  => 'admin',
-    ],
-    [
-        'text' => '<span class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Novo Projeto</span>',
-        'url'  => 'projects/create',
-        'can'  => 'user',
+        'text' => '<i class="fas fa-book-open"></i> Sobre',
+        'url'  => '',
+        'url'  => 'about',
     ],
 
 ];
@@ -37,6 +36,16 @@ foreach ($menu as $item) {
 }
 
 $right_menu = [
+    [
+        'text' => '<span class="text-danger">Admin</span>',
+        'url'  => 'admin',
+        'can'  => 'admin',
+    ],
+    [
+        'text' => '<span class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Novo Projeto</span>',
+        'url'  => 'projects/create',
+        'can'  => 'user',
+    ],
     [
         // menu utilizado para views da biblioteca senhaunica-socialite.
         'key' => 'senhaunica-socialite',
