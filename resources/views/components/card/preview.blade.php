@@ -145,7 +145,7 @@
   </style>
 @endonce
 
-<div {{ $attributes->class(['card preview-card position-relative']) }}>
+<div {{ $attributes->class(['card preview-card position-relative h-100']) }}>
   <div class="card-body p-3 d-flex flex-column">
     @isset($header)
       <div class="d-flex justify-content-between align-items-start mb-1">
@@ -192,19 +192,18 @@
     @else
       @if (($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty() || $projectType)
         <div class="preview-card__content">
+          @if ($showProject && $projectName)
+            <div class="preview-card__project mb-2">
+              <i class="fas fa-folder-open mr-1"></i>
+              {{ $projectName }}
+            </div>
+          @endif
           @if ($projectType)
             <div class="d-flex justify-content-start w-100 mb-2">
               <small class="text-muted d-flex align-items-center">
                 <i class="fas {{ $projectTypeIcon }} mr-1" title="Tipo de projeto"></i>
                 <span>{{ $projectType }}</span>
               </small>
-            </div>
-          @endif
-
-          @if ($showProject && $projectName)
-            <div class="preview-card__project mb-2">
-              <i class="fas fa-folder-open mr-1"></i>
-              {{ $projectName }}
             </div>
           @endif
 
