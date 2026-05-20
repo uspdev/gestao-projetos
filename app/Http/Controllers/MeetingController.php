@@ -85,13 +85,15 @@ class MeetingController extends Controller
             ->orderBy('order')
             ->get();
 
-        $meetingProjects = $meeting->projects()
-            ->with(['tasks', 'children'])
-            ->get();
+        $agendaData = $meeting->meetingItemFormData($meetingItems);
+        $meetingProjects = $agendaData['meetingProjects'];
 
         $meeting->setRelation('projects', $meetingProjects);
 
-        return view('module-meetings.show', compact('project', 'meeting', 'meetingItems', 'meetingProjects'));
+        return view('module-meetings.show', array_merge(
+            compact('project', 'meeting', 'meetingItems'),
+            $agendaData
+        ));
     }
 
     public function edit(Project $project, Meeting $meeting)
@@ -103,9 +105,8 @@ class MeetingController extends Controller
             ->orderBy('order')
             ->get();
 
-        $meetingProjects = $meeting->projects()
-            ->with(['tasks', 'children'])
-            ->get();
+        $agendaData = $meeting->meetingItemFormData($meetingItems);
+        $meetingProjects = $agendaData['meetingProjects'];
 
         $meeting->setRelation('projects', $meetingProjects);
 
@@ -120,14 +121,13 @@ class MeetingController extends Controller
         }
         $selectedProjects = old('projects', $meeting->projects->pluck('id')->all());
 
-        return view('module-meetings.edit', compact(
+        return view('module-meetings.edit', array_merge(compact(
             'project',
             'meeting',
             'availableProjects',
             'selectedProjects',
-            'meetingItems',
-            'meetingProjects'
-        ));
+            'meetingItems'
+        ), $agendaData));
     }
 
     public function update(UpdateMeetingRequest $request, Project $project, Meeting $meeting)

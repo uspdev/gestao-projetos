@@ -10,13 +10,14 @@
       </a>
       <span class="badge badge-pill badge-secondary">{{ $project->meetings->count() }}</span>
 
-      @yield('meeting-header')
+    @section('meeting-header')
       @include('module-meetings.partials.create-btn')
-    </div>
-
-    <div class="card-body p-2">
-      @yield('meeting-content')
-    </div>
+    @show
   </div>
+
+  <div class="card-body p-2">
+    @yield('meeting-content')
+  </div>
+</div>
 
 @endsection

@@ -1,33 +1,3 @@
-@php
-  $meetingItems = $meetingItems ?? collect();
-
-  $existingProjectIds =
-      $existingProjectIds ??
-      $meetingItems
-          ->filter(function ($mi) {
-              return ($mi->discussable_type ?? null) === \App\Models\Project::class;
-          })
-          ->pluck('discussable_id')
-          ->map(function ($id) {
-              return (int) $id;
-          })
-          ->unique()
-          ->all();
-
-  $existingTaskIds =
-      $existingTaskIds ??
-      $meetingItems
-          ->filter(function ($mi) {
-              return ($mi->discussable_type ?? null) === \App\Models\Task::class;
-          })
-          ->pluck('discussable_id')
-          ->map(function ($id) {
-              return (int) $id;
-          })
-          ->unique()
-          ->all();
-@endphp
-
 <div class="col-md-4">
   <div class="form-group mb-3">
     <label for="meeting-item-type">Tipo <span class="text-danger">*</span></label>
@@ -53,27 +23,11 @@
       class="form-control @error('discussable_id') is-invalid @enderror"
       @if ($typeValue !== $projectTypeKey) disabled @endif>
       <option value="">Selecione...</option>
-      @foreach ($meetingProjects as $meetingProject)
-        @php
-          $mpId = (int) $meetingProject->id;
-          $oldId = old('discussable_id');
-        @endphp
-        @if (!in_array($mpId, $existingProjectIds, true) || (string) $oldId === (string) $mpId)
-          <option value="{{ $meetingProject->id }}"
-            {{ (string) $oldId === (string) $meetingProject->id ? 'selected' : '' }}>
-            {{ $meetingProject->name }}
-          </option>
-        @endif
-
-        @foreach ($meetingProject->children as $childProject)
-          @php $childId = (int) $childProject->id; @endphp
-          @if (!in_array($childId, $existingProjectIds, true) || (string) $oldId === (string) $childId)
-            <option value="{{ $childProject->id }}"
-              {{ (string) $oldId === (string) $childProject->id ? 'selected' : '' }}>
-              {{ $childProject->name }} (subprojeto)
-            </option>
-          @endif
-        @endforeach
+      @foreach ($projectOptions as $option)
+        <option value="{{ $option['value'] }}"
+          {{ (string) old('discussable_id') === (string) $option['value'] ? 'selected' : '' }}>
+          {{ $option['label'] }}
+        </option>
       @endforeach
     </select>
     @error('discussable_id')
@@ -88,16 +42,11 @@
       class="form-control @error('discussable_id') is-invalid @enderror"
       @if ($typeValue !== $taskTypeKey) disabled @endif>
       <option value="">Selecione...</option>
-      @php $oldTaskId = old('discussable_id'); @endphp
-      @foreach ($meetingProjects as $meetingProject)
-        @foreach ($meetingProject->tasks as $task)
-          @php $tId = (int) $task->id; @endphp
-          @if (!in_array($tId, $existingTaskIds, true) || (string) $oldTaskId === (string) $tId)
-            <option value="{{ $task->id }}" {{ (string) $oldTaskId === (string) $task->id ? 'selected' : '' }}>
-              {{ $meetingProject->name }} - {{ $task->title }}
-            </option>
-          @endif
-        @endforeach
+      @foreach ($taskOptions as $option)
+        <option value="{{ $option['value'] }}"
+          {{ (string) old('discussable_id') === (string) $option['value'] ? 'selected' : '' }}>
+          {{ $option['label'] }}
+        </option>
       @endforeach
     </select>
     @error('discussable_id')
@@ -139,8 +88,3 @@
     </script>
   @endpush
 @endonce
-@php
-  // keep these defined in case other includes expect them
-  $existingProjectIds = $existingProjectIds ?? [];
-  $existingTaskIds = $existingTaskIds ?? [];
-@endphp
