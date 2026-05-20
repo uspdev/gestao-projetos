@@ -52,7 +52,7 @@ class MeetingController extends Controller
         }
         $selectedProjects = old('projects', [$project->id]);
 
-        return view('projects.meetings.create', compact('project', 'availableProjects', 'selectedProjects'));
+        return view('module-meetings.create', compact('project', 'availableProjects', 'selectedProjects'));
     }
 
     public function store(StoreMeetingRequest $request, Project $project)

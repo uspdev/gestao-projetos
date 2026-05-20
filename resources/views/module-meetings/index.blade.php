@@ -9,7 +9,7 @@
     <div class="row">
       @foreach ($meetings as $meeting)
         <div class="col-md-6 mb-4">
-          @include('projects.meetings.partials.index-item')
+          @include('module-meetings.partials.index-item')
         </div>
       @endforeach
     </div>
