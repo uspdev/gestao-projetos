@@ -1,11 +1,12 @@
 @php
   use App\Enums\Task\TaskStatus;
 
+  $showDone = request()->boolean('show_done');
   $showBacklog = isset($project);
   // se for backlog, mostra as tarefas sem responsável,
   // senão mostra todas agrupadas por status
   $backlogTasks = $showBacklog
-      ? $tasks->filter(fn($task) => $task->users->isEmpty() && $task->status !== TaskStatus::DONE)
+      ? $tasks->filter(fn($task) => $task->users->isEmpty() && $task->status === TaskStatus::TO_DO)
       : collect();
   // agrupa as tarefas por status (incluindo backlog se for o caso)
   $tasksByStatus = ($showBacklog ? $tasks->reject(fn($task) => $task->users->isEmpty()) : $tasks)->groupBy(
@@ -41,7 +42,7 @@
     </div>
   @endif
 
-  @foreach (TaskStatus::cases() as $status)
+  @foreach (array_filter(TaskStatus::cases(), fn($status) => $status !== TaskStatus::DONE) as $status)
     @php
       $statusTasks = $tasksByStatus->get($status->value, collect());
     @endphp
@@ -71,4 +72,35 @@
       </div>
     </div>
   @endforeach
+
+  @if ($showDone)
+    @php
+      $doneTasks = $tasksByStatus->get(TaskStatus::DONE->value, collect());
+    @endphp
+
+    <div class="flex-shrink-0" style="width: 320px;">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <div class="font-weight-bold text-capitalize">{{ TaskStatus::DONE->label() }}</div>
+
+          <div class="d-flex align-items-center gap-2">
+            @include('module-tasks.partials.kanban.kanban-search')
+            <span class="badge {{ TaskStatus::DONE->color() }}">{{ $doneTasks->count() }}</span>
+          </div>
+        </div>
+
+        <div class="card-body bg-light">
+          @forelse ($doneTasks as $task)
+            <div class="mb-2">
+              @include('module-tasks.partials.kanban.kanban-task-card')
+            </div>
+          @empty
+            <div class="alert alert-light border text-center text-muted mb-0">
+              Nenhuma tarefa concluída.
+            </div>
+          @endforelse
+        </div>
+      </div>
+    </div>
+  @endif
 </div>
