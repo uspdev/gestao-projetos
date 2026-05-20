@@ -1,7 +1,7 @@
 @php
   $meetingItems = $meetingItems ?? collect();
   $meetingProjects = $meetingProjects ?? collect();
-  $discussableOptions = \App\Support\MorphTypes::discussableOptions();
+  $discussableOptions = \App\Morphs\DiscussableMap::options();
 
   $projectTypeKey = array_search(\App\Models\Project::class, $discussableOptions) ?: 'project';
   $taskTypeKey = array_search(\App\Models\Task::class, $discussableOptions) ?: 'task';
