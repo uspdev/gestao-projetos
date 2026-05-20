@@ -4,14 +4,14 @@
 
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5 d-flex align-items-center justify-content-between flex-wrap">
-    <span><i class="far fa-calendar-alt mr-1"></i> {{ $meeting->title }}</span>
+    {{-- <span><i class="far fa-calendar-alt mr-1"></i> {{ $meeting->title }}</span>
 
     <div class="d-flex align-items-center gap-2">
       <span class="badge {{ $meeting->status?->color() ?? 'badge-light text-dark' }}">
         {{ $meeting->status?->label() ?? '-' }}
       </span>
 
-      @if ($showActions)
+      @if ($showActions = true)
         @can('update', [$meeting, $project])
           <a href="{{ route('projects.meetings.edit', [$project, $meeting]) }}" class="btn btn-sm btn-outline-primary">
             <i class="fas fa-edit"></i>
@@ -29,7 +29,7 @@
           </form>
         @endcan
       @endif
-    </div>
+    </div> --}}
   </div>
 
   <div class="card-body">

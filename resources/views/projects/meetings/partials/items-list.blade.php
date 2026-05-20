@@ -51,7 +51,7 @@
 
                 <div>
                   <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
-                    <span class="badge {{ $badgeClass }}">{{ $typeLabel }}</span>
+                    <span class="badge {{ $badgeClass ?? '' }}">{{ $typeLabel }}</span>
 
                     @if ($link)
                       <a href="{{ $link }}" class="text-decoration-none font-weight-bold text-dark">
@@ -63,7 +63,7 @@
                   </div>
 
                   <div class="text-muted small mt-1">
-                    {{ $subtitle }}
+                    {{ $subtitle ?? '' }}
                   </div>
                 </div>
               </div>

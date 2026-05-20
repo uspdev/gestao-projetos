@@ -1,7 +1,6 @@
 @php
+  $modules = ['tasks', 'meetings'];
   $routeName = Route::currentRouteName();
-  $tasksEnabled = $project->isModuleEnabled('tasks');
-  $meetingsEnabled = $project->isModuleEnabled('meetings');
 @endphp
 
 <div class="card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky">
@@ -33,29 +32,11 @@
         Visão geral
       </a>
 
-      @if ($tasksEnabled)
-        <a href="{{ route('projects.tasks.index', $project) }}"
-          class="btn btn-sm position-relative {{ $routeName === 'projects.tasks.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-          Tarefas
-          @if ($project->getIncompleteTasksCount() > 0)
-            <span class="badge badge-pill badge-warning" style="position: absolute; top: -8px; right: -8px;">
-              {{ $project->getIncompleteTasksCount() }}
-            </span>
-          @endif
-        </a>
-      @endif
-
-      @if ($meetingsEnabled)
-        <a href="{{ route('projects.meetings.index', $project) }}"
-          class="btn btn-sm position-relative {{ $routeName === 'projects.meetings.index' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-          Reuniões
-          @if ($project->getIncompleteMeetingsCount() > 0)
-            <span class="badge badge-pill badge-warning" style="position: absolute; top: -8px; right: -8px;">
-              {{ $project->getIncompleteMeetingsCount() }}
-            </span>
-          @endif
-        </a>
-      @endif
+      @foreach ($modules as $module)
+        @if ($project->isModuleEnabled($module))
+          @include("module-{$module}.partials.project-menu-item")
+        @endif
+      @endforeach
 
       <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm btn-outline-secondary">
         Fase > <span class="badge {{ $project->phase->color() }}">{{ $project->phase->label() }}</span>

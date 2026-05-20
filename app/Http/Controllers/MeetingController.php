@@ -34,7 +34,7 @@ class MeetingController extends Controller
             ->orderBy('scheduled_at')
             ->get();
 
-        return view('projects.meetings.index', compact('project', 'meetings'));
+        return view('module-meetings.index', compact('project', 'meetings'));
     }
 
     public function create(Project $project)
@@ -91,7 +91,7 @@ class MeetingController extends Controller
 
         $meeting->setRelation('projects', $meetingProjects);
 
-        return view('projects.meetings.show', compact('project', 'meeting', 'meetingItems', 'meetingProjects'));
+        return view('module-meetings.show', compact('project', 'meeting', 'meetingItems', 'meetingProjects'));
     }
 
     public function edit(Project $project, Meeting $meeting)
@@ -120,7 +120,7 @@ class MeetingController extends Controller
         }
         $selectedProjects = old('projects', $meeting->projects->pluck('id')->all());
 
-        return view('projects.meetings.edit', compact(
+        return view('module-meetings.edit', compact(
             'project',
             'meeting',
             'availableProjects',
