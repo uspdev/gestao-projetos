@@ -5,13 +5,13 @@
       <i class="fas fa-tasks"></i> Tarefas
     </a>
     <span class="badge badge-pill badge-primary">{{ count($project->tasks) }}</span>
-    @include('tasks.partials.buttons.create-task-btn')
-    @include('tasks.partials.buttons.show-done-btn')
+    @include('module-tasks.partials.buttons.create-task-btn')
+    @include('module-tasks.partials.buttons.show-done-btn')
   </div>
 
   <div class="card-body">
     @forelse ($project->tasks as $task)
-      @include('tasks.partials.components.preview', ['showProject' => false])
+      @include('module-tasks.partials.components.preview', ['showProject' => false])
     @empty
       <div class="alert alert-secondary text-center p-3 shadow-sm mb-0" role="alert">
         <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>

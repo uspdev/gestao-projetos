@@ -28,7 +28,7 @@
             @php
               $taskTagIds = $tasksTagsIds[$task->id] ?? [];
             @endphp
-            @include('tasks.partials.buttons.edit-btn')
+            @include('module-tasks.partials.buttons.edit-btn')
           </td>
           <td>
             <span class="badge {{ $task->priority?->color() }}">{{ $task->priority?->label() }}</span>

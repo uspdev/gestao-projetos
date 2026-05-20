@@ -21,7 +21,7 @@
           <div class="font-weight-bold text-capitalize">A fazer</div>
 
           <div class="d-flex align-items-center gap-2">
-            @include('tasks.partials.kanban.kanban-search', ['status' => 'backlog'])
+            @include('module-tasks.partials.kanban.kanban-search', ['status' => 'backlog'])
             <span class="badge badge-secondary">{{ $backlogTasks->count() }}</span>
           </div>
         </div>
@@ -29,7 +29,7 @@
         <div class="card-body bg-light">
           @forelse ($backlogTasks as $task)
             <div class="mb-2">
-              @include('tasks.partials.kanban.kanban-task-card')
+              @include('module-tasks.partials.kanban.kanban-task-card')
             </div>
           @empty
             <div class="alert alert-light border text-center text-muted mb-0">
@@ -52,7 +52,7 @@
           <div class="font-weight-bold text-capitalize">{{ $status->label() }}</div>
 
           <div class="d-flex align-items-center gap-2">
-            @include('tasks.partials.kanban.kanban-search')
+            @include('module-tasks.partials.kanban.kanban-search')
             <span class="badge {{ $status->color() }}">{{ $statusTasks->count() }}</span>
           </div>
         </div>
@@ -60,7 +60,7 @@
         <div class="card-body bg-light">
           @forelse ($statusTasks as $task)
             <div class="mb-2">
-              @include('tasks.partials.kanban.kanban-task-card')
+              @include('module-tasks.partials.kanban.kanban-task-card')
             </div>
           @empty
             <div class="alert alert-light border text-center text-muted mb-0">

@@ -23,6 +23,6 @@
     <a href="{{ route('projects.tasks.index', $project) }}" class="text-decoration-none text-secondary fw-medium">
       Tarefas
     </a>
-    @include('tasks.partials.buttons.create-task-btn', ['project' => $project])
+    @include('module-tasks.partials.buttons.create-task-btn', ['project' => $project])
   </div>
 </div>

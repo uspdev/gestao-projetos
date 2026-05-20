@@ -126,7 +126,7 @@
 @once
   @section('javascripts_bottom')
     @parent
-    @include('tasks.partials.scripts.multi-select-script')
+    @include('module-tasks.partials.scripts.multi-select-script')
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {

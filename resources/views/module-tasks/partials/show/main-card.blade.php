@@ -6,12 +6,12 @@
   <div class="card-header h5 d-flex justify-content-between align-items-center gap-2 py-2">
     <div class="d-flex justify-content-between gap-2">
       <span>{{ $task->title }}</span>
-      @include('tasks.partials.components.update-status')
+      @include('module-tasks.partials.components.update-status')
     </div>
 
     <div>
-      @include('tasks.partials.buttons.edit-btn')
-      @include('tasks.partials.buttons.delete-btn')
+      @include('module-tasks.partials.buttons.edit-btn')
+      @include('module-tasks.partials.buttons.delete-btn')
     </div>
   </div>
   <div class="card-body">

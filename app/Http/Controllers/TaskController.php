@@ -78,7 +78,7 @@ class TaskController extends Controller
         $tasks = $tasksQuery->get();
         $tasks = $this->filterTasksByEnabledModule($tasks);
 
-        return view('tasks.index', compact('tasks', 'user', 'showDone', 'viewAll'));
+        return view('module-tasks.user-index', compact('tasks', 'user', 'showDone', 'viewAll'));
     }
 
     /**
@@ -104,7 +104,7 @@ class TaskController extends Controller
             ->latest()
             ->get();
 
-        return view('project-tasks.index', compact(
+        return view('module-tasks.index', compact(
             'tasks',
             'project',
             'showDone'
@@ -117,7 +117,7 @@ class TaskController extends Controller
 
         Gate::authorize('create', [Task::class, $project]);
 
-        return view('project-tasks.create', compact('project'));
+        return view('module-tasks.create', compact('project'));
     }
 
     public function store(StoreTaskRequest $request, Project $project)
@@ -159,7 +159,7 @@ class TaskController extends Controller
             'tags',
         ]);
 
-        return view('tasks.show', compact('task'));
+        return view('module-tasks.show', compact('task'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)

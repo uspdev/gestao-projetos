@@ -8,7 +8,7 @@
         </h6>
       </a>
 
-      @include('tasks.partials.kanban.kanban-update-status')
+      @include('module-tasks.partials.kanban.kanban-update-status')
     </div>
 
     <div class="text-muted small mb-2">

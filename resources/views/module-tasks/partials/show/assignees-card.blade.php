@@ -1,7 +1,7 @@
 <div class="card mb-4 shadow-sm">
   <div class="card-header py-2">
     <i class="fas fa-users"></i> Responsáveis
-    @include('tasks.partials.buttons.add-assignee-btn')
+    @include('module-tasks.partials.buttons.add-assignee-btn')
   </div>
   <div class="card-body p-0">
     <ul class="list-group list-group-flush">

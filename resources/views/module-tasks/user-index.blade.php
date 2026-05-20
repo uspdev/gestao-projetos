@@ -13,17 +13,17 @@
           'allViewTitle' => 'Mostrando todas as tarefas',
           'myViewTitle' => 'Mostrando apenas minhas tarefas',
       ])
-      @include('tasks.partials.buttons.toggle-layout-btn')
-      @include('tasks.partials.buttons.show-done-btn')
+      @include('module-tasks.partials.buttons.toggle-layout-btn')
+      @include('module-tasks.partials.buttons.show-done-btn')
     </div>
 
     @if (session('tasks_view') === 'kanban')
-      @include('tasks.partials.kanban.kanban')
+      @include('module-tasks.partials.kanban.kanban')
     @else
       <div class="row">
         @forelse($tasks as $task)
           <div class="col-md-6 col-lg-4 mb-2">
-            @include('tasks.partials.components.preview')
+            @include('module-tasks.partials.components.preview')
           </div>
         @empty
           <div class="col-12">

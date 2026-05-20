@@ -8,11 +8,11 @@
         <div class="row no-gutters">
           <div class="col-4 border-right pr-2 d-flex align-items-center">
             <span class="text-muted small mr-2">Prioridade:</span>
-            @include('tasks.partials.components.task-priority')
+            @include('module-tasks.partials.components.task-priority')
           </div>
           <div class="col-8 pl-2 d-flex align-items-center">
             <span class="text-muted small mr-2">Tags:</span>
-            @include('tasks.partials.components.task-tags')
+            @include('module-tasks.partials.components.task-tags')
           </div>
         </div>
       </li>

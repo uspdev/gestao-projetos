@@ -10,8 +10,3 @@
     </span>
   @endif
 </a>
-
-{{-- está aqui mas não deveria --}}
-@push('modals')
-@include('tasks.partials.components.task-form-modal')
-@endpush
