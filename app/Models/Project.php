@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Contracts\Discussable;
+use App\Morphs\Discussable;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectPhase;
 use App\Enums\Project\ProjectStatus;

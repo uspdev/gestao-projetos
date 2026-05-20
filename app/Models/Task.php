@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Contracts\Discussable;
+use App\Morphs\Discussable;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Tag;

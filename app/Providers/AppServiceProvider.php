@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
-use App\Support\MorphTypes;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
+use App\Morphs\DiscussableMap;
+use App\Morphs\CommentableMap;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,7 +28,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Relation::morphMap(MorphTypes::morphMap());
+        Relation::morphMap(DiscussableMap::morphMap());
+        Relation::morphMap(CommentableMap::morphMap());
 
         View::composer('laravel-usp-theme::master', function () {
             $routeName = request()->route()?->getName();

@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\MeetingItem;
 
-use App\Contracts\Discussable;
+use App\Morphs\Discussable;
 use App\Models\Meeting;
 use App\Models\Project;
-use App\Support\MorphTypes;
+use App\Morphs\DiscussableMap;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -55,13 +55,13 @@ class StoreMeetingItemRequest extends FormRequest
         $meeting = $this->route('meeting');
 
         $typeInput = (string) $this->input('discussable_type', '');
-        $discussableClass = MorphTypes::resolveDiscussableClass($typeInput);
+        $discussableClass = DiscussableMap::resolveClass($typeInput);
 
         $discussableType = $discussableClass
             ? (new $discussableClass)->getMorphClass()
             : $typeInput;
 
-        $allowedTypes = MorphTypes::allowedDiscussableValues();
+        $allowedTypes = DiscussableMap::allowedValues();
 
         return [
             'discussable_type' => ['required', 'string', Rule::in($allowedTypes)],
@@ -139,7 +139,7 @@ class StoreMeetingItemRequest extends FormRequest
             return null;
         }
 
-        $class = MorphTypes::resolveDiscussableClass($type);
+        $class = DiscussableMap::resolveClass($type);
         if (!$class) {
             return null;
         }

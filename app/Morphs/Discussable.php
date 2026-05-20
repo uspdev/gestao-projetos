@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts;
+namespace App\Morphs;
 
 interface Discussable
 {

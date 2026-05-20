@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Comment;
 
-use App\Support\MorphTypes;
+use App\Morphs\CommentableMap;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,7 +23,7 @@ class StoreCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'commentable_type' => ['required', 'string', Rule::in(MorphTypes::allowedCommentableValues())],
+            'commentable_type' => ['required', 'string', Rule::in(CommentableMap::allowedValues())],
             'commentable_id' => ['required', 'integer'],
             'text' => ['required', 'string', 'max:10000'],
             'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
@@ -54,7 +54,7 @@ class StoreCommentRequest extends FormRequest
             return null;
         }
 
-        $commentableClass = MorphTypes::resolveCommentableClass($type);
+        $commentableClass = CommentableMap::resolveClass($type);
 
         if (!$commentableClass) {
             return null;
