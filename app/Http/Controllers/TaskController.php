@@ -111,14 +111,6 @@ class TaskController extends Controller
         ));
     }
 
-    public function create(Project $project)
-    {
-        $this->ensureTasksModuleEnabled($project);
-
-        Gate::authorize('create', [Task::class, $project]);
-
-        return view('module-tasks.create', compact('project'));
-    }
 
     public function store(StoreTaskRequest $request, Project $project)
     {
