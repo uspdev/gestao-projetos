@@ -5,9 +5,6 @@ namespace App\Providers;
 use App\Support\MorphTypes;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Events\MigrationsEnded;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 
