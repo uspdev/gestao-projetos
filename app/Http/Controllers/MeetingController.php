@@ -7,12 +7,15 @@ use App\Http\Requests\Meeting\StoreMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingRequest;
 use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
 use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
+use App\Mail\MeetingCreated;
+use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\MeetingItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class MeetingController extends Controller
 {
@@ -71,6 +74,18 @@ class MeetingController extends Controller
 
             return $meeting;
         });
+        // Lida com a notificação de reunião criada após a transaction
+        // para evitar enviar emails caso haja falha na criação da reunião ou associação com os projetos
+        $actor = Auth::user();
+        $meeting->load('projects.users');
+        // Envia notificacao para os usuarios dos projetos relacionados à reuniao, exceto para o proprio autor da acao
+        $meeting->projects
+            ->flatMap(fn(Project $project) => $project->users)
+            ->unique('id')
+            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->each(function ($user) use ($actor, $meeting) {
+                Mail::to($user->email)->queue(new MeetingCreated($user, $actor, $meeting));
+            });
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Reuniao criada com sucesso!');
@@ -145,6 +160,16 @@ class MeetingController extends Controller
             $meeting->projects()->sync($projects);
         });
 
+        $actor = Auth::user();
+        $meeting->load('projects.users');
+        $meeting->projects
+            ->flatMap(fn(Project $project) => $project->users)
+            ->unique('id')
+            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->each(function ($user) use ($actor, $meeting) {
+                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting));
+            });
+
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
     }
@@ -153,8 +178,21 @@ class MeetingController extends Controller
     {
         Gate::authorize('delete', [$meeting, $project]);
 
+        // Coleta os destinatarios da notificacao antes de deletar a reuniao,
+        // para evitar problemas com o modelo deletado durante o processo de envio dos emails
+        $actor = Auth::user();
+        $meeting->load('projects.users');
+        $recipients = $meeting->projects
+            ->flatMap(fn(Project $project) => $project->users)
+            ->unique('id')
+            ->filter(fn($user) => !$actor || $user->id !== $actor->id);
+
         DB::transaction(function () use ($meeting) {
             $meeting->delete();
+        });
+
+        $recipients->each(function ($user) use ($actor, $meeting) {
+            Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting, true));
         });
 
         return redirect()->route('projects.meetings.index', $project)
@@ -225,6 +263,16 @@ class MeetingController extends Controller
 
             $meeting->update($data);
         });
+
+        $actor = Auth::user();
+        $meeting->load('projects.users');
+        $meeting->projects
+            ->flatMap(fn(Project $project) => $project->users)
+            ->unique('id')
+            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->each(function ($user) use ($actor, $meeting) {
+                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting));
+            });
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Status da reunião atualizado com sucesso!');

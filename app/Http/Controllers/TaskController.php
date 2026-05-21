@@ -7,6 +7,8 @@ use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
+use App\Mail\TaskAssigned;
+use App\Mail\TaskCompleted;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Models\Module;
@@ -15,6 +17,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -207,6 +210,8 @@ class TaskController extends Controller
     {
         $this->ensureTasksModuleEnabled($task->project);
 
+        $previousStatus = $task->status;
+
         DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
@@ -219,6 +224,21 @@ class TaskController extends Controller
 
             $task->update($data);
         });
+
+        $data = $request->validated();
+        // Se a tarefa foi marcada como concluída agora, e antes não estava,
+        // enviar notificações para os usuários associados à tarefa, exceto para o próprio ator
+        if ($previousStatus !== TaskStatus::DONE && $data['status'] === TaskStatus::DONE->value) {
+            $actor = Auth::user();
+            $task->load(['users', 'project']);
+
+            $task->users
+                ->unique('id')
+                ->filter(fn(User $user) => !$actor || $user->id !== $actor->id)
+                ->each(function (User $user) use ($actor, $task) {
+                    Mail::to($user->email)->queue(new TaskCompleted($user, $actor, $task));
+                });
+        }
 
         return back()
             ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
@@ -238,6 +258,8 @@ class TaskController extends Controller
 
         $user = User::query()->findOrFail($data['user_id']);
 
+        $alreadyAssigned = $task->users()->where('users.id', $user->id)->exists();
+
         if (!$user->isContributorOfProject($task->project)) {
             return redirect()->route('tasks.show', $task)
                 ->with('alert-danger', 'Somente colaboradores do projeto podem ser atribuídos à tarefa.');
@@ -246,6 +268,14 @@ class TaskController extends Controller
         DB::transaction(function () use ($task, $user) {
             $task->users()->syncWithoutDetaching([$user->id]);
         });
+
+        $actor = Auth::user();
+        // Envia notificacao para o usuario atribuido, exceto para o proprio ator,
+        // e somente se ele ainda nao estava atribuido à tarefa
+        if (! $alreadyAssigned && $actor && $actor->id !== $user->id) {
+            $task->loadMissing('project');
+            Mail::to($user->email)->queue(new TaskAssigned($user, $actor, $task));
+        }
 
         return redirect()->route('tasks.show', $task)
             ->with('alert-success', 'Colaborador atribuído à tarefa com sucesso!');

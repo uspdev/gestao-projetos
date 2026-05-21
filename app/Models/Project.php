@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\HasCommentRecipients;
 use App\Morphs\Discussable;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectPhase;
@@ -23,9 +24,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Tags\HasTags;
 
-class Project extends Model implements Discussable
+class Project extends Model implements Discussable, HasCommentRecipients
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug;
+
+    public const ORGANIZATIONAL_TYPE_SLUG = 'organizacional';
 
     protected $fillable = [
         'name',
@@ -124,6 +127,13 @@ class Project extends Model implements Discussable
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
+    // Método para obter os destinatários de comentários relacionados ao projeto
+    public function commentRecipients(): SupportCollection
+    {
+        $this->loadMissing('users');
+
+        return $this->users->unique('id')->values();
+    }
 
     /**
      * Relacionamento com meeting items via morph (Project pode ser um meeting item)
@@ -167,6 +177,14 @@ class Project extends Model implements Discussable
         return ! is_null($this->parent_id);
     }
 
+    // Verifica se o projeto é do tipo organizacional
+    public function isOrganizational(): bool
+    {
+        $this->loadMissing('projectType:id,slug');
+
+        return $this->projectType?->slug === self::ORGANIZATIONAL_TYPE_SLUG;
+    }
+
     public function isRootProject(): bool
     {
         return is_null($this->parent_id);
@@ -199,6 +217,32 @@ class Project extends Model implements Discussable
         $otherAdminIds = $other->adminIds();
 
         return $adminIds->intersect($otherAdminIds)->isNotEmpty();
+    }
+
+    // Verifica se o projeto pode ser vinculado como subprojeto do projeto pai, retornando a razão caso não possa
+    public function subprojectLinkBlockReason(Project $parent): ?string
+    {
+        if ($this->getKey() === $parent->getKey()) {
+            return 'Selecione um projeto diferente do projeto atual.';
+        }
+
+        if (! $this->isRootProject()) {
+            return 'O projeto selecionado ja e um subprojeto.';
+        }
+
+        if ($this->isOrganizational() && $parent->isOrganizational()) {
+            return 'Projetos organizacionais não podem ser subprojetos de outros projetos organizacionais.';
+        }
+
+        if ($this->hasSubprojects()) {
+            return 'O projeto selecionado possui subprojetos e nao pode ser vinculado.';
+        }
+
+        if (! $this->sharesAnyAdmin($parent)) {
+            return 'O projeto selecionado possui administrador diferente do projeto pai.';
+        }
+
+        return null;
     }
 
     public function projectModules(): HasMany

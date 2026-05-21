@@ -14,6 +14,7 @@ use App\Http\Requests\Project\UpdateProjectPhaseRequest;
 use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
+use App\Mail\ProjectLinkedAsSubproject;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\ProjectType;
@@ -21,11 +22,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class ProjectController extends Controller
 {
-    private const ORGANIZATIONAL_PROJECT_TYPE_SLUG = 'organizacional';
-
     public function __construct()
     {
 
@@ -184,7 +184,7 @@ class ProjectController extends Controller
         $contextParentProject = null;
         $linkableSubprojects = collect();
 
-        if (! $project->isSubproject() && $this->isOrganizationalProject($project)) {
+        if (! $project->isSubproject() && $project->isOrganizational()) {
             // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
             $contextParentProject = $project;
             $subprojects = $project->children()
@@ -198,7 +198,7 @@ class ProjectController extends Controller
                 ->whereNull('parent_id')
                 ->whereKeyNot($project->getKey())
                 ->whereHas('projectType', function ($q) {
-                    $q->where('slug', '!=', self::ORGANIZATIONAL_PROJECT_TYPE_SLUG);
+                    $q->where('slug', '!=', Project::ORGANIZATIONAL_TYPE_SLUG);
                 })
                 // children gera uma subconsulta para verificar a existência de subprojetos
                 ->doesntHave('children')
@@ -242,7 +242,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('storeMember', $project);
 
-        if ($project->isSubproject() || ! $this->isOrganizationalProject($project)) {
+        if ($project->isSubproject() || ! $project->isOrganizational()) {
             return response()->json(['results' => []]);
         }
         // O endpoint de busca para vincular subprojetos precisa retornar projetos raiz,
@@ -266,7 +266,7 @@ class ProjectController extends Controller
             // Exclui projetos do tipo organizacional da lista de candidatos,
             // pois não é permitido vincular projetos organizacionais como subprojetos
             ->whereHas('projectType', function ($q) {
-                $q->where('slug', '!=', self::ORGANIZATIONAL_PROJECT_TYPE_SLUG);
+                $q->where('slug', '!=', Project::ORGANIZATIONAL_TYPE_SLUG);
             })
             ->doesntHave('children')
             ->whereHas('users', function ($q) use ($adminIds) {
@@ -321,7 +321,7 @@ class ProjectController extends Controller
                 ->withErrors(['subproject_id' => 'Não é possivel vincular subprojetos a um subprojeto.']);
         }
 
-        if (! $this->isOrganizationalProject($project)) {
+        if (! $project->isOrganizational()) {
             return redirect()->back()
                 ->withErrors(['subproject_id' => 'Apenas projetos do tipo organizacional podem vincular subprojetos.']);
         }
@@ -330,39 +330,14 @@ class ProjectController extends Controller
             'subproject_id' => ['required', 'integer', 'exists:projects,id'],
         ]);
 
-        $subproject = Project::with(['users', 'children'])->findOrFail($data['subproject_id']);
+        $subproject = Project::with(['users', 'children', 'projectType'])->findOrFail($data['subproject_id']);
 
         Gate::authorize('update', $subproject);
 
-        // ========Validações======
-        if ($subproject->getKey() === $project->getKey()) {
+        $blockReason = $subproject->subprojectLinkBlockReason($project);
+        if ($blockReason) {
             return redirect()->back()
-                ->withErrors(['subproject_id' => 'Selecione um projeto diferente do projeto atual.']);
-        }
-
-        if (! $subproject->isRootProject()) {
-            return redirect()->back()
-                ->withErrors(['subproject_id' => 'O projeto selecionado ja e um subprojeto.']);
-        }
-
-        if ($this->isOrganizationalProject($project) && $this->isOrganizationalProject($subproject)) {
-            return redirect()->back()
-                ->withErrors(['subproject_id' => 'Projetos organizacionais não podem ser subprojetos de outros projetos organizacionais.']);
-        }
-
-        if ($subproject->hasSubprojects()) {
-            return redirect()->back()
-                ->withErrors(['subproject_id' => 'O projeto selecionado possui subprojetos e nao pode ser vinculado.']);
-        }
-
-        if (! $project->isRootProject()) {
-            return redirect()->back()
-                ->withErrors(['subproject_id' => 'O projeto pai nao pode ser um subprojeto.']);
-        }
-
-        if (! $subproject->sharesAnyAdmin($project)) {
-            return redirect()->back()
-                ->withErrors(['subproject_id' => 'O projeto selecionado possui administrador diferente do projeto pai.']);
+                ->withErrors(['subproject_id' => $blockReason]);
         }
 
         // Se passar pelas validações, vincula o subprojeto ao projeto pai atualizando o parent_id do subprojeto
@@ -373,15 +348,28 @@ class ProjectController extends Controller
             ]);
         });
 
+        $actor = Auth::user();
+        $project->load('users');
+        $subproject->load('users');
+
+        $parentRecipients = $project->users
+            ->filter(fn($user) => $project->userRole($user) !== ProjectUserRole::VIEWER);
+        $subprojectRecipients = $subproject->users
+            ->filter(fn($user) => $subproject->userRole($user) !== ProjectUserRole::VIEWER);
+        // Notifica os usuários relevantes do projeto pai e do subprojeto sobre a vinculação,
+        // evitando notificar espectadores e o próprio ator da ação
+        $parentRecipients
+            ->merge($subprojectRecipients)
+            ->unique('id')
+            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->each(function ($user) use ($actor, $project, $subproject) {
+                Mail::to($user->email)->queue(
+                    new ProjectLinkedAsSubproject($user, $actor, $project, $subproject)
+                );
+            });
+
         return redirect()->route('projects.show', $project)
             ->with('alert-success', 'Subprojeto vinculado com sucesso!');
-    }
-
-    private function isOrganizationalProject(Project $project): bool
-    {
-        $project->loadMissing('projectType:id,slug');
-
-        return $project->projectType?->slug === self::ORGANIZATIONAL_PROJECT_TYPE_SLUG;
     }
 
     /**

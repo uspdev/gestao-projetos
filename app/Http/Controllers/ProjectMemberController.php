@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Enums\Project\ProjectUserRole;
 use App\Http\Requests\Project\StoreProjectMemberRequest;
 use App\Http\Requests\Project\UpdateProjectMemberRoleRequest;
+use App\Mail\ProjectUserAdded;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Uspdev\Replicado\Pessoa;
 
 class ProjectMemberController extends Controller
@@ -39,6 +42,12 @@ class ProjectMemberController extends Controller
                 'role' => $data['role'],
             ]]);
         });
+        // Lida com a notificação de adição ao projeto após a transaction
+        // para evitar enviar emails caso haja falha na adição do membro ao projeto
+        $actor = Auth::user();
+        if ($actor && $actor->id !== $user->id) {
+            Mail::to($user->email)->queue(new ProjectUserAdded($user, $actor, $project));
+        }
 
         return redirect()->back()
             ->with('alert-success', 'Membro adicionado ao projeto com sucesso!');
@@ -56,7 +65,7 @@ class ProjectMemberController extends Controller
 
         if ($project->isLastAdmin($user) && $newRole !== ProjectUserRole::ADMIN) {
             return redirect()->route('projects.show', $project)
-            ->with('alert-danger', 'O último admin do projeto não pode ter sua role alterada.');
+                ->with('alert-danger', 'O último admin do projeto não pode ter sua role alterada.');
         }
 
         DB::transaction(function () use ($project, $user, $newRole) {
@@ -66,7 +75,7 @@ class ProjectMemberController extends Controller
         });
 
         return redirect()->back()
-            ->with('alert-success', 'Role do membro atualizada com sucesso!');
+            ->with('alert-success', 'Função do membro atualizada com sucesso!');
     }
 
     /**
@@ -78,7 +87,7 @@ class ProjectMemberController extends Controller
 
         if ($user->isAdminOfProject($project) && $project->isLastAdmin($user)) {
             return redirect()->route('projects.show', $project)
-            ->with('alert-danger', 'O projeto precisa ter pelo menos um admin.');
+                ->with('alert-danger', 'O projeto precisa ter pelo menos um admin.');
         }
 
         DB::transaction(function () use ($project, $user) {
@@ -124,7 +133,8 @@ class ProjectMemberController extends Controller
                         'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
                     ];
                 }
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
 
             if (!empty($results)) {
                 return response()->json(['results' => $results]);
@@ -148,7 +158,8 @@ class ProjectMemberController extends Controller
                     'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
                 ];
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
 
         return response()->json(['results' => $results]);
     }

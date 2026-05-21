@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\HasCommentRecipients;
 use App\Enums\Meeting\MeetingStatus;
 
 use App\Models\Project as ProjectModel;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use App\Morphs\DiscussableMap;
 
-class Meeting extends Model
+class Meeting extends Model implements HasCommentRecipients
 {
     use HasFactory, SoftDeletes, Auditable;
 
@@ -51,6 +52,18 @@ class Meeting extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    // Implementação do método da interface HasCommentRecipients
+    // para obter os destinatários de comentários relacionados à reunião
+    public function commentRecipients(): Collection
+    {
+        $this->loadMissing('projects.users');
+
+        return $this->projects
+            ->flatMap(fn($project) => $project->users)
+            ->unique('id')
+            ->values();
     }
 
     /**

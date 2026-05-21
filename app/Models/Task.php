@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\HasCommentRecipients;
 use App\Morphs\Discussable;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
@@ -13,9 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Spatie\Tags\HasTags;
 
-class Task extends Model implements Discussable
+class Task extends Model implements Discussable, HasCommentRecipients
 {
     use HasFactory, SoftDeletes, Auditable, HasTags;
 
@@ -58,6 +60,14 @@ class Task extends Model implements Discussable
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+    // Implementação do método da interface HasCommentRecipients
+    // para obter os destinatários de comentários relacionados à tarefa
+    public function commentRecipients(): Collection
+    {
+        $this->loadMissing('users');
+
+        return $this->users->unique('id')->values();
     }
 
     /**
