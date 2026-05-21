@@ -2,7 +2,7 @@
   <div class="dropdown">
     <button class="btn btn-sm p-0 border-0 bg-transparent dropdown-toggle" type="button"
       id="member-role-dropdown-{{ $user->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-      title="Alterar role do membro">
+      title="Alterar função do membro">
       @include('users.partials.user-task-badge')
     </button>
     <div class="dropdown-menu dropdown-menu-right p-2" aria-labelledby="member-role-dropdown-{{ $user->id }}">
