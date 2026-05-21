@@ -27,8 +27,8 @@ class UpdateProjectMemberRoleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'role.required' => 'Selecione a role do membro no projeto.',
-            'role.enum' => 'A role selecionada é inválida.',
+            'role.required' => 'Selecione a função do membro no projeto.',
+            'role.enum' => 'A função selecionada é inválida.',
         ];
     }
 }

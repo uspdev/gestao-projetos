@@ -33,8 +33,8 @@ class StoreProjectMemberRequest extends FormRequest
         return [
             'codpes.required' => 'Selecione um usuário para adicionar ao projeto.',
             'codpes.integer' => 'O usuário selecionado é inválido.',
-            'role.required' => 'Selecione a role do membro no projeto.',
-            'role.enum' => 'A role selecionada é inválida.',
+            'role.required' => 'Selecione a função do membro no projeto.',
+            'role.enum' => 'A função selecionada é inválida.',
         ];
     }
 }
