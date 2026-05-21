@@ -15,6 +15,7 @@ use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
 use App\Mail\ProjectLinkedAsSubproject;
+use App\Mail\ProjectUnlinkedAsSubproject;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\ProjectType;
@@ -254,13 +255,12 @@ class ProjectController extends Controller
             return response()->json(['results' => []]);
         }
 
-        $adminIds = $project->adminIds();
-        if ($adminIds->isEmpty()) {
-            return response()->json(['results' => []]);
-        }
+        $user = $request->user();
+        $isGlobalAdmin = $user?->isAdmin() ?? false;
+
         // A consulta busca projetos raiz, excluindo o projeto atual, sem subprojetos, e com pelo menos um admin em comum,
         // e carrega os tipos de projeto e os admins para exibição nos resultados
-        $query = Project::accessibleBy($request->user())
+        $query = Project::accessibleBy($user)
             ->whereNull('parent_id')
             ->whereKeyNot($project->getKey())
             // Exclui projetos do tipo organizacional da lista de candidatos,
@@ -269,15 +269,21 @@ class ProjectController extends Controller
                 $q->where('slug', '!=', Project::ORGANIZATIONAL_TYPE_SLUG);
             })
             ->doesntHave('children')
-            ->whereHas('users', function ($q) use ($adminIds) {
-                $q->whereIn('users.id', $adminIds)
-                    ->wherePivot('role', ProjectUserRole::ADMIN->value);
+            ->whereHas('users', function ($q) use ($user, $isGlobalAdmin) {
+                if (! $isGlobalAdmin) {
+                    $q->where('users.id', $user->id);
+                }
+
+                $q->wherePivot('role', ProjectUserRole::ADMIN->value);
             })
             ->with([
                 'projectType',
-                'users' => function ($q) use ($adminIds) {
-                    $q->whereIn('users.id', $adminIds)
-                        ->wherePivot('role', ProjectUserRole::ADMIN->value);
+                'users' => function ($q) use ($user, $isGlobalAdmin) {
+                    if (! $isGlobalAdmin) {
+                        $q->where('users.id', $user->id);
+                    }
+
+                    $q->wherePivot('role', ProjectUserRole::ADMIN->value);
                 },
             ])
             ->orderBy('name');
@@ -370,6 +376,58 @@ class ProjectController extends Controller
 
         return redirect()->route('projects.show', $project)
             ->with('alert-success', 'Subprojeto vinculado com sucesso!');
+    }
+
+    /**
+     * Desvincula um subprojeto do projeto atual.
+     */
+    public function unlinkSubproject(Request $request, Project $project)
+    {
+        $data = $request->validate([
+            'subproject_id' => ['required', 'integer', 'exists:projects,id'],
+        ]);
+
+        $subproject = Project::with(['users', 'children', 'projectType'])->findOrFail($data['subproject_id']);
+
+        abort_unless(
+            Gate::allows('storeMember', $project) || Auth::user()?->isAdminOfProject($subproject),
+            403
+        );
+
+        if ($subproject->parent_id !== $project->id) {
+            return redirect()->back()
+                ->withErrors(['subproject_id' => 'O projeto selecionado não está vinculado como subprojeto deste projeto.']);
+        }
+
+        DB::transaction(function () use ($subproject) {
+            $subproject->update([
+                'parent_id' => null,
+                'updated_by' => Auth::id(),
+            ]);
+        });
+
+        $actor = Auth::user();
+        $project->load('users');
+        $subproject->load('users');
+
+        $parentRecipients = $project->users
+            ->filter(fn($user) => $project->userRole($user) !== ProjectUserRole::VIEWER);
+        $subprojectRecipients = $subproject->users
+            ->filter(fn($user) => $subproject->userRole($user) !== ProjectUserRole::VIEWER);
+        // Notifica os usuários relevantes do projeto pai e do subprojeto sobre a desvinculação,
+        // evitando notificar espectadores e o próprio ator da ação
+        $parentRecipients
+            ->merge($subprojectRecipients)
+            ->unique('id')
+            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->each(function ($user) use ($actor, $project, $subproject) {
+                Mail::to($user->email)->queue(
+                    new ProjectUnlinkedAsSubproject($user, $actor, $project, $subproject)
+                );
+            });
+
+        return redirect()->route('projects.show', $project)
+            ->with('alert-success', 'Subprojeto desvinculado com sucesso!');
     }
 
     /**

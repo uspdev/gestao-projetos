@@ -142,6 +142,22 @@
       padding: 0.29rem 0.42rem;
       max-width: 7rem;
     }
+
+    .preview-card__action {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-2px);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .preview-card:hover .preview-card__action,
+    .preview-card:focus-within .preview-card__action {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
   </style>
 @endonce
 

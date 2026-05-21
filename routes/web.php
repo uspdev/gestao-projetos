@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
         ->name('projects.subprojects.selectable');
     Route::post('projects/{project}/subprojects/link', [ProjectController::class, 'linkSubproject'])
         ->name('projects.subprojects.link');
+    Route::delete('projects/{project}/subprojects/unlink', [ProjectController::class, 'unlinkSubproject'])
+        ->name('projects.subprojects.unlink');
 
     Route::resource('projects', ProjectController::class)->except(['edit', 'update']);
 
