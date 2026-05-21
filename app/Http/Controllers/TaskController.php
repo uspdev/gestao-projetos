@@ -150,8 +150,10 @@ class TaskController extends Controller
             'users',
             'tags',
         ]);
+        $project = $task->project;
 
-        return view('module-tasks.show', compact('task'));
+
+        return view('module-tasks.show', compact('task', 'project'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)

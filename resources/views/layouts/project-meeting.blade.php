@@ -14,10 +14,8 @@
       @include('module-meetings.partials.create-btn')
     @show
   </div>
-
   <div class="card-body p-2">
     @yield('meeting-content')
   </div>
 </div>
-
 @endsection

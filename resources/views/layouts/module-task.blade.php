@@ -9,14 +9,17 @@
         <i class="fas fa-tasks"></i> Tarefas
       </a>
       <span class="badge badge-pill badge-secondary">{{ $project->tasks->count() }}</span>
-
-    @section('task-header')
       @include('module-tasks.partials.buttons.create-task-btn')
-    @show
-  </div>
 
-  <div class="card-body p-2">
-    @yield('task-content')
+      @section('task-header') @show
+    </div>
+
+    <div class="card-body p-2">
+      @yield('task-content')
+    </div>
   </div>
-</div>
 @endsection
+
+@push('modals')
+  @include('module-tasks.partials.components.task-form-modal')
+@endpush
