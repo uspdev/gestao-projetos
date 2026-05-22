@@ -104,6 +104,8 @@ Route::middleware('auth')->group(function () {
         ->name('projects.meetings.items.destroy');
 
     Route::resource('projects.meetings', MeetingController::class);
+    Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
+        ->name('projects.meetings.items.store');
 
 
 
