@@ -2,6 +2,7 @@
 
 namespace App\Enums\Project;
 
+// Usado no seed do banco para definir as fases do projeto
 enum ProjectPhase: string
 {
     case PLANNING = 'PLANNING';

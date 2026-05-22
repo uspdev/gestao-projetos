@@ -1,5 +1,15 @@
 @php
-  $modules = ['tasks', 'meetings'];
+  // Tem pagina que não tem resolvedModules, enão chama direto pelo projeto que esta sendo mostrado
+  $resolvedModules ??= isset($project) ? \App\Models\Module::resolveForProject($project) : [];
+
+  $modules = collect($resolvedModules)->filter(fn($module) => $module['enabled'] ?? false)->pluck('slug');
+
+  if ($modules->contains('phases')) {
+      $modules = $modules->reject('phases')->push('phases');
+  }
+
+  $modules = $modules->values()->all();
+
   $routeName = Route::currentRouteName();
 @endphp
 
@@ -37,10 +47,6 @@
           @include("module-{$module}.partials.project-menu-item")
         @endif
       @endforeach
-
-      <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm btn-outline-secondary">
-        Fase > <span class="badge {{ $project->phase->color() }}">{{ $project->phase->label() }}</span>
-      </a>
 
     </div>
   </div>

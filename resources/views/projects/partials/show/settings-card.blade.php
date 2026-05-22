@@ -173,15 +173,19 @@
         </td>
         <td>@include('projects.partials.components.update-status')</td>
       </tr>
-      <tr>
-        <td>
-          <div class="settings-label">
-            <i class="ti ti-git-branch" aria-hidden="true"></i>
-            Fase
-          </div>
-        </td>
-        <td>@include('projects.partials.components.update-phase')</td>
-      </tr>
+      @if ($project->isModuleEnabled('phases'))
+        <tr>
+          <td>
+            <div class="settings-label">
+              <i class="ti ti-git-branch" aria-hidden="true"></i>
+              Fase
+            </div>
+          </td>
+          <td>
+            <div class="settings-field-group">@include('module-phases.partials.update-phase')</div>
+          </td>
+        </tr>
+      @endif
     </tbody>
   </table>
 </div>
