@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Contracts\HasCommentRecipients;
 use App\Morphs\Discussable;
 use App\Enums\Project\ProjectPermissionInheritance;
-use App\Enums\Project\ProjectPhase;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Project\ProjectVisibility;
@@ -39,7 +38,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
         'parent_id',
         'visibility',
         'permission_inheritance',
-        'phase',
+        'phase_id',
     ];
 
     protected array $roleByUserCache = [];
@@ -51,7 +50,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
             'status' => ProjectStatus::class,
             'visibility' => ProjectVisibility::class,
             'permission_inheritance' => ProjectPermissionInheritance::class,
-            'phase' => ProjectPhase::class,
+            'phase_id' => 'integer',
         ];
     }
 
@@ -154,6 +153,14 @@ class Project extends Model implements Discussable, HasCommentRecipients
     public function projectType(): BelongsTo
     {
         return $this->belongsTo(ProjectType::class);
+    }
+
+    /**
+     * Relacionamento com fase N-1
+     */
+    public function phase(): BelongsTo
+    {
+        return $this->belongsTo(Phase::class);
     }
 
     /**

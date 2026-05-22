@@ -12,7 +12,6 @@ use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\MeetingItem;
-use App\Models\MeetingItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;

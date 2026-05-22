@@ -10,7 +10,6 @@ use App\Http\Requests\Project\UpdateProjectDescriptionRequest;
 use App\Http\Requests\Project\UpdateProjectNameRequest;
 use App\Http\Requests\Project\UpdateProjectSlugRequest;
 use App\Http\Requests\Project\UpdateProjectTagsRequest;
-use App\Http\Requests\Project\UpdateProjectPhaseRequest;
 use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
@@ -96,7 +95,10 @@ class ProjectController extends Controller
         // Se um parâmetro de tipo de projeto for fornecido, tenta localizar o tipo correspondente por id ou slug,
         // e exibe o formulário de criação específico para aquele tipo, passando os módulos relacionados
         if ($projectTypeParam !== '') {
-            $projectTypeQuery = ProjectType::query()->with(['modules' => fn($query) => $query->orderBy('name')]);
+            $projectTypeQuery = ProjectType::query()->with([
+                'modules' => fn($query) => $query->orderBy('name'),
+                'phases' => fn($query) => $query->where('phases.is_active', true),
+            ]);
 
             if (ctype_digit($projectTypeParam)) {
                 $projectTypeQuery->where('id', (int) $projectTypeParam);
@@ -175,6 +177,8 @@ class ProjectController extends Controller
             'tags',
             'parent',
             'projectType',
+            'projectType.phases',
+            'phase',
             'tasks' => fn($query) => $query
                 ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
                 ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
@@ -544,25 +548,6 @@ class ProjectController extends Controller
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
-    /**
-     * Atualiza a fase de um projeto.
-     *
-     * @param  \App\Http\Requests\Project\UpdateProjectPhaseRequest $request
-     * @param  \App\Models\Project $project
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function updateProjectPhase(UpdateProjectPhaseRequest $request, Project $project)
-    {
-        DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
-
-            $project->update($data);
-        });
-
-        return redirect()->back()
-            ->with('alert-success', 'Fase do projeto atualizada com sucesso!');
-    }
 
     /**
      * Atualiza a visibilidade de um projeto.
@@ -608,7 +593,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
-        $project->load('projectType');
+        $project->load('projectType.phases', 'phase');
         $resolvedModules = Module::resolveForProject($project);
 
         return view('projects.settings', compact('project', 'resolvedModules'));

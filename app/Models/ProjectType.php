@@ -45,6 +45,28 @@ class ProjectType extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Relacionamento com fases N-N
+     */
+    public function phases(): BelongsToMany
+    {
+        return $this->belongsToMany(Phase::class, 'project_type_phases')
+            ->withPivot('order', 'is_initial', 'is_final')
+            ->withTimestamps()
+            ->orderBy('project_type_phases.order');
+    }
+
+    public function isModuleEnabled(string $slug): bool
+    {
+        $this->loadMissing('modules');
+
+        $normalized = strtolower(trim($slug));
+
+        return $this->modules->contains(function (Module $module) use ($normalized) {
+            return $module->slug === $normalized && (bool) ($module->pivot?->enabled ?? false);
+        });
+    }
+
     public function setSlugAttribute($value): void
     {
         $this->attributes['slug'] = $value === null ? null : Str::slug((string) $value);
