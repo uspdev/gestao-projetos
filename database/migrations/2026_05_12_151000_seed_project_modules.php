@@ -71,7 +71,7 @@ return new class extends Migration
             return;
         }
 
-        $slugs = ['tasks', 'meetings'];
+        $slugs = ['tasks', 'meetings', 'phases'];
         $moduleIds = DB::table('modules')->whereIn('slug', $slugs)->pluck('id')->all();
 
         if (!empty($moduleIds)) {

@@ -71,6 +71,13 @@ return new class extends Migration
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+            [
+                'slug' => 'phases',
+                'name' => 'Fases',
+                'description' => 'Fases do ciclo de vida do projeto.',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ];
 
         foreach ($modules as $m) {
@@ -84,7 +91,7 @@ return new class extends Migration
             DB::table('projects')->whereNull('project_type_id')->update(['project_type_id' => $developmentTypeId]);
         }
 
-        $moduleIds = DB::table('modules')->whereIn('slug', ['tasks', 'meetings'])->pluck('id', 'slug');
+        $moduleIds = DB::table('modules')->whereIn('slug', ['tasks', 'meetings', 'phases'])->pluck('id', 'slug');
 
         if ($developmentTypeId) {
             foreach ($moduleIds as $slug => $moduleId) {
@@ -125,14 +132,14 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('project_type_modules') && Schema::hasTable('modules')) {
-            $moduleIds = DB::table('modules')->whereIn('slug', ['tasks', 'meetings'])->pluck('id')->all();
+            $moduleIds = DB::table('modules')->whereIn('slug', ['tasks', 'meetings', 'phases'])->pluck('id')->all();
             if (!empty($moduleIds)) {
                 DB::table('project_type_modules')->whereIn('module_id', $moduleIds)->delete();
             }
         }
 
         if (Schema::hasTable('modules')) {
-            DB::table('modules')->whereIn('slug', ['tasks', 'meetings'])->delete();
+            DB::table('modules')->whereIn('slug', ['tasks', 'meetings', 'phases'])->delete();
         }
     }
 };
