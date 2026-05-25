@@ -101,7 +101,8 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return $this->belongsToMany(User::class)
             ->using(ProjectUser::class)
             ->withPivot('role', 'pinned')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->orderBy('name');
     }
 
     /**
@@ -428,7 +429,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
      */
     public function linkableSubprojects()
     {
-        $user =Auth::user();
+        $user = Auth::user();
         return Project::query()
             ->whereNull('parent_id')
             ->whereKeyNot($this->getKey())
