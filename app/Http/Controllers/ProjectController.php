@@ -7,6 +7,7 @@ use App\Enums\Project\ProjectUserRole;
 use App\Enums\Task\TaskStatus;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectDescriptionRequest;
+use App\Http\Requests\Project\UpdateProjectModuleRequest;
 use App\Http\Requests\Project\UpdateProjectNameRequest;
 use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
 use App\Http\Requests\Project\UpdateProjectSlugRequest;
@@ -17,6 +18,7 @@ use App\Mail\ProjectLinkedAsSubproject;
 use App\Mail\ProjectUnlinkedAsSubproject;
 use App\Models\Module;
 use App\Models\Project;
+use App\Models\ProjectModule;
 use App\Models\ProjectType;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -495,6 +497,64 @@ class ProjectController extends Controller
         return redirect()->back()
             ->with('alert-success', 'Tags do projeto atualizado com sucesso!');
     }
+    /**
+     * Atualiza os módulos de um projeto.
+     * O método de atualização de módulos precisa validar se o módulo existe,
+     * se é permitido para o tipo de projeto,  e se as regras de obrigatoriedade e editabilidade são respeitadas,
+     * antes de atualizar a configuração do módulo para o projeto
+     * @param  \App\Http\Requests\Project\UpdateProjectModuleRequest $request
+     * @param  \App\Models\Project $project
+     * @param  string $module
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateModule(UpdateProjectModuleRequest $request, Project $project, string $module)
+    {
+        $moduleSlug = strtolower(trim($module));
+        if ($moduleSlug === '') {
+            abort(404);
+        }
+
+        $projectTypeId = (int) ($project->project_type_id ?? 0);
+        $typeConfig = null;
+        // Valida se o módulo é permitido para o tipo de projeto, e
+        // se as regras de obrigatoriedade e editabilidade são respeitadas
+        if ($projectTypeId > 0) {
+            $typeConfig = $project->projectTypeModuleConfig($moduleSlug);
+
+            if (! $typeConfig) {
+                return redirect()->back()
+                    ->withErrors(['module' => 'Este modulo nao esta disponivel para o tipo de projeto.']);
+            }
+        }
+
+        $moduleModel = $typeConfig['module'] ?? Module::query()->where('slug', $moduleSlug)->first();
+        if (! $moduleModel) {
+            abort(404);
+        }
+
+        $enabled = $request->enabled();
+
+        if ($typeConfig && ($typeConfig['required'] ?? false) && ! $enabled) {
+            return redirect()->back()
+                ->withErrors(['module' => 'Este modulo e obrigatorio e nao pode ser desativado.']);
+        }
+
+        if ($typeConfig && ! ($typeConfig['required'] ?? false) && ! ($typeConfig['editable'] ?? true)) {
+            return redirect()->back()
+                ->withErrors(['module' => 'Este modulo nao permite alteracoes neste projeto.']);
+        }
+        // Se passar pelas validações, atualiza ou cria a configuração do módulo para o projeto usando updateOrCreate,
+        // garantindo que a configuração seja criada caso não exista, ou atualizada caso já exista,
+        ProjectModule::query()->updateOrCreate(
+            ['project_id' => $project->id, 'module_id' => $moduleModel->id],
+            ['enabled' => $enabled]
+        );
+
+        return redirect()->back()
+            ->with('alert-success', $enabled
+                ? 'Modulo ativado com sucesso!'
+                : 'Modulo desativado com sucesso!');
+    }
 
     public function destroy(Project $project)
     {
@@ -572,8 +632,28 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
-        $project->load('projectType.phases', 'phase');
+        $project->load('projectType.phases', 'phase', 'projectType.modules');
+
         $resolvedModules = Module::resolveForProject($project);
+
+        $allowedModuleSlugs = $project->allowedModuleSlugs();
+        if (!empty($allowedModuleSlugs)) {
+            $resolvedModules = collect($resolvedModules)
+                ->filter(fn($module) => in_array($module['slug'] ?? '', $allowedModuleSlugs, true))
+                ->values()
+                ->all();
+        }
+        // Para exibir a lista de módulos na tela de configurações,
+        // garantir que as regras de obrigatoriedade e editabilidade sejam consideradas
+        $resolvedModules = collect($resolvedModules)->map(fn($module) => [
+            ...$module,
+            'enabled'      => (bool) ($module['enabled'] ?? false),
+            'required'     => (bool) ($module['required'] ?? false),
+            'editable'     => (bool) ($module['editable'] ?? true),
+            'slug'         => (string) ($module['slug'] ?? ''),
+            'name'         => (string) ($module['name'] ?? 'Modulo'),
+            'toggleLocked' => ($module['required'] ?? false) || !($module['editable'] ?? true),
+        ])->all();
 
         return view('projects.settings', compact('project', 'resolvedModules'));
     }

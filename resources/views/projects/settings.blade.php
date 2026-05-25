@@ -16,7 +16,7 @@
           </div>
 
           <div class="mb-4">
-            @include('projects.partials.show.show-card-modulos')
+            @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
           </div>
 
           <div class="mb-4">

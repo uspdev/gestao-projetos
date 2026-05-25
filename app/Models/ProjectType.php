@@ -66,6 +66,43 @@ class ProjectType extends Model
             return $module->slug === $normalized && (bool) ($module->pivot?->enabled ?? false);
         });
     }
+    // Retorna a configuração de um módulo específico para o projeto,
+    // considerando as regras de herança do tipo de projeto e os overrides específicos do projeto,
+    // para facilitar a verificação de disponibilidade de funcionalidades em diferentes partes da aplicação
+    // sem a necessidade de carregar toda a relação de módulos.
+    // Fiz dessa forma sem a necessidade de carregar toda a relação de módulos para otimizar o desempenho e
+    // deixar mais fácil a verificação
+    // como na tela de configurações do projeto, onde exibimos uma lista de módulos com seus status habilitado/desabilitado,
+    // obrigatoriedade e editabilidade.
+    public function moduleConfig(string $slug): ?array
+    {
+        $normalized = strtolower(trim($slug));
+        if ($normalized === '') {
+            return null;
+        }
+
+        $this->loadMissing('modules');
+
+        $module = $this->modules->firstWhere('slug', $normalized);
+        if (! $module) {
+            return null;
+        }
+
+        return [
+            'module' => $module,
+            'enabled' => (bool) ($module->pivot?->enabled ?? false),
+            'required' => (bool) ($module->pivot?->required ?? false),
+            'editable' => (bool) ($module->pivot?->editable ?? true),
+        ];
+    }
+
+    // Retorna os slugs dos módulos habilitados para o projeto
+    public function allowedModuleSlugs(): array
+    {
+        $this->loadMissing('modules');
+
+        return $this->modules->pluck('slug')->all();
+    }
 
     public function setSlugAttribute($value): void
     {
