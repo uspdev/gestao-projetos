@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/visibility', [ProjectController::class, 'updateProjectVisibility'])->name('projects.updateVisibility');
     Route::patch('projects/{project}/permission-inheritance', [ProjectController::class, 'updateProjectPermissionInheritance'])
         ->name('projects.updatePermissionInheritance');
+    Route::patch('projects/{project}/modules/{module}', [ProjectController::class, 'updateModule'])
+        ->name('projects.modules.update');
     Route::patch('projects/{project}/pin', [ProjectController::class, 'togglePin'])->name('projects.togglePin');
     Route::patch('projects/{project}/name', [ProjectController::class, 'updateName'])->name('projects.updateName');
     Route::patch('projects/{project}/slug', [ProjectController::class, 'updateSlug'])->name('projects.updateSlug');

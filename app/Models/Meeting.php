@@ -77,7 +77,7 @@ class Meeting extends Model implements HasCommentRecipients
     // Método para obter os projetos relacionados à reunião, incluindo os filhos, para uso na agenda
     public function projectsForAgenda(): EloquentCollection
     {
-        return $this->projects()
+        $meetingProjects = $this->projects()
             ->select('projects.id', 'projects.name', 'projects.slug', 'projects.parent_id')
             ->with([
                 'tasks' => function ($query) {
@@ -88,6 +88,15 @@ class Meeting extends Model implements HasCommentRecipients
                 },
             ])
             ->get();
+
+        // Garantir que projetos sem módulo de tarefas habilitado retornem uma coleção vazia de tarefas para evitar erros nas views
+        $meetingProjects->each(function (ProjectModel $project) {
+            if (! $project->isModuleEnabled('tasks')) {
+                $project->setRelation('tasks', collect());
+            }
+        });
+
+        return $meetingProjects;
     }
 
     // Método para obter os dados necessários para o formulário de itens de pauta

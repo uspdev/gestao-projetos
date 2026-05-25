@@ -208,6 +208,25 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return $this->belongsTo(ProjectType::class);
     }
 
+    // Retorna a configuração de um módulo específico para o projeto
+    public function projectTypeModuleConfig(string $slug): ?array
+    {
+        $this->loadMissing('projectType.modules');
+
+        return $this->projectType?->moduleConfig($slug);
+    }
+
+    // Retorna os slugs dos módulos habilitados para o projeto,
+    // considerando as regras de herança do tipo de projeto e os overrides específicos do projeto,
+    // para facilitar a verificação de disponibilidade de funcionalidades em diferentes partes da aplicação sem a necessidade
+    // de carregar toda a relação de módulos.
+    public function allowedModuleSlugs(): array
+    {
+        $this->loadMissing('projectType.modules');
+
+        return $this->projectType?->allowedModuleSlugs() ?? [];
+    }
+
     /**
      * Relacionamento com fase N-1
      */

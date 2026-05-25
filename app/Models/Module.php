@@ -162,19 +162,16 @@ class Module extends Model
             return null;
         }
 
-        $default = ProjectTypeModule::query()
-            ->where('project_type_id', $projectTypeId)
-            ->whereHas('module', fn($query) => $query->where('slug', $moduleSlug))
-            ->first(['enabled', 'required', 'editable']);
+        $config = $project->projectTypeModuleConfig($moduleSlug);
 
-        if (!$default) {
+        if (! $config) {
             return null;
         }
 
         return [
-            'enabled' => (bool) $default->enabled,
-            'required' => (bool) $default->required,
-            'editable' => (bool) $default->editable,
+            'enabled' => (bool) ($config['enabled'] ?? false),
+            'required' => (bool) ($config['required'] ?? false),
+            'editable' => (bool) ($config['editable'] ?? true),
         ];
     }
 }

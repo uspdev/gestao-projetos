@@ -15,7 +15,8 @@ class UpdateProjectPhaseRequest extends FormRequest
         /** @var Project $project */
         $project = $this->route('project');
 
-        return $this->user()->can('update', $project);
+        return $this->user()->can('update', $project)
+            && $project->isModuleEnabled('phases');
     }
 
     public function rules(): array
