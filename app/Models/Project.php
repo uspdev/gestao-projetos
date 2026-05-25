@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Spatie\Tags\HasTags;
 
@@ -57,6 +59,10 @@ class Project extends Model implements Discussable, HasCommentRecipients
 
     protected static function booted(): void
     {
+        static::created(function (Project $project) {
+            $project->initializeProjectModules();
+        });
+
         static::deleting(function (Project $project) {
             if ($project->isForceDeleting()) {
                 $project->tasks()
@@ -93,6 +99,51 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return 'slug';
     }
 
+    public function initializeProjectModules(): void
+    {
+        if (!Schema::hasTable('project_modules') || !Schema::hasTable('modules')) {
+            return;
+        }
+
+        if ($this->projectModules()->exists()) {
+            return;
+        }
+
+        $now = now();
+        $defaultsUsed = false;
+        $projectTypeId = (int) ($this->project_type_id ?? 0);
+
+        if (Schema::hasTable('project_type_modules') && $projectTypeId > 0) {
+            $rows = DB::table('project_type_modules')
+                ->where('project_type_id', $projectTypeId)
+                ->get(['module_id', 'enabled']);
+
+            if ($rows->isNotEmpty()) {
+                foreach ($rows as $row) {
+                    DB::table('project_modules')->updateOrInsert(
+                        ['project_id' => $this->id, 'module_id' => $row->module_id],
+                        ['enabled' => (bool) $row->enabled, 'created_at' => $now, 'updated_at' => $now]
+                    );
+                }
+
+                $defaultsUsed = true;
+            }
+        }
+
+        if (!$defaultsUsed) {
+            $modules = DB::table('modules')->pluck('id', 'slug');
+
+            foreach ($modules as $slug => $moduleId) {
+                $enabled = ($slug === 'tasks');
+
+                DB::table('project_modules')->updateOrInsert(
+                    ['project_id' => $this->id, 'module_id' => $moduleId],
+                    ['enabled' => $enabled, 'created_at' => $now, 'updated_at' => $now]
+                );
+            }
+        }
+    }
+
     /**
      * Relacionamento com users N-N
      */
@@ -101,7 +152,8 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return $this->belongsToMany(User::class)
             ->using(ProjectUser::class)
             ->withPivot('role', 'pinned')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->orderBy('name');
     }
 
     /**
@@ -428,7 +480,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
      */
     public function linkableSubprojects()
     {
-        $user =Auth::user();
+        $user = Auth::user();
         return Project::query()
             ->whereNull('parent_id')
             ->whereKeyNot($this->getKey())

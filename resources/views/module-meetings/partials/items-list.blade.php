@@ -6,9 +6,12 @@
 @endphp
 
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5 py-1">
-    <span><i class="fas fa-list-ul mr-1"></i> Itens de pauta</span>
-    <span class="badge badge-pill badge-secondary">{{ $meetingItems->count() }}</span>
+  <div class="card-header h5 py-1 d-flex justify-content-between align-items-center">
+    <div>
+      <span><i class="fas fa-list-ul mr-1"></i> Itens de pauta</span>
+      <span class="badge badge-pill badge-secondary">{{ $meetingItems->count() }}</span>
+      @include('module-meetings.partials.items-form')
+    </div>
   </div>
   <div class="card-body">
     @if ($meetingItems->isEmpty())
