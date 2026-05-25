@@ -108,9 +108,9 @@ class Meeting extends Model implements HasCommentRecipients
         $projectTypeKey = 'project';
         $taskTypeKey = 'task';
 
-        $defaultType = array_key_exists($taskTypeKey, $discussableOptions)
-            ? $taskTypeKey
-            : (array_key_first($discussableOptions) ?: $taskTypeKey);
+        $defaultType = array_key_exists($projectTypeKey, $discussableOptions)
+            ? $projectTypeKey
+            : (array_key_first($discussableOptions) ?: $projectTypeKey);
 
         $typeValue = old('discussable_type', $defaultType);
         $orderValue = old('order', (int) ($meetingItems->max('order') ?? 0) + 1);
