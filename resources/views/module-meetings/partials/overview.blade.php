@@ -7,7 +7,7 @@
             <div class="mb-3">
               <small class="text-muted d-block">Data e hora</small>
               <strong>
-                <x-local-date :date="$meeting->scheduled_at" empty="-" />
+                <x-local-date :date="$meeting->scheduled_at" :show-time="true" empty="-" />
               </strong>
             </div>
 
