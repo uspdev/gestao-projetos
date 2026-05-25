@@ -53,18 +53,9 @@ class MeetingPolicy
 
     public function comment(User $user, Meeting $meeting): bool
     {
-        $projects = $meeting->relationLoaded('projects')
-            ? $meeting->projects
-            : $meeting->projects()->get();
-
-        if ($projects->isEmpty()) {
-            return false;
-        }
-
-        return $projects->contains(function (Project $project) use ($user): bool {
-            return $this->meetingsModuleEnabled($project)
-                && $user->isContributorOfProject($project);
-        });
+        return $meeting->projects->some(
+            fn(Project $project) => $user->isContributorOfProject($project)
+        );
     }
 
     public function restore(User $user, Meeting $meeting): bool
