@@ -44,7 +44,7 @@
 
               <a class="btn btn-primary mt-auto"
                 href="{{ route('projects.create', ['project_type' => $projectType->slug]) }}">
-                Escolher tipo
+                Criar
               </a>
             </div>
           </div>
