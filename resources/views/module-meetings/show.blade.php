@@ -20,9 +20,6 @@
     </div>
 
     <div class="col-lg-4">
-      @if ($meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED)
-        @include('module-meetings.partials.items-form')
-      @endif
       @include('module-meetings.partials.items-list')
     </div>
   </div>
