@@ -60,7 +60,8 @@
       @endif
 
       @foreach ($modules as $module)
-        @include("module-{$module}.partials.project-menu-item")
+      {{-- o botão do menu do módulo pode não existir --}}
+        @includeIf("module-{$module}.partials.project-menu-item")
       @endforeach
 
     </div>

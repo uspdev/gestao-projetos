@@ -24,5 +24,15 @@
     @else
       <p class="text-muted mb-0">Este projeto ainda não possui tipo definido.</p>
     @endif
+    <div class="row">
+      <div class="col-md-6">
+        Status: @include('projects.partials.show.project-status-badge')
+      </div>
+      <div class="col-md-6">
+        @if ($project->phase)
+          Fase: <span class="badge {{ $project->phase->color }}">{{ $project->phase->name }}</span>
+        @endif
+      </div>
+    </div>
   </div>
 </div>
