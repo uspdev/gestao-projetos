@@ -3,7 +3,7 @@
   $btnClass = str_contains(Route::currentRouteName(), 'projects.tasks') ? 'btn-secondary' : 'btn-outline-secondary';
 @endphp
 <a href="{{ $href }}" class="btn btn-sm position-relative {{ $btnClass }}">
-  Tarefas
+  <i class="fas fa-tasks"></i> Tarefas
   @if ($project->getIncompleteTasksCount() > 0)
     <span class="badge badge-pill badge-warning" style="position: absolute; top: -8px; right: -8px;">
       {{ $project->getIncompleteTasksCount() }}

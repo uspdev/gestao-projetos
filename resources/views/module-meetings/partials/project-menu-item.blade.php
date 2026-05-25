@@ -4,7 +4,7 @@
 @endphp
 
 <a href="{{ $href }}" class="btn btn-sm position-relative {{ $btnClass }}">
-  Reuniões
+  <i class="far fa-calendar-alt"></i> Reuniões
   @if ($project->getIncompleteMeetingsCount() > 0)
     <span class="badge badge-pill badge-warning" style="position: absolute; top: -8px; right: -8px;">
       {{ $project->getIncompleteMeetingsCount() }}
