@@ -1,8 +1,5 @@
 @php
-  // Tem pagina que não tem resolvedModules, enão chama direto pelo projeto que esta sendo mostrado
-  $resolvedModules ??= isset($project) ? \App\Models\Module::resolveForProject($project) : [];
-
-  $modules = collect($resolvedModules)->filter(fn($module) => $module['enabled'] ?? false)->pluck('slug');
+  $modules = collect($project->activeModuleSlugs());
 
   if ($modules->contains('phases')) {
       $modules = $modules->reject('phases')->push('phases');
@@ -63,9 +60,7 @@
       @endif
 
       @foreach ($modules as $module)
-        @if ($project->isModuleEnabled($module))
-          @include("module-{$module}.partials.project-menu-item")
-        @endif
+        @include("module-{$module}.partials.project-menu-item")
       @endforeach
 
     </div>

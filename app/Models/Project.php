@@ -227,6 +227,33 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return $this->projectType?->allowedModuleSlugs() ?? [];
     }
 
+    public function activeModuleSlugs(): array
+    {
+        $this->loadMissing('modules');
+
+        return $this->modules
+            ->filter(fn(Module $module) => (bool) ($module->pivot?->enabled ?? false))
+            ->pluck('slug')
+            ->values()
+            ->all();
+    }
+
+    public function activeModulesSummary(): array
+    {
+        $this->loadMissing('modules');
+
+        return $this->modules
+            ->filter(fn(Module $module) => (bool) ($module->pivot?->enabled ?? false))
+            ->map(fn(Module $module) => [
+                'slug' => $module->slug,
+                'name' => $module->name,
+                'description' => $module->description,
+                'enabled' => true,
+            ])
+            ->values()
+            ->all();
+    }
+
     /**
      * Relacionamento com fase N-1
      */

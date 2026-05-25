@@ -1,8 +1,5 @@
 @php
   $projectType = $project->projectType;
-  $activeModules = collect($resolvedModules ?? [])
-      ->filter(fn($module) => (bool) ($module['enabled'] ?? false))
-      ->values();
 @endphp
 
 <div class="card mb-3">
