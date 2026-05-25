@@ -17,6 +17,7 @@ class MeetingItem extends Model
         'discussable_type',
         'discussable_id',
         'order',
+        'notes',
     ];
 
     public function meeting(): BelongsTo

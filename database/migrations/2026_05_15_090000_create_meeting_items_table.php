@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('meeting_id')->constrained('meetings')->cascadeOnDelete();
             $table->morphs('discussable');
             $table->unsignedInteger('order');
+            $table->text('notes')->nullable();
             $table->index(['meeting_id', 'order']);
             $table->unique(['meeting_id', 'discussable_type', 'discussable_id']);
 

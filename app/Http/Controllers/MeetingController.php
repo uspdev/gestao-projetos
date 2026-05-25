@@ -6,6 +6,7 @@ use App\Enums\Meeting\MeetingStatus;
 use App\Http\Requests\Meeting\StoreMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingRequest;
 use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
+use App\Http\Requests\MeetingItem\UpdateMeetingItemNotesRequest;
 use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
 use App\Mail\MeetingCreated;
 use App\Mail\MeetingUpdated;
@@ -254,6 +255,22 @@ class MeetingController extends Controller
 
         return redirect()->back()
             ->with('alert-success', 'Item de pauta removido com sucesso!');
+    }
+
+    public function updateNotes(UpdateMeetingItemNotesRequest $request, Project $project, Meeting $meeting, MeetingItem $meetingItem)
+    {
+        if ($meetingItem->meeting_id !== $meeting->id) {
+            abort(404);
+        }
+
+        $notes = $request->validated('notes');
+        $notes = is_string($notes) ? trim($notes) : $notes;
+
+        $meetingItem->notes = $notes === '' ? null : $notes;
+        $meetingItem->save();
+
+        return redirect()->back()
+            ->with('alert-success', 'Notas do item atualizadas com sucesso!');
     }
 
     public function updateStatus(UpdateMeetingStatusRequest $request, Project $project, Meeting $meeting)

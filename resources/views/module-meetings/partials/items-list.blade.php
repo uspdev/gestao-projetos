@@ -3,6 +3,7 @@
   $meeting = $meeting ?? null;
   $project = $project ?? null;
   $canRemove = $meeting && $project && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
+  $canEditNotes = $meeting && $project && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
 <div class="card mb-4 shadow-sm">
@@ -23,7 +24,10 @@
     @else
       <ul class="list-group list-group-flush">
         @foreach ($meetingItems as $item)
-          @include('module-meetings.partials.items-list-item')
+          @include('module-meetings.partials.items-list-item', [
+              'item' => $item,
+              'canEditNotes' => $canEditNotes,
+          ])
         @endforeach
       </ul>
     @endif
