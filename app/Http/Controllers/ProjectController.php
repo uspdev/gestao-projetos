@@ -2,22 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Task\TaskStatus;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
+use App\Enums\Task\TaskStatus;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectDescriptionRequest;
 use App\Http\Requests\Project\UpdateProjectNameRequest;
-use App\Http\Requests\Project\UpdateProjectSlugRequest;
-use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectPermissionInheritanceRequest;
+use App\Http\Requests\Project\UpdateProjectSlugRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
+use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
 use App\Mail\ProjectLinkedAsSubproject;
 use App\Mail\ProjectUnlinkedAsSubproject;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\ProjectType;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -39,9 +40,10 @@ class ProjectController extends Controller
     public function index()
     {
         $user = Auth::user();
+        Gate::authorize('viewAny', [Project::class, $user]);
+
         $viewAll = session('admin_view_all', false);
 
-        Gate::authorize('viewAny', [Project::class, $user]);
 
         // Se o usuário é admin mas não quer ver tudo, mostrar apenas seus projetos
         if ($user->isAdmin() && !$viewAll) {
@@ -123,7 +125,6 @@ class ProjectController extends Controller
     public function togglePin(Project $project)
     {
         $user = Auth::user();
-
         Gate::authorize('view', $project);
 
         $membership = $project->users()->where('users.id', $user->id)->first();
@@ -162,11 +163,10 @@ class ProjectController extends Controller
             ->with('alert-success', 'Projeto criado com sucesso!');
     }
 
-    public function show(Project $project)
+    public function show(Project $project, User $user)
     {
         Gate::authorize('view', $project);
 
-        $user = Auth::user();
         $showDone = request()->boolean('show_done');
         $tasksEnabled = $project->isModuleEnabled('tasks');
         // Carrega os módulos resolvidos para o projeto,
@@ -197,33 +197,12 @@ class ProjectController extends Controller
                 ->withCount(['tasks', 'users'])
                 ->orderBy('name')
                 ->get();
+
             // E também carrega os projetos elegíveis para vincular como subprojetos,
             // que são projetos raiz sem subprojetos e com pelo menos um admin em comum
-            $linkableSubprojects = Project::query()
-                ->whereNull('parent_id')
-                ->whereKeyNot($project->getKey())
-                ->whereHas('projectType', function ($q) {
-                    $q->where('slug', '!=', Project::ORGANIZATIONAL_TYPE_SLUG);
-                })
-                // children gera uma subconsulta para verificar a existência de subprojetos
-                ->doesntHave('children')
-                // A verificação de admin em comum é feita com whereHas na relação de usuários,
-                // filtrando por projetos que compartilhem pelo menos um admin com o projeto atual
-                ->whereHas('users', function ($q) use ($user) {
-                    $q->where('users.id', $user->id)
-                        ->where('project_user.role', ProjectUserRole::ADMIN->value);
-                })
-                // Carrega os tipos de projeto e os admins para exibição nos resultados, facilitando a identificação dos projetos candidatos
-                ->with([
-                    'projectType',
-                    'users' => function ($q) {
-                        $q->where('project_user.role', ProjectUserRole::ADMIN->value)
-                            ->orderBy('project_user.created_at');
-                    },
-                ])
-                ->orderBy('name')
-                ->get();
+            $linkableSubprojects = $project->linkableSubprojects();
         }
+
         // Para subprojetos, carrega os projetos irmãos (mesmo parent_id) para exibição e possível navegação
         $parentProjects = Project::accessibleBy($user)
             ->whereNull('parent_id')
@@ -597,5 +576,17 @@ class ProjectController extends Controller
         $resolvedModules = Module::resolveForProject($project);
 
         return view('projects.settings', compact('project', 'resolvedModules'));
+    }
+
+    public function subprojects(Project $project)
+    {
+        Gate::authorize('view', $project);
+        $subprojects = $project->children()
+            ->with(['tags', 'projectType'])
+            ->withCount(['tasks', 'users'])
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.subprojects', compact('project', 'subprojects'));
     }
 }

@@ -3,16 +3,15 @@
 namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
-use App\Morphs\Discussable;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Project\ProjectVisibility;
-use App\Traits\HasSlug;
+use App\Morphs\Discussable;
 use App\Traits\Auditable;
+use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Spatie\Tags\HasTags;
 
@@ -261,7 +262,8 @@ class Project extends Model implements Discussable, HasCommentRecipients
     {
         return $this->belongsToMany(Module::class, 'project_modules')
             ->withPivot('enabled')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->orderBy('name');
     }
 
     public function isModuleEnabled(string $moduleSlug): bool
@@ -417,5 +419,39 @@ class Project extends Model implements Discussable, HasCommentRecipients
         }
 
         return ProjectUserRole::tryFrom((string) $roleValue);
+    }
+
+    /**
+     * Retorna projetos elegíveis para vincular como subprojetos,
+     *
+     * que são projetos raiz sem subprojetos e com pelo menos um admin em comum
+     */
+    public function linkableSubprojects()
+    {
+        $user =Auth::user();
+        return Project::query()
+            ->whereNull('parent_id')
+            ->whereKeyNot($this->getKey())
+            ->whereHas('projectType', function ($q) {
+                $q->where('slug', '!=', Project::ORGANIZATIONAL_TYPE_SLUG);
+            })
+            // children gera uma subconsulta para verificar a existência de subprojetos
+            ->doesntHave('children')
+            // A verificação de admin em comum é feita com whereHas na relação de usuários,
+            // filtrando por projetos que compartilhem pelo menos um admin com o projeto atual
+            ->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id)
+                    ->where('project_user.role', ProjectUserRole::ADMIN->value);
+            })
+            // Carrega os tipos de projeto e os admins para exibição nos resultados, facilitando a identificação dos projetos candidatos
+            ->with([
+                'projectType',
+                'users' => function ($q) {
+                    $q->where('project_user.role', ProjectUserRole::ADMIN->value)
+                        ->orderBy('project_user.created_at');
+                },
+            ])
+            ->orderBy('name')
+            ->get();
     }
 }
