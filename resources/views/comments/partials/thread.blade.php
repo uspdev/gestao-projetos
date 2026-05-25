@@ -4,12 +4,13 @@
 @endphp
 
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5 d-flex align-items-center justify-content-between">
+  <div class="card-header py-1 h5">
     <span><i class="far fa-comment-dots mr-1"></i> Comentários</span>
-    <span class="badge badge-secondary">{{ $comments->count() }}</span>
+    <span class="badge badge-pill badge-secondary">{{ $comments->count() }}</span>
   </div>
   <div class="card-body">
-    <ul class="list-group list-group-flush mb-3">
+
+    <ul class="list-group list-group-flush mb-2">
       @foreach ($comments as $comment)
         <li class="list-group-item px-0">
           <div class="d-flex align-items-start justify-content-between gap-2">
@@ -18,16 +19,7 @@
               <small class="text-muted">
                 <x-local-datetime :date="$comment->created_at" />
               </small>
-              @can('delete', $comment)
-                <form method="POST" action="{{ route('comments.destroy', $comment) }}" class="d-inline-block"
-                  onsubmit="return confirm('Deseja realmente apagar este comentário?');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="btn btn-outline-danger btn-sm py-0">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              @endcan
+              @include('comments.partials.delete-btn')
             </div>
           </div>
           <div class="mt-2 text-dark">
@@ -38,6 +30,7 @@
     </ul>
 
     @can('comment', $commentable)
+    <hr />
       <form method="POST" action="{{ route('comments.store') }}">
         @csrf
         <input type="hidden" name="commentable_type" value="{{ $commentableType }}">
