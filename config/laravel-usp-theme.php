@@ -28,13 +28,6 @@ $menu = [
 
 ];
 
-$active_menu = [];
-foreach ($menu as $item) {
-    if (isset($item['active_patterns']) && isset($item['url'])) {
-        $active_menu[$item['url']] = $item['active_patterns'];
-    }
-}
-
 $right_menu = [
     [
         'text' => '<span class="text-danger">Admin</span>',
