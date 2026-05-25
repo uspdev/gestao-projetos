@@ -13,7 +13,20 @@
   $routeName = Route::currentRouteName();
 @endphp
 
-<div class="card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky">
+@section('styles')
+  @parent
+  <style>
+    .border-bottom-2 {
+      border-bottom-width: 2px !important;
+    }
+  </style>
+@endsection
+
+<div @class([
+    'card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky',
+    'border-bottom border-warning border-bottom-2' => request()->routeIs(
+        'projects.settings'),
+])>
   <div class="mb-0">
     <div class="h4 mb-0 d-flex align-items-center flex-wrap" style="gap: 0.35rem;">
       <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
@@ -41,6 +54,13 @@
         class="btn btn-sm {{ $routeName === 'projects.show' ? 'btn-secondary' : 'btn-outline-secondary' }}">
         Visão geral
       </a>
+
+      @if (!$project->isSubproject())
+        <a href="{{ route('projects.subprojects', $project) }}"
+          class="btn btn-sm {{ $routeName === 'projects.subprojects' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+          Subprojetos
+        </a>
+      @endif
 
       @foreach ($modules as $module)
         @if ($project->isModuleEnabled($module))

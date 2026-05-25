@@ -23,7 +23,7 @@
   }
 @endphp
 
-<li class="list-group-item px-0 py-3">
+<li class="list-group-item px-0 py-1">
   <div class="d-flex align-items-start justify-content-between gap-3">
     <div class="d-flex align-items-start" style="gap: 0.75rem;">
       <div class="badge badge-light border text-muted px-2 py-2">#{{ $item->order }}</div>
@@ -49,7 +49,7 @@
           class="d-inline-block" onsubmit="return confirm('Deseja remover este item de pauta?');">
           @csrf
           @method('DELETE')
-          <button type="submit" class="btn btn-outline-danger btn-sm">
+          <button type="submit" class="btn btn-outline-danger btn-sm py-0">
             <i class="fas fa-trash"></i>
           </button>
         </form>

@@ -5,7 +5,7 @@
 {{-- Permissão de storeMember atende os requesitos de que o usuário possa vincular subprojetos a este projeto --}}
 @can('storeMember', $project)
   @if ($canLinkSubprojects)
-    <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="modal" data-target="#linkSubprojectModal">
+    <button class="btn btn-sm btn-outline-primary py-0" type="button" data-toggle="modal" data-target="#linkSubprojectModal">
       <i class="fas fa-link"></i>
     </button>
 
@@ -23,7 +23,7 @@
             <form method="POST" action="{{ route('projects.subprojects.link', $project) }}">
               @csrf
               <div class="modal-body">
-                <div class="alert alert-light border text-muted mb-3">
+                <div class="alert">
                   Selecione um projeto independente para vincular como subprojeto.
                 </div>
 

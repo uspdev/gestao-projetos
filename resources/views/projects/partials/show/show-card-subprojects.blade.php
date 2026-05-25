@@ -1,11 +1,9 @@
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5 d-flex justify-content-start align-items-center">
+  <div class="card-header h5 py-2">
     <span>
       <i class="fas fa-sitemap"></i> Subprojetos
     </span>
-    <div class="d-flex align-items-center gap-2 ml-2">
       @include('projects.partials.buttons.link-subproject-btn')
-    </div>
   </div>
 
   <div class="card-body">
@@ -16,8 +14,8 @@
           $user = auth()->user();
           $canUnlinkSubproject = $user && ($user->isAdminOfProject($project) || $user->isAdminOfProject($subproject));
         @endphp
-        <div class="col-md-6 col-lg-6">
-          <x-card.preview class="mb-3" href="{{ route('projects.show', $subproject) }}"
+        <div class="col-md-6 col-lg-6 mb-3">
+          <x-card.preview href="{{ route('projects.show', $subproject) }}"
             aria-label="Acessar subprojeto {{ $subproject->name }}" :title="$subproject->name" title-variant="project"
             :status-label="$subproject->status?->label()" :status-class="$subproject->status?->color()" :project-type="$subproject->projectType?->name" :tags="$subprojectTags" :tags-limit="1"
             action-class="preview-card__action">

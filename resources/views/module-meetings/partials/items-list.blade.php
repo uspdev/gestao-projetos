@@ -6,9 +6,9 @@
 @endphp
 
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5 d-flex align-items-center justify-content-between">
+  <div class="card-header h5 py-1">
     <span><i class="fas fa-list-ul mr-1"></i> Itens de pauta</span>
-    <span class="badge badge-secondary">{{ $meetingItems->count() }}</span>
+    <span class="badge badge-pill badge-secondary">{{ $meetingItems->count() }}</span>
   </div>
   <div class="card-body">
     @if ($meetingItems->isEmpty())

@@ -1,5 +1,5 @@
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5">
+  <div class="card-header h5 py-1">
     <i class="fas fa-plus-circle mr-1"></i> Adicionar item de pauta
   </div>
   <div class="card-body">
