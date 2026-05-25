@@ -36,7 +36,7 @@ class AdminController extends Controller
         $stats['meetings'] = Meeting::count();
 
         $modules = Module::all();
-        $projectTypes = ProjectType::all();
+        $projectTypes = ProjectType::orderBy('name')->get();
 
         $usersWithProjects = User::query()
             ->has('projects')

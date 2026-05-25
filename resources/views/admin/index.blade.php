@@ -31,7 +31,7 @@
           <p class="card-text mb-0">Tipos de projeto:</p>
           <ul class="mb-0">
             @foreach ($projectTypes as $type)
-              <li>{{ $type->name }}</li>
+              <li class="pb-2"><b>{{ $type->name }}</b>: {!! md2html($type->description) !!}</li>
             @endforeach
           </ul>
         </div>
