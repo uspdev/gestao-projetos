@@ -34,6 +34,7 @@ class MeetingController extends Controller
 
         $meetings = $project->meetings()
             ->with('projects')
+            ->orderBy('status', 'desc')
             ->orderBy('scheduled_at')
             ->get();
 
