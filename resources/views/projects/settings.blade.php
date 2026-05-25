@@ -12,11 +12,15 @@
 
         <div class="col-12 col-lg-4">
           <div class="mb-4">
-            @include('projects.partials.show.show-card-membros')
+            @include('projects.partials.show.project-type-card')
           </div>
 
           <div class="mb-4">
             @include('projects.partials.show.show-card-modulos')
+          </div>
+
+          <div class="mb-4">
+            @include('projects.partials.show.show-card-membros')
           </div>
 
           <div class="card border-danger">
