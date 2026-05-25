@@ -23,7 +23,14 @@
           <p class="card-text mb-0">Módulos:</p>
           <ul class="mb-0">
             @foreach ($modules as $module)
-              <li>{{ $module->name }}</li>
+              <li><b>{{ $module->name }}</b>: {!! md2html($module->description) !!}</li>
+            @endforeach
+          </ul>
+          <hr />
+          <p class="card-text mb-0">Tags:</p>
+          <ul class="mb-0">
+            @foreach ($tags as $tag)
+              <li><b>{{ $tag->name }}</b>: {{ $tag->type }}</li>
             @endforeach
           </ul>
         </div>
@@ -31,7 +38,14 @@
           <p class="card-text mb-0">Tipos de projeto:</p>
           <ul class="mb-0">
             @foreach ($projectTypes as $type)
-              <li class="pb-2"><b>{{ $type->name }}</b>: {!! md2html($type->description) !!}</li>
+              <li class="py-2">
+                <b>{{ $type->name }}</b>:
+                {!! md2html($type->description) !!}
+                <div class="ml-2"><b>Módulos</b>: {{ $type->modules->pluck('name')->implode(', ') }}</div>
+                @if ($type->modules->contains('slug', 'phases'))
+                  <div class="ml-2"><b>Fases</b>: {{ $type->phases->pluck('name')->implode(', ') }}</div>
+                @endif
+              </li>
             @endforeach
           </ul>
         </div>

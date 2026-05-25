@@ -6,6 +6,7 @@ use App\Models\Meeting;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\ProjectType;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -37,6 +38,7 @@ class AdminController extends Controller
 
         $modules = Module::all();
         $projectTypes = ProjectType::orderBy('name')->get();
+        $tags = Tag::all();
 
         $usersWithProjects = User::query()
             ->has('projects')
@@ -44,7 +46,7 @@ class AdminController extends Controller
             ->orderBy('users.name')
             ->get();
 
-        return view('admin.index', compact('usersWithProjects', 'stats', 'modules', 'projectTypes'));
+        return view('admin.index', compact('usersWithProjects', 'stats', 'modules', 'projectTypes', 'tags'));
     }
 
     /**
