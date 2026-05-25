@@ -103,6 +103,7 @@ class TaskController extends Controller
             ->with('users')
             ->with('tags')
             ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->orderBy('completed_at', 'asc')
             ->orderBy('priority', 'asc')
             ->latest()
             ->get();
