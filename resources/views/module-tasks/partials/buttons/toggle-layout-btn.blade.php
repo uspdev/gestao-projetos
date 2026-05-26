@@ -1,7 +1,7 @@
 @if (session('tasks_view') === 'kanban')
-  <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="btn btn-sm btn-outline-secondary py-0" title="Ver em lista">
+  <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}" class="btn btn-sm btn-outline-secondary py-0" title="Ver em cards">
     <i class="fas fa-list"></i>
-    <span class="ml-1">Ver em lista</span>
+    <span class="ml-1">Ver em cards</span>
   </a>
 @else
   <a href="{{ request()->fullUrlWithQuery(['view' => 'kanban']) }}" class="btn btn-sm btn-outline-secondary py-0" title="Ver em kanban">
