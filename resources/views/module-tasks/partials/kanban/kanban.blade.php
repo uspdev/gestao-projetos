@@ -4,7 +4,7 @@
       $tasks = $tasksByStatus->get($status->value, collect());
     @endphp
     <div class="flex-shrink-0" style="width: 320px;">
-      <div class="card h-100 shadow-sm border-0">
+      <div class="card shadow-sm border-0">
         <div class="card-header d-flex align-items-center justify-content-between py-2">
           <div class="font-weight-bold text-capitalize">{{ $status->label() }}</div>
 
@@ -14,7 +14,7 @@
           </div>
         </div>
 
-        <div class="card-body bg-light">
+        <div class="card-body bg-light p-2">
           @forelse ($tasks as $task)
             @include('module-tasks.partials.kanban.kanban-task-card')
           @empty
