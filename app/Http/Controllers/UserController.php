@@ -30,7 +30,7 @@ class UserController extends Controller
         // Apenas o usuário logado pode ver suas próprias tasks
         if (Auth::id() === $user->id) {
             $relations = array_merge($relations, [
-                'tasks',
+                'tasks' => fn($query) => $query->withTasksModuleEnabled(),
                 'tasks.project',
                 'tasks.tags',
             ]);

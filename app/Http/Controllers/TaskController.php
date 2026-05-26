@@ -54,34 +54,13 @@ class TaskController extends Controller
         Gate::authorize('viewTasks', $user);
 
         // Se o usuário é admin e quer ver todas as tasks, buscar de todos os projetos
-        if ($user->isAdmin() && $viewAll) {
-            $tasksQuery = Task::query()
-                ->with([
-                    'project',
-                    'users',
-                ])
-                ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-                ->orderBy(
-                    Project::select('name')
-                        ->whereColumn('projects.id', 'tasks.project_id')
-                )
-                ->latest();
-        } else {
-            $tasksQuery = $user->tasks()
-                ->with([
-                    'project',
-                    'users',
-                ])
-                ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-                ->orderBy(
-                    Project::select('name')
-                        ->whereColumn('projects.id', 'tasks.project_id')
-                )
-                ->latest();
-        }
+        $tasksQuery = ($user->isAdmin() && $viewAll)
+            ? Task::query()
+            : $user->tasks();
 
-        $tasksByStatus = $user->tasks()
+        $tasksByStatus = $tasksQuery
             ->with(['project', 'users'])
+            ->withTasksModuleEnabled()
             ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy(
                 Project::select('name')

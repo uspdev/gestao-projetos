@@ -8,6 +8,7 @@ use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Tag;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -107,5 +108,24 @@ class Task extends Model implements Discussable, HasCommentRecipients
     public function isLocked(): bool
     {
         return $this->status === \App\Enums\Task\TaskStatus::DONE;
+    }
+    
+    public function scopeWithEnabledProjectModule(Builder $query, string $slug): Builder
+    {
+        $normalized = strtolower(trim($slug));
+        if ($normalized === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('project.modules', function (Builder $moduleQuery) use ($normalized) {
+            $moduleQuery
+                ->where('modules.slug', $normalized)
+                ->where('project_modules.enabled', true);
+        });
+    }
+    // escopo específico para o módulo de tarefas, para facilitar a reutilização em outros lugares do código
+    public function scopeWithTasksModuleEnabled(Builder $query): Builder
+    {
+        return $query->withEnabledProjectModule('tasks');
     }
 }
