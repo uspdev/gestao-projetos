@@ -13,6 +13,7 @@ use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\MeetingItem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -29,17 +30,22 @@ class MeetingController extends Controller
         })->only(['index', 'create', 'show', 'edit']);
     }
 
-    public function index(Project $project)
+    public function index(Request $request, Project $project)
     {
         Gate::authorize('viewAny', [Meeting::class, $project]);
 
+        $showCompleted = $request->boolean('show_completed');
+
         $meetings = $project->meetings()
             ->with('projects')
+            ->when(! $showCompleted, function ($query) {
+                $query->where('status', '!=', MeetingStatus::COMPLETED->value);
+            })
             ->orderBy('status', 'desc')
             ->orderBy('scheduled_at')
             ->get();
 
-        return view('module-meetings.index', compact('project', 'meetings'));
+        return view('module-meetings.index', compact('project', 'meetings', 'showCompleted'));
     }
 
     public function create(Project $project)

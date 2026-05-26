@@ -2,6 +2,11 @@
 
 @section('title', $project->name . ' - Reunioes')
 
+@section('meeting-header')
+  @include('module-meetings.partials.create-btn')
+  @include('module-meetings.partials.buttons.show-completed-btn')
+@endsection
+
 @section('meeting-content')
   @if ($meetings->isEmpty())
     <div class="alert alert-light border text-muted mb-0">Nenhuma reuniao cadastrada.</div>
