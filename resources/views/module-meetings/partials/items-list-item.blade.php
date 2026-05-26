@@ -105,8 +105,8 @@
               @method('PATCH')
               <div class="form-group mb-2">
                 <label for="{{ $notesEditCollapseId }}-textarea" class="sr-only">Notas do item</label>
-                <textarea name="notes" id="{{ $notesEditCollapseId }}-textarea" rows="4" maxlength="10000"
-                  class="form-control">{{ old('notes', $item->notes) }}</textarea>
+                <x-form.textarea name="notes" id="{{ $notesEditCollapseId }}-textarea" groupClass="mb-0"
+                  value="{{ old('notes', $item->notes) }}" rows="4" maxlength="10000" class="mb-0" />
               </div>
               <div class="d-flex justify-content-end" style="gap: 0.5rem;">
                 <button type="button" class="btn btn-light btn-sm" data-toggle="collapse"

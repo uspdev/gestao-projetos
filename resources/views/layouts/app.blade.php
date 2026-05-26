@@ -12,6 +12,9 @@
 {{-- Target: table; class: datatable-simples --}}
 @include('laravel-usp-theme::blocos.datatable-simples')
 
+{{-- Target: textarea; class: textarea-autogrow --}}
+@include('blocos.textarea-autogrow')
+
 {{-- Fim de blocos do laravel-usp-theme --}}
 
 @section('styles')
