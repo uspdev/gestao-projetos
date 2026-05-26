@@ -81,7 +81,7 @@ class ProjectController extends Controller
             $projectTypeQuery = ProjectType::query()->with([
                 'modules' => fn($query) => $query->orderBy('name'),
                 'phases' => fn($query) => $query->where('phases.is_active', true),
-            ]);
+            ])->where('enabled', true);
 
             if (ctype_digit($projectTypeParam)) {
                 $projectTypeQuery->where('id', (int) $projectTypeParam);
@@ -97,6 +97,7 @@ class ProjectController extends Controller
         // listando todos os tipos de projeto disponíveis ordenados por nome, e seus módulos
         $projectTypes = ProjectType::query()
             ->with(['modules' => fn($query) => $query->orderBy('name')])
+            ->where('enabled', true)
             ->orderBy('name')
             ->get();
 

@@ -17,6 +17,11 @@ class ProjectType extends Model
         'name',
         'slug',
         'description',
+        'enabled',
+    ];
+
+    protected $casts = [
+        'enabled' => 'boolean',
     ];
 
     /**

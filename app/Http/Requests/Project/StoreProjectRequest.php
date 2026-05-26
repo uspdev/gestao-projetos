@@ -61,7 +61,11 @@ class StoreProjectRequest extends FormRequest
                 Rule::notIn($this->slugBlocklist()),
             ],
             'status' => ['required', Rule::enum(ProjectStatus::class)],
-            'project_type_id' => ['required', 'integer', 'exists:project_types,id'],
+            'project_type_id' => [
+                'required',
+                'integer',
+                Rule::exists('project_types', 'id')->where('enabled', true),
+            ],
             'visibility' => ['required', Rule::enum(ProjectVisibility::class)],
             'permission_inheritance' => ['required', Rule::enum(ProjectPermissionInheritance::class)],
             // A validação de phase_id é condicional, dependendo se o módulo de fases está habilitado para o tipo de projeto selecionado.

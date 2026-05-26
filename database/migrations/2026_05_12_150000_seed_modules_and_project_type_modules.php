@@ -24,6 +24,7 @@ return new class extends Migration
             'name' => 'Software',
             'slug' => 'software',
             'description' => 'Projeto operacional com fluxo de desenvolvimento, acompanhamento, gerenciamento de entregas, produção e atualizações.',
+            'enabled' => true,
             'created_at' => $now,
             'updated_at' => $now,
         ];
@@ -43,6 +44,7 @@ return new class extends Migration
             'description' =>  'Estrutura organizacional para agrupar múltiplos projetos relacionados, permitindo gestão centralizada e visão
             consolidada.<br>
             Dentro do <b>container</b> pode-se criar quaisquer outros tipos de projetos.',
+            'enabled' => true,
             'created_at' => $now,
             'updated_at' => $now,
         ];

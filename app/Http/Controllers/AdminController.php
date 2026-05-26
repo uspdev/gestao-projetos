@@ -37,7 +37,9 @@ class AdminController extends Controller
         $stats['meetings'] = Meeting::count();
 
         $modules = Module::all();
-        $projectTypes = ProjectType::orderBy('name')->get();
+        $projectTypes = ProjectType::where('enabled', true)
+            ->orderBy('name')
+            ->get();
         $tags = Tag::all();
 
         $usersWithProjects = User::query()

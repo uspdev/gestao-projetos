@@ -20,6 +20,7 @@ class ProjectTypeSeeder extends Seeder
             'name' => 'Desenvolvimento',
             'slug' => 'desenvolvimento',
             'description' => 'Tipo de projeto para desenvolvimento.',
+            'enabled' => true,
             'created_at' => $now,
             'updated_at' => $now,
         ];
