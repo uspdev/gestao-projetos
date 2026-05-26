@@ -42,10 +42,7 @@
           <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" />
         @endif
       </span>
-
-      <span class="badge {{ $task->priority?->color() }}">
-        {{ $task->priority?->label() }}
-      </span>
+      @include('module-tasks.partials.priority-badge')
     </div>
     @if ($task->users->isNotEmpty())
       <hr class="my-1" />

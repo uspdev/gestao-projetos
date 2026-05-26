@@ -9,6 +9,6 @@
   @if (session('tasks_view') === 'kanban')
     @include('module-tasks.partials.kanban.kanban')
   @else
-    @include('projects.partials.show.show-card-tasks-table')
+    @include('module-tasks.partials.show.card-tasks-table')
   @endif
 @endsection

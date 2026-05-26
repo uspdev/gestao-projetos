@@ -31,10 +31,10 @@
             @include('module-tasks.partials.buttons.edit-btn')
           </td>
           <td>
-            <span class="badge {{ $task->priority?->color() }}">{{ $task->priority?->label() }}</span>
+            @include('module-tasks.partials.priority-badge')
           </td>
           <td>
-            <span class="badge {{ $task->status->color() }}">{{ $task->status->label() }}</span>
+            @include('module-tasks.partials.status-badge')
           </td>
           <td data-order="{{ $task->start_date?->format('Y-m-d H:i:s') }}">
             <x-local-date :date="$task->start_date" empty="-" />
