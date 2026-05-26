@@ -2,9 +2,16 @@
 
 namespace App\Enums\Task;
 
+/**
+ * NEW: não possui responsáveis
+ * ASSIGNED: ao atribuir um responsável mudar para assigned.
+ *  Voltar para NEW se remover todos responsáveis
+ * IN_PROGRESS
+ */
 enum TaskStatus: string
 {
-    case TO_DO = 'TO_DO';
+    case NEW = 'NEW';
+    case ASSIGNED = 'ASSIGNED';
     case IN_PROGRESS = 'IN_PROGRESS';
     case IN_REVIEW = 'IN_REVIEW';
     case HOLD = 'HOLD';
@@ -13,7 +20,8 @@ enum TaskStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::TO_DO => 'Atribuido',
+            self::NEW => 'Nova',
+            self::ASSIGNED => 'Atribuída',
             self::IN_PROGRESS => 'Em Andamento',
             self::IN_REVIEW => 'Em Revisão',
             self::HOLD => 'Em Espera',
@@ -24,7 +32,8 @@ enum TaskStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::TO_DO => 'badge-success',
+            self::NEW => 'badge-warning',
+            self::ASSIGNED => 'badge-success',
             self::IN_PROGRESS => 'badge-primary',
             self::IN_REVIEW => 'badge-info',
             self::HOLD => 'badge-warning',
