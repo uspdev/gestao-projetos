@@ -1,31 +1,30 @@
 <div class="card mb-3">
-  <div class="card-body">
-    <div class="row">
-      <div class="col-lg-8 mb-4 mb-lg-0">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="mb-3">
-              <small class="text-muted d-block">Data e hora</small>
-              <strong>
-                <x-local-date :date="$meeting->scheduled_at" :show-time="true" empty="-" />
-              </strong>
-            </div>
+  <div class="card-body p-0">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <small class="text-muted d-block">Data e hora</small>
+        <strong>
+          <x-local-date :date="$meeting->scheduled_at" :show-time="true" empty="-" />
+        </strong>
+      </li>
 
-            <div class="mb-3 mb-md-0">
-              <small class="text-muted d-block">Local</small>
-              <strong>{{ $meeting->location ?? '-' }}</strong>
-            </div>
-          </div>
+      <li class="list-group-item">
+        <small class="text-muted d-block">Local</small>
+        <strong>{{ $meeting->location ?? '-' }}</strong>
+      </li>
 
-          <div class="col-md-6">
-            @include('module-meetings.partials.show/projetos-vinculados')
-          </div>
-        </div>
-      </div>
-    </div>
-    <div>
-      <small class="text-muted d-block">Notas</small>
-      {{ $meeting->notes }}
-    </div>
+      <li class="list-group-item p-0">
+        @include('module-meetings.partials.show/projetos-vinculados')
+      </li>
+
+      <li class="list-group-item">
+        <small class="text-muted d-block">Notas</small>
+        @if (filled($meeting->notes))
+          {{ $meeting->notes }}
+        @else
+          <span class="text-muted">-</span>
+        @endif
+      </li>
+    </ul>
   </div>
 </div>

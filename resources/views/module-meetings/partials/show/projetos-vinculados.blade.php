@@ -1,15 +1,27 @@
-<small class="text-muted d-block mb-2">Projetos vinculados</small>
 @php
   $linkedProjects = $meeting?->projects ?? collect();
 @endphp
-@if ($linkedProjects->isNotEmpty())
-  <div class="d-flex flex-wrap" style="gap: 0.5rem;">
-    @foreach ($linkedProjects as $linkedProject)
-      <a href="{{ route('projects.show', $linkedProject) }}" class="badge badge-light border text-decoration-none">
-        {{ $linkedProject->name }}
-      </a>
-    @endforeach
+<div class="card border-0">
+  <div class="card-header py-2">
+    <i class="fas fa-folder-open"></i> Projetos vinculados
   </div>
-@else
-  <div class="text-muted">Nenhum projeto vinculado.</div>
-@endif
+  <div class="card-body p-0">
+    <ul class="list-group list-group-flush">
+      @forelse ($linkedProjects as $linkedProject)
+        <li class="list-group-item d-flex align-items-center" style="gap: 0.5rem;">
+          <span class="badge badge-light border text-muted">
+            <i class="fas fa-folder"></i>
+          </span>
+          <a href="{{ route('projects.show', $linkedProject) }}"
+            class="text-decoration-none text-dark font-weight-bold">
+            {{ $linkedProject->name }}
+          </a>
+        </li>
+      @empty
+        <li class="list-group-item text-muted font-italic small text-center py-3">
+          Nenhum projeto vinculado.
+        </li>
+      @endforelse
+    </ul>
+  </div>
+</div>
