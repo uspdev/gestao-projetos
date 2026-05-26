@@ -21,7 +21,7 @@
       @include('module-tasks.partials.kanban.kanban')
     @else
       <div class="row">
-        @forelse($tasks as $task)
+        @forelse($tasksByStatus as $task)
           <div class="col-md-6 col-lg-4 mb-2">
             @include('module-tasks.partials.components.preview')
           </div>

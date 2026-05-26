@@ -1,5 +1,5 @@
 @php
-  $tasksTagsIds = $project->tasksTagsIds($tasks);
+  // $tasksTagsIds = $project->tasksTagsIds($tasksByStatus);
   $tasksEnabled = $project->isModuleEnabled('tasks');
 @endphp
 
@@ -22,7 +22,7 @@
       </tr>
     </thead>
     <tbody>
-      @foreach ($tasks as $task)
+      @foreach ($tasksByStatus as $task)
         <tr>
           <td>
             @php

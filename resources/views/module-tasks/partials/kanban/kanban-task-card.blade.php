@@ -1,11 +1,26 @@
-<div class="card border-0 shadow-sm kanban-task"
+@once
+  @section('styles')
+    @parent
+    <style>
+      .kanban-task {
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .kanban-task:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+      }
+    </style>
+  @endsection
+@endonce
+
+<div class="card border-0 shadow-sm kanban-task mb-2"
   data-search="{{ strtolower($task->title . $task->project?->name . $task->priority?->label()) }}">
   <div class="card-body py-3">
     <div class="d-flex align-items-start justify-content-between gap-2">
-      <a href="{{ route('tasks.show', $task->id) }}" class="text-reset text-decoration-none flex-grow-1 pr-2">
-        <h6 class="mb-1" style="line-height: 1.2;">
-          {{ $task->title }}
-        </h6>
+      <a href="{{ route('tasks.show', $task->id) }}" class="text-reset text-decoration-none h6 mb-1 flex-grow-1 pr-2">
+        {{ $task->title }}
       </a>
 
       @include('module-tasks.partials.kanban.kanban-update-status')
@@ -32,5 +47,12 @@
         {{ $task->priority?->label() }}
       </span>
     </div>
+    @if ($task->users->isNotEmpty())
+      <hr class="my-1" />
+      <div class="small">
+        <i class="fas fa-users"></i>
+        {{ $task->users->pluck('name')->implode(', ') }}
+      </div>
+    @endif
   </div>
 </div>

@@ -34,18 +34,20 @@ class TaskController extends Controller
             }
 
             return $next($request);
-        })->only(['userIndex', 'projectIndex', 'create']);
+        })->only(['indexUser', 'indexProject', 'create']);
     }
 
     /**
      * Lista as tarefas do usuario autenticado.
      */
-    public function userIndex(Request $request)
+    public function indexUser(Request $request)
     {
         $taskView = request()->query('view') ?? session('tasks_view', 'list'); //list ou kanban
         session(['tasks_view' => $taskView]);
 
-        $showDone = $request->boolean('show_done');
+        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
+        session(['tasks_done' => $tasksDone]);
+
         $viewAll = session('admin_view_all', false);
 
         $user = Auth::user();
@@ -58,7 +60,7 @@ class TaskController extends Controller
                     'project',
                     'users',
                 ])
-                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
                 ->orderBy(
                     Project::select('name')
                         ->whereColumn('projects.id', 'tasks.project_id')
@@ -70,7 +72,7 @@ class TaskController extends Controller
                     'project',
                     'users',
                 ])
-                ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
                 ->orderBy(
                     Project::select('name')
                         ->whereColumn('projects.id', 'tasks.project_id')
@@ -78,40 +80,71 @@ class TaskController extends Controller
                 ->latest();
         }
 
-        $tasks = $tasksQuery->get();
-        $tasks = $this->filterTasksByEnabledModule($tasks);
+        $tasksByStatus = $user->tasks()
+            ->with(['project', 'users'])
+            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->orderBy(
+                Project::select('name')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+            )
+            ->orderBy('priority', 'asc')
+            ->latest()
+            ->get();
 
-        return view('module-tasks.user-index', compact('tasks', 'user', 'showDone', 'viewAll'));
+        if ($taskView === 'kanban') {
+            $tasksByStatus = $tasksByStatus->groupBy('status');
+        }
+
+        $statuses = collect(TaskStatus::cases())
+            ->when(!$tasksDone, fn($collection) => $collection->reject(
+                fn(TaskStatus $status) => $status === TaskStatus::DONE
+            ))
+            ->reject(fn(TaskStatus $status) => $status === TaskStatus::NEW);
+
+        return view('module-tasks.user-index', compact(
+            'tasksByStatus',
+            'statuses',
+            'user',
+            'viewAll'
+        ));
     }
 
     /**
      * Lista as tarefas de um projeto especifico.
      */
-    public function projectIndex(Request $request, Project $project)
+    public function indexProject(Request $request, Project $project)
     {
         $this->ensureTasksModuleEnabled($project);
 
         $taskView = $request->query('view') ?? session('tasks_view', 'list'); //list ou kanban
         session(['tasks_view' => $taskView]);
 
-        $showDone = $request->boolean('show_done');
+        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
+        session(['tasks_done' => $tasksDone]);
 
         Gate::authorize('viewAny', [Task::class, $project]);
 
-        $tasks = $project->tasks()
-            ->with('project')
-            ->with('users')
-            ->with('tags')
-            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+        $tasksByStatus = $project->tasks()
+            ->with(['project', 'users', 'tags'])
+            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy('completed_at', 'asc')
             ->orderBy('priority', 'asc')
             ->latest()
             ->get();
 
+        if ($taskView === 'kanban') {
+            $tasksByStatus = $tasksByStatus->groupBy('status');
+        }
+
+        $statuses = collect(TaskStatus::cases())
+            ->when(!$tasksDone, fn($collection) => $collection->reject(
+                fn(TaskStatus $status) => $status === TaskStatus::DONE
+            ));
+
         return view('module-tasks.index', compact(
-            'tasks',
+            'tasksByStatus',
+            'statuses',
             'project',
-            'showDone'
         ));
     }
 
@@ -124,7 +157,7 @@ class TaskController extends Controller
             $data = $request->validated();
             $data['project_id'] = $project->id;
             $data['created_by'] = Auth::id();
-            $data['status'] = $data['status'] ?? TaskStatus::TO_DO->value;
+            $data['status'] = $data['status'] ?? TaskStatus::ASSIGNED->value;
 
             $task = Task::create($data);
 
