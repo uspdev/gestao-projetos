@@ -48,17 +48,10 @@ class TaskController extends Controller
         $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
         session(['tasks_done' => $tasksDone]);
 
-        $viewAll = session('admin_view_all', false);
-
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
 
-        // Se o usuário é admin e quer ver todas as tasks, buscar de todos os projetos
-        $tasksQuery = ($user->isAdmin() && $viewAll)
-            ? Task::query()
-            : $user->tasks();
-
-        $tasksByStatus = $tasksQuery
+        $tasksByStatus = $user->tasks()
             ->with(['project', 'users'])
             ->withTasksModuleEnabled()
             ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
@@ -84,7 +77,6 @@ class TaskController extends Controller
             'tasksByStatus',
             'statuses',
             'user',
-            'viewAll'
         ));
     }
 

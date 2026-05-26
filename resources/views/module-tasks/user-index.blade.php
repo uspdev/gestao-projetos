@@ -6,12 +6,6 @@
 
   <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
     <h4 class="mb-0">Minhas Tarefas</h4>
-    @include('projects.partials.components.admin-view-toggle-btn', [
-        'allViewLabel' => 'Ver todas',
-        'myViewLabel' => 'Ver minhas',
-        'allViewTitle' => 'Mostrando todas as tarefas',
-        'myViewTitle' => 'Mostrando apenas minhas tarefas',
-    ])
     @include('module-tasks.partials.buttons.toggle-layout-btn')
     @include('module-tasks.partials.buttons.show-done-btn')
   </div>
