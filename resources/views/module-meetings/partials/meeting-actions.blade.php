@@ -8,18 +8,29 @@
 
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5 py-1 d-flex justify-content-between align-items-center">
-    <div>
-      <span><i class="fas fa-list-ul mr-1"></i> Itens de pauta</span>
-      <span class="badge badge-pill badge-secondary">{{ $meetingItems->count() }}</span>
-      @include('module-meetings.partials.items-form')
+    <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+      <span class="font-weight-bold">{{ $meeting?->title ?? 'Reuniao' }}</span>
+
+      @if ($meeting)
+        @include('module-meetings.partials.status-badge')
+        @include('module-meetings.partials.items-form')
+      @endif
     </div>
+
+    @if ($meeting && $project)
+      <div class="d-flex align-items-center" style="gap: 0.5rem;">
+        @include('module-meetings.partials.edit-btn')
+        @include('module-meetings.partials.delete-btn')
+      </div>
+    @endif
+
   </div>
   <div class="card-body">
     @if ($meetingItems->isEmpty())
       <div class="text-center text-muted p-4 bg-light rounded border">
         <i class="fas fa-clipboard-list fa-2x mb-3 text-secondary"></i>
         <div class="font-weight-bold mb-1">Nenhum item cadastrado</div>
-        <div>Adicione projetos ou tarefas para montar a pauta da reunião.</div>
+        <div>Adicione projetos ou tarefas para montar a pauta da reuniao.</div>
       </div>
     @else
       <ul class="list-group list-group-flush">
