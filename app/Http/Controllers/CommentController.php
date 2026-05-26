@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\HasCommentRecipients;
 use App\Http\Requests\Comment\StoreCommentRequest;
+use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Mail\NewComment;
 use App\Models\Comment;
 use App\Models\User;
@@ -70,5 +71,20 @@ class CommentController extends Controller
 
         return redirect()->back()
             ->with('alert-success', 'Comentario removido com sucesso!');
+    }
+
+    public function update(UpdateCommentRequest $request, Comment $comment)
+    {
+        Gate::authorize('update', $comment);
+
+        DB::transaction(function () use ($request, $comment) {
+            $data = $request->validated();
+            $comment->update([
+                'text' => $data['text'],
+            ]);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Comentario atualizado com sucesso!');
     }
 }

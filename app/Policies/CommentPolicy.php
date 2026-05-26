@@ -32,6 +32,19 @@ class CommentPolicy
         return $this->canInteract($user, $comment->commentable);
     }
 
+    public function update(User $user, Comment $comment): bool
+    {
+        if (! $comment->is_active) {
+            return false;
+        }
+
+        if ($comment->user_id !== $user->id) {
+            return false;
+        }
+
+        return $this->canInteract($user, $comment->commentable);
+    }
+
     private function canInteract(User $user, ?Model $commentable): bool
     {
         if (!$commentable) {

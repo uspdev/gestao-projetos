@@ -15,6 +15,33 @@ Comportamento:
 
 @pushOnce('scripts')
   <script>
+    // Auto-grow textareas
+    function resizeAutogrowTextarea(textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = textarea.scrollHeight + "px";
+    }
+
+    function initAutogrowTextareas() {
+      document
+        .querySelectorAll("[data-autogrow-textarea]")
+        .forEach(function(textarea) {
+          if (textarea.dataset.autogrowInitialized === "true") {
+            return;
+          }
+
+          if (textarea.offsetParent === null) {
+            return;
+          }
+
+          textarea.dataset.autogrowInitialized = "true";
+          textarea.addEventListener("input", function() {
+            resizeAutogrowTextarea(textarea);
+          });
+          resizeAutogrowTextarea(textarea);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", initAutogrowTextareas);
     (function() {
       function resizeAutogrowTextarea(textarea) {
         textarea.style.height = 'auto';
@@ -24,6 +51,10 @@ Comportamento:
       function initAutogrowTextareas(root) {
         root.querySelectorAll('[data-autogrow-textarea]').forEach(function(textarea) {
           if (textarea.dataset.autogrowInitialized === 'true') {
+            return;
+          }
+
+          if (textarea.offsetParent === null) {
             return;
           }
 
