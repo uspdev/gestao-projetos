@@ -169,7 +169,6 @@ class ProjectController extends Controller
 
         $subprojects = collect();
         $contextParentProject = null;
-        $linkableSubprojects = collect();
 
         if (! $project->isSubproject() && $project->isOrganizational()) {
             // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
@@ -179,10 +178,6 @@ class ProjectController extends Controller
                 ->withCount(['tasks', 'users'])
                 ->orderBy('name')
                 ->get();
-
-            // E também carrega os projetos elegíveis para vincular como subprojetos,
-            // que são projetos raiz sem subprojetos e com pelo menos um admin em comum
-            $linkableSubprojects = $project->linkableSubprojects();
         }
 
         // Para subprojetos, carrega os projetos irmãos (mesmo parent_id) para exibição e possível navegação
@@ -197,7 +192,6 @@ class ProjectController extends Controller
             'subprojects',
             'parentProjects',
             'contextParentProject',
-            'linkableSubprojects'
         ));
     }
 
@@ -339,7 +333,7 @@ class ProjectController extends Controller
                 );
             });
 
-        return redirect()->route('projects.show', $project)
+        return redirect()->back()
             ->with('alert-success', 'Subprojeto vinculado com sucesso!');
     }
 

@@ -1,5 +1,4 @@
 @php
-  $linkableSubprojects = $linkableSubprojects ?? collect();
   $canLinkSubprojects = !$project->isSubproject() && $project->projectType?->slug === 'organizacional';
 @endphp
 {{-- Permissão de storeMember atende os requesitos de que o usuário possa vincular subprojetos a este projeto --}}
@@ -32,7 +31,7 @@
                   <select id="subproject-id" name="subproject_id"
                     class="form-control @error('subproject_id') is-invalid @enderror" style="width: 100%;" required>
                     <option value="">Selecione...</option>
-                    @foreach ($linkableSubprojects as $candidate)
+                    @foreach ($project->linkableSubprojects() as $candidate)
                       @php
                         $adminName = $candidate->users->first()?->name ?? 'N/A';
                         $statusLabel = $candidate->status?->label() ?? 'Sem status';
