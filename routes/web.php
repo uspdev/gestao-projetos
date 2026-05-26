@@ -65,7 +65,7 @@ Route::middleware('auth')->group(function () {
     // ==========================================
 
     // Tarefas do projeto
-    Route::get('projects/{project}/tasks', [TaskController::class, 'indexProject'])->name('projects.tasks.index');
+    Route::get('projects/{project}/tasks', [TaskController::class, 'projectIndex'])->name('projects.tasks.index');
     Route::resource('projects.tasks', TaskController::class)->except([
         'index',
         'show',
@@ -75,7 +75,7 @@ Route::middleware('auth')->group(function () {
     ]);
 
     // Tarefas (Ações Diretas)
-    Route::get('tasks', [TaskController::class, 'indexUser'])->name('tasks.index');
+    Route::get('tasks', [TaskController::class, 'userIndex'])->name('tasks.index');
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
@@ -101,7 +101,8 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // BLOCO 3: REUNIOES
     // ==========================================
-    Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])->name('meetings.updateStatus');
+    Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])
+        ->name('meetings.updateMeetingStatus');
     Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
         ->name('projects.meetings.items.store');
     Route::delete('projects/{project}/meetings/{meeting}/items/{meetingItem}', [MeetingController::class, 'destroyItem'])

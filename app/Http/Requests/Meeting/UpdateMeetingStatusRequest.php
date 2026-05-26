@@ -14,8 +14,13 @@ class UpdateMeetingStatusRequest extends FormRequest
     {
         /** @var Meeting $meeting */
         $meeting = $this->route('meeting');
+        $project = $this->route('project');
 
-        return $this->user()->can('update', $meeting);
+        if (! $meeting || ! $project) {
+            return false;
+        }
+
+        return $this->user()->can('update', [$meeting, $project]);
     }
 
     public function rules(): array
@@ -25,7 +30,7 @@ class UpdateMeetingStatusRequest extends FormRequest
         ];
     }
 
-        public function messages(): array
+    public function messages(): array
     {
         return [
             'status.required' => 'É necessario definir um status para a reunião.',
