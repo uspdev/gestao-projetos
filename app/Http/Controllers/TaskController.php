@@ -93,10 +93,14 @@ class TaskController extends Controller
         $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
         session(['tasks_done' => $tasksDone]);
 
+        $tasksMine = $request->query('tasks_mine') ?? session('tasks_mine', '0');
+        session(['tasks_mine' => $tasksMine]);
+
         Gate::authorize('viewAny', [Task::class, $project]);
 
         $tasksByStatus = $project->tasks()
             ->with(['project', 'users', 'tags'])
+            ->when($tasksMine, fn($query) => $query->whereHas('users', fn($userQuery) => $userQuery->where('users.id', Auth::id())))
             ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
             ->orderBy('completed_at', 'asc')
             ->orderBy('priority', 'asc')
