@@ -52,7 +52,7 @@
         Visão geral
       </a>
 
-      @if (!$project->isSubproject())
+      @if ($project->isOrganizational())
         <a href="{{ route('projects.subprojects', $project) }}"
           class="btn btn-sm {{ $routeName === 'projects.subprojects' ? 'btn-secondary' : 'btn-outline-secondary' }}">
           Subprojetos
@@ -60,7 +60,7 @@
       @endif
 
       @foreach ($modules as $module)
-      {{-- o botão do menu do módulo pode não existir --}}
+        {{-- o botão do menu do módulo pode não existir --}}
         @includeIf("module-{$module}.partials.project-menu-item")
       @endforeach
 

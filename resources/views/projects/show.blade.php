@@ -15,7 +15,7 @@
       @include('projects.partials.show.show-card-modulos', [
           'resolvedModules' => $project->activeModulesSummary(),
       ])
-      @if (!$project->isSubproject() && $project->projectType?->slug === 'organizacional')
+      @if ($project->isOrganizational())
         @include('projects.partials.show.show-card-subprojects')
       @endif
 
