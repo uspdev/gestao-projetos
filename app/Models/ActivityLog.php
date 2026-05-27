@@ -9,7 +9,7 @@ use Spatie\Activitylog\Models\Activity;
 class ActivityLog extends Activity
 {
     // Query scopes for common audit filters.
-    public function scopeInLog(Builder $query, string ...$logNames): Builder
+    public function scopeInLog(Builder $query, ...$logNames): Builder
     {
         return $query->whereIn('log_name', $logNames);
     }
