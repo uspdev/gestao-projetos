@@ -51,7 +51,7 @@ class ProjectController extends Controller
             ])
             ->latest();
 
-        $projects = $projectsQuery->get();
+        $projects       = $projectsQuery->get();
         $pinnedProjects = $projects->filter(fn(Project $project) => $project->isPinnedBy($user))->values();
 
         $parentProjects = $user->projects()
@@ -80,7 +80,7 @@ class ProjectController extends Controller
         if ($projectTypeParam !== '') {
             $projectTypeQuery = ProjectType::query()->with([
                 'modules' => fn($query) => $query->orderBy('name'),
-                'phases' => fn($query) => $query->where('phases.is_active', true),
+                'phases'  => fn($query)  => $query->where('phases.is_active', true),
             ])->where('enabled', true);
 
             if (ctype_digit($projectTypeParam)) {
@@ -197,6 +197,10 @@ class ProjectController extends Controller
 
     /**
      * Retorna projetos elegiveis para vincular como subprojeto.
+     *
+     * O endpoint de busca para vincular subprojetos precisa retornar projetos raiz,
+     *  sem subprojetos, e que compartilhem pelo menos um admin com o projeto pai,
+     * garantindo que o usuário tenha permissão de update nesses projetos candidatos
      */
     public function selectableSubprojects(Request $request, Project $project)
     {
@@ -205,9 +209,7 @@ class ProjectController extends Controller
         if ($project->isSubproject() || ! $project->isOrganizational()) {
             return response()->json(['results' => []]);
         }
-        // O endpoint de busca para vincular subprojetos precisa retornar projetos raiz,
-        // sem subprojetos, e que compartilhem pelo menos um admin com o projeto pai,
-        // garantindo que o usuário tenha permissão de update nesses projetos candidatos
+
         $term = trim((string) $request->input('term', ''));
         $selectedId = $request->input('id');
         if ($term === '' && ! $selectedId) {
@@ -295,7 +297,7 @@ class ProjectController extends Controller
             'subproject_id' => ['required', 'integer', 'exists:projects,id'],
         ]);
 
-        $subproject = Project::with(['users', 'children', 'projectType'])->findOrFail($data['subproject_id']);
+        $subproject = Project::query()->with(['users', 'children', 'projectType'])->findOrFail($data['subproject_id']);
 
         Gate::authorize('update', $subproject);
 
@@ -306,12 +308,10 @@ class ProjectController extends Controller
         }
 
         // Se passar pelas validações, vincula o subprojeto ao projeto pai atualizando o parent_id do subprojeto
-        DB::transaction(function () use ($subproject, $project) {
-            $subproject->update([
-                'parent_id' => $project->id,
-                'updated_by' => Auth::id(),
-            ]);
-        });
+        $subproject->update([
+            'parent_id'  => $project->id,
+            'updated_by' => Auth::id(),
+        ]);
 
         $actor = Auth::user();
         $project->load('users');
@@ -326,7 +326,7 @@ class ProjectController extends Controller
         $parentRecipients
             ->merge($subprojectRecipients)
             ->unique('id')
-            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->filter(fn($user) => ! $actor || $user->id !== $actor->id)
             ->each(function ($user) use ($actor, $project, $subproject) {
                 Mail::to($user->email)->queue(
                     new ProjectLinkedAsSubproject($user, $actor, $project, $subproject)
@@ -358,12 +358,10 @@ class ProjectController extends Controller
                 ->withErrors(['subproject_id' => 'O projeto selecionado não está vinculado como subprojeto deste projeto.']);
         }
 
-        DB::transaction(function () use ($subproject) {
-            $subproject->update([
-                'parent_id' => null,
-                'updated_by' => Auth::id(),
-            ]);
-        });
+        $subproject->update([
+            'parent_id'  => null,
+            'updated_by' => Auth::id(),
+        ]);
 
         $actor = Auth::user();
         $project->load('users');
@@ -378,7 +376,7 @@ class ProjectController extends Controller
         $parentRecipients
             ->merge($subprojectRecipients)
             ->unique('id')
-            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
+            ->filter(fn($user) => ! $actor || $user->id !== $actor->id)
             ->each(function ($user) use ($actor, $project, $subproject) {
                 Mail::to($user->email)->queue(
                     new ProjectUnlinkedAsSubproject($user, $actor, $project, $subproject)
@@ -398,12 +396,10 @@ class ProjectController extends Controller
      */
     public function updateName(UpdateProjectNameRequest $request, Project $project)
     {
-        DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
-
-            $project->update($data);
-        });
+        $project->update([
+            'name'       => $request->validated('name'),
+            'updated_by' => Auth::id(),
+        ]);
 
         return redirect()->back()
             ->with('alert-success', 'Nome do projeto atualizado com sucesso!');
@@ -412,20 +408,20 @@ class ProjectController extends Controller
     /**
      * Atualiza a URL (slug) de um projeto.
      *
+     * Ao trocar slug não é possivel retornar back() pois mudou a URL
+     *
      * @param  \App\Http\Requests\Project\UpdateProjectSlugRequest $request
      * @param  \App\Models\Project $project
      * @return \Illuminate\Http\RedirectResponse
      */
     public function updateSlug(UpdateProjectSlugRequest $request, Project $project)
     {
-        DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
+        $project->update([
+            'slug'       => $request->validated('slug'),
+            'updated_by' => Auth::id(),
+        ]);
 
-            $project->update($data);
-        });
-
-        return redirect()->back()
+        return redirect()->route('projects.settings', $project)
             ->with('alert-success', 'URL do projeto atualizada com sucesso!');
     }
 
@@ -438,16 +434,14 @@ class ProjectController extends Controller
      */
     public function updateDescription(UpdateProjectDescriptionRequest $request, Project $project)
     {
-        DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
-
-            if (array_key_exists('description', $data) && is_string($data['description'])) {
-                $data['description'] = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            }
-
-            $project->update($data);
-        });
+        $project->update([
+            'description' => html_entity_decode(
+                $request->validated('description'),
+                ENT_QUOTES | ENT_HTML5,
+                'UTF-8'
+            ),
+            'updated_by'  => Auth::id(),
+        ]);
 
         return redirect()->back()
             ->with('alert-success', 'Descrição do projeto atualizada com sucesso!');
@@ -462,11 +456,9 @@ class ProjectController extends Controller
      */
     public function updateTags(UpdateProjectTagsRequest $request, Project $project)
     {
-        DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
-
-            $project->syncTagsByIds($data['tags'] ?? []);
-        });
+        $project->syncTagsByIds(
+            $request->validated('tags') ?? []
+        );
 
         return redirect()->back()
             ->with('alert-success', 'Tags do projeto atualizado com sucesso!');
@@ -551,7 +543,7 @@ class ProjectController extends Controller
     public function updateProjectStatus(UpdateProjectStatusRequest $request, Project $project)
     {
         DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
+            $data               = $request->validated();
             $data['updated_by'] = Auth::id();
 
             $project->update($data);
@@ -560,7 +552,6 @@ class ProjectController extends Controller
         return redirect()->back()
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
-
 
     /**
      * Atualiza a visibilidade de um projeto.
@@ -591,24 +582,37 @@ class ProjectController extends Controller
      */
     public function updateProjectPermissionInheritance(UpdateProjectPermissionInheritanceRequest $request, Project $project)
     {
-        DB::transaction(function () use ($project, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
-
-            $project->update($data);
-        });
+        $project->update([
+            'permission_inheritance' => $request->validated(),
+            'updated_by' => Auth::id(),
+        ]);
 
         return redirect()->back()
             ->with('alert-success', 'Heranca de permissoes atualizada com sucesso!');
     }
 
+    /**
+     * Visualização de configurações de um projeto.
+     *
+     */
     public function settings(Project $project)
     {
         Gate::authorize('view', $project);
 
         $project->load('projectType.phases', 'phase', 'projectType.modules');
 
+        // Para exibir a lista de módulos na tela de configurações,
+        // garantir que as regras de obrigatoriedade e editabilidade sejam consideradas
         $resolvedModules = Module::resolveForProject($project);
+        $resolvedModules = collect($resolvedModules)->map(fn($module) => [
+            ...$module,
+            'enabled' => (bool) ($module['enabled'] ?? false),
+            'required' => (bool) ($module['required'] ?? false),
+            'editable' => (bool) ($module['editable'] ?? true),
+            'slug' => (string) ($module['slug'] ?? ''),
+            'name' => (string) ($module['name'] ?? 'Modulo'),
+            'toggleLocked' => ($module['required'] ?? false) || !($module['editable'] ?? true),
+        ])->all();
 
         $allowedModuleSlugs = $project->allowedModuleSlugs();
         if (!empty($allowedModuleSlugs)) {
@@ -617,24 +621,17 @@ class ProjectController extends Controller
                 ->values()
                 ->all();
         }
-        // Para exibir a lista de módulos na tela de configurações,
-        // garantir que as regras de obrigatoriedade e editabilidade sejam consideradas
-        $resolvedModules = collect($resolvedModules)->map(fn($module) => [
-            ...$module,
-            'enabled'      => (bool) ($module['enabled'] ?? false),
-            'required'     => (bool) ($module['required'] ?? false),
-            'editable'     => (bool) ($module['editable'] ?? true),
-            'slug'         => (string) ($module['slug'] ?? ''),
-            'name'         => (string) ($module['name'] ?? 'Modulo'),
-            'toggleLocked' => ($module['required'] ?? false) || !($module['editable'] ?? true),
-        ])->all();
 
         return view('projects.settings', compact('project', 'resolvedModules'));
     }
 
+    /**
+     * Visualização de subprojetos
+     */
     public function subprojects(Project $project)
     {
         Gate::authorize('view', $project);
+
         $subprojects = $project->children()
             ->with(['tags', 'projectType'])
             ->withCount(['tasks', 'users'])
