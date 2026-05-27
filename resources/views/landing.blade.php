@@ -198,6 +198,15 @@
         </x-card.preview>
 
         <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-sitemap"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Tipos de Projeto</h3>
+          <p class="preview-card__feature-desc">
+            Crie projetos a partir de tipos pré-definidos, com configurações iniciais e módulos já prontos
+            para acelerar o início do trabalho.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
           <div class="preview-card__feature-icon"><i class="fas fa-project-diagram"></i></div>
           <h3 class="preview-card__title preview-card__title--feature mb-2">Ciclo de Vida de Projetos</h3>
           <p class="preview-card__feature-desc">
@@ -208,10 +217,10 @@
 
         <x-card.preview class="h-100 shadow-sm border">
           <div class="preview-card__feature-icon"><i class="fas fa-users-cog"></i></div>
-          <h3 class="preview-card__title preview-card__title--feature mb-2">Colaboração e Permissões</h3>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Colaboração e Privacidade</h3>
           <p class="preview-card__feature-desc">
-            Adicione colegas aos seus projetos com papéis bem definidos (Proprietário, Membro ou Leitor). O
-            sistema garante de forma inteligente que funções críticas fiquem protegidas.
+            Adicione colegas aos seus projetos com papéis bem definidos e escolha a visibilidade de cada
+            projeto, mantendo informações sensíveis acessíveis apenas a quem precisa.
           </p>
         </x-card.preview>
 
@@ -225,11 +234,56 @@
         </x-card.preview>
 
         <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-comments"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Comentários</h3>
+          <p class="preview-card__feature-desc">
+            Comente em tarefas, reuniões e outros registros para manter a discussão organizada, rápida e
+            acessível para toda a equipe.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-calendar-check"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Reuniões</h3>
+          <p class="preview-card__feature-desc">
+            Registre pautas, itens e encaminhamentos das reuniões, mantendo histórico e responsáveis em um
+            único lugar.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-puzzle-piece"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Módulos</h3>
+          <p class="preview-card__feature-desc">
+            Ative ou desative módulos por projeto para manter o sistema leve. Novos módulos podem ser
+            desenvolvidos por terceiros e integrados facilmente seguindo regras básicas.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-bell"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Notificações</h3>
+          <p class="preview-card__feature-desc">
+            Receba avisos por e-mail sobre eventos importantes, mantendo o time alinhado com mudanças e
+            entregas.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
           <div class="preview-card__feature-icon"><i class="fas fa-tags"></i></div>
           <h3 class="preview-card__title preview-card__title--feature mb-2">Categorização e Filtros</h3>
           <p class="preview-card__feature-desc">
             Utilize etiquetas (labels) como 'Funcionalidade', 'Correção' ou 'Documentação' para classificar o
             trabalho, mantendo o painel do projeto organizado visualmente.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-clipboard-list"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Auditoria</h3>
+          <p class="preview-card__feature-desc">
+            Todas as ações ficam registradas e podem ser consultadas depois, garantindo transparência e
+            rastreabilidade do que foi realizado.
           </p>
         </x-card.preview>
 
@@ -248,7 +302,7 @@
         <h3>O sistema está em evolução contínua</h3>
         <p>
           Esta é apenas uma primeira versão (MVP). Novas funcionalidades já estão planejadas, como:
-          integração com o GitHub, dashboards gerenciais, registro de reuniões e muito mais, tudo pensado para
+          integração com o GitHub, dashboards gerenciais e muito mais, tudo pensado para
           otimizar ainda mais o seu dia a dia. <strong>Tem alguma ideia? Sugestões para o nosso roadmap são muito
             bem-vindas!</strong>
         </p>
