@@ -325,7 +325,9 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return $adminIds->intersect($otherAdminIds)->isNotEmpty();
     }
 
-    // Verifica se o projeto pode ser vinculado como subprojeto do projeto pai, retornando a razão caso não possa
+    /**
+     * Verifica se o projeto pode ser vinculado como subprojeto do projeto pai, retornando a razão caso não possa
+     */
     public function subprojectLinkBlockReason(Project $parent): ?string
     {
         if ($this->getKey() === $parent->getKey()) {
