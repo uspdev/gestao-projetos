@@ -67,9 +67,9 @@ class ProjectMemberController extends Controller
             return redirect()->route('projects.settings', $project)
                 ->with('alert-danger', 'O último admin do projeto não pode ter sua role alterada.');
         }
-        if($project->isAdminInParent()) {
-            // um admin do pais precisa ter privilegio de admin nos filhos
-            if($newRole !== ProjectUserRole::ADMIN) {
+        if ($project->isAdminInParent($user)) {
+            // um admin do pai precisa ter privilegio de admin nos filhos
+            if ($newRole !== ProjectUserRole::ADMIN) {
                 return redirect()->route('projects.settings', $project)
                     ->with('alert-danger', 'Um admin do projeto pai precisa ter privilégio de admin neste projeto.');
             }

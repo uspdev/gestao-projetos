@@ -483,7 +483,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
 
         return $adminsCount <= 1;
     }
-    public function isAdminInParent(): bool
+    public function isAdminInParent(User $user): bool
     {
         if (! $this->isSubproject()) {
             return false;
@@ -494,8 +494,6 @@ class Project extends Model implements Discussable, HasCommentRecipients
         if (! $parent) {
             return false;
         }
-
-        $user = Auth::user();
 
         return $parent->userRole($user) === ProjectUserRole::ADMIN;
     }
