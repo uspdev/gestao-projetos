@@ -169,7 +169,8 @@ class Project extends Model implements Discussable, HasCommentRecipients
      */
     public function meetings(): BelongsToMany
     {
-        return $this->belongsToMany(Meeting::class, 'meeting_projects');
+        return $this->belongsToMany(Meeting::class, 'meeting_projects')
+            ->using(MeetingProject::class);
     }
 
     /**
@@ -361,6 +362,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
     public function modules(): BelongsToMany
     {
         return $this->belongsToMany(Module::class, 'project_modules')
+            ->using(ProjectModule::class)
             ->withPivot('enabled')
             ->withTimestamps()
             ->orderBy('name');

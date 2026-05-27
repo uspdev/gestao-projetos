@@ -4,12 +4,17 @@ namespace App\Models;
 
 use App\Models\Module;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class ProjectModule extends Model
+class ProjectModule extends Pivot
 {
     use HasFactory;
+
+    public $incrementing = true;
+    public $timestamps = true;
+
+    protected $table = 'project_modules';
 
     protected $fillable = [
         'project_id',

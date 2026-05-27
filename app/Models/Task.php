@@ -52,6 +52,7 @@ class Task extends Model implements Discussable, HasCommentRecipients
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
+            ->using(TaskUser::class)
             ->withTimestamps();
     }
 
@@ -109,7 +110,7 @@ class Task extends Model implements Discussable, HasCommentRecipients
     {
         return $this->status === \App\Enums\Task\TaskStatus::DONE;
     }
-    
+
     public function scopeWithEnabledProjectModule(Builder $query, string $slug): Builder
     {
         $normalized = strtolower(trim($slug));

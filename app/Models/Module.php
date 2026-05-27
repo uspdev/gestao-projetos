@@ -38,6 +38,7 @@ class Module extends Model
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_modules')
+            ->using(ProjectModule::class)
             ->withPivot('enabled')
             ->withTimestamps();
     }

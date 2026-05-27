@@ -46,6 +46,7 @@ class ProjectType extends Model
     public function modules(): BelongsToMany
     {
         return $this->belongsToMany(Module::class, 'project_type_modules')
+            ->using(ProjectTypeModule::class)
             ->withPivot('enabled', 'required', 'editable', 'config')
             ->withTimestamps();
     }
@@ -56,6 +57,7 @@ class ProjectType extends Model
     public function phases(): BelongsToMany
     {
         return $this->belongsToMany(Phase::class, 'project_type_phases')
+            ->using(ProjectTypePhase::class)
             ->withPivot('order', 'is_initial', 'is_final')
             ->withTimestamps()
             ->orderBy('project_type_phases.order');

@@ -39,6 +39,7 @@ class Phase extends Model
     public function projectTypes(): BelongsToMany
     {
         return $this->belongsToMany(ProjectType::class, 'project_type_phases')
+            ->using(ProjectTypePhase::class)
             ->withPivot('order', 'is_initial', 'is_final')
             ->withTimestamps();
     }

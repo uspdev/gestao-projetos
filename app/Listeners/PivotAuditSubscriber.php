@@ -7,6 +7,7 @@ use App\Models\MeetingProject;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Models\ProjectType;
+use App\Models\ProjectTypePhase;
 use App\Models\ProjectTypeModule;
 use App\Models\ProjectUser;
 use App\Models\Task;
@@ -32,6 +33,7 @@ use Illuminate\Support\Arr;
  *   MeetingProject   → Meeting
  *   ProjectModule    → Project
  *   ProjectTypeModule → ProjectType
+ *   ProjectTypePhase → ProjectType
  */
 class PivotAuditSubscriber
 {
@@ -57,6 +59,11 @@ class PivotAuditSubscriber
             'log_name'  => 'project',
         ],
         ProjectTypeModule::class => [
+            'owner'     => ProjectType::class,
+            'owner_key' => 'project_type_id',
+            'log_name'  => 'project_type',
+        ],
+        ProjectTypePhase::class => [
             'owner'     => ProjectType::class,
             'owner_key' => 'project_type_id',
             'log_name'  => 'project_type',

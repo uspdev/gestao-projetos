@@ -43,7 +43,8 @@ class Meeting extends Model implements HasCommentRecipients
      */
     public function projects(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class, 'meeting_projects');
+        return $this->belongsToMany(Project::class, 'meeting_projects')
+            ->using(MeetingProject::class);
     }
 
     /**
