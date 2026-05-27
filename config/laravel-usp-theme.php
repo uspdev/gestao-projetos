@@ -30,7 +30,7 @@ $menu = [
 
 $right_menu = [
     [
-        'text' => '<span class="text-danger">Admin</span>',
+        'text' => '<i class="fas fa-user-shield text-danger"></i> <span class="text-danger">Admin</span>',
         'url'  => 'admin',
         'can'  => 'admin',
     ],
