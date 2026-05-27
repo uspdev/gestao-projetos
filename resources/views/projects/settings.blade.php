@@ -6,21 +6,21 @@
     @include('projects.partials.show.show-header')
     <div class="card-body">
       <div class="row">
-        <div class="col-12 col-lg-8 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
           @include('projects.partials.show.settings-card')
         </div>
 
-        <div class="col-12 col-lg-4">
-          <div class="mb-4">
+        <div class="col-12 col-lg-6">
+          {{-- <div class="mb-4">
             @include('projects.partials.show.project-type-card')
+          </div> --}}
+
+          <div class="mb-4">
+            @include('projects.partials.show.show-card-membros')
           </div>
 
           <div class="mb-4">
             @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
-          </div>
-
-          <div class="mb-4">
-            @include('projects.partials.show.show-card-membros')
           </div>
 
           <div class="card border-danger">

@@ -8,7 +8,7 @@
   @csrf
   @method('PATCH')
   <input type="hidden" name="enabled" value="{{ $module['enabled'] ? 0 : 1 }}">
-  <button type="submit" class="btn btn-sm {{ $module['enabled'] ? 'btn-outline-danger' : 'btn-outline-success' }}"
+  <button type="submit" class="btn btn-sm py-0 {{ $module['enabled'] ? 'btn-outline-danger' : 'btn-outline-success' }}"
     @if ($module['toggleLocked']) disabled @endif>
     {{ $module['enabled'] ? 'Desativar' : 'Ativar' }}
   </button>
