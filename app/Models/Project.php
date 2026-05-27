@@ -483,6 +483,22 @@ class Project extends Model implements Discussable, HasCommentRecipients
 
         return $adminsCount <= 1;
     }
+    public function isAdminInParent(): bool
+    {
+        if (! $this->isSubproject()) {
+            return false;
+        }
+
+        $parent = $this->parent;
+
+        if (! $parent) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        return $parent->userRole($user) === ProjectUserRole::ADMIN;
+    }
 
     public function syncTagsByIds(?array $tagIds): void
     {
