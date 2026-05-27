@@ -41,6 +41,7 @@
         "uspdev/senhaunica-socialite": "^4.5"
     },
     "require-dev": {
+        "beyondcode/laravel-er-diagram-generator": "^6.0",
         "fakerphp/faker": "^1.9.1",
         "laravel/dusk": "^8.0",
         "laravel/sail": "^1.0.1",
