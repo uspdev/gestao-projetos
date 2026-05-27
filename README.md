@@ -1,4 +1,3 @@
-
 # Sistema de Gestão de Projetos USP
 
 ## Sobre o projeto
@@ -6,7 +5,9 @@
 Sistema interno construído em Laravel que organiza e centraliza projetos e tarefas, com base pronta para evoluir para reuniões e outras features do roadmap.
 
 Documentação:
+
 - [docs/MVP.md](docs/MVP.md)
+- [docs/permissoes.md](docs/permissoes.md)
 - [docs/roadmap.md](docs/roadmap.md)
 
 ## Características
