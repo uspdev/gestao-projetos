@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectUserRole;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,25 +84,53 @@ class User extends Authenticatable
 
     public function isViewerOfProject(Project $project): bool
     {
-        return $this->projects()
+        if ($this->projects()
             ->where('project_id', $project->id)
             ->wherePivotIn('role', [
                 ProjectUserRole::ADMIN->value,
                 ProjectUserRole::CONTRIBUTOR->value,
                 ProjectUserRole::VIEWER->value,
             ])
-            ->exists();
+            ->exists()
+        ) {
+            return true;
+        }
+
+        if (! $project->isSubproject()) {
+            return false;
+        }
+
+        if (! in_array($project->permission_inheritance, [ProjectPermissionInheritance::READ, ProjectPermissionInheritance::FULL], true)) {
+            return false;
+        }
+        // Se o projeto é um subprojeto e herda permissões de leitura ou total, verifica se o usuário é visualizador do projeto pai
+        // Isso talves mude quando começarmos a levar em conta heranças de permissões
+        // em de projetos organizacionais para subprojetos
+        return $project->parent ? $this->isViewerOfProject($project->parent) : false;
     }
 
     public function isContributorOfProject(Project $project): bool
     {
-        return $this->projects()
+        if ($this->projects()
             ->where('project_id', $project->id)
             ->wherePivotIn('role', [
                 ProjectUserRole::ADMIN->value,
                 ProjectUserRole::CONTRIBUTOR->value,
             ])
-            ->exists();
+            ->exists()
+        ) {
+            return true;
+        }
+
+        if (! $project->isSubproject()) {
+            return false;
+        }
+
+        if ($project->permission_inheritance !== ProjectPermissionInheritance::FULL) {
+            return false;
+        }
+
+        return $project->parent ? $this->isContributorOfProject($project->parent) : false;
     }
 
     public function isAdminOfProject(Project $project): bool

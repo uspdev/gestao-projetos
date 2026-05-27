@@ -73,11 +73,22 @@ class MeetingPolicy
         return Module::isEnabledForProject($project, 'meetings');
     }
 
-    //checagem possivelmente redundante, mas acho melhor manter por enquanto.
+    // Verifica se a reunião pertence ao projeto ou, no caso de subprojetos, se pertence ao projeto pai
     private function meetingBelongsToProject(Meeting $meeting, Project $project): bool
     {
-        return $meeting->projects()
+        if ($meeting->projects()
             ->where('projects.id', $project->id)
+            ->exists()
+        ) {
+            return true;
+        }
+
+        if (! $project->isSubproject() || ! $project->parent) {
+            return false;
+        }
+
+        return $meeting->projects()
+            ->where('projects.id', $project->parent->id)
             ->exists();
     }
 }

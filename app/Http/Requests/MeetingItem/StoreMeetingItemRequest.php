@@ -38,12 +38,12 @@ class StoreMeetingItemRequest extends FormRequest
             abort(404, 'O item (projeto ou tarefa) que você está tentando vincular não foi encontrado.');
         }
 
-        $parentProjectId = $this->resolveParentProjectId($discussable);
-        if (!$parentProjectId) {
+        $linkedProjectIds = $this->resolveLinkedProjectIds($discussable);
+        if ($linkedProjectIds === []) {
             throw new AuthorizationException('O item de pauta é inválido.');
         }
 
-        if (!$meeting->projects()->where('projects.id', $parentProjectId)->exists()) {
+        if (!$meeting->projects()->whereIn('projects.id', $linkedProjectIds)->exists()) {
             throw new AuthorizationException('Este item pertence a um projeto que não está vinculado a esta reunião.');
         }
 
@@ -111,14 +111,14 @@ class StoreMeetingItemRequest extends FormRequest
                 return;
             }
 
-            $parentProjectId = $this->resolveParentProjectId($discussable);
-            if (!$parentProjectId) {
+            $linkedProjectIds = $this->resolveLinkedProjectIds($discussable);
+            if ($linkedProjectIds === []) {
                 $validator->errors()->add('discussable_id', 'O item de pauta é inválido.');
                 return;
             }
 
             $linked = $meeting->projects()
-                ->where('projects.id', $parentProjectId)
+                ->whereIn('projects.id', $linkedProjectIds)
                 ->exists();
 
             if (!$linked) {
@@ -146,13 +146,25 @@ class StoreMeetingItemRequest extends FormRequest
 
         return $class::query()->find($id);
     }
-
-    private function resolveParentProjectId(Model $discussable): ?int
+    /**
+    *Esta função resolve os IDs dos projetos relacionados ao item de pauta, considerando a hierarquia de projetos.
+    */
+    private function resolveLinkedProjectIds(Model $discussable): array
     {
         if (!$discussable instanceof Discussable) {
-            return null;
+            return [];
         }
 
-        return $discussable->parentProjectId();
+        $projectId = $discussable->parentProjectId();
+
+        if (!$projectId) {
+            return [];
+        }
+
+        if ($discussable instanceof Project && $discussable->parent_id) {
+            return array_values(array_unique([$discussable->id, $projectId]));
+        }
+
+        return [$projectId];
     }
 }
