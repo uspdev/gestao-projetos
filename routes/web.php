@@ -11,7 +11,13 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', 'about')->name('landing');
+Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('projects.index');
+    }
+
+    return redirect()->route('about');
+})->name('landing');
 Route::get('about', function () {
     \UspTheme::activeUrl('about');
     return view('landing');
