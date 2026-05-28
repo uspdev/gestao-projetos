@@ -12,7 +12,7 @@ class UpdateProjectModuleRequest extends FormRequest
         /** @var Project $project */
         $project = $this->route('project');
 
-        return $this->user()->can('update', $project);
+        return $this->user()->can('updateModule', $project);
     }
 
     public function rules(): array

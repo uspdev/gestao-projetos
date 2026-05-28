@@ -41,6 +41,11 @@ class ProjectPolicy
         return $user->isContributorOfProject($project);
     }
 
+    public function updateModule(User $user, Project $project): bool
+    {
+        return $user->isAdminOfProject($project);
+    }
+
     public function delete(User $user, Project $project): bool
     {
         return $user->isAdminOfProject($project);

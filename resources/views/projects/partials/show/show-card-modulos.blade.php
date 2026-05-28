@@ -1,6 +1,6 @@
 @php
   $showToggle ??= false;
-  $canUpdateModules = $showToggle && isset($project) && auth()->user()?->can('update', $project);
+  $canUpdateModules = $showToggle && isset($project) && auth()->user()?->can('updateModule', $project);
 @endphp
 
 <div class="card mb-4">
