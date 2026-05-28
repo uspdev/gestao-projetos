@@ -108,6 +108,8 @@ class TaskController extends Controller
             ->latest()
             ->get();
 
+        $tasksCount = $tasksByStatus->count();
+
         if ($taskView === 'kanban') {
             $tasksByStatus = $tasksByStatus->groupBy('status');
         }
@@ -121,6 +123,7 @@ class TaskController extends Controller
             'tasksByStatus',
             'statuses',
             'project',
+            'tasksCount',
         ));
     }
 

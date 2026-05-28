@@ -70,6 +70,10 @@
           const text = normalize(task.dataset.search || task.dataset.title || '');
           task.style.display = text.includes(query) ? '' : 'none';
         });
+
+        if (window.updateProjectTasksCount) {
+          window.updateProjectTasksCount();
+        }
       });
 
       // ação do botão limpar

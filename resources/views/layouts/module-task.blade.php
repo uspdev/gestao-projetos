@@ -5,6 +5,7 @@
 @section('project-content')
   @php
     $tasksMine = session('tasks_mine', '0');
+    $tasksCount = $tasksCount ?? $project->tasks->count();
   @endphp
 
   <div class="card shadow-sm">
@@ -12,7 +13,7 @@
       <a href="{{ route('projects.tasks.index', $project) }}" class="text-decoration-none text-dark">
         <i class="fas fa-tasks"></i> {{ $tasksMine ? 'Minhas' : 'Todas as' }} tarefas
       </a>
-      <span class="badge badge-pill badge-secondary">{{ $project->tasks->count() }}</span>
+      <span id="project-tasks-count" class="badge badge-pill badge-secondary">{{ $tasksCount }}</span>
       @include('module-tasks.partials.buttons.create-task-btn')
 
       @section('task-header') @show
@@ -30,4 +31,71 @@
 @push('modals')
   @include('module-tasks.partials.components.task-form-modal')
   @include('module-tasks.partials.components.task-form-modal-description')
+@endpush
+
+@push('scripts')
+  <script>
+    (function() {
+      const badge = document.getElementById('project-tasks-count');
+      if (!badge) return;
+
+      function isVisible(el) {
+        return !!(el && el.offsetParent);
+      }
+
+      function countKanbanTasks() {
+        const tasks = document.querySelectorAll('.kanban-task');
+        if (!tasks.length) return null;
+        let count = 0;
+        tasks.forEach(task => {
+          if (isVisible(task)) count++;
+        });
+        return count;
+      }
+
+      function countTableRows() {
+        const table = document.querySelector('table.datatable-simples');
+        if (!table) return null;
+
+        if (window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.isDataTable(table)) {
+          const dt = jQuery(table).DataTable();
+          return dt.rows({
+            filter: 'applied'
+          }).count();
+        }
+
+        const rows = table.querySelectorAll('tbody tr');
+        let count = 0;
+        rows.forEach(row => {
+          if (isVisible(row)) count++;
+        });
+        return count;
+      }
+
+      function updateCount() {
+        const kanbanCount = countKanbanTasks();
+        const nextCount = kanbanCount !== null ? kanbanCount : countTableRows();
+        if (nextCount !== null) {
+          badge.textContent = nextCount;
+        }
+      }
+
+      window.updateProjectTasksCount = updateCount;
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateCount);
+      } else {
+        updateCount();
+      }
+
+      if (window.jQuery) {
+        jQuery(function() {
+          const table = jQuery('table.datatable-simples');
+          if (table.length) {
+            table.on('search.dt draw.dt', updateCount);
+          }
+        });
+      }
+    })();
+  </script>
 @endpush
