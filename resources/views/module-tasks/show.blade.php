@@ -4,6 +4,7 @@
 
 @section('task-header')
   <x-separator /> <b>{{ $task->title }}</b>
+  @include('module-tasks.partials.components.update-status')
 @endsection
 
 @section('task-content')

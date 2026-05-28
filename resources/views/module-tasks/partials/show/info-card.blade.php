@@ -1,6 +1,9 @@
 <div class="card mb-4 shadow-sm border-top-primary">
   <div class="card-header py-2">
     <span class=""><i class="fas fa-info-circle"></i> Informações</span>
+    @include('module-tasks.partials.buttons.edit-btn')
+
+    @include('module-tasks.partials.buttons.delete-btn')
   </div>
   <div class="card-body">
     <ul class="list-unstyled m-0">

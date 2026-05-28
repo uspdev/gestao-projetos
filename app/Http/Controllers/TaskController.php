@@ -6,6 +6,7 @@ use App\Enums\Task\TaskStatus;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Requests\Task\UpdateTaskDescriptionRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
 use App\Mail\TaskAssigned;
 use App\Mail\TaskCompleted;
@@ -168,19 +169,52 @@ class TaskController extends Controller
         return view('module-tasks.show', compact('task', 'project'));
     }
 
-    public function update(UpdateTaskRequest $request, Task $task)
+    /**
+     * Atualiza apenas a descrição da tarefa.
+     *
+     * @param  \App\Http\Requests\Task\UpdateTaskRequest  $request
+     * @param  \App\Models\Task  $task
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateDescription(UpdateTaskDescriptionRequest $request, Task $task)
     {
         $this->ensureTasksModuleEnabled($task->project);
 
         DB::transaction(function () use ($task, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
-
-            // Decodifica as entidades HTML na
-            // descrição para evitar que sejam armazenadas como texto literal
-            if (array_key_exists('description', $data) && is_string($data['description'])) {
-                $data['description'] = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $description = $request->input('description', '');
+            if (is_string($description)) {
+                $description = html_entity_decode($description, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             }
+
+            $task->update([
+                'description' => $description,
+                'updated_by' => Auth::id(),
+            ]);
+        });
+
+        if ($request->has('action')) {
+            return redirect($request->action)
+                ->with('alert-success', 'Descrição da tarefa atualizada com sucesso!');
+        }
+
+        return redirect()->route('tasks.show', $task)
+            ->with('alert-success', 'Descrição da tarefa atualizada com sucesso!');
+    }
+
+    /**
+     * Atualiza as demais informações da tarefa (título, status, prioridade, datas e tags).
+     *
+     * @param  \App\Http\Requests\Task\UpdateTaskRequest  $request
+     * @param  \App\Models\Task  $task
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateInfo(UpdateTaskRequest $request, Task $task)
+    {
+        $this->ensureTasksModuleEnabled($task->project);
+
+        DB::transaction(function () use ($task, $request) {
+            $data = $request->only(['title', 'status', 'priority', 'start_date', 'due_date']);
+            $data['updated_by'] = Auth::id();
 
             $task->update($data);
 
@@ -189,11 +223,11 @@ class TaskController extends Controller
 
         if ($request->has('action')) {
             return redirect($request->action)
-                ->with('alert-success', 'Tarefa atualizada com sucesso!');
+                ->with('alert-success', 'Informações da tarefa atualizadas com sucesso!');
         }
 
         return redirect()->route('tasks.show', $task)
-            ->with('alert-success', 'Tarefa atualizada com sucesso!');
+            ->with('alert-success', 'Informações da tarefa atualizadas com sucesso!');
     }
 
     public function destroy(Task $task)

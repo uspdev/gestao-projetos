@@ -1,5 +1,5 @@
 @php
-  // $tasksTagsIds = $project->tasksTagsIds($tasksByStatus);
+  $tasksTagsIds = $project->tasksTagsIds($tasksByStatus);
   $tasksEnabled = $project->isModuleEnabled('tasks');
 @endphp
 

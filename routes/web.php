@@ -85,11 +85,16 @@ Route::middleware('auth')->group(function () {
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
+    // Update split: description and other info
+    Route::patch('tasks/{task}/description', [TaskController::class, 'updateDescription'])->name('tasks.updateDescription');
+    Route::patch('tasks/{task}/info', [TaskController::class, 'updateInfo'])->name('tasks.updateInfo');
+
     Route::resource('tasks', TaskController::class)->except([
         'index',
         'create',
         'store',
-        'edit'
+        'edit',
+        'update'
     ]);
 
     // Sub-recurso: Atribuições

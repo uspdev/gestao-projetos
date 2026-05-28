@@ -4,9 +4,9 @@
   $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
   $createAction = $createAction ?? route('projects.tasks.store', $project);
   $hasOldCreate = $errors->any() && old('_method') === null && old('title') !== null;
-  $hasOldEdit = $errors->any() && old('_method') === 'PUT';
+  $hasOldEdit = $errors->any() && old('_method') === 'PATCH' && old('title') !== null;
   $oldTaskId = old('task_id');
-  $oldUpdateAction = $oldTaskId ? route('tasks.update', $oldTaskId) : '';
+  $oldUpdateAction = $oldTaskId ? route('tasks.updateInfo', $oldTaskId) : '';
 @endphp
 
 <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true"
@@ -24,7 +24,7 @@
 
       <form action="{{ $createAction }}" method="POST">
         @csrf
-        <input type="hidden" name="_method" value="PUT" disabled>
+        <input type="hidden" name="_method" value="PATCH" disabled>
         <input type="hidden" name="task_id" value="{{ $oldTaskId ?? '' }}">
         <input type="hidden" name="action" value="{{ url()->current() }}">
 
@@ -104,12 +104,7 @@
             </div>
           </div>
 
-          <div class="row">
-            <div class="col-12">
-              <x-form.textarea name="description" label="Descrição Detalhada" value="{{ old('description') }}"
-                rows="4" maxlength="10000" />
-            </div>
-          </div>
+          {{-- Descrição movida para modal específico de edição de descrição --}}
         </div>
 
         <div class="modal-footer">
@@ -141,7 +136,7 @@
         var prioritySelect = form.querySelector('[name="priority"]');
         var startDateInput = form.querySelector('[name="start_date"]');
         var dueDateInput = form.querySelector('[name="due_date"]');
-        var descriptionInput = form.querySelector('[name="description"]');
+        var descriptionInput = null;
         var tagsSelect = form.querySelector('[name="tags[]"]');
         var modalTitle = modal.querySelector('[data-role="modal-title"]');
         var submitBtn = modal.querySelector('[data-role="submit-btn"]');
@@ -241,7 +236,7 @@
           form.action = data.action || form.action;
           if (methodInput) {
             methodInput.disabled = false;
-            methodInput.value = 'PUT';
+            methodInput.value = 'PATCH';
           }
           if (taskIdInput) {
             taskIdInput.value = data.taskId || '';
@@ -261,9 +256,7 @@
           if (dueDateInput && data.dueDate !== undefined) {
             dueDateInput.value = data.dueDate || '';
           }
-          if (descriptionInput && data.description !== undefined) {
-            descriptionInput.value = decodeHtmlEntities(data.description || '');
-          }
+          // descrição gerenciada em modal separado
           if (tagsSelect && data.tags !== undefined) {
             setMultiSelect(tagsSelect, data.tags || []);
           }
