@@ -31,15 +31,9 @@
         @method('PATCH')
         <input type="hidden" name="comment_id" value="{{ $comment->id }}">
 
-        <div class="form-group mb-2">
-          <label for="{{ $commentEditFormId }}-textarea" class="sr-only">Editar comentario</label>
-          <textarea name="text" id="{{ $commentEditFormId }}-textarea" data-autogrow-textarea
-            class="form-control textarea-autogrow {{ $errors->has('text') && $isEditingComment ? 'is-invalid' : '' }}"
-            rows="2" maxlength="10000" required style="resize: none; overflow: hidden;">{{ $editTextValue }}</textarea>
-          @if ($errors->has('text') && $isEditingComment)
-            <div class="invalid-feedback d-block">{{ $errors->first('text') }}</div>
-          @endif
-        </div>
+        <label for="{{ $commentEditFormId }}-textarea" class="sr-only">Editar comentario</label>
+        <x-form.textarea name="text" :id="$commentEditFormId . '-textarea'" :value="$editTextValue" :error-bag="$isEditingComment ? $errors : new \Illuminate\Support\ViewErrorBag()" groupClass="form-group mb-2"
+          rows="2" maxlength="10000" required />
 
         <div class="d-flex justify-content-end" style="gap: 0.5rem;">
           <button type="button" class="btn btn-light btn-sm" data-toggle="collapse"
