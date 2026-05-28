@@ -19,6 +19,10 @@
         @include('projects.partials.show.show-card-subprojects')
       @endif
 
+      <div class="mb-4">
+        @include('projects.partials.show.show-card-membros', ['redirectEditToSettings' => true])
+      </div>
+
     </div>
   </div>
 @endsection

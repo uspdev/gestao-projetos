@@ -1,7 +1,13 @@
+@php
+  $redirectEditToSettings = $redirectEditToSettings ?? false;
+@endphp
+
 <div class="card mb-4">
   <div class="card-header h6 py-2">
     <i class="fas fa-users mr-1"></i> Membros do Projeto
-    @include('projects.partials.buttons.add-member-btn')
+    @unless ($redirectEditToSettings)
+      @include('projects.partials.buttons.add-member-btn')
+    @endunless
   </div>
   <div class="card-body p-0">
     <ul class="list-group list-group-flush">
@@ -10,8 +16,12 @@
           class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
           @include('users.partials.preview')
           <div class="d-flex flex-wrap align-items-center gap-2">
-            @include('projects.partials.buttons.member-role-dropdown')
-            @include('users.partials.remove-member-assignee-btn')
+            @include('projects.partials.buttons.member-role-dropdown', [
+                'redirectEditToSettings' => $redirectEditToSettings,
+            ])
+            @unless ($redirectEditToSettings)
+              @include('users.partials.remove-member-assignee-btn')
+            @endunless
           </div>
         </li>
       @empty

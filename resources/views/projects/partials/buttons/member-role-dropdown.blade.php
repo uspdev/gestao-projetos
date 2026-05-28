@@ -1,4 +1,15 @@
-@if (auth()->user()->can('storeMember', $project))
+@php
+  $redirectEditToSettings = $redirectEditToSettings ?? false;
+@endphp
+
+@if ($redirectEditToSettings)
+  <div class="dropdown">
+    <a class="btn btn-sm p-0 border-0 bg-transparent dropdown-toggle" href="{{ route('projects.settings', $project) }}"
+      title="Editar membros nas configurações do projeto">
+      @include('users.partials.user-task-badge')
+    </a>
+  </div>
+@elseif (auth()->user()->can('storeMember', $project))
   <div class="dropdown">
     <button class="btn btn-sm p-0 border-0 bg-transparent dropdown-toggle" type="button"
       id="member-role-dropdown-{{ $user->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
