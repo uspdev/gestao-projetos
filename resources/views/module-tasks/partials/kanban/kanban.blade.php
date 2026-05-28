@@ -1,16 +1,3 @@
-<div class="mb-3">
-  <div class="card border-0 shadow-sm">
-    <div class="card-body py-2 px-3">
-      <div class="d-flex align-items-center gap-2">
-        <i class="fas fa-search text-muted"></i>
-
-        <div class="flex-grow-1">
-          @include('module-tasks.partials.buttons.search-task-form')
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 <div class="d-flex flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
   @foreach ($statuses as $status)
     @php
