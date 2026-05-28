@@ -48,7 +48,7 @@
       <hr class="my-1" />
       <div class="small">
         <i class="fas fa-users"></i>
-        {{ $task->users->pluck('name')->implode(', ') }}
+        {{ $task->users->sortBy('name')->pluck('name')->implode(', ') }}
       </div>
     @endif
   </div>
