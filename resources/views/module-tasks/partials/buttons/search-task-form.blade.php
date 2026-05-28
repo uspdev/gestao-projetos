@@ -1,4 +1,4 @@
-@if (session('tasks_view') === 'kanban')
+@if (session('tasks_view') === 'kanban' && request()->routeIs('projects.tasks.index'))
   <div class="d-flex align-items-center ml-4 py-0 gap-2">
     <input id="task-search" type="search" class="form-control form-control-sm py-0" placeholder="Buscar tarefa"
       style="width: 200px; height: 24px;" autofocus>
