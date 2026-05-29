@@ -170,4 +170,30 @@ class ProjectMemberController extends Controller
 
         return response()->json(['results' => $results]);
     }
+
+    /**
+     * Permite que um usuário com permissão herdada ingresse ativamente no subprojeto.
+     */
+    public function joinInherited(Request $request, Project $project)
+    {
+        $user = Auth::user();
+        if ($user->isMemberOfProject($project)) {
+            return redirect()->back()
+                ->with('alert-info', 'Você já é um membro ativo deste projeto.');
+        }
+
+        $inheritedRole = $user->getInheritedRoleFor($project);
+        if (!$inheritedRole) {
+            abort(403, 'Você não possui permissões herdadas elegíveis para ingressar neste projeto.');
+        }
+
+        DB::transaction(function () use ($project, $user, $inheritedRole) {
+            $project->users()->syncWithoutDetaching([$user->id => [
+                'role' => $inheritedRole->value,
+            ]]);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', "Você ingressou no projeto como {$inheritedRole->label()} com sucesso!");
+    }
 }

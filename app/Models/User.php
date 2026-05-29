@@ -85,61 +85,72 @@ class User extends Authenticatable
 
     public function isViewerOfProject(Project $project): bool
     {
-        if ($this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivotIn('role', [
-                ProjectUserRole::ADMIN->value,
-                ProjectUserRole::CONTRIBUTOR->value,
-                ProjectUserRole::VIEWER->value,
-            ])
-            ->exists()
-        ) {
-            return true;
+        // 1. Escopo mais próximo: verifica a role local primeiro.
+        $localRole = $project->userRole($this);
+        if ($localRole !== null) {
+            return in_array($localRole, [
+                ProjectUserRole::ADMIN,
+                ProjectUserRole::CONTRIBUTOR,
+                ProjectUserRole::VIEWER,
+            ]);
         }
 
-        if (! $project->isSubproject()) {
+        // 2. Herança (Pai): Só chega aqui se o usuário NÃO for membro do projeto filho.
+
+        // Se não é subprojeto, não há herança a considerar.
+        if (!$project->isSubproject()) {
+            return false;
+        }
+        // Se a herança for NONE, ignoramos a role do pai.
+        if (in_array($project->permission_inheritance, [ProjectPermissionInheritance::NONE], true)) {
             return false;
         }
 
-        if (! in_array($project->permission_inheritance, [ProjectPermissionInheritance::READ, ProjectPermissionInheritance::FULL], true)) {
-            return false;
-        }
-        // Se o projeto é um subprojeto e herda permissões de leitura ou total, verifica se o usuário é visualizador do projeto pai
-        // Isso talves mude quando começarmos a levar em conta heranças de permissões
-        // em de projetos organizacionais para subprojetos
+        // Verifica recursivamente no pai 
         return $project->parent ? $this->isViewerOfProject($project->parent) : false;
     }
 
     public function isContributorOfProject(Project $project): bool
     {
-        if ($this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivotIn('role', [
-                ProjectUserRole::ADMIN->value,
-                ProjectUserRole::CONTRIBUTOR->value,
-            ])
-            ->exists()
-        ) {
-            return true;
-        }
+        // Escopo mais próximo: apenas verifica a role local, sem considerar heranças.
+        $localRole = $project->userRole($this);
 
-        if (! $project->isSubproject()) {
-            return false;
-        }
-
-        if ($project->permission_inheritance !== ProjectPermissionInheritance::FULL) {
-            return false;
-        }
-
-        return $project->parent ? $this->isContributorOfProject($project->parent) : false;
+        return in_array($localRole, [
+            ProjectUserRole::ADMIN,
+            ProjectUserRole::CONTRIBUTOR,
+        ]);
     }
 
     public function isAdminOfProject(Project $project): bool
     {
-        return $this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivot('role', ProjectUserRole::ADMIN->value)
-            ->exists();
+        // Escopo mais próximo: Apenas verifica a role local, sem considerar heranças.
+        return $project->userRole($this) === ProjectUserRole::ADMIN;
+    }
+
+    /**
+     * Retorna a Role que o usuário tem direito de herdar do projeto pai.
+     * Retorna null se ele já for membro do projeto atual ou não tiver herança aplicável.
+     */
+    public function getInheritedRoleFor(Project $project): ?ProjectUserRole
+    {
+        if ($this->isMemberOfProject($project)) {
+            return null;
+        }
+        if (!$project->isSubproject() || $project->permission_inheritance !== ProjectPermissionInheritance::FULL) {
+            return null;
+        }
+        $parent = $project->parent;
+        if (!$parent) {
+            return null;
+        }
+
+        // herança de apenas 1 nível, pegamos a role explícita no pai
+        $parentRole = $parent->userRole($this);
+        if (in_array($parentRole, [ProjectUserRole::ADMIN, ProjectUserRole::CONTRIBUTOR])) {
+            return $parentRole;
+        }
+
+        return null;
     }
 
     public function isTaskAssignee(Task $task): bool

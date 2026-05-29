@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/', 'store')->name('store');
             Route::patch('{user}/role', 'updateRole')->name('updateRole');
             Route::delete('{user}', 'destroy')->name('destroy');
+            Route::post('join-inherited', 'joinInherited')->name('joinInherited');
         });
 
 
