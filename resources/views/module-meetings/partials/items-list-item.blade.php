@@ -82,7 +82,7 @@
             <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"
               data-target="#{{ $notesDisplayId }}, #{{ $notesEditCollapseId }}" aria-expanded="false"
               aria-controls="{{ $notesDisplayId }} {{ $notesEditCollapseId }}">
-              <i class="fas fa-pen"></i> Editar
+              <i class="fas fa-pen"></i>
             </button>
           @endcan
         @endif
@@ -109,13 +109,9 @@
                   value="{{ old('notes', $item->notes) }}" rows="4" maxlength="10000" class="mb-0" />
               </div>
               <div class="d-flex justify-content-end" style="gap: 0.5rem;">
-                <button type="button" class="btn btn-light btn-sm" data-toggle="collapse"
-                  data-target="#{{ $notesDisplayId }}, #{{ $notesEditCollapseId }}">
-                  Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary btn-sm">
-                  <i class="fas fa-save"></i> Salvar notas
-                </button>
+                <x-form.cancel-button class="btn-sm" data-toggle="collapse"
+                  data-target="#{{ $notesDisplayId }}, #{{ $notesEditCollapseId }}" />
+                <x-form.save-button class="btn btn-primary btn-sm" />
               </div>
             </form>
           </div>

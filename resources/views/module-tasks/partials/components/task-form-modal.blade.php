@@ -108,10 +108,8 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success" data-role="submit-btn">
-            <i class="fas fa-save"></i> Criar Tarefa
-          </button>
+          <x-form.cancel-button data-dismiss="modal" />
+          <x-form.save-button class="btn btn-success" data-role="submit-btn" label="Criar Tarefa" />
         </div>
       </form>
     </div>
@@ -203,7 +201,8 @@
           if (submitBtn) {
             submitBtn.classList.remove('btn-primary');
             submitBtn.classList.add('btn-success');
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Criar Tarefa';
+            submitBtn.innerHTML =
+              '<i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Criar Tarefa</span>';
           }
         }
 
@@ -267,7 +266,8 @@
           if (submitBtn) {
             submitBtn.classList.remove('btn-success');
             submitBtn.classList.add('btn-primary');
-            submitBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+            submitBtn.innerHTML =
+              '<i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Salvar Alterações</span>';
           }
         }
         document.querySelectorAll('[data-task-modal="task-form"]').forEach(function(button) {

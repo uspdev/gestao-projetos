@@ -38,10 +38,8 @@
             </div>
 
             <div class="d-flex justify-content-end">
-              <button type="button" class="btn btn-light mr-2" data-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Adicionar item
-              </button>
+              <x-form.cancel-button class="mr-2" data-dismiss="modal" />
+              <x-form.save-button class="btn btn-primary" label="Adicionar item" />
             </div>
           </form>
         </div>

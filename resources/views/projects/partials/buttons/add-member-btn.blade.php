@@ -47,7 +47,7 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+              <x-form.cancel-button data-dismiss="modal" />
               <button type="submit" class="btn btn-primary" id="project-member-confirm-btn" disabled>
                 Confirmar
               </button>

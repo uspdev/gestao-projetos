@@ -8,5 +8,6 @@
   @include('module-meetings.partials.form', [
       'action' => route('projects.meetings.update', [$project, $meeting]),
       'method' => 'PUT',
+      'showNotesField' => false,
   ])
 @endsection

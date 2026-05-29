@@ -18,4 +18,12 @@ class UpdateMeetingRequest extends StoreMeetingRequest
 
         return $this->user()->can('update', [$meeting, $project]);
     }
+
+    public function rules(): array
+    {
+        $rules = parent::rules();
+        unset($rules['notes']);
+
+        return $rules;
+    }
 }

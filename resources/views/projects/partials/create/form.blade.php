@@ -91,9 +91,7 @@
       <x-form.textarea name="description" label="Descrição" rows="3" maxlength="10000" />
 
       <div class="d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary">
-          <i class="fas fa-save"></i> Salvar Projeto
-        </button>
+        <x-form.save-button class="btn btn-primary" label="Salvar Projeto" />
       </div>
     </form>
   </div>

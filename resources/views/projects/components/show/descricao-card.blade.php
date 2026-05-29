@@ -50,13 +50,9 @@
           maxlength="10000" />
 
         <div class="d-flex justify-content-end" style="gap: 0.5rem;">
-          <button type="button" class="btn btn-light btn-sm" data-toggle="collapse"
-            data-target="#{{ $descriptionDisplayId }}, #{{ $descriptionEditId }}">
-            Cancelar
-          </button>
-          <button type="submit" class="btn btn-primary btn-sm">
-            <i class="fas fa-save"></i> Salvar
-          </button>
+          <x-form.cancel-button class="btn-sm" data-toggle="collapse"
+            data-target="#{{ $descriptionDisplayId }}, #{{ $descriptionEditId }}" />
+          <x-form.save-button class="btn btn-primary btn-sm" />
         </div>
       </form>
     </div>

@@ -30,7 +30,6 @@
 
 @push('modals')
   @include('module-tasks.partials.components.task-form-modal')
-  @include('module-tasks.partials.components.task-form-modal-description')
 @endpush
 
 @push('scripts')

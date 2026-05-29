@@ -4,6 +4,7 @@
   $scheduledValue = old('scheduled_at', $meeting?->scheduled_at?->format('Y-m-d\TH:i'));
   $selectedProjects = $selectedProjects ?? old('projects', $meeting?->projects?->pluck('id')->all() ?? [$project->id]);
   $selectedProjects = collect($selectedProjects)->map(fn($id) => (int) $id)->all();
+  $showNotesField = $showNotesField ?? true;
 @endphp
 
 <form method="POST" action="{{ $action }}">
@@ -45,12 +46,14 @@
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-12">
-      <x-form.textarea name="notes" label="Notas" value="{{ old('notes', $meeting?->notes) }}" rows="4"
-        maxlength="10000" />
+  @if ($showNotesField)
+    <div class="row">
+      <div class="col-12">
+        <x-form.textarea name="notes" label="Notas" value="{{ old('notes', $meeting?->notes) }}" rows="4"
+          maxlength="10000" />
+      </div>
     </div>
-  </div>
+  @endif
 
   <div class="row">
     <div class="col-12">
@@ -100,8 +103,6 @@
   @endonce
 
   <div class="d-flex justify-content-end">
-    <button type="submit" class="btn btn-primary">
-      <i class="fas fa-save"></i> Salvar
-    </button>
+    <x-form.save-button class="btn btn-primary" />
   </div>
 </form>

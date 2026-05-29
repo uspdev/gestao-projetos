@@ -33,10 +33,8 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary" data-role="submit-btn">
-            <i class="fas fa-save"></i> Salvar
-          </button>
+          <x-form.cancel-button data-dismiss="modal" />
+          <x-form.save-button class="btn btn-primary" data-role="submit-btn" />
         </div>
       </form>
     </div>

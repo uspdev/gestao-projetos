@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\Meeting\MeetingStatus;
 use App\Http\Requests\Meeting\StoreMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingRequest;
+use App\Http\Requests\Meeting\UpdateMeetingNotesRequest;
 use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
 use App\Http\Requests\MeetingItem\UpdateMeetingItemNotesRequest;
 use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
@@ -180,6 +181,24 @@ class MeetingController extends Controller
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
+    }
+
+    public function updateMeetingNotes(UpdateMeetingNotesRequest $request, Project $project, Meeting $meeting)
+    {
+        Gate::authorize('update', [$meeting, $project]);
+
+        DB::transaction(function () use ($request, $meeting) {
+            $notes = $request->validated('meeting_notes');
+            $notes = is_string($notes) ? trim($notes) : $notes;
+
+            $meeting->update([
+                'notes' => $notes === '' ? null : $notes,
+                'updated_by' => Auth::id(),
+            ]);
+        });
+
+        return redirect()->back()
+            ->with('alert-success', 'Notas da reuniao atualizadas com sucesso!');
     }
 
     public function destroy(Project $project, Meeting $meeting)
