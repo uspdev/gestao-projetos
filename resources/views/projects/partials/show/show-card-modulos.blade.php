@@ -1,5 +1,6 @@
 @php
   $showToggle ??= false;
+  $modules = $resolvedModules ?? $project->activeModulesSummary();
   $canUpdateModules = $showToggle && isset($project) && auth()->user()?->can('updateModule', $project);
 @endphp
 
@@ -12,7 +13,7 @@
     </div>
   </div>
   <ul class="list-group list-group-flush">
-    @forelse ($project->activeModulesSummary() as $module)
+    @forelse ($modules as $module)
       <li
         class="list-group-item d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between"
         style="gap: 0.5rem;">
@@ -23,9 +24,9 @@
           </span>
           @if ($canUpdateModules)
             @include('projects.partials.show.module-toggle-form')
-            @if ($module['required'])
+            @if ($module['required'] ?? false)
               <span class="text-muted small">Obrigatorio</span>
-            @elseif (!$module['editable'])
+            @elseif (!($module['editable'] ?? true))
               <span class="text-muted small">Bloqueado</span>
             @endif
           @endif
