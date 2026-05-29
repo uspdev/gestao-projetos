@@ -3,6 +3,8 @@
 @section('title', 'Detalhes do Projeto')
 
 @section('project-content')
+  @include('projects.partials.show.join-inherited-banner')
+
   <div class="row">
     <div class="col-md-8">
       <x-projects::show.descricao-card :project="$project" type="main" />
