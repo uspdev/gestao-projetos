@@ -1,6 +1,16 @@
 {{-- Card: Título e Descrição --}}
+@php
+  $type = $type ?? null;
+  $bg_color = '';
+  $class = '';
+  if ($type == 'main') {
+      $bg_color = 'lightcyan';
+      $class = 'h5';
+  }
+@endphp
+
 <div class="card mb-4">
-  <div class="card-header h5 py-2" style="background-color: lightCyan;">
+  <div class="card-header {{ $class }} py-2" style="background-color: {{ $bg_color }};">
     Descrição
     @include('projects.partials.buttons.edit-btn')
   </div>
@@ -18,7 +28,6 @@
         </div>
       @endif
     </div>
-
   </div>
 
 </div>

@@ -20,6 +20,15 @@
 @section('styles')
   @parent
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* anchor scroll por causa do header */
+    [id] {
+      scroll-margin-top: 70px;
+    }
+
     /*seus estilos*/
     .gap-2>*+* {
       margin-left: 0.5rem;
@@ -31,6 +40,7 @@
       flex-direction: column;
       min-height: 100vh;
     }
+
     #skin_footer {
       /* flex-shrink -> ele não se redimensiona */
       flex-shrink: 0;

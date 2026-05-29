@@ -5,24 +5,16 @@
 @section('project-content')
   <div class="row">
     <div class="col-md-8">
-      @include('projects.partials.show.show-card-descricao')
+      <x-projects::show.descricao-card :project="$project" type="main" />
       @include('comments.partials.thread', ['commentable' => $project])
     </div>
     <div class="col-md-4">
-      <div class="mb-4">
-        @include('projects.partials.show.project-type-card')
-      </div>
+      <x-projects::show.tipo-card :project="$project" />
       @include('projects.partials.show.show-card-modulos', [
           'resolvedModules' => $project->activeModulesSummary(),
       ])
-      @if ($project->isOrganizational())
-        @include('projects.partials.show.show-card-subprojects')
-      @endif
-
-      <div class="mb-4">
-        @include('projects.partials.show.show-card-membros', ['redirectEditToSettings' => true])
-      </div>
-
+      <x-projects::show.subprojects-card :project="$project" />
+      <x-projects::show.membros-preview-card :project="$project" />
     </div>
   </div>
 @endsection

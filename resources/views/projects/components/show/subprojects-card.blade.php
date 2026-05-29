@@ -1,21 +1,13 @@
-@php
-  $type = $type ?? null;
-  $bg_color = '';
-  $class = '';
-  if ($type == 'main') {
-      $bg_color = 'lightcyan';
-      $class = 'h5';
-  }
-@endphp
-<div class="card mb-4">
-  <div class="card-header {{ $class }} py-2" style="background-color: {{ $bg_color }};">
-    <i class="fas fa-sitemap"></i> Subprojetos
-    @include('projects.partials.buttons.link-subproject-btn')
-  </div>
+@props(['project', 'subprojects', 'type' => 'normal'])
+@if ($project->isOrganizational())
+  <x-projects::show.card-template :type="$type">
+    <x-slot:header>
+      <i class="fas fa-sitemap"></i> Subprojetos
+      @include('projects.partials.buttons.link-subproject-btn')
+    </x-slot:header>
 
-  <div class="card-body">
     <div class="row">
-      @forelse ($subprojects as $subproject)
+      @forelse ($project->subprojects() as $subproject)
         @php
           $subprojectTags = $subproject->tags->where('type', \App\Models\Tag::TYPE_PROJECT);
           $user = auth()->user();
@@ -41,5 +33,6 @@
         </div>
       @endforelse
     </div>
-  </div>
-</div>
+
+  </x-projects::show.card-template>
+@endif

@@ -2,6 +2,7 @@
   $redirectEditToSettings = $redirectEditToSettings ?? false;
 @endphp
 
+<div id="project-members"></div>
 <div class="card mb-4">
   <div class="card-header h6 py-2">
     <i class="fas fa-users mr-1"></i> Membros do Projeto

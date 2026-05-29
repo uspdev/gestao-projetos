@@ -20,9 +20,9 @@ enum ProjectUserRole: string
     public function color(): string
     {
         return match ($this) {
-            self::ADMIN => 'badge-success',
-            self::CONTRIBUTOR => 'badge-primary',
-            self::VIEWER => 'badge-secondary',
+            self::ADMIN => 'success',
+            self::CONTRIBUTOR => 'primary',
+            self::VIEWER => 'secondary',
         };
     }
 }

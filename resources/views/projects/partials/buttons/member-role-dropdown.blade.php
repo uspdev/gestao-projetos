@@ -35,7 +35,7 @@
     </div>
   </div>
 @else
-  <span class="badge {{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }} mr-2">
+  <span class="badge badge-{{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }} mr-2">
     {{ $project->userRole($user)?->label() ?? 'Sem função' }}
   </span>
 @endif

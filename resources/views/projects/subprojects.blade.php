@@ -5,16 +5,13 @@
 @section('project-content')
   <div class="row">
     <div class="col-md-8">
-      @include('projects.partials.show.show-card-subprojects')
+      <x-projects::show.subprojects-card :project="$project" type="main"/>
     </div>
     <div class="col-md-4">
-      <div class="mb-4">
-        @include('projects.partials.show.project-type-card')
-      </div>
-      @include('projects.partials.show.show-card-modulos', [
-          'resolvedModules' => $project->activeModulesSummary(),
-      ])
-      @include('projects.partials.show.show-card-descricao')
+      <x-projects::show.tipo-card :project="$project" />
+      @include('projects.partials.show.show-card-modulos')
+      <x-projects::show.descricao-card :project="$project" />
+      <x-projects::show.membros-preview-card :project="$project" />
     </div>
   </div>
 

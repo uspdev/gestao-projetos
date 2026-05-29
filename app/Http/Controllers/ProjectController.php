@@ -167,31 +167,31 @@ class ProjectController extends Controller
                 ->when($tasksEnabled, fn($query) => $query->with('tags')),
         ]);
 
-        $subprojects = collect();
-        $contextParentProject = null;
+        // $subprojects = collect();
+        // $contextParentProject = null;
 
-        if (! $project->isSubproject() && $project->isOrganizational()) {
-            // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
-            $contextParentProject = $project;
-            $subprojects = $project->children()
-                ->with(['tags', 'projectType'])
-                ->withCount(['tasks', 'users'])
-                ->orderBy('name')
-                ->get();
-        }
+        // if (! $project->isSubproject() && $project->isOrganizational()) {
+        //     // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
+        //     $contextParentProject = $project;
+        //     $subprojects = $project->children()
+        //         ->with(['tags', 'projectType'])
+        //         ->withCount(['tasks', 'users'])
+        //         ->orderBy('name')
+        //         ->get();
+        // }
 
-        // Para subprojetos, carrega os projetos irmãos (mesmo parent_id) para exibição e possível navegação
-        $parentProjects = Project::accessibleBy($user)
-            ->whereNull('parent_id')
-            ->orderBy('name')
-            ->get();
+        // // Para subprojetos, carrega os projetos irmãos (mesmo parent_id) para exibição e possível navegação
+        // $parentProjects = Project::accessibleBy($user)
+        //     ->whereNull('parent_id')
+        //     ->orderBy('name')
+        //     ->get();
 
         return view('projects.show', compact(
             'project',
             'resolvedModules',
-            'subprojects',
-            'parentProjects',
-            'contextParentProject',
+            // 'subprojects',
+            // 'parentProjects',
+            // 'contextParentProject',
         ));
     }
 
@@ -632,12 +632,24 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
-        $subprojects = $project->children()
-            ->with(['tags', 'projectType'])
-            ->withCount(['tasks', 'users'])
-            ->orderBy('name')
-            ->get();
+        $tasksEnabled = $project->isModuleEnabled('tasks');
 
-        return view('projects.subprojects', compact('project', 'subprojects'));
+        $project = $project->load([
+            'users',
+            'tags',
+            'parent',
+            'projectType',
+            'projectType.phases',
+            'phase',
+            'tasks' => fn($query) => $query
+                ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
+                ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->when($tasksEnabled, fn($query) => $query->with('tags')),
+        ]);
+
+        return view('projects.subprojects', compact(
+            'project',
+            // 'subprojects'
+        ));
     }
 }

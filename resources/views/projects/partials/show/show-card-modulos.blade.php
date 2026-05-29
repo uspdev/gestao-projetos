@@ -12,7 +12,7 @@
     </div>
   </div>
   <ul class="list-group list-group-flush">
-    @forelse ($resolvedModules ?? [] as $module)
+    @forelse ($project->activeModulesSummary() as $module)
       <li
         class="list-group-item d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between"
         style="gap: 0.5rem;">

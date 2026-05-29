@@ -327,6 +327,26 @@ class Project extends Model implements Discussable, HasCommentRecipients
     }
 
     /**
+     * Retorna os subprojetos se existir
+     *
+     * @return Collection
+     */
+    public function subprojects()
+    {
+        $subprojects = collect();
+
+        if (! $this->isSubproject() && $this->isOrganizational()) {
+            // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
+            $subprojects = $this->children()
+                ->with(['tags', 'projectType'])
+                ->withCount(['tasks', 'users'])
+                ->orderBy('name')
+                ->get();
+        }
+        return $subprojects;
+    }
+
+    /**
      * Verifica se o projeto pode ser vinculado como subprojeto do projeto pai, retornando a razão caso não possa
      */
     public function subprojectLinkBlockReason(Project $parent): ?string
