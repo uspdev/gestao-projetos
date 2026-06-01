@@ -37,12 +37,11 @@
         </a>
         <x-separator />
       @endif
-      <a href="{{ route('projects.show', $project) }}"
-        class="text-decoration-none  {{ $routeName === 'projects.show' ? 'text-dark' : 'text-secondary' }}">
+
+      <a href="{{ route('projects.show', $project) }}?view=main"
+        class="text-decoration-none  {{ request('view', 'main') === 'main' ? 'text-dark' : 'text-secondary' }}">
         <span>{{ $project->name }}</span>
       </a>
-
-
 
       @if ($project->isSubproject())
         <span class="badge badge-pill badge-info" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;"
@@ -52,8 +51,8 @@
       @endif
 
       @if ($project->isOrganizational())
-        <a href="{{ route('projects.subprojects', $project) }}"
-          class="btn btn-sm {{ $routeName === 'projects.subprojects' ? 'btn-secondary' : 'btn-outline-secondary' }}">
+        <a href="{{ route('projects.show', $project) }}?view=subprojects"
+          class="btn btn-sm {{ request('view') === 'subprojects' ? 'btn-secondary' : 'btn-outline-secondary' }}">
           Subprojetos
         </a>
       @endif

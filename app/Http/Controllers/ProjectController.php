@@ -62,6 +62,38 @@ class ProjectController extends Controller
         ));
     }
 
+    public function show(Project $project, Request $request)
+    {
+        Gate::authorize('view', $project);
+
+        $view = $request->query('view', 'subprojects');
+
+        $showDone = request()->boolean('show_done');
+        $tasksEnabled = $project->isModuleEnabled('tasks');
+        // Carrega os módulos resolvidos para o projeto,
+        // garantindo que as configurações específicas do projeto sejam consideradas
+        $project = $project->load([
+            'users',
+            'tags',
+            'parent',
+            'projectType',
+            'projectType.phases',
+            'phase',
+            'tasks' => fn($query) => $query
+                ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
+                ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+                ->when($tasksEnabled, fn($query) => $query->with('tags')),
+        ]);
+
+        if ($view == 'subprojects' && $project->children->isNotEmpty()) {
+            return view('projects.subprojects', compact('project'));
+        }
+
+        return view('projects.show', compact(
+            'project',
+        ));
+    }
+
     public function create(Request $request)
     {
         Gate::authorize('create', Project::class);
@@ -141,35 +173,6 @@ class ProjectController extends Controller
         return redirect()
             ->route('projects.show', $project)
             ->with('alert-success', 'Projeto criado com sucesso!');
-    }
-
-    public function show(Project $project, User $user)
-    {
-        Gate::authorize('view', $project);
-
-        $showDone = request()->boolean('show_done');
-        $tasksEnabled = $project->isModuleEnabled('tasks');
-        // Carrega os módulos resolvidos para o projeto,
-        // garantindo que as configurações específicas do projeto sejam consideradas
-        $project = $project->load([
-            'users',
-            'tags',
-            'parent',
-            'projectType',
-            'projectType.phases',
-            'phase',
-            'tasks' => fn($query) => $query
-                ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
-                ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-                ->when($tasksEnabled, fn($query) => $query->with('tags')),
-        ]);
-
-        if ($project->children->isNotEmpty()) {
-            return redirect()->route('projects.subprojects', $project);
-        }
-        return view('projects.show', compact(
-            'project',
-        ));
     }
 
     /**
@@ -602,30 +605,4 @@ class ProjectController extends Controller
         return view('projects.settings', compact('project', 'resolvedModules'));
     }
 
-    /**
-     * Visualização de subprojetos
-     */
-    public function subprojects(Project $project)
-    {
-        Gate::authorize('view', $project);
-
-        $tasksEnabled = $project->isModuleEnabled('tasks');
-
-        $project = $project->load([
-            'users',
-            'tags',
-            'parent',
-            'projectType',
-            'projectType.phases',
-            'phase',
-            'tasks' => fn($query) => $query
-                ->when(! $tasksEnabled, fn($query) => $query->whereRaw('1 = 0'))
-                ->when($tasksEnabled && ! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-                ->when($tasksEnabled, fn($query) => $query->with('tags')),
-        ]);
-
-        return view('projects.subprojects', compact(
-            'project',
-        ));
-    }
 }
