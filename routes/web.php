@@ -13,11 +13,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (Auth::check()) {
-        return redirect()->route('projects.index');
+        return redirect()->route('users.show', Auth::id());
     }
-
     return redirect()->route('about');
-})->name('landing');
+})->name('dashboard');
+
 Route::get('about', function () {
     \UspTheme::activeUrl('about');
     return view('landing');

@@ -6,13 +6,14 @@ $menu = [
         'key' => 'gestao-projetos',
     ],
     [
-        'text' => '<i class="fas fa-book-open"></i> Sobre',
-        'url'  => '',
-        'url'  => 'about',
+        'text' => '<i class="fas fa-user-circle"></i> Dashboard',
+        'url'  => 'meu-perfil',
+        'can'  => 'user',
     ],
+
     [
-        'text' => '<i class="fas fa-home"></i> Meus Projetos',
-        'url'  => 'meus-projetos',
+        'text' => '<i class="fas fa-home"></i> Projetos',
+        'url'  => 'projects',
         'can'  => 'user',
     ],
     [
@@ -21,9 +22,8 @@ $menu = [
         'can'  => 'user',
     ],
     [
-        'text' => '<i class="fas fa-user-circle"></i> Meu Perfil',
-        'url'  => 'meu-perfil',
-        'can'  => 'user',
+        'text' => '<i class="fas fa-book-open"></i> Sobre',
+        'url'  => 'about',
     ],
 
 ];

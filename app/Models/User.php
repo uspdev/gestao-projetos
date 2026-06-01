@@ -4,14 +4,15 @@ namespace App\Models;
 
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectUserRole;
+use App\Enums\Task\TaskStatus;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Task;
 
 class User extends Authenticatable
 {
@@ -39,6 +40,43 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Lista projetos pinados do usuário
+     */
+    public function pinnedProjects()
+    {
+        return $this->projects()->wherePivot('pinned', true)->get();
+    }
+
+    /**
+     * Lista as tasks do usuário
+     *
+     * agrupadas por status se a visualização for kanban
+     * ou em uma lista única ordenada caso contrário.
+     */
+    public function tasksByStatus($taskView = null, $tasksDone = 0)
+    {
+        $tasksByStatus = $this->tasks()
+            ->with(['project', 'users'])
+            ->withTasksModuleEnabled()
+            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->orderBy(
+                Project::select('name')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+            )
+            ->orderBy('priority', 'asc')
+            ->latest()
+            ->get();
+
+        if ($taskView === 'kanban') {
+            $tasksByStatus = $tasksByStatus->groupBy('status');
+        }
+        return $tasksByStatus;
+    }
+
+    /**
+     * Relacionamento com projects
+     */
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)
@@ -106,7 +144,7 @@ class User extends Authenticatable
             return false;
         }
 
-        // Verifica recursivamente no pai 
+        // Verifica recursivamente no pai
         return $project->parent ? $this->isViewerOfProject($project->parent) : false;
     }
 
