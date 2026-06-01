@@ -33,6 +33,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.5",
         "spatie/commonmark-highlighter": "^3.0",
+        "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-tags": "^4.11",
         "uspdev/laravel-replicado": "^1.0",
         "uspdev/laravel-tools": "^1.6",
@@ -40,6 +41,7 @@
         "uspdev/senhaunica-socialite": "^4.5"
     },
     "require-dev": {
+        "beyondcode/laravel-er-diagram-generator": "^6.0",
         "fakerphp/faker": "^1.9.1",
         "laravel/dusk": "^8.0",
         "laravel/sail": "^1.0.1",

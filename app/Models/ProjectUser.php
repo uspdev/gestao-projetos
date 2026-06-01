@@ -9,5 +9,6 @@ class ProjectUser extends Pivot
 {
     protected $casts = [
         'role' => ProjectUserRole::class,
+        'pinned' => 'bool',
     ];
 }

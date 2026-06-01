@@ -15,7 +15,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Primary cleanup with per-log retention policies.
+        $schedule->command('app:clean-activity-log')->dailyAt('02:00');
+
+        // Fallback cleanup for any log_name without a policy.
+        $schedule->command('activitylog:clean')->weekly();
     }
 
     /**

@@ -4,7 +4,7 @@
     @csrf
     @method('DELETE')
     <button type="submit" class="btn btn-outline-danger btn-sm">
-      <i class="fas fa-trash"></i>
+      APAGAR
     </button>
   </form>
 @endcan

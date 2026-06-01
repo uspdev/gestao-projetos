@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectUserRole;
+use App\Enums\Task\TaskStatus;
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Task;
 
 class User extends Authenticatable
 {
@@ -38,17 +40,55 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Lista projetos pinados do usuário
+     */
+    public function pinnedProjects()
+    {
+        return $this->projects()->wherePivot('pinned', true)->orderBy('name')->get();
+    }
+
+    /**
+     * Lista as tasks do usuário
+     *
+     * agrupadas por status se a visualização for kanban
+     * ou em uma lista única ordenada caso contrário.
+     */
+    public function tasksByStatus($taskView = null, $tasksDone = 0)
+    {
+        $tasksByStatus = $this->tasks()
+            ->with(['project', 'users'])
+            ->withTasksModuleEnabled()
+            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->orderBy(
+                Project::select('name')
+                    ->whereColumn('projects.id', 'tasks.project_id')
+            )
+            ->orderBy('priority', 'asc')
+            ->latest()
+            ->get();
+
+        if ($taskView === 'kanban') {
+            $tasksByStatus = $tasksByStatus->groupBy('status');
+        }
+        return $tasksByStatus;
+    }
+
+    /**
+     * Relacionamento com projects
+     */
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class)
             ->using(ProjectUser::class)
-            ->withPivot('role')
+            ->withPivot('role', 'pinned')
             ->withTimestamps();
     }
 
     public function tasks(): BelongsToMany
     {
         return $this->belongsToMany(Task::class)
+            ->using(TaskUser::class)
             ->withTimestamps();
     }
 
@@ -83,33 +123,72 @@ class User extends Authenticatable
 
     public function isViewerOfProject(Project $project): bool
     {
-        return $this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivotIn('role', [
-                ProjectUserRole::ADMIN->value,
-                ProjectUserRole::CONTRIBUTOR->value,
-                ProjectUserRole::VIEWER->value,
-            ])
-            ->exists();
+        // 1. Escopo mais próximo: verifica a role local primeiro.
+        $localRole = $project->userRole($this);
+        if ($localRole !== null) {
+            return in_array($localRole, [
+                ProjectUserRole::ADMIN,
+                ProjectUserRole::CONTRIBUTOR,
+                ProjectUserRole::VIEWER,
+            ]);
+        }
+
+        // 2. Herança (Pai): Só chega aqui se o usuário NÃO for membro do projeto filho.
+
+        // Se não é subprojeto, não há herança a considerar.
+        if (!$project->isSubproject()) {
+            return false;
+        }
+        // Se a herança for NONE, ignoramos a role do pai.
+        if (in_array($project->permission_inheritance, [ProjectPermissionInheritance::NONE], true)) {
+            return false;
+        }
+
+        // Verifica recursivamente no pai
+        return $project->parent ? $this->isViewerOfProject($project->parent) : false;
     }
 
     public function isContributorOfProject(Project $project): bool
     {
-        return $this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivotIn('role', [
-                ProjectUserRole::ADMIN->value,
-                ProjectUserRole::CONTRIBUTOR->value,
-            ])
-            ->exists();
+        // Escopo mais próximo: apenas verifica a role local, sem considerar heranças.
+        $localRole = $project->userRole($this);
+
+        return in_array($localRole, [
+            ProjectUserRole::ADMIN,
+            ProjectUserRole::CONTRIBUTOR,
+        ]);
     }
 
     public function isAdminOfProject(Project $project): bool
     {
-        return $this->projects()
-            ->where('project_id', $project->id)
-            ->wherePivot('role', ProjectUserRole::ADMIN->value)
-            ->exists();
+        // Escopo mais próximo: Apenas verifica a role local, sem considerar heranças.
+        return $project->userRole($this) === ProjectUserRole::ADMIN;
+    }
+
+    /**
+     * Retorna a Role que o usuário tem direito de herdar do projeto pai.
+     * Retorna null se ele já for membro do projeto atual ou não tiver herança aplicável.
+     */
+    public function getInheritedRoleFor(Project $project): ?ProjectUserRole
+    {
+        if ($this->isMemberOfProject($project)) {
+            return null;
+        }
+        if (!$project->isSubproject() || $project->permission_inheritance !== ProjectPermissionInheritance::FULL) {
+            return null;
+        }
+        $parent = $project->parent;
+        if (!$parent) {
+            return null;
+        }
+
+        // herança de apenas 1 nível, pegamos a role explícita no pai
+        $parentRole = $parent->userRole($this);
+        if (in_array($parentRole, [ProjectUserRole::ADMIN, ProjectUserRole::CONTRIBUTOR])) {
+            return $parentRole;
+        }
+
+        return null;
     }
 
     public function isTaskAssignee(Task $task): bool

@@ -2,30 +2,43 @@
 
 $menu = [
     [
-        'text' => '<i class="fas fa-home"></i> Meus Projetos',
-        'url'  => 'meus-projetos',
-        'can'  => 'user',
+        // menu utilizado para views da biblioteca senhaunica-socialite.
+        'key' => 'gestao-projetos',
     ],
     [
-        'text' => '<i class="fas fa-tasks"></i> Minhas Tarefas',
-        'url'  => 'minhas-tasks',
-        'can'  => 'user',
-    ],
-    [
-        'text' => '<i class="fas fa-user-circle"></i> Meu Perfil',
+        'text' => '<i class="fas fa-user-circle"></i> Dashboard',
         'url'  => 'meu-perfil',
         'can'  => 'user',
     ],
+
+    [
+        'text' => '<i class="fas fa-home"></i> Projetos',
+        'url'  => 'projects',
+        'can'  => 'user',
+    ],
+    // [
+    //     'text' => '<i class="fas fa-tasks"></i> Minhas Tarefas',
+    //     'url'  => 'minhas-tasks',
+    //     'can'  => 'user',
+    // ],
+    [
+        'text' => '<i class="fas fa-book-open"></i> Sobre',
+        'url'  => 'about',
+    ],
+
 ];
 
-$active_menu = [];
-foreach ($menu as $item) {
-    if (isset($item['active_patterns']) && isset($item['url'])) {
-        $active_menu[$item['url']] = $item['active_patterns'];
-    }
-}
-
 $right_menu = [
+    [
+        'text' => '<i class="fas fa-user-shield text-danger"></i> <span class="text-danger">Admin</span>',
+        'url'  => 'admin',
+        'can'  => 'admin',
+    ],
+    [
+        'text' => '<span class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Novo Projeto</span>',
+        'url'  => 'projects/create',
+        'can'  => 'user',
+    ],
     [
         // menu utilizado para views da biblioteca senhaunica-socialite.
         'key' => 'senhaunica-socialite',
@@ -38,7 +51,7 @@ $right_menu = [
 return [
     # valor default para a tag title, dentro da section title.
     # valor pode ser substituido pela aplicação.
-    'title' => config('app.name'),
+    'title' => '',
 
     # USP_THEME_SKIN deve ser colocado no .env da aplicação
     'skin' => env('USP_THEME_SKIN', 'uspdev'),
@@ -58,7 +71,7 @@ return [
     # menus
     'menu' => $menu,
     'right_menu' => $right_menu,
-    'active_menu' => $active_menu,
+    // 'active_menu' => $active_menu,
 
     # mensagens flash - https://uspdev.github.io/laravel#31-mensagens-flash
     'mensagensFlash' => true,

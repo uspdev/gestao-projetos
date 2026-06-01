@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Module;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -19,22 +20,26 @@ class TaskPolicy
 
     public function viewAny(User $user, Project $project): bool
     {
-        return $user->isViewerOfProject($project);
+        return $this->tasksModuleEnabled($project) && $user->isViewerOfProject($project);
     }
 
     public function view(User $user, Task $task): bool
     {
-        return $user->isViewerOfProject($task->project);
+        return $this->tasksModuleEnabled($task->project) && $user->isViewerOfProject($task->project);
     }
 
     public function create(User $user, Project $project): bool
     {
-        return $user->isContributorOfProject($project);
+        return $this->tasksModuleEnabled($project) && $user->isContributorOfProject($project);
     }
 
     public function update(User $user, Task $task): bool
     {
         //   return true;
+        if (! $this->tasksModuleEnabled($task->project)) {
+            return false;
+        }
+
         if ($task->isLocked()) {
             return false;
         }
@@ -43,6 +48,10 @@ class TaskPolicy
 
     public function delete(User $user, Task $task): bool
     {
+        if (! $this->tasksModuleEnabled($task->project)) {
+            return false;
+        }
+
         if ($task->isLocked()) {
             return false;
         }
@@ -52,10 +61,20 @@ class TaskPolicy
 
     public function storeAssignee(User $user, Task $task): bool
     {
+        if (! $this->tasksModuleEnabled($task->project)) {
+            return false;
+        }
+
         if ($task->isLocked()) {
             return false;
         }
         return $user->isAdminOfProject($task->project) || $user->isTaskCreator($task);
+    }
+
+    public function comment(User $user, Task $task): bool
+    {
+        return $this->tasksModuleEnabled($task->project)
+            && $user->isContributorOfProject($task->project);
     }
 
     public function restore(User $user, Task $task): bool
@@ -73,9 +92,18 @@ class TaskPolicy
      */
     public function UpdateStatus(User $user, Task $task): bool
     {
+        if (! $this->tasksModuleEnabled($task->project)) {
+            return false;
+        }
+
         if ($task->isLocked()) {
             return true;
         }
         return false;
+    }
+
+    private function tasksModuleEnabled(Project $project): bool
+    {
+        return Module::isEnabledForProject($project, 'tasks');
     }
 }

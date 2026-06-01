@@ -6,15 +6,21 @@ use App\Enums\Task\TaskStatus;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Requests\Task\UpdateTaskDescriptionRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
+use App\Mail\TaskAssigned;
+use App\Mail\TaskCompleted;
 use App\Models\Project;
 use App\Models\Tag;
+use App\Models\Module;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class TaskController extends Controller
 {
@@ -29,80 +35,65 @@ class TaskController extends Controller
             }
 
             return $next($request);
-        })->only(['userIndex', 'projectIndex', 'create']);
-    }
-
-    /**
-     * Lista as tarefas do usuario autenticado.
-     */
-    public function userIndex(Request $request)
-    {
-        $taskView = request()->query('view') ?? session('tasks_view', 'list'); //list ou kanban
-        session(['tasks_view' => $taskView]);
-
-        $showDone = $request->boolean('show_done');
-
-        $user = Auth::user();
-        Gate::authorize('viewTasks', $user);
-
-        $tasks = $user->tasks()
-            ->with([
-                'project',
-                'users',
-            ])
-            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-            ->orderBy(
-                Project::select('name')
-                    ->whereColumn('projects.id', 'tasks.project_id')
-            )
-            ->latest()
-            ->get();
-
-        return view('tasks.index', compact('tasks', 'user', 'showDone'));
+        })->only(['indexUser', 'indexProject', 'create']);
     }
 
     /**
      * Lista as tarefas de um projeto especifico.
      */
-    public function projectIndex(Request $request, Project $project)
+    public function indexProject(Request $request, Project $project)
     {
+        $this->ensureTasksModuleEnabled($project);
+
         $taskView = $request->query('view') ?? session('tasks_view', 'list'); //list ou kanban
         session(['tasks_view' => $taskView]);
 
-        $showDone = $request->boolean('show_done');
+        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
+        session(['tasks_done' => $tasksDone]);
+
+        $tasksMine = $request->query('tasks_mine') ?? session('tasks_mine', '0');
+        session(['tasks_mine' => $tasksMine]);
 
         Gate::authorize('viewAny', [Task::class, $project]);
 
-        $tasks = $project->tasks()
-            ->with('project')
-            ->with('users')
-            ->with('tags')
-            ->when(! $showDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+        $tasksByStatus = $project->tasks()
+            ->with(['project', 'users', 'tags'])
+            ->when($tasksMine, fn($query) => $query->whereHas('users', fn($userQuery) => $userQuery->where('users.id', Auth::id())))
+            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            ->orderBy('completed_at', 'asc')
             ->orderBy('priority', 'asc')
             ->latest()
             ->get();
 
-        return view('project-tasks.index', compact(
-            'tasks',
+        $tasksCount = $tasksByStatus->count();
+
+        if ($taskView === 'kanban') {
+            $tasksByStatus = $tasksByStatus->groupBy('status');
+        }
+
+        $statuses = collect(TaskStatus::cases())
+            ->when(!$tasksDone, fn($collection) => $collection->reject(
+                fn(TaskStatus $status) => $status === TaskStatus::DONE
+            ));
+
+        return view('module-tasks.index', compact(
+            'tasksByStatus',
+            'statuses',
             'project',
-            'showDone'
+            'tasksCount',
         ));
     }
 
-    public function create(Project $project)
-    {
-        Gate::authorize('create', [Task::class, $project]);
-
-        return view('project-tasks.create', compact('project'));
-    }
 
     public function store(StoreTaskRequest $request, Project $project)
     {
+        $this->ensureTasksModuleEnabled($project);
+
         $task = DB::transaction(function () use ($project, $request) {
             $data = $request->validated();
             $data['project_id'] = $project->id;
             $data['created_by'] = Auth::id();
-            $data['status'] = $data['status'] ?? TaskStatus::TO_DO->value;
+            $data['status'] = $data['status'] ?? TaskStatus::ASSIGNED->value;
 
             $task = Task::create($data);
 
@@ -122,6 +113,8 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('view', $task);
         \UspTheme::activeUrl('meus-projetos');
 
@@ -130,21 +123,58 @@ class TaskController extends Controller
             'users',
             'tags',
         ]);
+        $project = $task->project;
 
-        return view('tasks.show', compact('task'));
+
+        return view('module-tasks.show', compact('task', 'project'));
     }
 
-    public function update(UpdateTaskRequest $request, Task $task)
+    /**
+     * Atualiza apenas a descrição da tarefa.
+     *
+     * @param  \App\Http\Requests\Task\UpdateTaskRequest  $request
+     * @param  \App\Models\Task  $task
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateDescription(UpdateTaskDescriptionRequest $request, Task $task)
     {
-        DB::transaction(function () use ($task, $request) {
-            $data = $request->validated();
-            $data['updated_by'] = Auth::id();
+        $this->ensureTasksModuleEnabled($task->project);
 
-            // Decodifica as entidades HTML na
-            // descrição para evitar que sejam armazenadas como texto literal
-            if (array_key_exists('description', $data) && is_string($data['description'])) {
-                $data['description'] = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        DB::transaction(function () use ($task, $request) {
+            $description = $request->input('description', '');
+            if (is_string($description)) {
+                $description = html_entity_decode($description, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             }
+
+            $task->update([
+                'description' => $description,
+                'updated_by' => Auth::id(),
+            ]);
+        });
+
+        if ($request->has('action')) {
+            return redirect($request->action)
+                ->with('alert-success', 'Descrição da tarefa atualizada com sucesso!');
+        }
+
+        return redirect()->route('tasks.show', $task)
+            ->with('alert-success', 'Descrição da tarefa atualizada com sucesso!');
+    }
+
+    /**
+     * Atualiza as demais informações da tarefa (título, status, prioridade, datas e tags).
+     *
+     * @param  \App\Http\Requests\Task\UpdateTaskRequest  $request
+     * @param  \App\Models\Task  $task
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateInfo(UpdateTaskRequest $request, Task $task)
+    {
+        $this->ensureTasksModuleEnabled($task->project);
+
+        DB::transaction(function () use ($task, $request) {
+            $data = $request->only(['title', 'status', 'priority', 'start_date', 'due_date']);
+            $data['updated_by'] = Auth::id();
 
             $task->update($data);
 
@@ -153,15 +183,17 @@ class TaskController extends Controller
 
         if ($request->has('action')) {
             return redirect($request->action)
-                ->with('alert-success', 'Tarefa atualizada com sucesso!');
+                ->with('alert-success', 'Informações da tarefa atualizadas com sucesso!');
         }
 
         return redirect()->route('tasks.show', $task)
-            ->with('alert-success', 'Tarefa atualizada com sucesso!');
+            ->with('alert-success', 'Informações da tarefa atualizadas com sucesso!');
     }
 
     public function destroy(Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('delete', $task);
         DB::transaction(function () use ($task) {
             $task->delete();
@@ -179,6 +211,10 @@ class TaskController extends Controller
      */
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
+        $previousStatus = $task->status;
+
         DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
@@ -192,6 +228,21 @@ class TaskController extends Controller
             $task->update($data);
         });
 
+        $data = $request->validated();
+        // Se a tarefa foi marcada como concluída agora, e antes não estava,
+        // enviar notificações para os usuários associados à tarefa, exceto para o próprio ator
+        if ($previousStatus !== TaskStatus::DONE && $data['status'] === TaskStatus::DONE->value) {
+            $actor = Auth::user();
+            $task->load(['users', 'project']);
+
+            $task->users
+                ->unique('id')
+                ->filter(fn(User $user) => !$actor || $user->id !== $actor->id)
+                ->each(function (User $user) use ($actor, $task) {
+                    Mail::to($user->email)->queue(new TaskCompleted($user, $actor, $task));
+                });
+        }
+
         return back()
             ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
     }
@@ -204,9 +255,13 @@ class TaskController extends Controller
      */
     public function storeAssignee(StoreTaskAssigneeRequest $request, Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         $data = $request->validated();
 
         $user = User::query()->findOrFail($data['user_id']);
+
+        $alreadyAssigned = $task->users()->where('users.id', $user->id)->exists();
 
         if (!$user->isContributorOfProject($task->project)) {
             return redirect()->route('tasks.show', $task)
@@ -216,6 +271,14 @@ class TaskController extends Controller
         DB::transaction(function () use ($task, $user) {
             $task->users()->syncWithoutDetaching([$user->id]);
         });
+
+        $actor = Auth::user();
+        // Envia notificacao para o usuario atribuido, exceto para o proprio ator,
+        // e somente se ele ainda nao estava atribuido à tarefa
+        if (! $alreadyAssigned && $actor && $actor->id !== $user->id) {
+            $task->loadMissing('project');
+            Mail::to($user->email)->queue(new TaskAssigned($user, $actor, $task));
+        }
 
         return redirect()->route('tasks.show', $task)
             ->with('alert-success', 'Colaborador atribuído à tarefa com sucesso!');
@@ -228,6 +291,8 @@ class TaskController extends Controller
      */
     public function selectableAssignees(Task $task)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('storeAssignee', $task);
 
         $users = User::selectableToTask($task->id, $task->project_id)
@@ -244,6 +309,8 @@ class TaskController extends Controller
      */
     public function destroyAssignee(Task $task, User $user)
     {
+        $this->ensureTasksModuleEnabled($task->project);
+
         Gate::authorize('storeAssignee', $task);
 
         DB::transaction(function () use ($task, $user) {
@@ -252,5 +319,19 @@ class TaskController extends Controller
 
         return redirect()->route('tasks.show', $task)
             ->with('alert-success', 'Membro removido da tarefa com sucesso!');
+    }
+
+    // Verifica se o módulo de tarefas está habilitado para o projeto
+    private function ensureTasksModuleEnabled(Project $project): void
+    {
+        abort_unless(Module::isEnabledForProject($project, 'tasks'), 403);
+    }
+
+    // Filtra as tarefas para retornar apenas aquelas cujo projeto tem o módulo de tarefas habilitado
+    private function filterTasksByEnabledModule(Collection $tasks): Collection
+    {
+        return $tasks
+            ->filter(fn(Task $task) => $task->project?->isModuleEnabled('tasks'))
+            ->values();
     }
 }

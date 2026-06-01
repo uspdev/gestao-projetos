@@ -1,0 +1,4 @@
+textarea[data-autogrow-textarea] {
+    resize: none;
+    overflow: hidden;
+}

@@ -1,26 +1,17 @@
 @extends('layouts.app')
 
-@section('title', 'Meus Projetos')
+@section('title', 'Projetos')
 
 @section('content')
-  <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Meus Projetos</h2>
-      @include('projects.partials.buttons.create-btn')
-    </div>
 
-    {{-- Listagem de Previews --}}
-    <div class="row">
-      @forelse($projects as $project)
-        <div class="col-md-4">
-          @include('projects.partials.components.preview')
-        </div>
-      @empty
-        <div class="col-12">
-          <div class="alert alert-info">Você ainda não possui projetos em andamento.</div>
-        </div>
-      @endforelse
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="mb-0">Projetos</h2>
+      @include('projects.partials.components.search-project-form')
     </div>
   </div>
+
+  @include('projects.partials.index.pinned-projects-section')
+  @include('projects.partials.index.all-projects-section')
 
 @endsection

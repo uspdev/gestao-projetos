@@ -2,11 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Events\MigrationsEnded;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Artisan;
+use App\Morphs\CommentableMap;
+use App\Morphs\DiscussableMap;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +29,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Relation::morphMap(DiscussableMap::morphMap());
+        Relation::morphMap(CommentableMap::morphMap());
+
+        // registrando pasta projects.components
+        Blade::anonymousComponentPath(
+            resource_path('views/projects/components'),
+            'projects'
+        );
+
         View::composer('laravel-usp-theme::master', function () {
             $routeName = request()->route()?->getName();
 

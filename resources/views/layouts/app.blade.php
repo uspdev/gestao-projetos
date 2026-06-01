@@ -12,14 +12,39 @@
 {{-- Target: table; class: datatable-simples --}}
 @include('laravel-usp-theme::blocos.datatable-simples')
 
+{{-- Target: textarea; class: textarea-autogrow --}}
+@include('blocos.textarea-autogrow')
+
 {{-- Fim de blocos do laravel-usp-theme --}}
 
 @section('styles')
   @parent
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* anchor scroll por causa do header */
+    [id] {
+      scroll-margin-top: 70px;
+    }
+
     /*seus estilos*/
     .gap-2>*+* {
       margin-left: 0.5rem;
+    }
+
+    /* Rodapé sempre em baixo */
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    #skin_footer {
+      /* flex-shrink -> ele não se redimensiona */
+      flex-shrink: 0;
+      margin-top: auto;
     }
   </style>
 @endsection

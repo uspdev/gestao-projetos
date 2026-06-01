@@ -7,9 +7,13 @@
     'titleClass' => '',
     'statusLabel' => null,
     'statusClass' => 'badge-light border text-muted',
-    'tasksCount' => null,
+    'subprojectLabel' => null,
+    'subprojectClass' => 'badge-light border text-muted',
+    'actionClass' => '',
     'projectName' => null,
     'showProject' => true,
+    'projectType' => null,
+    'projectTypeIcon' => 'fa-sitemap',
     'roleLabel' => null,
     'roleClass' => 'badge-light border text-muted',
     'tags' => [],
@@ -77,6 +81,10 @@
       font-size: 0.85rem;
     }
 
+    .preview-card__content {
+      min-height: 2.5rem;
+    }
+
     .preview-card__project {
       font-size: 0.9rem;
       color: #6b7280;
@@ -135,16 +143,26 @@
       max-width: 7rem;
     }
 
-    .preview-card__tasks-count {
-      font-size: 0.83rem;
-      color: #5f6c7b;
-      white-space: nowrap;
+    .preview-card__action {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-2px);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .preview-card:hover .preview-card__action,
+    .preview-card:focus-within .preview-card__action {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
     }
   </style>
 @endonce
 
-<div {{ $attributes->class(['card preview-card position-relative']) }}>
-  <div class="card-body p-3 d-flex flex-column h-100">
+<div {{ $attributes->class(['card preview-card position-relative h-100']) }}>
+  <div class="card-body p-3 d-flex flex-column">
     @isset($header)
       <div class="d-flex justify-content-between align-items-start mb-1">
         {{ $header }}
@@ -159,14 +177,27 @@
               {{ $title }}
               </{{ $titleTag }}>
 
-              @if ($statusLabel)
-                <span class="badge {{ $statusClass }} text-nowrap shadow-sm ml-2">
-                  {{ $statusLabel }}
-                </span>
-              @endif
+              <div class="d-flex align-items-center ml-2 position-relative" style="z-index: 2; gap: 0.35rem;">
+                @if ($statusLabel)
+                  <span class="badge {{ $statusClass }} text-nowrap shadow-sm">
+                    {{ $statusLabel }}
+                  </span>
+                @endif
+
+                @if ($subprojectLabel)
+                  <span class="badge {{ $subprojectClass }} text-nowrap shadow-sm">
+                    {{ $subprojectLabel }}
+                  </span>
+                @endif
+
+                @isset($action)
+                  <div class="{{ $actionClass }}">
+                    {{ $action }}
+                  </div>
+                @endisset
+              </div>
           </div>
         </div>
-        {{-- Date formatting handled by x-local-date component (includes its own script) --}}
       @endif
     @endisset
 
@@ -175,21 +206,20 @@
         {{ $body }}
       </div>
     @else
-      @if (!is_null($tasksCount) || ($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty())
-        <div>
-          @if (!is_null($tasksCount))
-            <div class="d-flex justify-content-start w-100 mb-2">
-              <span class="preview-card__tasks-count" title="Quantidade de tarefas">
-                <i class="fas fa-tasks mr-1"></i>{{ $tasksCount }}
-                {{ \Illuminate\Support\Str::plural('tarefa', $tasksCount) }}
-              </span>
-            </div>
-          @endif
-
+      @if (($showProject && $projectName) || $roleLabel || $visibleTags->isNotEmpty() || $projectType)
+        <div class="preview-card__content">
           @if ($showProject && $projectName)
             <div class="preview-card__project mb-2">
               <i class="fas fa-folder-open mr-1"></i>
               {{ $projectName }}
+            </div>
+          @endif
+          @if ($projectType)
+            <div class="d-flex justify-content-start w-100 mb-2">
+              <small class="text-muted d-flex align-items-center">
+                <i class="fas {{ $projectTypeIcon }} mr-1" title="Tipo de projeto"></i>
+                <span>{{ $projectType }}</span>
+              </small>
             </div>
           @endif
 

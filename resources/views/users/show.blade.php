@@ -1,89 +1,49 @@
 @extends('layouts.app')
 
-@section('title', 'Perfil do Usuário')
+@section('title', 'Dashboard')
 
 @section('content')
   <div class="container-fluid">
     {{-- Card de Informações do Usuário --}}
-    <div class="card mb-4 shadow-sm border-top-primary">
-      <div class="card-body d-flex align-items-center">
-        {{-- Avatar --}}
-        <div class="mr-4 text-secondary">
-          <i class="fas fa-user-circle fa-5x"></i>
-        </div>
+    @include('users.partials.user-info')
 
-        <div>
-          <h3 class="m-0 font-weight-bold text-dark">{{ $user->name }}</h3>
-          <p class="text-muted mb-2 fs-5">
-            <i class="fas fa-envelope mr-1"></i> {{ $user->email }}
-          </p>
+    @if (Auth::id() === $user->id)
+      <hr class="my-4">
 
-          <div class="d-flex align-items-center mt-2">
-            {{-- Número USP --}}
-            @if ($user->codpes)
-              <span class="badge badge-info p-2 mr-2">
-                <i class="fas fa-id-card mr-1"></i> Nº USP: {{ $user->codpes }}
-              </span>
-            @endif
+      @include('projects.partials.index.pinned-projects-section')
+      <div class="h5 mb-4"><a href="{{ route('projects.index') }}"> Ver todos os projetos</a></div>
 
-            {{-- Roles --}}
-            @if ($user->roles && $user->roles->count() > 0)
-              @foreach ($user->roles as $role)
-                <span class="badge badge-dark p-2 mr-1">{{ ucfirst($role->name) }}</span>
-              @endforeach
-            @endif
-          </div>
-        </div>
-      </div>
-    </div>
+      <hr class="my-4">
 
-    <hr class="my-4">
+      <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+        <h4 class="mb-0">Minhas Tarefas</h4>
+        @include('module-tasks.partials.buttons.toggle-layout-btn')
+        @include('module-tasks.partials.buttons.show-done-btn')
+        @include('module-tasks.partials.buttons.search-task-form')
+    @endif
+  </div>
+  @if (Auth::id() === $user->id)
 
-    {{-- Seção de Projetos Atribuídos --}}
-    <div class="mb-5">
-      <h4 class="mb-3 text-secondary">
-        <i class="fas fa-project-diagram mr-2"></i> Projetos Atribuídos
-      </h4>
-
+    @if (session('tasks_view') === 'kanban')
+      @include('module-tasks.partials.kanban.kanban')
+    @else
       <div class="row">
-        {{-- Assume que a relação belongsToMany 'projects' está definida na Model User --}}
-        @forelse($user->projects as $project)
-          <div class="col-md-6 col-lg-4 mb-3">
-            @include('projects.partials.components.preview')
+        @forelse($tasksByStatus as $task)
+          <div class="col-md-6 col-lg-4 mb-2 task-search-item"
+            data-task-searchable="{{ strtolower($task->title . ' ' . ($task->project?->name ?? '') . ' ' . ($task->priority?->label() ?? '') . ' ' . $task->users->pluck('name')->implode(' ')) }}">
+            @include('module-tasks.partials.components.preview')
           </div>
         @empty
           <div class="col-12">
-            <div class="alert alert-light border text-muted">
-              Este usuário não está alocado em nenhum projeto no momento.
-            </div>
+            <div class="alert alert-info">Você ainda não possui tarefas atribuídas.</div>
           </div>
         @endforelse
       </div>
-    </div>
-
-    {{-- Seção de Tarefas Atribuídas (apenas para perfil do usuário logado) --}}
-    @if (auth()->id() === $user->id)
-      <div>
-        <h4 class="mb-3 text-secondary">
-          <i class="fas fa-tasks mr-2"></i> Tarefas
-        </h4>
-
-        <div class="row">
-          {{-- Assume que a relação belongsToMany 'tasks' está definida na Model User --}}
-          @forelse($user->tasks as $task)
-            <div class="col-md-6 col-lg-4 mb-3">
-              @include('tasks.partials.components.preview')
-            </div>
-          @empty
-            <div class="col-12">
-              <div class="alert alert-light border text-muted">
-                Este usuário não possui tarefas pendentes atribuídas a ele.
-              </div>
-            </div>
-          @endforelse
-        </div>
-      </div>
     @endif
-
+  @endif
+  <div class="row mt-3">
+    <div class="col-12">
+      <div id="tasks-no-results" class="alert alert-info d-none">Nenhuma tarefa encontrada para sua busca.</div>
+    </div>
   </div>
 @endsection

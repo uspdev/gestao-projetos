@@ -2,18 +2,23 @@
 
 namespace App\Models;
 
+use App\Contracts\HasCommentRecipients;
+use App\Morphs\Discussable;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Tag;
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Spatie\Tags\HasTags;
 
-class Task extends Model
+class Task extends Model implements Discussable, HasCommentRecipients
 {
     use HasFactory, SoftDeletes, Auditable, HasTags;
 
@@ -47,7 +52,37 @@ class Task extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
+            ->using(TaskUser::class)
             ->withTimestamps();
+    }
+
+    /**
+     * Relacionamento com comentarios (morph)
+     */
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+    // Implementação do método da interface HasCommentRecipients
+    // para obter os destinatários de comentários relacionados à tarefa
+    public function commentRecipients(): Collection
+    {
+        $this->loadMissing('users');
+
+        return $this->users->unique('id')->values();
+    }
+
+    /**
+     * Relacionamento com meeting items via morph (Task pode ser um meeting item)
+     */
+    public function meetingItems(): MorphMany
+    {
+        return $this->morphMany(MeetingItem::class, 'discussable');
+    }
+
+    public function parentProjectId(): ?int
+    {
+        return $this->project_id ?: null;
     }
 
     public function availableTags()
@@ -74,5 +109,24 @@ class Task extends Model
     public function isLocked(): bool
     {
         return $this->status === \App\Enums\Task\TaskStatus::DONE;
+    }
+
+    public function scopeWithEnabledProjectModule(Builder $query, string $slug): Builder
+    {
+        $normalized = strtolower(trim($slug));
+        if ($normalized === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('project.modules', function (Builder $moduleQuery) use ($normalized) {
+            $moduleQuery
+                ->where('modules.slug', $normalized)
+                ->where('project_modules.enabled', true);
+        });
+    }
+    // escopo específico para o módulo de tarefas, para facilitar a reutilização em outros lugares do código
+    public function scopeWithTasksModuleEnabled(Builder $query): Builder
+    {
+        return $query->withEnabledProjectModule('tasks');
     }
 }

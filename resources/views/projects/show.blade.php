@@ -1,21 +1,20 @@
-@extends('layouts.app')
+@extends('layouts.project')
 
 @section('title', 'Detalhes do Projeto')
 
-@section('content')
-  <div class="card">
-    @include('projects.partials.show.show-header')
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-8">
-          @include('projects.partials.show.show-card-descricao')
-        </div>
-        <div class="col-md-4">
-          @include('projects.partials.show.show-card-membros')
-          @include('projects.partials.show.show-card-modulos')
-        </div>
-      </div>
+@section('project-content')
+  @include('projects.partials.show.join-inherited-banner')
+
+  <div class="row">
+    <div class="col-md-8">
+      <x-projects::show.descricao-card :project="$project" type="main" />
+      @include('comments.partials.thread', ['commentable' => $project])
+    </div>
+    <div class="col-md-4">
+      <x-projects::show.tipo-card :project="$project" />
+      @include('projects.partials.show.show-card-modulos')
+      <x-projects::show.subprojects-card :project="$project" />
+      <x-projects::show.membros-preview-card :project="$project" />
     </div>
   </div>
-  @include('tasks.partials.components.task-form-modal')
 @endsection

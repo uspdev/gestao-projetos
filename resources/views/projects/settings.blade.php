@@ -2,44 +2,38 @@
 
 @section('title', 'Configurações do Projeto')
 @section('content')
-  {{-- Card: Título e Descrição --}}
   <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body">
-      <table class="table">
-        <tbody>
-          <tr>
-            <td>
-              <strong>Nome do Projeto</strong>
-            </td>
-            <td>
-              <input type="text" name="name" class="form-control" value="{{ $project->name }}">
-            </td>
-          </tr>
-          <tr>
-            <td>Status</td>
-            <td>@include('projects.partials.components.update-status')</td>
-          </tr>
-          <tr>
-            <td>Membros</td>
-            <td>@include('projects.partials.show.show-card-membros')</td>
-          </tr>
-          <tr>
-            <td>Módulos</td>
-            <td>
-              Tarefas, Reuniões (a implementar)
-            </td>
-          </tr>
-          <tr>
-            <td>Remover projeto</td>
-            <td> @include('projects.partials.buttons.delete-btn')</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="row mb-4">
-      </div>
       <div class="row">
+        <div class="col-12 col-lg-6 mb-4">
+          @include('projects.partials.show.settings-card')
+        </div>
+
+        <div class="col-12 col-lg-6">
+          {{-- <div class="mb-4">
+            @include('projects.partials.show.project-type-card')
+          </div> --}}
+
+          <div class="mb-4">
+            @include('projects.partials.show.show-card-membros')
+          </div>
+
+          <div class="mb-4">
+            @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
+          </div>
+
+          <div class="card border-danger">
+            <div class="card-header h6 py-2 text-danger font-weight-bold">Área de risco</div>
+            <div class="card-body">
+              <p class="text-muted mb-3">
+                A remoção do projeto é permanente.
+                Mexa aqui somente se souber exatamente o que está fazendo!
+              </p>
+              @include('projects.partials.buttons.delete-btn')
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

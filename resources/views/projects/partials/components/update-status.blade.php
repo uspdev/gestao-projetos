@@ -1,5 +1,5 @@
 @can('update', $project)
-  <div class="dropdown">
+  <div class="dropdown position-static">
     <button class="btn btn-sm {{ $project->status->color() }}" type="button"
       id="project-status-dropdown-{{ $project->id }}"
       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
