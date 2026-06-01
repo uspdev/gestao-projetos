@@ -49,7 +49,7 @@ enum TaskStatus: string
      */
     public static function availableForKanban($tasksDone = 0)
     {
-        $reject = ($tasksDone == 1) ? self::DONE : null;
+        $reject = ($tasksDone == 1) ? null : self::DONE;
         return collect(self::cases())
             ->reject(
                 fn(self $status) =>
