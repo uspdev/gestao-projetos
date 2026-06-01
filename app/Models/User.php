@@ -45,7 +45,7 @@ class User extends Authenticatable
      */
     public function pinnedProjects()
     {
-        return $this->projects()->wherePivot('pinned', true)->get();
+        return $this->projects()->wherePivot('pinned', true)->orderBy('name')->get();
     }
 
     /**
