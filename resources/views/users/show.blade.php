@@ -8,7 +8,6 @@
     @include('users.partials.user-info')
 
     @if (Auth::id() === $user->id)
-      @include('users.partials.user-actions')
       <hr class="my-4">
 
       @include('projects.partials.index.pinned-projects-section')
