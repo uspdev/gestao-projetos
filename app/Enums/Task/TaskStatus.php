@@ -40,4 +40,21 @@ enum TaskStatus: string
             self::DONE => 'badge-secondary',
         };
     }
+
+    /**
+     * Retorna os status disponíveis para o Kanban
+     *
+     * ou seja, exclui o status NEW
+     * Se $taskDOne = 1, inclui o status DONE
+     */
+    public static function availableForKanban($tasksDone = 0)
+    {
+        $reject = ($tasksDone == 1) ? self::DONE : null;
+        return collect(self::cases())
+            ->reject(
+                fn(self $status) =>
+                $status === self::NEW || $status === $reject
+            )
+            ->values();
+    }
 }

@@ -52,21 +52,7 @@ class TaskController extends Controller
         $user = Auth::user();
         Gate::authorize('viewTasks', $user);
 
-        $tasksByStatus = $user->tasks()
-            ->with(['project', 'users'])
-            ->withTasksModuleEnabled()
-            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-            ->orderBy(
-                Project::select('name')
-                    ->whereColumn('projects.id', 'tasks.project_id')
-            )
-            ->orderBy('priority', 'asc')
-            ->latest()
-            ->get();
-
-        if ($taskView === 'kanban') {
-            $tasksByStatus = $tasksByStatus->groupBy('status');
-        }
+        $tasksByStatus = $user->tasksByStatus($taskView, $tasksDone);
 
         $statuses = collect(TaskStatus::cases())
             ->when(!$tasksDone, fn($collection) => $collection->reject(

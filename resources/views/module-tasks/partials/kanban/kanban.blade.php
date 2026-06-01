@@ -1,5 +1,5 @@
 <div class="d-flex flex-nowrap overflow-auto pb-2" style="gap: 1rem;">
-  @foreach ($statuses as $status)
+  @foreach (\App\Enums\Task\TaskStatus::availableForKanban(session('tasks_done')) as $status)
     @php
       $tasks = $tasksByStatus->get($status->value, collect());
     @endphp
