@@ -23,7 +23,7 @@
           @method('PATCH')
           <input type="hidden" name="role" value="{{ $role->value }}">
           <button type="submit" class="btn btn-sm btn-block text-left" @disabled($project->userRole($user)?->value === $role->value)>
-            <span class="badge {{ $role->color() }}">
+            <span class="badge badge-{{ $role->color() }}">
               {{ $role->label() }}
             </span>
             @if ($project->userRole($user)?->value === $role->value)
@@ -35,7 +35,5 @@
     </div>
   </div>
 @else
-  <span class="badge badge-{{ $project->userRole($user)?->color() ?? 'badge-light border text-muted' }} mr-2">
-    {{ $project->userRole($user)?->label() ?? 'Sem função' }}
-  </span>
+  @include('users.partials.user-task-badge')
 @endif
