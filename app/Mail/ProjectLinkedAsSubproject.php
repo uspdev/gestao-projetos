@@ -22,7 +22,7 @@ class ProjectLinkedAsSubproject extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject('Projeto vinculado como subprojeto: ' . $this->subproject->name)
+        return $this->subject(sprintf('%s | subprojeto vinculado', $this->parentProject->name))
             ->view('emails.project.subproject-linked');
     }
 }

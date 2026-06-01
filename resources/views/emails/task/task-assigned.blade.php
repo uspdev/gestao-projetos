@@ -3,4 +3,9 @@
 @section('content')
   <p>Voce foi atribuido a task "{{ $task->title }}" no projeto "{{ $task->project->name }}".</p>
   <p>Responsavel pela atribuicao: {{ $actor->name }}.</p>
+
+  @include('emails.partials.action-link', [
+      'url' => route('tasks.show', $task),
+      'label' => 'Ver tarefa',
+  ])
 @endsection

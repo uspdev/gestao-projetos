@@ -21,7 +21,7 @@ class TaskAssigned extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject('Nova atribuicao de tarefa: ' . $this->task->title)
+        return $this->subject(sprintf('%s | tarefa atribuída', $this->task->project->name))
             ->view('emails.task.task-assigned');
     }
 }

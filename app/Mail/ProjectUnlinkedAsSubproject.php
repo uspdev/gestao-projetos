@@ -22,7 +22,7 @@ class ProjectUnlinkedAsSubproject extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject('Projeto desvinculado como subprojeto: ' . $this->subproject->name)
+        return $this->subject(sprintf('%s | subprojeto desvinculado', $this->parentProject->name))
             ->view('emails.project.subproject-unlinked');
     }
 }
