@@ -7,6 +7,7 @@ use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Project\ProjectVisibility;
+use App\Models\Module;
 use App\Morphs\Discussable;
 use App\Traits\Auditable;
 use App\Traits\HasSlug;
@@ -386,6 +387,18 @@ class Project extends Model implements Discussable, HasCommentRecipients
             ->withPivot('enabled')
             ->withTimestamps()
             ->orderBy('name');
+    }
+
+    /**
+     * Resolve a lista de módulos para um projeto
+     *
+     * considerando as configurações específicas do projeto
+     * e do tipo de projeto, e garantindo que todos os módulos
+     * registrados no banco de dados sejam considerados
+     */
+    public function resolvedModules(): array
+    {
+        return Module::resolveForProject($this);
     }
 
     public function isModuleEnabled(string $moduleSlug): bool

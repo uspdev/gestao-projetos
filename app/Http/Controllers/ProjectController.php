@@ -33,7 +33,7 @@ class ProjectController extends Controller
     {
 
         $this->middleware(function ($request, $next) {
-            \UspTheme::activeUrl('meus-projetos');
+            \UspTheme::activeUrl('projects');
 
             return $next($request);
         })->only(['index', 'create', 'show']);
@@ -44,27 +44,22 @@ class ProjectController extends Controller
         $user = Auth::user();
         Gate::authorize('viewAny', [Project::class, $user]);
 
-        $projectsQuery = $user->projects()
+        $projects = $user->projects()
             ->with([
                 'users' => fn($query) => $query->where('users.id', $user->id),
                 'tags',
             ])
-            ->latest();
-
-        $projects       = $projectsQuery->get();
-        $pinnedProjects = $projects->filter(fn(Project $project) => $project->isPinnedBy($user))->values();
-
-        $parentProjects = $user->projects()
-            ->whereNull('parent_id')
-            ->orderBy('name')
+            ->latest()
             ->get();
-
-        // O apontamento da view mudou para o diretório padrão de projetos
 
         if ($projects->isEmpty()) {
             return view('projects.index-no-project');
         }
-        return view('projects.index', compact('projects', 'pinnedProjects', 'user', 'parentProjects'));
+
+        return view('projects.index', compact(
+            'projects',
+            'user',
+        ));
     }
 
     public function create(Request $request)
@@ -93,15 +88,18 @@ class ProjectController extends Controller
 
             return view('projects.create-form', compact('projectType'));
         }
+
         // Se nenhum parâmetro de tipo de projeto for fornecido, exibe a tela de seleção de tipo,
         // listando todos os tipos de projeto disponíveis ordenados por nome, e seus módulos
         $projectTypes = ProjectType::query()
             ->with(['modules' => fn($query) => $query->orderBy('name')])
             ->where('enabled', true)
-            ->orderBy('name')
-            ->get();
+            ->where('slug', '!=', 'organizacional')
+            ->orderBy('name')->get();
 
-        return view('projects.create', compact('projectTypes'));
+        $organizacional = ProjectType::where('slug', 'organizacional')->first();
+
+        return view('projects.create', compact('projectTypes', 'organizacional'));
     }
 
     public function togglePin(Project $project)
@@ -153,7 +151,6 @@ class ProjectController extends Controller
         $tasksEnabled = $project->isModuleEnabled('tasks');
         // Carrega os módulos resolvidos para o projeto,
         // garantindo que as configurações específicas do projeto sejam consideradas
-        $resolvedModules = Module::resolveForProject($project);
         $project = $project->load([
             'users',
             'tags',
@@ -167,31 +164,11 @@ class ProjectController extends Controller
                 ->when($tasksEnabled, fn($query) => $query->with('tags')),
         ]);
 
-        // $subprojects = collect();
-        // $contextParentProject = null;
-
-        // if (! $project->isSubproject() && $project->isOrganizational()) {
-        //     // Para projetos raiz, carrega os subprojetos diretamente relacionados para exibição
-        //     $contextParentProject = $project;
-        //     $subprojects = $project->children()
-        //         ->with(['tags', 'projectType'])
-        //         ->withCount(['tasks', 'users'])
-        //         ->orderBy('name')
-        //         ->get();
-        // }
-
-        // // Para subprojetos, carrega os projetos irmãos (mesmo parent_id) para exibição e possível navegação
-        // $parentProjects = Project::accessibleBy($user)
-        //     ->whereNull('parent_id')
-        //     ->orderBy('name')
-        //     ->get();
-
+        if ($project->children->isNotEmpty()) {
+            return redirect()->route('projects.subprojects', $project);
+        }
         return view('projects.show', compact(
             'project',
-            'resolvedModules',
-            // 'subprojects',
-            // 'parentProjects',
-            // 'contextParentProject',
         ));
     }
 
@@ -649,7 +626,6 @@ class ProjectController extends Controller
 
         return view('projects.subprojects', compact(
             'project',
-            // 'subprojects'
         ));
     }
 }

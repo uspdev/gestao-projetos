@@ -1,6 +1,6 @@
 @php
   $showToggle ??= false;
-  $modules = $resolvedModules ?? $project->activeModulesSummary();
+  $modules = $project->resolvedModules() ?? $project->activeModulesSummary();
   $canUpdateModules = $showToggle && isset($project) && auth()->user()?->can('updateModule', $project);
 @endphp
 

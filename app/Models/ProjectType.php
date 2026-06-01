@@ -51,6 +51,12 @@ class ProjectType extends Model
             ->withTimestamps();
     }
 
+    public function enabledModules() {
+        return $this->modules
+              ->filter(fn($module) => (bool) ($module->pivot?->enabled ?? false))
+              ->values();
+    }
+
     /**
      * Relacionamento com fases N-N
      */
