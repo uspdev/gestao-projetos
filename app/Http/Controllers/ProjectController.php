@@ -20,7 +20,6 @@ use App\Models\Module;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Models\ProjectType;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -581,28 +580,6 @@ class ProjectController extends Controller
 
         $project->load('projectType.phases', 'phase', 'projectType.modules');
 
-        // Para exibir a lista de módulos na tela de configurações,
-        // garantir que as regras de obrigatoriedade e editabilidade sejam consideradas
-        $resolvedModules = Module::resolveForProject($project);
-        $resolvedModules = collect($resolvedModules)->map(fn($module) => [
-            ...$module,
-            'enabled' => (bool) ($module['enabled'] ?? false),
-            'required' => (bool) ($module['required'] ?? false),
-            'editable' => (bool) ($module['editable'] ?? true),
-            'slug' => (string) ($module['slug'] ?? ''),
-            'name' => (string) ($module['name'] ?? 'Modulo'),
-            'toggleLocked' => ($module['required'] ?? false) || !($module['editable'] ?? true),
-        ])->all();
-
-        $allowedModuleSlugs = $project->allowedModuleSlugs();
-        if (!empty($allowedModuleSlugs)) {
-            $resolvedModules = collect($resolvedModules)
-                ->filter(fn($module) => in_array($module['slug'] ?? '', $allowedModuleSlugs, true))
-                ->values()
-                ->all();
-        }
-
-        return view('projects.settings', compact('project', 'resolvedModules'));
+        return view('projects.settings', compact('project'));
     }
-
 }

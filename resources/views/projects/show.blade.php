@@ -12,9 +12,7 @@
     </div>
     <div class="col-md-4">
       <x-projects::show.tipo-card :project="$project" />
-      @include('projects.partials.show.show-card-modulos', [
-          'resolvedModules' => $project->activeModulesSummary(),
-      ])
+      @include('projects.partials.show.show-card-modulos')
       <x-projects::show.subprojects-card :project="$project" />
       <x-projects::show.membros-preview-card :project="$project" />
     </div>

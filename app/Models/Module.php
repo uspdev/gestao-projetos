@@ -85,6 +85,12 @@ class Module extends Model
     {
         $dbModules = self::resolveRegisteredDbModules();
         $allSlugs = collect($dbModules)->unique()->values();
+        // Filtrar os módulos de acordo com o do tipo do projeto
+        $allowedModuleSlugs = $project->allowedModuleSlugs();
+
+        if (! empty($allowedModuleSlugs)) {
+            $allSlugs = $allSlugs->filter(fn(string $slug) => in_array($slug, $allowedModuleSlugs, true))->values();
+        }
 
         return $allSlugs
             ->map(function (string $slug) use ($project): array {
