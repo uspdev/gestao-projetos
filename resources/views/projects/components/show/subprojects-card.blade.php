@@ -12,12 +12,13 @@
           $subprojectTags = $subproject->tags->where('type', \App\Models\Tag::TYPE_PROJECT);
           $user = auth()->user();
           $canUnlinkSubproject = $user && ($user->isAdminOfProject($project) || $user->isAdminOfProject($subproject));
+          $userRole = $user ? $subproject->userRole($user) : null;
         @endphp
         <div class="col-md-6 col-lg-6 mb-3">
           <x-card.preview href="{{ route('projects.show', $subproject) }}"
             aria-label="Acessar subprojeto {{ $subproject->name }}" :title="$subproject->name" title-variant="project"
-            :status-label="$subproject->status?->label()" :status-class="$subproject->status?->color()" :project-type="$subproject->projectType?->name" :tags="$subprojectTags" :tags-limit="1"
-            action-class="preview-card__action">
+            :status-label="$subproject->status?->label()" :status-class="$subproject->status?->color()" :project-type="$subproject->projectType?->name" :tags="$subprojectTags" :tags-limit="1" :role-label="$userRole?->label() ?? 'Sem vínculo'"
+            :role-class="$userRole ? 'badge-' . $userRole->color() : 'badge-light border text-muted'" action-class="preview-card__action">
             @if ($canUnlinkSubproject)
               <x-slot:action>
                 @include('projects.partials.buttons.unlink-subproject-btn')
