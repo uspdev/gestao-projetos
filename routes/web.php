@@ -153,7 +153,6 @@ Route::middleware('auth')->group(function () {
     // MENU / REDIRECTS
     // ==========================================
     Route::get('/meus-projetos', fn() => redirect()->route('projects.index'));
-    Route::get('/minhas-tasks', fn() => redirect()->route('tasks.index'));
     Route::get('/meu-perfil', fn() => redirect()->route('users.show', Auth::id()));
 });
 

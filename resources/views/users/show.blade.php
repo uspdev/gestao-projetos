@@ -41,8 +41,9 @@
       </div>
     @endif
   @endif
-
-
-
+  <div class="row mt-3">
+    <div class="col-12">
+      <div id="tasks-no-results" class="alert alert-info d-none">Nenhuma tarefa encontrada para sua busca.</div>
+    </div>
   </div>
 @endsection

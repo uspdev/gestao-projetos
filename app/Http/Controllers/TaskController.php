@@ -39,35 +39,6 @@ class TaskController extends Controller
     }
 
     /**
-     * Lista as tarefas do usuario autenticado.
-     */
-    public function indexUser(Request $request)
-    {
-        $taskView = request()->query('view') ?? session('tasks_view', 'list'); //list ou kanban
-        session(['tasks_view' => $taskView]);
-
-        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
-        session(['tasks_done' => $tasksDone]);
-
-        $user = Auth::user();
-        Gate::authorize('viewTasks', $user);
-
-        $tasksByStatus = $user->tasksByStatus($taskView, $tasksDone);
-
-        $statuses = collect(TaskStatus::cases())
-            ->when(!$tasksDone, fn($collection) => $collection->reject(
-                fn(TaskStatus $status) => $status === TaskStatus::DONE
-            ))
-            ->reject(fn(TaskStatus $status) => $status === TaskStatus::NEW);
-
-        return view('module-tasks.user-index', compact(
-            'tasksByStatus',
-            'statuses',
-            'user',
-        ));
-    }
-
-    /**
      * Lista as tarefas de um projeto especifico.
      */
     public function indexProject(Request $request, Project $project)
