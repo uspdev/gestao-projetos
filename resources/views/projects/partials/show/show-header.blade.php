@@ -53,7 +53,7 @@
       @if ($project->isOrganizational())
         <a href="{{ route('projects.show', $project) }}?view=subprojects"
           class="btn btn-sm {{ request('view') === 'subprojects' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-          Subprojetos
+          <i class="fas fa-project-diagram"></i> Subprojetos
         </a>
       @endif
 

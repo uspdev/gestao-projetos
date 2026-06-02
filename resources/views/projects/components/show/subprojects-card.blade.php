@@ -1,5 +1,13 @@
 @props(['project', 'subprojects', 'type' => 'normal'])
+
 @if ($project->isOrganizational())
+  @php
+    $isPreview = $type === 'preview';
+    $subprojects = $project->subprojects();
+    $totalSubprojects = count($subprojects);
+    $displayedSubprojects = $isPreview ? $subprojects->take(2) : $subprojects;
+  @endphp
+
   <x-projects::show.card-template :type="$type">
     <x-slot:header>
       <i class="fas fa-sitemap"></i> Subprojetos
@@ -7,11 +15,12 @@
     </x-slot:header>
 
     <div class="row">
-      @forelse ($project->subprojects() as $subproject)
+      @forelse ($displayedSubprojects as $subproject)
         @php
           $subprojectTags = $subproject->tags->where('type', \App\Models\Tag::TYPE_PROJECT);
           $user = auth()->user();
-          $canUnlinkSubproject = $user && ($user->isAdminOfProject($project) || $user->isAdminOfProject($subproject));
+          $canUnlinkSubproject =
+              !$isPreview && $user && ($user->isAdminOfProject($project) || $user->isAdminOfProject($subproject));
           $userRole = $user ? $subproject->userRole($user) : null;
         @endphp
         <div class="col-md-6 col-lg-6 mb-3">
@@ -34,6 +43,14 @@
         </div>
       @endforelse
     </div>
+
+    @if ($isPreview && $totalSubprojects > 2)
+      <div class="mt-2 text-right">
+        <a href="{{ route('projects.show', $project) }}?view=subprojects" class="text-primary small">
+          Ver todos os subprojetos ({{ $totalSubprojects }})
+        </a>
+      </div>
+    @endif
 
   </x-projects::show.card-template>
 @endif
