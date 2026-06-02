@@ -38,7 +38,7 @@ class ProjectPolicy
 
     public function update(User $user, Project $project): bool
     {
-        return $user->isContributorOfProject($project);
+        return $user->isAdminOfProject($project);
     }
 
     public function updateModule(User $user, Project $project): bool

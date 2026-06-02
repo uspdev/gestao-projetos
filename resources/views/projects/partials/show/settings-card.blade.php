@@ -82,7 +82,7 @@
   }
 </style>
 
-<div class="card border mb-3" style="border-radius: 12px;">
+<div class="card border mb-5" style="border-radius: 12px;">
   <div class="settings-section-header bg-light border-bottom px-3 py-2">Informações gerais</div>
   <table class="table mb-0 settings-table">
     <tbody>
@@ -140,7 +140,7 @@
   </table>
 </div>
 
-<div class="card bordermb-3" style="border-radius: 12px;">
+<div class="card border mb-5" style="border-radius: 12px;">
   <div class="settings-section-header bg-light border-bottom px-3 py-2">Acesso e permissões</div>
   <table class="table mb-0 settings-table">
     <tbody>
@@ -204,18 +204,18 @@
   </table>
 </div>
 
-<div class="card border overflow-hidden mb-3" style="border-radius: 12px;">
+<div class="card border overflow-hidden" style="border-radius: 12px;">
   <div class="settings-section-header bg-light border-bottom px-3 py-2">Classificação</div>
   <table class="table mb-0 settings-table">
     <tbody>
       <tr>
-        <td class="pl-3 pr-2 py-2">
+        <td class="pl-3 pr-2 py-1">
           <div class="settings-label d-flex align-items-center gap-2">
             <i class="ti ti-tag" aria-hidden="true"></i>
             Tags
           </div>
         </td>
-        <td class="pr-3 py-2">
+        <td class="pr-3 py-1">
           @include('projects.partials.components.update-tags')
         </td>
       </tr>
