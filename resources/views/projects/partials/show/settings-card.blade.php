@@ -214,6 +214,34 @@
           </td>
           <td>@include('projects.partials.components.update-permission-inheritance')</td>
         </tr>
+        @if ($project->parent)
+          {{-- Subprojeto já vinculado a um projeto organizacional: permite desvincular --}}
+          <tr>
+            <td>
+              <div class="settings-label">
+                <i class="ti ti-unlink" aria-hidden="true"></i>
+                Desvincular do projeto organizacional
+              </div>
+            </td>
+            <td>@include('projects.partials.buttons.unlink-subproject-btn', [
+                'project' => $project->parent,
+                'subproject' => $project,
+            ])</td>
+          </tr>
+        @endif
+      @else
+        @if ($project->projectType?->slug === 'organizacional')
+          {{-- Projeto organizacional: permite vincular subprojetos --}}
+          <tr>
+            <td>
+              <div class="settings-label">
+                <i class="ti ti-link" aria-hidden="true"></i>
+                Vincular subprojeto
+              </div>
+            </td>
+            <td>@include('projects.partials.buttons.link-subproject-btn')</td>
+          </tr>
+        @endif
       @endif
     </tbody>
   </table>
