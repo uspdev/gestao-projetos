@@ -13,7 +13,7 @@
         </small>
       </div>
 
-      <span class="badge {{ $statusClass }}">
+      <span class="badge badge-{{ $meeting->status?->color() ?? 'light' }}">
         {{ $meeting->status?->label() ?? '-' }}
       </span>
     </div>

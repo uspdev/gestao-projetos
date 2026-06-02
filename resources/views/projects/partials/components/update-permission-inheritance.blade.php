@@ -1,7 +1,7 @@
 @if ($project->isSubproject())
   @can('update', $project)
     <div class="dropdown position-static">
-      <button class="btn btn-sm {{ $project->permission_inheritance?->color() ?? 'badge-light text-dark' }}" type="button"
+      <button class="btn btn-sm btn-{{ $project->permission_inheritance?->color() ?? 'secondary' }}" type="button"
         id="project-permission-inheritance-dropdown-{{ $project->id }}" data-toggle="dropdown" aria-haspopup="true"
         aria-expanded="false" title="Alterar heranca de permissoes">
 
@@ -19,7 +19,7 @@
             @method('PATCH')
             <input type="hidden" name="permission_inheritance" value="{{ $permissionInheritance->value }}">
             <button type="submit" class="btn btn-sm btn-block text-left" @disabled($project->permission_inheritance?->value === $permissionInheritance->value)>
-              <span class="badge {{ $permissionInheritance->color() }}">{{ $permissionInheritance->label() }}</span>
+              <span class="badge badge-{{ $permissionInheritance->color() }}">{{ $permissionInheritance->label() }}</span>
               @if ($project->permission_inheritance?->value === $permissionInheritance->value)
                 <small class="text-muted ml-1">(atual)</small>
               @endif
@@ -29,7 +29,7 @@
       </div>
     </div>
   @else
-    <span class="btn btn-sm {{ $project->permission_inheritance?->color() ?? 'badge-light text-dark' }}">
+    <span class="btn btn-sm btn-{{ $project->permission_inheritance?->color() ?? 'secondary' }}">
       {{ $project->permission_inheritance?->label() ?? 'Nao definido' }}
     </span>
   @endcan

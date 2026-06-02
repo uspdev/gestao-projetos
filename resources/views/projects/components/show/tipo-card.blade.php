@@ -27,7 +27,7 @@
     </div>
     <div class="col-md-6">
       @if ($project->phase)
-        Fase: <span class="badge {{ $project->phase->color }}">{{ $project->phase->name }}</span>
+        Fase: <span class="badge badge-{{ $project->phase->color }}">{{ $project->phase->name }}</span>
       @endif
     </div>
   </div>

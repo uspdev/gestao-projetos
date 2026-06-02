@@ -1,3 +1,3 @@
-<span class="badge {{ $task->priority?->color() }}">
+<span class="badge badge-{{ $task->priority?->color() }}">
   {{ $task->priority?->label() }}
 </span>

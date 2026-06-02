@@ -1,1 +1,1 @@
-<span class="badge {{ $project->status->color() }}">{{ $project->status->label() }}</span>
+<span class="badge badge-{{ $project->status->color() }}">{{ $project->status->label() }}</span>

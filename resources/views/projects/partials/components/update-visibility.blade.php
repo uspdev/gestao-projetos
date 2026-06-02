@@ -1,6 +1,6 @@
 @can('update', $project)
   <div class="dropdown position-static">
-    <button class="btn btn-sm {{ $project->visibility?->color() ?? 'badge-light text-dark' }}" type="button"
+    <button class="btn btn-sm btn-{{ $project->visibility?->color() ?? 'secondary' }}" type="button"
       id="project-visibility-dropdown-{{ $project->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
       title="Alterar visibilidade do projeto">
 
@@ -16,7 +16,7 @@
           @method('PATCH')
           <input type="hidden" name="visibility" value="{{ $visibility->value }}">
           <button type="submit" class="btn btn-sm btn-block text-left" @disabled($project->visibility?->value === $visibility->value)>
-            <span class="badge {{ $visibility->color() }}">{{ $visibility->label() }}</span>
+            <span class="badge badge-{{ $visibility->color() }}">{{ $visibility->label() }}</span>
             @if ($project->visibility?->value === $visibility->value)
               <small class="text-muted ml-1">(atual)</small>
             @endif
@@ -26,7 +26,7 @@
     </div>
   </div>
 @else
-  <span class="btn btn-sm {{ $project->visibility?->color() ?? 'badge-light text-dark' }}">
+  <span class="btn btn-sm btn-{{ $project->visibility?->color() ?? 'secondary' }}">
     {{ $project->visibility?->label() ?? 'Nao definido' }}
   </span>
 @endcan

@@ -1,8 +1,7 @@
 @can('update', $project)
   <div class="dropdown position-static">
-    <button class="btn btn-sm {{ $project->status->color() }}" type="button"
-      id="project-status-dropdown-{{ $project->id }}"
-      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+    <button class="btn btn-sm btn-{{ $project->status->color() }}" type="button"
+      id="project-status-dropdown-{{ $project->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
       title="Alterar status do projeto">
 
       {{ $project->status->label() }}
@@ -17,7 +16,7 @@
           @method('PATCH')
           <input type="hidden" name="status" value="{{ $status->value }}">
           <button type="submit" class="btn btn-sm btn-block text-left" @disabled($project->status->value === $status->value)>
-            <span class="badge {{ $status->color() }}">
+            <span class="badge badge-{{ $status->color() }}">
               {{ $status->label() }}
             </span>
             @if ($project->status->value === $status->value)
@@ -29,7 +28,7 @@
     </div>
   </div>
 @else
-  <span class="btn btn-sm {{ $project->status->color() }}">
+  <span class="btn btn-sm btn-{{ $project->status->color() }}">
     {{ $project->status->label() }}
   </span>
 @endcan

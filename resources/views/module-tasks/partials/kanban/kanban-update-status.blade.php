@@ -4,7 +4,7 @@
 
     <button class="btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center" type="button" data-toggle="dropdown"
       title="Alterar status da task">
-      <span class="d-inline-block {{ $task->status->color() }}" style="width:15px;height:15px;border-radius:50%;"></span>
+      <span class="d-inline-block bg-{{ $task->status->color() }}" style="width:15px;height:15px;border-radius:50%;"></span>
       <i class="fas fa-chevron-down ml-1 text-muted" style="font-size:.6rem;"></i>
     </button>
 
@@ -13,7 +13,7 @@
         <button type="button" class="dropdown-item small task-status-change"
           data-form="task-status-form-{{ $task->id }}" data-status="{{ $status->value }}"
           @disabled($task->status === $status)>
-          <span class="badge {{ $status->color() }}" style="font-size: .75rem;">{{ $status->label() }}</span>
+          <span class="badge badge-{{ $status->color() }}" style="font-size: .75rem;">{{ $status->label() }}</span>
           @if ($task->status === $status)
             <small class="text-muted ml-1">(atual)</small>
           @endif
@@ -41,7 +41,8 @@
     </script>
   @endPushOnce
 @else
-  <span class="badge {{ $task->status->color() }} text-nowrap flex-shrink-0" style="font-size: 0.75rem; line-height: 1;">
+  <span class="badge badge-{{ $task->status->color() }} text-nowrap flex-shrink-0"
+    style="font-size: 0.75rem; line-height: 1;">
     {{ $task->status->label() }}
   </span>
 @endcanAny

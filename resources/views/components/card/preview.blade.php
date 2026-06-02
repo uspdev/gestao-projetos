@@ -179,13 +179,13 @@
 
               <div class="d-flex align-items-center ml-2 position-relative" style="z-index: 2; gap: 0.35rem;">
                 @if ($statusLabel)
-                  <span class="badge {{ $statusClass }} text-nowrap shadow-sm">
+                  <span class="badge badge-{{ $statusClass }} text-nowrap shadow-sm">
                     {{ $statusLabel }}
                   </span>
                 @endif
 
                 @if ($subprojectLabel)
-                  <span class="badge {{ $subprojectClass }} text-nowrap shadow-sm">
+                  <span class="badge badge-{{ $subprojectClass }} text-nowrap shadow-sm">
                     {{ $subprojectLabel }}
                   </span>
                 @endif
@@ -227,7 +227,7 @@
             <div class="preview-card__role">
               @if ($roleLabel)
                 <span class="text-muted small mb-0"><i class="fas fa-user-circle"></i> Meu papel:</span>
-                <span class="badge {{ $roleClass }} small text-truncate"
+                <span class="badge badge-{{ $roleClass }} small text-truncate"
                   style="max-width:8.5rem;">{{ $roleLabel }}</span>
               @endif
             </div>
@@ -264,7 +264,7 @@
         <div class="d-flex justify-content-between align-items-end mt-auto">
           <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem; max-height:3.6rem; overflow:hidden;">
             @if ($footerPriorityLabel)
-              <span class="badge {{ $footerPriorityClass ?? 'badge-light border text-muted' }}" title="Prioridade">
+              <span class="badge {{ $footerPriorityClass ? 'badge-' . $footerPriorityClass : 'badge-light border text-muted' }}" title="Prioridade">
                 <i class="fas fa-flag mr-1"></i>{{ $footerPriorityLabel }}
               </span>
             @endif

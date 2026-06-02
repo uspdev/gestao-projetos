@@ -10,7 +10,7 @@
 
           <div class="d-flex align-items-center gap-2">
             @include('module-tasks.partials.kanban.kanban-search')
-            <span class="badge {{ $status->color() }}">{{ $tasks->count() }}</span>
+            <span class="badge badge-{{ $status->color() }}">{{ $tasks->count() }}</span>
           </div>
         </div>
 
