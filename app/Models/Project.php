@@ -25,10 +25,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Spatie\Tags\HasTags;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Project extends Model implements Discussable, HasCommentRecipients
 {
-    use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug;
+    use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, LogsActivity;
 
     public const ORGANIZATIONAL_TYPE_SLUG = 'organizacional';
 
@@ -92,6 +94,18 @@ class Project extends Model implements Discussable, HasCommentRecipients
                     $task->restore();
                 });
         });
+    }
+
+    /**
+     * Define as configurações de log do Spatie para este Model
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('project') 
+            ->logFillable()              
+            ->logOnlyDirty()             
+            ->dontSubmitEmptyLogs();    
     }
 
     public function getRouteKeyName(): string

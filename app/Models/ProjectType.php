@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class ProjectType extends Model
 {
-    use HasFactory, HasSlug;
+    use HasFactory, HasSlug, LogsActivity;
 
     protected $fillable = [
         'name',
@@ -23,6 +25,15 @@ class ProjectType extends Model
     protected $casts = [
         'enabled' => 'boolean',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('project_type')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Relacionamento com projetos 1-N

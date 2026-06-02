@@ -16,4 +16,12 @@ class ProjectTypePhase extends Pivot
         'is_initial' => 'boolean',
         'is_final' => 'boolean',
     ];
+
+    public function getActivitylogOptions(): \Spatie\Activitylog\LogOptions
+    {
+        return \Spatie\Activitylog\LogOptions::defaults()
+            ->useLogName('project_type')
+            ->logOnly(['order', 'is_initial', 'is_final'])
+            ->dontSubmitEmptyLogs();
+    }
 }

@@ -47,4 +47,12 @@ class ProjectTypeModule extends Pivot
     {
         return $this->belongsTo(Module::class);
     }
+
+    public function getActivitylogOptions(): \Spatie\Activitylog\LogOptions
+    {
+        return \Spatie\Activitylog\LogOptions::defaults()
+            ->useLogName('project_type')
+            ->logOnly(['enabled', 'required', 'editable', 'config'])
+            ->dontSubmitEmptyLogs();
+    }
 }

@@ -17,10 +17,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Spatie\Tags\HasTags;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Task extends Model implements Discussable, HasCommentRecipients
 {
-    use HasFactory, SoftDeletes, Auditable, HasTags;
+    use HasFactory, SoftDeletes, Auditable, HasTags, LogsActivity;
 
     protected $fillable = [
         'project_id',
@@ -42,6 +44,15 @@ class Task extends Model implements Discussable, HasCommentRecipients
             'completed_at' => 'datetime',
             'priority' => TaskPriority::class
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('task')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function project(): BelongsTo

@@ -17,10 +17,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use App\Morphs\DiscussableMap;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Meeting extends Model implements HasCommentRecipients
 {
-    use HasFactory, SoftDeletes, Auditable;
+    use HasFactory, SoftDeletes, Auditable, LogsActivity;
 
     protected $fillable = [
         'title',
@@ -36,6 +38,15 @@ class Meeting extends Model implements HasCommentRecipients
             'scheduled_at' => 'datetime',
             'status' => MeetingStatus::class,
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('meeting')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     /**

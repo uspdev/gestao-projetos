@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Uspdev\Replicado\Pessoa;
+use App\Models\ProjectUser;
 
 class ProjectMemberController extends Controller
 {
@@ -68,7 +69,6 @@ class ProjectMemberController extends Controller
                 ->with('alert-danger', 'O último admin do projeto não pode ter sua role alterada.');
         }
         if ($project->isAdminInParent($user)) {
-            // um admin do pai precisa ter privilegio de admin nos filhos
             if ($newRole !== ProjectUserRole::ADMIN) {
                 return redirect()->route('projects.settings', $project)
                     ->with('alert-danger', 'Um admin do projeto pai precisa ter privilégio de admin neste projeto.');
@@ -76,9 +76,15 @@ class ProjectMemberController extends Controller
         }
 
         DB::transaction(function () use ($project, $user, $newRole) {
-            $project->users()->updateExistingPivot($user->id, [
-                'role' => $newRole->value,
-            ]);
+            $pivot = ProjectUser::where('project_id', $project->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($pivot) {
+                $pivot->update([
+                    'role' => $newRole->value,
+                ]);
+            }
         });
 
         return redirect()->back()
@@ -98,7 +104,13 @@ class ProjectMemberController extends Controller
         }
 
         DB::transaction(function () use ($project, $user) {
-            $project->users()->detach($user->id);
+            $pivot = ProjectUser::where('project_id', $project->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($pivot) {
+                $pivot->delete();
+            }
         });
 
         return redirect()->back()

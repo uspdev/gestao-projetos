@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Spatie\Tags\Tag as SpatieTag;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Tag extends SpatieTag
 {
+    use LogsActivity;
+
     public const TYPE_PROJECT = 'projects';
     public const TYPE_TASK = 'tasks';
 
@@ -19,6 +23,15 @@ class Tag extends SpatieTag
         'color',
         'description',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('tag')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * Retorna as tags do tipo "projects"
