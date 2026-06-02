@@ -21,7 +21,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection as SupportCollection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -577,7 +576,12 @@ class Project extends Model implements Discussable, HasCommentRecipients
      */
     public function linkableSubprojects()
     {
-        $user = Auth::user();
+        $adminIds = $this->adminIds();
+
+        if ($adminIds->isEmpty()) {
+            return collect();
+        }
+
         return Project::query()
             ->whereNull('parent_id')
             ->whereKeyNot($this->getKey())
@@ -588,11 +592,44 @@ class Project extends Model implements Discussable, HasCommentRecipients
             ->doesntHave('children')
             // A verificação de admin em comum é feita com whereHas na relação de usuários,
             // filtrando por projetos que compartilhem pelo menos um admin com o projeto atual
-            ->whereHas('users', function ($q) use ($user) {
-                $q->where('users.id', $user->id)
+            ->whereHas('users', function ($q) use ($adminIds) {
+                $q->whereIn('users.id', $adminIds)
                     ->where('project_user.role', ProjectUserRole::ADMIN->value);
             })
             // Carrega os tipos de projeto e os admins para exibição nos resultados, facilitando a identificação dos projetos candidatos
+            ->with([
+                'projectType',
+                'users' => function ($q) {
+                    $q->where('project_user.role', ProjectUserRole::ADMIN->value)
+                        ->orderBy('project_user.created_at');
+                },
+            ])
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * Retorna projetos organizacionais elegíveis para vincular como projeto pai,
+     *
+     * que são projetos organizacionais sem subprojetos e com pelo menos um admin em comum
+     */
+    public function linkableParents()
+    {
+        $adminIds = $this->adminIds();
+
+        if ($adminIds->isEmpty()) {
+            return collect();
+        }
+
+        return Project::query()
+            ->whereKeyNot($this->getKey())
+            ->whereHas('projectType', function ($q) {
+                $q->where('slug', self::ORGANIZATIONAL_TYPE_SLUG);
+            })
+            ->whereHas('users', function ($q) use ($adminIds) {
+                $q->whereIn('users.id', $adminIds)
+                    ->where('project_user.role', ProjectUserRole::ADMIN->value);
+            })
             ->with([
                 'projectType',
                 'users' => function ($q) {

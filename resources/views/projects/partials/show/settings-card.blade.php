@@ -151,7 +151,7 @@
             Visibilidade
           </div>
         </td>
-        <td class="pr-3 py-2">@include('projects.partials.components.update-visibility')</td>
+        <td class="pl-5 py-2">@include('projects.partials.components.update-visibility')</td>
       </tr>
       @if ($project->isSubproject())
         <tr>
@@ -161,7 +161,7 @@
               Herança de permissões
             </div>
           </td>
-          <td class="pr-3 py-2">@include('projects.partials.components.update-permission-inheritance')</td>
+          <td class="pl-5 py-2">@include('projects.partials.components.update-permission-inheritance')</td>
         </tr>
         @if ($project->parent)
           <tr>
@@ -171,7 +171,7 @@
                 Desvincular do projeto organizacional
               </div>
             </td>
-            <td class="pr-3 py-2">
+            <td class="pl-5 py-2">
               @include('projects.partials.buttons.unlink-subproject-btn', [
                   'project' => $project->parent,
                   'subproject' => $project,
@@ -179,18 +179,26 @@
             </td>
           </tr>
         @endif
+      @elseif ($project->isOrganizational())
+        <tr>
+          <td class="pl-3 pr-2 py-2">
+            <div class="settings-label d-flex align-items-center gap-2">
+              <i class="ti ti-link" aria-hidden="true"></i>
+              Vincular subprojeto
+            </div>
+          </td>
+          <td class="pl-5 py-2">@include('projects.partials.buttons.link-subproject-btn')</td>
+        </tr>
       @else
-        @if ($project->projectType?->slug === 'organizacional')
-          <tr>
-            <td class="pl-3 pr-2 py-2">
-              <div class="settings-label d-flex align-items-center gap-2">
-                <i class="ti ti-link" aria-hidden="true"></i>
-                Vincular subprojeto
-              </div>
-            </td>
-            <td class="pr-3 py-2">@include('projects.partials.buttons.link-subproject-btn')</td>
-          </tr>
-        @endif
+        <tr>
+          <td class="pl-3 pr-2 py-2">
+            <div class="settings-label d-flex align-items-center gap-2">
+              <i class="ti ti-unlink" aria-hidden="true"></i>
+              Vincular a um projeto organizacional
+            </div>
+          </td>
+          <td class="pl-5 py-2">@include('projects.partials.buttons.link-parent-btn')</td>
+        </tr>
       @endif
     </tbody>
   </table>

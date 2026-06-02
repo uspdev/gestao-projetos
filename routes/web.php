@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
         ->name('projects.subprojects.selectable');
     Route::post('projects/{project}/subprojects/link', [ProjectController::class, 'linkSubproject'])
         ->name('projects.subprojects.link');
+    Route::post('projects/{project}/parents/link', [ProjectController::class, 'linkParent'])
+        ->name('projects.parents.link');
     Route::delete('projects/{project}/subprojects/unlink', [ProjectController::class, 'unlinkSubproject'])
         ->name('projects.subprojects.unlink');
 

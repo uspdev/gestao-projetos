@@ -317,6 +317,63 @@ class ProjectController extends Controller
     }
 
     /**
+     * Vincula o projeto atual como subprojeto de um projeto pai existente.
+     */
+    public function linkParent(Request $request, Project $project)
+    {
+        Gate::authorize('storeMember', $project);
+
+        if ($project->isSubproject()) {
+            return redirect()->back()
+                ->withErrors(['parent_id' => 'Não é possivel vincular um projeto que já é subprojeto.']);
+        }
+
+        if ($project->isOrganizational()) {
+            return redirect()->back()
+                ->withErrors(['parent_id' => 'Apenas projetos independentes podem ser vinculados a um projeto organizacional.']);
+        }
+
+        $data = $request->validate([
+            'parent_id' => ['required', 'integer', 'exists:projects,id'],
+        ]);
+
+        $parent = Project::query()->with(['users', 'children', 'projectType'])->findOrFail($data['parent_id']);
+
+        $blockReason = $project->subprojectLinkBlockReason($parent);
+        if ($blockReason) {
+            return redirect()->back()
+                ->withErrors(['parent_id' => $blockReason]);
+        }
+
+        $project->update([
+            'parent_id'  => $parent->id,
+            'updated_by' => Auth::id(),
+        ]);
+
+        $actor = Auth::user();
+        $parent->load('users');
+        $project->load('users');
+
+        $parentRecipients = $parent->users
+            ->filter(fn($user) => $parent->userRole($user) !== ProjectUserRole::VIEWER);
+        $subprojectRecipients = $project->users
+            ->filter(fn($user) => $project->userRole($user) !== ProjectUserRole::VIEWER);
+
+        $parentRecipients
+            ->merge($subprojectRecipients)
+            ->unique('id')
+            ->filter(fn($user) => ! $actor || $user->id !== $actor->id)
+            ->each(function ($user) use ($actor, $parent, $project) {
+                Mail::to($user->email)->queue(
+                    new ProjectLinkedAsSubproject($user, $actor, $parent, $project)
+                );
+            });
+
+        return redirect()->back()
+            ->with('alert-success', 'Projeto vinculado com sucesso!');
+    }
+
+    /**
      * Desvincula um subprojeto do projeto atual.
      */
     public function unlinkSubproject(Request $request, Project $project)
@@ -362,7 +419,7 @@ class ProjectController extends Controller
                 );
             });
 
-        return redirect()->route('projects.show', $project)
+        return redirect()->back()
             ->with('alert-success', 'Subprojeto desvinculado com sucesso!');
     }
 
