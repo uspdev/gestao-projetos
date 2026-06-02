@@ -227,7 +227,7 @@
             <div class="preview-card__role">
               @if ($roleLabel)
                 <span class="text-muted small mb-0"><i class="fas fa-user-circle"></i> Meu papel:</span>
-                <span class="badge badge-{{ $roleClass }} small text-truncate"
+                <span class="badge {{ $roleClass }} small text-truncate"
                   style="max-width:8.5rem;">{{ $roleLabel }}</span>
               @endif
             </div>
