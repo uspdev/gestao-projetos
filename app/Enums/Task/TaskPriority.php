@@ -22,10 +22,10 @@ enum TaskPriority: int
     public function color(): string
     {
         return match ($this) {
-            self::URGENT => 'badge-danger',
-            self::HIGH => 'badge-warning',
-            self::MEDIUM => 'badge-secondary',
-            self::LOW => 'badge-light',
+            self::URGENT => 'danger',
+            self::HIGH => 'warning',
+            self::MEDIUM => 'secondary',
+            self::LOW => 'light',
         };
     }
 }

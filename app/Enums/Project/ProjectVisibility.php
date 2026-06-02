@@ -20,9 +20,9 @@ enum ProjectVisibility: string
     public function color(): string
     {
         return match ($this) {
-            self::PUBLIC => 'badge-success',
-            self::AUTHENTICATED => 'badge-info',
-            self::PRIVATE => 'badge-secondary',
+            self::PUBLIC => 'success',
+            self::AUTHENTICATED => 'info',
+            self::PRIVATE => 'secondary',
         };
     }
 }

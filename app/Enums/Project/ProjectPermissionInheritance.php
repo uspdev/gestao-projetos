@@ -20,9 +20,9 @@ enum ProjectPermissionInheritance: string
     public function color(): string
     {
         return match ($this) {
-            self::NONE => 'badge-secondary',
-            self::READ => 'badge-info',
-            self::FULL => 'badge-success',
+            self::NONE => 'secondary',
+            self::READ => 'info',
+            self::FULL => 'success',
         };
     }
 }

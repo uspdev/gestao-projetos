@@ -23,10 +23,10 @@ enum ProjectPhase: string
     public function color(): string
     {
         return match ($this) {
-            self::PLANNING => 'badge-light text-dark',
-            self::DEVELOPMENT => 'badge-primary',
-            self::PRODUCTION => 'badge-success',
-            self::RETIRED => 'badge-dark',
+            self::PLANNING => 'light text-dark',
+            self::DEVELOPMENT => 'primary',
+            self::PRODUCTION => 'success',
+            self::RETIRED => 'dark',
         };
     }
 }

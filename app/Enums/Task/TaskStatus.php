@@ -32,12 +32,12 @@ enum TaskStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::NEW => 'badge-warning',
-            self::ASSIGNED => 'badge-success',
-            self::IN_PROGRESS => 'badge-primary',
-            self::IN_REVIEW => 'badge-info',
-            self::HOLD => 'badge-warning',
-            self::DONE => 'badge-secondary',
+            self::NEW => 'warning',
+            self::ASSIGNED => 'success',
+            self::IN_PROGRESS => 'primary',
+            self::IN_REVIEW => 'info',
+            self::HOLD => 'warning',
+            self::DONE => 'secondary',
         };
     }
 

@@ -20,9 +20,9 @@ enum MeetingStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::SCHEDULED => 'badge-success',
-            self::ONGOING => 'badge-primary',
-            self::COMPLETED => 'badge-secondary',
+            self::SCHEDULED => 'success',
+            self::ONGOING => 'primary',
+            self::COMPLETED => 'secondary',
         };
     }
 }
