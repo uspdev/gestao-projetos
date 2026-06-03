@@ -9,7 +9,6 @@ use App\Http\Requests\Meeting\UpdateMeetingNotesRequest;
 use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
 use App\Http\Requests\MeetingItem\UpdateMeetingItemNotesRequest;
 use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
-use App\Mail\MeetingCreated;
 use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
 use App\Models\Project;
@@ -76,25 +75,13 @@ class MeetingController extends Controller
 
             $data['created_by'] = Auth::id();
             $data['updated_by'] = Auth::id();
-            $data['status'] = $data['status'] ?? MeetingStatus::SCHEDULED->value;
+            $data['status'] = MeetingStatus::DRAFT->value;
 
             $meeting = Meeting::create($data);
             $meeting->projects()->sync($projects);
 
             return $meeting;
         });
-        // Lida com a notificação de reunião criada após a transaction
-        // para evitar enviar emails caso haja falha na criação da reunião ou associação com os projetos
-        $actor = Auth::user();
-        $meeting->load('projects.users');
-        // Envia notificacao para os usuarios dos projetos relacionados à reuniao, exceto para o proprio autor da acao
-        $meeting->projects
-            ->flatMap(fn(Project $project) => $project->users)
-            ->unique('id')
-            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $meeting) {
-                Mail::to($user->email)->queue(new MeetingCreated($user, $actor, $meeting));
-            });
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Reuniao criada com sucesso!');
@@ -157,6 +144,7 @@ class MeetingController extends Controller
     public function update(UpdateMeetingRequest $request, Project $project, Meeting $meeting)
     {
         Gate::authorize('update', [$meeting, $project]);
+        $originalStatus = $meeting->status;
 
         DB::transaction(function () use ($request, $meeting) {
             $data = $request->validated();
@@ -169,15 +157,7 @@ class MeetingController extends Controller
             $meeting->projects()->sync($projects);
         });
 
-        $actor = Auth::user();
-        $meeting->load('projects.users');
-        $meeting->projects
-            ->flatMap(fn(Project $project) => $project->users)
-            ->unique('id')
-            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $meeting) {
-                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting));
-            });
+        $this->notifyMeetingUsers($meeting, $originalStatus);
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
@@ -218,9 +198,11 @@ class MeetingController extends Controller
             $meeting->delete();
         });
 
-        $recipients->each(function ($user) use ($actor, $meeting) {
-            Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting, true));
-        });
+        if ($meeting->status !== MeetingStatus::DRAFT) {
+            $recipients->each(function ($user) use ($actor, $meeting) {
+                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting, true));
+            });
+        }
 
         return redirect()->route('projects.meetings.index', $project)
             ->with('alert-success', 'Reuniao removida com sucesso!');
@@ -300,6 +282,8 @@ class MeetingController extends Controller
 
     public function updateStatus(UpdateMeetingStatusRequest $request, Project $project, Meeting $meeting)
     {
+        $originalStatus = $meeting->status;
+
         DB::transaction(function () use ($request, $meeting) {
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
@@ -307,17 +291,40 @@ class MeetingController extends Controller
             $meeting->update($data);
         });
 
+        $this->notifyMeetingUsers($meeting, $originalStatus);
+
+        return redirect()->route('projects.meetings.show', [$project, $meeting])
+            ->with('alert-success', 'Status da reunião atualizado com sucesso!');
+    }
+
+    private function notifyMeetingUsers(Meeting $meeting, ?MeetingStatus $originalStatus = null, bool $isCancelled = false): void
+    {
+        if (! $this->shouldNotifyMeetingUsers($meeting, $originalStatus)) {
+            return;
+        }
+
         $actor = Auth::user();
         $meeting->load('projects.users');
+
         $meeting->projects
             ->flatMap(fn(Project $project) => $project->users)
             ->unique('id')
             ->filter(fn($user) => !$actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $meeting) {
-                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting));
+            ->each(function ($user) use ($actor, $meeting, $isCancelled) {
+                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting, $isCancelled));
             });
+    }
 
-        return redirect()->route('projects.meetings.show', [$project, $meeting])
-            ->with('alert-success', 'Status da reunião atualizado com sucesso!');
+    private function shouldNotifyMeetingUsers(Meeting $meeting, ?MeetingStatus $originalStatus = null): bool
+    {
+        if ($meeting->status === MeetingStatus::DRAFT) {
+            return false;
+        }
+
+        if ($originalStatus === MeetingStatus::DRAFT) {
+            return $meeting->status === MeetingStatus::SCHEDULED;
+        }
+
+        return true;
     }
 }
