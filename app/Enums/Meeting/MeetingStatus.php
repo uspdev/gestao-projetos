@@ -22,7 +22,7 @@ enum MeetingStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::DRAFT => 'light',
+            self::DRAFT => 'warning',
             self::SCHEDULED => 'success',
             self::ONGOING => 'primary',
             self::COMPLETED => 'secondary',
