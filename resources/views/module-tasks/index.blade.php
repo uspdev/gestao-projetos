@@ -1,4 +1,4 @@
-@extends('layouts.module-task')
+@extends('module-tasks.layouts.task')
 
 @section('task-header')
   @include('module-tasks.partials.buttons.toggle-layout-btn')

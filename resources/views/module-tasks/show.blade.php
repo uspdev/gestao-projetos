@@ -1,4 +1,5 @@
-@extends('layouts.module-task')
+@extends('module-tasks.layouts.task')
+
 
 @section('title', 'Detalhes da Tarefa')
 

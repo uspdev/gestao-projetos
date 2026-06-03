@@ -1,4 +1,4 @@
-@extends('layouts.project-meeting')
+@extends('module-meetings.layouts.meeting')
 
 @section('meeting-header')
   <x-separator /> Editando <b>{{ $meeting->title }}</b>
