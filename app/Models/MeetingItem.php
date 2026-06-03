@@ -22,6 +22,8 @@ class MeetingItem extends Model
         'notes',
     ];
 
+    protected $touches = ['meeting', 'discussable'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

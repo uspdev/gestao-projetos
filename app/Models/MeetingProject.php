@@ -14,6 +14,8 @@ class MeetingProject extends Pivot
 
     protected $table = 'meeting_projects';
 
+    protected $touches = ['meeting', 'project'];
+
     protected static function booted(): void
     {
         static::created(function (MeetingProject $pivot) {

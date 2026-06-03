@@ -30,6 +30,8 @@ class ProjectModule extends Pivot
         ];
     }
 
+    protected $touches = ['project'];
+
     protected static function booted(): void
     {
         static::created(function (ProjectModule $pivot) {

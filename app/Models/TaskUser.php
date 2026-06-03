@@ -14,6 +14,8 @@ class TaskUser extends Pivot
 
     protected $table = 'task_user';
 
+    protected $touches = ['task'];
+
     protected static function booted(): void
     {
         static::created(function (TaskUser $pivot) {

@@ -40,6 +40,8 @@ class Meeting extends Model implements HasCommentRecipients
         ];
     }
 
+    protected $touches = ['projects'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

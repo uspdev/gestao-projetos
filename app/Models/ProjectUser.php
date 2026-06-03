@@ -16,6 +16,8 @@ class ProjectUser extends Pivot
         'pinned' => 'bool',
     ];
 
+    protected $touches = ['project'];
+
     protected static function booted(): void
     {
         static::created(function (ProjectUser $pivot) {

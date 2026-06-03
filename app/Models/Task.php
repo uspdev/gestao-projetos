@@ -46,6 +46,8 @@ class Task extends Model implements Discussable, HasCommentRecipients
         ];
     }
 
+    protected $touches = ['project'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

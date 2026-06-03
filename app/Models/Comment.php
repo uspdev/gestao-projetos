@@ -31,6 +31,8 @@ class Comment extends Model
         ];
     }
 
+    protected $touches = ['commentable'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
