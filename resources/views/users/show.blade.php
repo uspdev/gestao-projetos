@@ -12,6 +12,9 @@
       @include('projects.partials.user-dashboard')
 
       <hr class="my-4">
+      @include('module-meetings.partials.user-dashboard')
+
+      <hr class="my-4">
       @include('module-tasks.partials.user-dashboard')
     @endif
 

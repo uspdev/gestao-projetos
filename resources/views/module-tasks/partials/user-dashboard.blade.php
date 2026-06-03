@@ -1,7 +1,10 @@
 <section id="user-tasks" class="mb-4">
 
   <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
-    <h4 class="mb-0">Minhas Tarefas</h4>
+    <h4 class="mb-0">
+      <i class="fas fa-tasks text-secondary"></i>
+      Minhas Tarefas
+    </h4>
     @include('module-tasks.partials.buttons.toggle-layout-btn')
     @include('module-tasks.partials.buttons.show-done-btn')
     @include('module-tasks.partials.buttons.search-task-form')
