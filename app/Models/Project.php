@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
+use App\Enums\Meeting\MeetingStatus;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
@@ -102,10 +103,10 @@ class Project extends Model implements Discussable, HasCommentRecipients
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->useLogName('project') 
-            ->logFillable()              
-            ->logOnlyDirty()             
-            ->dontSubmitEmptyLogs();    
+            ->useLogName('project')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function getRouteKeyName(): string

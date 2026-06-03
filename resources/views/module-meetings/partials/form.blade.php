@@ -1,6 +1,8 @@
 @php
   $method = $method ?? 'POST';
-  $statusValue = old('status', $meeting?->status?->value ?? \App\Enums\Meeting\MeetingStatus::SCHEDULED->value);
+  $statusValue = $meeting
+      ? old('status', $meeting?->status?->value ?? \App\Enums\Meeting\MeetingStatus::DRAFT->value)
+      : \App\Enums\Meeting\MeetingStatus::DRAFT->value;
   $scheduledValue = old('scheduled_at', $meeting?->scheduled_at?->format('Y-m-d\TH:i'));
   $selectedProjects = $selectedProjects ?? old('projects', $meeting?->projects?->pluck('id')->all() ?? [$project->id]);
   $selectedProjects = collect($selectedProjects)->map(fn($id) => (int) $id)->all();
@@ -24,16 +26,28 @@
     <div class="col-md-4">
       <div class="form-group mb-3">
         <label for="status">Status <span class="text-danger">*</span></label>
-        <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
-          @foreach (\App\Enums\Meeting\MeetingStatus::cases() as $status)
-            <option value="{{ $status->value }}" {{ $statusValue === $status->value ? 'selected' : '' }}>
-              {{ $status->label() }}
-            </option>
-          @endforeach
-        </select>
-        @error('status')
-          <div class="invalid-feedback d-block">{{ $message }}</div>
-        @enderror
+        @if ($meeting)
+          <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
+            @foreach (\App\Enums\Meeting\MeetingStatus::cases() as $status)
+              <option value="{{ $status->value }}" {{ $statusValue === $status->value ? 'selected' : '' }}>
+                {{ $status->label() }}
+              </option>
+            @endforeach
+          </select>
+          @error('status')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+          @enderror
+        @else
+          <input type="hidden" name="status" value="{{ $statusValue }}">
+          <div class="form-control-plaintext py-0">
+            <span class="badge badge-{{ \App\Enums\Meeting\MeetingStatus::DRAFT->color() }}">
+              {{ \App\Enums\Meeting\MeetingStatus::DRAFT->label() }}
+            </span>
+            <small class="text-muted d-block mt-1">
+              Reuniões em rascunho não enviam notificações.
+            </small>
+          </div>
+        @endif
       </div>
     </div>
 
@@ -42,7 +56,8 @@
     </div>
 
     <div class="col-md-4">
-      <x-form.input name="location" label="Local" value="{{ old('location', $meeting?->location) }}" maxlength="255" />
+      <x-form.input name="location" label="Local" value="{{ old('location', $meeting?->location) }}"
+        maxlength="255" />
     </div>
   </div>
 
