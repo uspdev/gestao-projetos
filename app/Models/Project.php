@@ -570,6 +570,19 @@ class Project extends Model implements Discussable, HasCommentRecipients
             ->where('status', '!=', \App\Enums\Task\TaskStatus::DONE)
             ->count();
     }
+    
+    public function meetingsCount(bool $showCompleted = false): int
+    {
+        return $this->meetings()
+            ->when(! $showCompleted, function ($query) {
+                $query->where(
+                    'status',
+                    '!=',
+                    MeetingStatus::COMPLETED->value
+                );
+            })
+            ->count();
+    }
 
     public function getIncompleteMeetingsCount(): int
     {
