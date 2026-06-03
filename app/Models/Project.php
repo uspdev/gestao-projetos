@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
-use App\Enums\Meeting\MeetingStatus;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
@@ -103,10 +102,10 @@ class Project extends Model implements Discussable, HasCommentRecipients
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->useLogName('project')
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->useLogName('project') 
+            ->logFillable()              
+            ->logOnlyDirty()             
+            ->dontSubmitEmptyLogs();    
     }
 
     public function getRouteKeyName(): string
@@ -355,7 +354,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
             $subprojects = $this->children()
                 ->with(['tags', 'projectType'])
                 ->withCount(['tasks', 'users'])
-                ->orderBy('name')
+                ->orderByActivity()
                 ->get();
         }
         return $subprojects;
@@ -468,6 +467,14 @@ class Project extends Model implements Discussable, HasCommentRecipients
             });
     }
 
+    /**
+     * Escopo para ordenar projetos pela atividade mais recente (usando o updated_at nativo/touches)
+     */
+    public function scopeOrderByActivity(Builder $query): Builder
+    {
+        return $query->orderByDesc('updated_at');
+    }
+
     public function setSlugAttribute($value): void
     {
         $this->attributes['slug'] = $value === null ? null : Str::slug((string) $value);
@@ -568,18 +575,6 @@ class Project extends Model implements Discussable, HasCommentRecipients
     {
         return $this->meetings()
             ->where('status', '!=', \App\Enums\Meeting\MeetingStatus::COMPLETED)
-            ->count();
-    }
-    public function meetingsCount(bool $showCompleted = false): int
-    {
-        return $this->meetings()
-            ->when(! $showCompleted, function ($query) {
-                $query->where(
-                    'status',
-                    '!=',
-                    MeetingStatus::COMPLETED->value
-                );
-            })
             ->count();
     }
 

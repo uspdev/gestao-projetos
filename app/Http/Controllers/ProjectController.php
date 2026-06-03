@@ -48,7 +48,7 @@ class ProjectController extends Controller
                 'users' => fn($query) => $query->where('users.id', $user->id),
                 'tags',
             ])
-            ->latest()
+            ->orderByActivity()
             ->get();
 
         if ($projects->isEmpty()) {
