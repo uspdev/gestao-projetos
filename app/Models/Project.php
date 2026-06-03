@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
+use App\Enums\Meeting\MeetingStatus;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
@@ -24,9 +25,9 @@ use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Spatie\Tags\HasTags;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Tags\HasTags;
 
 class Project extends Model implements Discussable, HasCommentRecipients
 {
@@ -102,10 +103,10 @@ class Project extends Model implements Discussable, HasCommentRecipients
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->useLogName('project') 
-            ->logFillable()              
-            ->logOnlyDirty()             
-            ->dontSubmitEmptyLogs();    
+            ->useLogName('project')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 
     public function getRouteKeyName(): string
@@ -570,7 +571,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
             ->where('status', '!=', \App\Enums\Task\TaskStatus::DONE)
             ->count();
     }
-    
+
     public function meetingsCount(bool $showCompleted = false): int
     {
         return $this->meetings()
