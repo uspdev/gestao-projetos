@@ -2,6 +2,12 @@
 
 
 @section('title', $project->name . ' - Reunioes')
+@php
+  // para funcionar em views que não tem o toggle de show completed, como a show.blade.php,
+  // assim continua levando em consideração a escolha do usuário
+  $showCompleted = $showCompleted ?? request()->boolean('show_completed');
+  $meetingsCount = $project->meetingsCount($showCompleted);
+@endphp
 
 @section('project-content')
   <div class="card shadow-sm">
@@ -9,7 +15,7 @@
       <a href="{{ route('projects.meetings.index', $project) }}" class="text-decoration-none text-dark">
         <i class="far fa-calendar-alt"></i> Reuniões
       </a>
-      <span class="badge badge-pill badge-secondary">{{ $project->meetings->count() }}</span>
+      <span class="badge badge-pill badge-secondary">{{ $meetingsCount }}</span>
 
     @section('meeting-header')
       @include('module-meetings.partials.create-btn')
