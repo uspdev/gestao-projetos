@@ -1,4 +1,5 @@
-@extends('layouts.project')
+@extends('projects.layouts.project')
+
 
 @section('title', 'Detalhes do Projeto')
 

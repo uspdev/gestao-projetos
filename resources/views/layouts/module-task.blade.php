@@ -1,4 +1,4 @@
-@extends('layouts.project')
+@extends('projects.layouts.project')
 
 @section('title', $project->name . ' - Tarefas')
 
