@@ -57,6 +57,8 @@ php artisan migrate
 - Defina `APP_ENV=production` e `APP_DEBUG=false`.
 - Garanta permissão de escrita em `storage/` e `bootstrap/cache/`.
 
+- Configurar email e supervisor para envio de fila de emails.
+
 ## Configuração em ambiente de desenvolvimento
 
 ```sh
@@ -75,6 +77,10 @@ php artisan serve
 - Slugs e auditoria automática via traits.
 
 ## Changelog
+
+01/06/2026
+
+- Release ciclo 2: sub-projetos, tipos de projetos, módulos ativaveis, módulo Fases
 
 30/04/2026
 
