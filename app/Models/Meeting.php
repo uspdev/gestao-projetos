@@ -59,6 +59,21 @@ class Meeting extends Model implements HasCommentRecipients
     }
 
     /**
+     * Projeto usado nas rotas da reunião para um usuário (primeiro vínculo acessível).
+     */
+    public function contextProjectFor(User $user, ?Collection $availableProjectIds = null): ?Project
+    {
+        $this->loadMissing('projects');
+
+        $availableProjectIds ??= Project::availableForMeetings($user)->pluck('id');
+
+        return $this->projects
+            ->whereIn('id', $availableProjectIds)
+            ->sortBy('name')
+            ->first(fn(Project $project) => $user->isViewerOfProject($project));
+    }
+
+    /**
      * Relacionamento com comentarios (morph)
      */
     public function comments(): MorphMany

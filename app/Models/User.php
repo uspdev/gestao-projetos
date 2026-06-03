@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\Meeting\MeetingStatus;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Task\TaskStatus;
+use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -46,6 +49,26 @@ class User extends Authenticatable
     public function pinnedProjects()
     {
         return $this->projects()->wherePivot('pinned', true)->orderBy('name')->get();
+    }
+
+    /**
+     * Reuniões não concluídas dos projetos do usuário com módulo de reuniões habilitado.
+     */
+    public function scheduledMeetings(?Collection $availableProjectIds = null)
+    {
+        $projectIds = $availableProjectIds ?? Project::availableForMeetings($this)->pluck('id');
+
+        if ($projectIds->isEmpty()) {
+            return collect();
+        }
+
+        return Meeting::query()
+            ->whereHas('projects', fn(Builder $query) => $query->whereIn('projects.id', $projectIds))
+            ->with('projects')
+            ->where('status', '!=', MeetingStatus::COMPLETED->value)
+            ->orderBy('status', 'desc')
+            ->orderBy('scheduled_at')
+            ->get();
     }
 
     /**

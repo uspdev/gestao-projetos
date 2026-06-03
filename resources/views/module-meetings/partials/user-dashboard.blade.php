@@ -7,10 +7,13 @@
   </div>
 
   <div class="row">
-    @forelse([] as $meeting)
-      <div class="col-md-4">
-        {{-- @include('projects.partials.components.preview') --}}
-      </div>
+    @forelse ($meetings as $meeting)
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-4">
+          @include('module-meetings.partials.index-item', [
+              'compact' => true,
+              'project' => $meeting->contextProjectFor($user, $availableMeetingProjectIds), // Método para obter o projeto de contexto para a reunião
+          ])
+        </div>
     @empty
       <div class="col-12">
         <div class="alert alert-light border mb-0">

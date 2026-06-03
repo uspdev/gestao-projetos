@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
@@ -43,7 +43,14 @@ class UserController extends Controller
         }
 
         $tasksByStatus = $user->tasksByStatus($taskView, $tasksDone);
+        $availableMeetingProjectIds = Project::availableForMeetings($user)->pluck('id');
+        $meetings = $user->scheduledMeetings($availableMeetingProjectIds);
 
-        return view('users.show', compact('user', 'tasksByStatus'));
+        return view('users.show', compact(
+            'user',
+            'tasksByStatus',
+            'meetings',
+            'availableMeetingProjectIds',
+        ));
     }
 }
