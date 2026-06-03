@@ -37,7 +37,7 @@ class NewComment extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject(sprintf('%s | novo comentário', $this->projectName()))
+        return $this->subject(sprintf('[%s - %s] novo comentário', config('app.name'), $this->projectName()))
             ->view('emails.comment.new-comment');
     }
 

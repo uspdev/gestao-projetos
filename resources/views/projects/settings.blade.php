@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Configurações do Projeto')
+@section('title', $title . ' | Configurações do Projeto')
 @section('content')
   <div class="card">
     @include('projects.partials.show.show-header')

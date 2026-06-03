@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Área Administrativa')
+@section('title', $title . ' | Área Administrativa')
 
 @section('content')
   <div class="py-3">

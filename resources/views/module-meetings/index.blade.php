@@ -1,6 +1,6 @@
 @extends('module-meetings.layouts.meeting')
 
-@section('title', $project->name . ' - Reunioes')
+@section('title', $title . ' | ' . $project->name)
 
 @section('meeting-header')
   @include('module-meetings.partials.create-btn')

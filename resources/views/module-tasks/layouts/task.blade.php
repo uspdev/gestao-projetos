@@ -1,6 +1,6 @@
 @extends('projects.layouts.project')
 
-@section('title', $project->name . ' - Tarefas')
+@section('title', $title . ' | Tarefas')
 
 @section('project-content')
   @php

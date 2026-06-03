@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Meus Projetos')
+@section('title', $title . ' | Meus Projetos')
 
 @section('content')
 

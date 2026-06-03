@@ -1,7 +1,7 @@
 @extends('projects.layouts.project')
 
 
-@section('title', 'Detalhes do Projeto')
+@section('title', $title . ' | Detalhes do Projeto')
 
 @section('project-content')
   @include('projects.partials.show.join-inherited-banner')

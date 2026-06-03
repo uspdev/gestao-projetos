@@ -24,8 +24,13 @@ class MeetingUpdated extends Mailable implements ShouldQueue
     {
         $action = $this->isCancelled ? 'reunião cancelada' : 'reunião atualizada';
 
-        return $this->subject(sprintf('%s | %s', $this->projectName(), $action))
+        return $this->subject(sprintf('[%s - %s] %s', $this->appName(), $this->projectName(), $action))
             ->view('emails.meeting.meeting-updated');
+    }
+
+    private function appName(): string
+    {
+        return config('app.name');
     }
 
     private function projectName(): string

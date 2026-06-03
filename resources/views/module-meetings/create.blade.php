@@ -1,6 +1,6 @@
 @extends('module-meetings.layouts.meeting')
 
-@section('title', $project->name . ' - Nova reuniao')
+@section('title', $title . ' | ' . $project->name)
 
 @section('meeting-header')
   <x-separator /> Nova reuniao

@@ -1,7 +1,7 @@
 @extends('projects.layouts.project')
 
 
-@section('title', $project->name . ' - Reunioes')
+@section('title', $title . ' | ' . $project->name)
 @php
   // para funcionar em views que não tem o toggle de show completed, como a show.blade.php,
   // assim continua levando em consideração a escolha do usuário

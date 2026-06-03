@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Novo Projeto')
+@section('title', $title . ' | Novo Projeto')
 
 @section('content')
   @php

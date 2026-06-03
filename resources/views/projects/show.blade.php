@@ -1,7 +1,7 @@
 @extends('projects.layouts.project')
 
 
-@section('title', 'Detalhes do Projeto')
+@section('title', $title . ' | Detalhes do Projeto')
 
 @section('project-content')
   @include('projects.partials.show.join-inherited-banner')
@@ -13,7 +13,7 @@
     </div>
     <div class="col-md-4">
       <x-projects::show.tipo-card :project="$project" />
-      <x-projects::show.subprojects-card :project="$project" type="preview"/>
+      <x-projects::show.subprojects-card :project="$project" type="preview" />
       <x-projects::show.membros-preview-card :project="$project" />
       @include('projects.partials.show.show-card-modulos')
     </div>

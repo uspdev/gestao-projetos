@@ -21,8 +21,13 @@ class MeetingCreated extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject(sprintf('%s | reunião criada', $this->projectName()))
+        return $this->subject(sprintf('[%s - %s] reunião criada', $this->appName(), $this->projectName()))
             ->view('emails.meeting.meeting-created');
+    }
+
+    private function appName(): string
+    {
+        return config('app.name');
     }
 
     private function projectName(): string

@@ -21,7 +21,7 @@ class TaskCompleted extends Mailable implements ShouldQueue
 
     public function build(): self
     {
-        return $this->subject(sprintf('%s | tarefa concluída', $this->task->project->name))
+        return $this->subject(sprintf('[%s - %s] tarefa concluída', config('app.name'), $this->task->project->name))
             ->view('emails.task.task-completed');
     }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Gestão de Projetos USP')
+@section('title', $title . ' | Gestão de Projetos USP')
 
 @section('content')
   <style>

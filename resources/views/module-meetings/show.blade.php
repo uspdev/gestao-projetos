@@ -1,6 +1,6 @@
 @extends('module-meetings.layouts.meeting')
 
-@section('title', $project->name . ' - Reuniao')
+@section('title', $title . ' | ' . $project->name)
 
 @section('meeting-header')
   <x-separator /> <b>{{ $meeting->title }}</b>

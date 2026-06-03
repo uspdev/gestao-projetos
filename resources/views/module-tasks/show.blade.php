@@ -1,7 +1,7 @@
 @extends('module-tasks.layouts.task')
 
 
-@section('title', 'Detalhes da Tarefa')
+@section('title', $title . ' | Detalhes da Tarefa')
 
 @section('task-header')
   <x-separator /> <b>{{ $task->title }}</b>
