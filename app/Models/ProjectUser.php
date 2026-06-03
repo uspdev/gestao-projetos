@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Project\ProjectUserRole;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use App\Traits\ResolvesAuditOwner;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProjectUser extends Pivot
 {
@@ -76,5 +77,11 @@ class ProjectUser extends Pivot
             ->useLogName('project')
             ->logOnly(['role', 'pinned'])
             ->dontSubmitEmptyLogs();
+    }
+
+    // =========== Relacionamentos =============
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 }

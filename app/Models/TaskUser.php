@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use App\Traits\ResolvesAuditOwner;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TaskUser extends Pivot
 {   
@@ -52,5 +53,11 @@ class TaskUser extends Pivot
             ->useLogName('task')
             ->logOnly(['user_id'])
             ->dontSubmitEmptyLogs();
+    }
+
+    // =========== Relacionamentos =============
+    public function task(): BelongsTo
+    {
+        return $this->belongsTo(Task::class);
     }
 }

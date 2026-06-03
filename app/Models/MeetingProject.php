@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use App\Traits\ResolvesAuditOwner;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MeetingProject extends Pivot
 {
@@ -40,5 +41,16 @@ class MeetingProject extends Pivot
                 ])
                 ->log('detached');
         });
+    }
+
+    // =========== Relacionamentos =============
+    public function meeting(): BelongsTo
+    {
+        return $this->belongsTo(Meeting::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 }
