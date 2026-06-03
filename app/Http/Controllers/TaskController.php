@@ -270,6 +270,12 @@ class TaskController extends Controller
 
         DB::transaction(function () use ($task, $user) {
             $task->users()->syncWithoutDetaching([$user->id]);
+
+            if($task->status === TaskStatus::NEW) {
+                $task->update([
+                    'status' => TaskStatus::ASSIGNED
+                ]);
+            }
         });
 
         $actor = Auth::user();
