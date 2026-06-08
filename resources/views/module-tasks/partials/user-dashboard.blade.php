@@ -15,9 +15,8 @@
   @else
     <div class="row">
       @forelse($tasksByStatus as $task)
-        <div class="col-md-6 col-lg-4 mb-2 task-search-item"
-          data-task-searchable="{{ strtolower($task->title . ' ' . ($task->project?->name ?? '') . ' ' . ($task->priority?->label() ?? '') . ' ' . $task->users->pluck('name')->implode(' ')) }}">
-          @include('module-tasks.partials.components.preview')
+        <div class="col-md-6 col-lg-4 mb-2 task-search-item" data-task-searchable="{{ $task->searchableText() }}">
+          <x-task-card :task="$task" />
         </div>
       @empty
         <div class="col-12">

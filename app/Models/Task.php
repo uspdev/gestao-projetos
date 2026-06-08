@@ -137,9 +137,25 @@ class Task extends Model implements Discussable, HasCommentRecipients
                 ->where('project_modules.enabled', true);
         });
     }
+
     // escopo específico para o módulo de tarefas, para facilitar a reutilização em outros lugares do código
     public function scopeWithTasksModuleEnabled(Builder $query): Builder
     {
         return $query->withEnabledProjectModule('tasks');
+    }
+
+    /**
+     * Gera um texto concatenado com os campos utilizados em busca JS
+     */
+    public function searchableText(): string
+    {
+        return strtolower(
+            implode(' ', array_filter([
+                $this->title,
+                $this->project?->name,
+                $this->priority?->label(),
+                $this->users->pluck('name')->implode(' '),
+            ]))
+        );
     }
 }
