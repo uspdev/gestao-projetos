@@ -46,6 +46,36 @@
       flex-shrink: 0;
       margin-top: auto;
     }
+
+    .badge-outline-primary {
+      color: #007bff;
+      border: 1px solid #007bff;
+      background: transparent;
+    }
+
+    .badge-outline-success {
+      color: #28a745;
+      border: 1px solid #28a745;
+      background: transparent;
+    }
+
+    .badge-outline-danger {
+      color: #dc3545;
+      border: 1px solid #dc3545;
+      background: transparent;
+    }
+
+    .badge-outline-warning {
+      color: #ffc107;
+      border: 1px solid #ffc107;
+      background: transparent;
+    }
+
+    .badge-outline-secondary {
+    color: #6c757d;
+    background-color: transparent;
+    border: 1px solid #6c757d;
+}
   </style>
 @endsection
 
