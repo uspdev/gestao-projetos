@@ -137,6 +137,9 @@ class User extends Authenticatable
             ->orderBy('name');
     }
 
+    /**
+     * Verifica se o usuário é membro do projeto, independente de ser admin, contribuidor ou viewer.
+     */
     public function isMemberOfProject(Project $project): bool
     {
         return $this->projects()
@@ -214,6 +217,9 @@ class User extends Authenticatable
         return null;
     }
 
+    /**
+     * Verifica se o usuário é um dos responsáveis pela task.
+     */
     public function isTaskAssignee(Task $task): bool
     {
         return $this->tasks()->where('task_id', $task->id)->exists();
