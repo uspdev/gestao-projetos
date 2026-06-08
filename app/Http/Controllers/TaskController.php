@@ -48,7 +48,7 @@ class TaskController extends Controller
         $taskView = $request->query('view') ?? session('tasks_view', 'list'); //list ou kanban
         session(['tasks_view' => $taskView]);
 
-        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '1'); //list ou kanban
+        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', '0'); // 0 exibe ativas, 1 exibe concluídas
         session(['tasks_done' => $tasksDone]);
 
         $tasksMine = $request->query('tasks_mine') ?? session('tasks_mine', '0');
@@ -59,7 +59,13 @@ class TaskController extends Controller
         $tasksByStatus = $project->tasks()
             ->with(['project', 'users', 'tags'])
             ->when($tasksMine, fn($query) => $query->whereHas('users', fn($userQuery) => $userQuery->where('users.id', Auth::id())))
-            ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
+            // Se $tasksDone for true (1), filtra para mostrar apenas tarefas com status DONE.
+            // Caso contrário, filtra para mostrar apenas tarefas que não estão com status DONE.
+            ->when(
+                $tasksDone,
+                fn($query) => $query->where('status', TaskStatus::DONE->value),
+                fn($query) => $query->where('status', '!=', TaskStatus::DONE->value)
+            )
             ->orderBy('completed_at', 'asc')
             ->orderBy('priority', 'asc')
             ->latest()
@@ -72,9 +78,11 @@ class TaskController extends Controller
         }
 
         $statuses = collect(TaskStatus::cases())
-            ->when(!$tasksDone, fn($collection) => $collection->reject(
-                fn(TaskStatus $status) => $status === TaskStatus::DONE
-            ));
+            ->when(
+                $tasksDone,
+                fn($collection) => $collection->filter(fn(TaskStatus $status) => $status === TaskStatus::DONE),
+                fn($collection) => $collection->reject(fn(TaskStatus $status) => $status === TaskStatus::DONE)
+            );
 
         return view('module-tasks.index', compact(
             'tasksByStatus',
