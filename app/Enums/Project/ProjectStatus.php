@@ -7,7 +7,7 @@ enum ProjectStatus: string
     case DRAFT = 'DRAFT';
     case PLANNED = 'PLANNED';
     case ACTIVE = 'ACTIVE';
-    case HOLD = 'HOLD';            
+    case HOLD = 'HOLD';
     case COMPLETED = 'COMPLETED';
     case CANCELLED = 'CANCELLED';
     case ARCHIVED = 'ARCHIVED';
@@ -29,8 +29,8 @@ enum ProjectStatus: string
     {
         return match ($this) {
             self::DRAFT, self::PLANNED => 'light text-dark',
-            self::ACTIVE => 'primary',
-            self::COMPLETED => 'success',
+            self::ACTIVE => 'success',
+            self::COMPLETED => 'secondary',
             self::HOLD => 'warning',
             self::CANCELLED => 'danger',
             self::ARCHIVED => 'dark',
