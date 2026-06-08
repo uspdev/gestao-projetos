@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
-use App\Enums\Meeting\MeetingStatus;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
@@ -11,6 +10,7 @@ use App\Enums\Project\ProjectVisibility;
 use App\Models\Module;
 use App\Morphs\Discussable;
 use App\Traits\Auditable;
+use App\Traits\HasMeeting;
 use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -32,6 +32,7 @@ use Spatie\Tags\HasTags;
 class Project extends Model implements Discussable, HasCommentRecipients
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, LogsActivity;
+    use HasMeeting;
 
     public const ORGANIZATIONAL_TYPE_SLUG = 'organizacional';
 
@@ -180,15 +181,6 @@ class Project extends Model implements Discussable, HasCommentRecipients
     }
 
     /**
-     * Relacionamento com reunioes N-N
-     */
-    public function meetings(): BelongsToMany
-    {
-        return $this->belongsToMany(Meeting::class, 'meeting_projects')
-            ->using(MeetingProject::class);
-    }
-
-    /**
      * Relacionamento com comentarios (morph)
      */
     public function comments(): MorphMany
@@ -201,14 +193,6 @@ class Project extends Model implements Discussable, HasCommentRecipients
         $this->loadMissing('users');
 
         return $this->users->unique('id')->values();
-    }
-
-    /**
-     * Relacionamento com meeting items via morph (Project pode ser um meeting item)
-     */
-    public function meetingItems(): MorphMany
-    {
-        return $this->morphMany(MeetingItem::class, 'discussable');
     }
 
     public function parentProjectId(): ?int
@@ -458,16 +442,6 @@ class Project extends Model implements Discussable, HasCommentRecipients
         });
     }
 
-    public function scopeAvailableForMeetings(Builder $query, User $user): Builder
-    {
-        return $query
-            ->accessibleBy($user)
-            ->whereHas('modules', function (Builder $q) {
-                $q->where('modules.slug', 'meetings')
-                    ->where('project_modules.enabled', true);
-            });
-    }
-
     /**
      * Escopo para ordenar projetos pela atividade mais recente (usando o updated_at nativo/touches)
      */
@@ -569,26 +543,6 @@ class Project extends Model implements Discussable, HasCommentRecipients
     {
         return $this->tasks()
             ->where('status', '!=', \App\Enums\Task\TaskStatus::DONE)
-            ->count();
-    }
-
-    public function meetingsCount(bool $showCompleted = false): int
-    {
-        return $this->meetings()
-            ->when(! $showCompleted, function ($query) {
-                $query->where(
-                    'status',
-                    '!=',
-                    MeetingStatus::COMPLETED->value
-                );
-            })
-            ->count();
-    }
-
-    public function getIncompleteMeetingsCount(): int
-    {
-        return $this->meetings()
-            ->where('status', '!=', \App\Enums\Meeting\MeetingStatus::COMPLETED)
             ->count();
     }
 
