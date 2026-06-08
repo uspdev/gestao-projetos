@@ -23,11 +23,11 @@ class UserController extends Controller
         Gate::authorize('view', $user);
 
         $taskViewDefault = 'kanban';  //list ou kanban
-        $taskView = request()->query('view') ?? session('tasks_view', $taskViewDefault);
+        $taskView = request()->query('view', session('tasks_view', $taskViewDefault));
         session(['tasks_view' => $taskView]);
 
         $taskDoneDefault = 0; // 0 não exibe, ou 1 exibe tarefas concluídas
-        $tasksDone = $request->query('tasks_done') ?? session('tasks_done', $taskDoneDefault);
+        $tasksDone = $request->query('tasks_done', session('tasks_done', $taskDoneDefault));
         session(['tasks_done' => $tasksDone]);
 
         $user->load([
