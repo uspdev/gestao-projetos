@@ -40,7 +40,9 @@
 
         <div class="collapse {{ $isEditingNotes ? '' : 'show' }}" id="{{ $notesDisplayId }}">
           @if (filled($meeting->notes))
-            <div class="text-dark">{{ $meeting->notes }}</div>
+            <div class="text-dark text-break">
+              <x-markdown-content :text="$meeting->notes" :escape-html="true" :render-markdown="false" />
+            </div>
           @else
             <span class="text-muted">-</span>
           @endif
