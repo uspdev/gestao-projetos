@@ -167,7 +167,7 @@
         <div class="landing-hero-content">
           <h1 class="landing-title">Gestão de projetos</h1>
           <p class="landing-subtitle">
-            Uma plataforma criada para centralizar seus projetos, simplificar a organização de tarefas e
+            Uma plataforma criada para centralizar projetos, simplificar a organização de tarefas e
             facilitar o acompanhamento de entregas, feita para atender desde equipes de desenvolvimento até
             setores administrativos.
           </p>
@@ -187,16 +187,6 @@
       <h2 class="section-title">O que o sistema oferece?</h2>
 
       <div class="features-grid">
-
-        <x-card.preview class="h-100 shadow-sm border">
-          <div class="preview-card__feature-icon"><i class="fas fa-shield-alt"></i></div>
-          <h3 class="preview-card__title preview-card__title--feature mb-2">Acesso Seguro Integrado</h3>
-          <p class="preview-card__feature-desc">
-            Navegue em um ambiente 100% seguro utilizando sua <strong>Senha Única da USP</strong>. Sem
-            necessidade de criar novos cadastros ou memorizar novas senhas.
-          </p>
-        </x-card.preview>
-
         <x-card.preview class="h-100 shadow-sm border">
           <div class="preview-card__feature-icon"><i class="fas fa-sitemap"></i></div>
           <h3 class="preview-card__title preview-card__title--feature mb-2">Tipos de Projeto</h3>

@@ -42,7 +42,7 @@
         
         <div class="col-md-6 col-lg-6 mb-3" data-subproject-searchable="{{ $subproject->name }}">
           <x-card.preview href="{{ route('projects.show', $subproject) }}"
-            aria-label="Acessar subprojeto {{ $subproject->name }}" :title="$subproject->name" title-variant="project"
+            aria-label="Acessar subprojeto {{ $subproject->name }}" :card-title="$subproject->name" title-variant="project"
             :status-label="$subproject->status?->label()" :status-class="$subproject->status?->color()" :project-type="$subproject->projectType?->name" :tags="$subprojectTags" :tags-limit="1" :role-label="$userRole?->label() ?? 'Sem vínculo'"
             :role-class="$userRole ? 'badge-' . $userRole->color() : 'badge-light border text-muted'" action-class="preview-card__action">
             @if ($canUnlinkSubproject)

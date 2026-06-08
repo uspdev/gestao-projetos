@@ -1,7 +1,7 @@
 @props([
     'href' => null,
     'ariaLabel' => null,
-    'title' => null,
+    'cardTitle' => null,
     'titleVariant' => 'project',
     'titleTag' => 'h5',
     'titleClass' => '',
@@ -168,13 +168,13 @@
         {{ $header }}
       </div>
     @else
-      @if ($title || $statusLabel)
+      @if ($cardTitle || $statusLabel)
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div class="preview-card__row">
             <{{ $titleTag }}
               class="m-0 preview-card__title preview-card__title--{{ $titleVariant }} {{ $titleClass }}"
-              title="{{ $title }}">
-              {{ $title }}
+              title="{{ $cardTitle }}">
+              {{ $cardTitle }}
               </{{ $titleTag }}>
 
               <div class="d-flex align-items-center ml-2 position-relative" style="z-index: 2; gap: 0.35rem;">
@@ -264,7 +264,9 @@
         <div class="d-flex justify-content-between align-items-end mt-auto">
           <div class="d-flex align-items-center flex-wrap" style="gap: 0.25rem; max-height:3.6rem; overflow:hidden;">
             @if ($footerPriorityLabel)
-              <span class="badge {{ $footerPriorityClass ? 'badge-' . $footerPriorityClass : 'badge-light border text-muted' }}" title="Prioridade">
+              <span
+                class="badge {{ $footerPriorityClass ? 'badge-' . $footerPriorityClass : 'badge-light border text-muted' }}"
+                title="Prioridade">
                 <i class="fas fa-flag mr-1"></i>{{ $footerPriorityLabel }}
               </span>
             @endif
