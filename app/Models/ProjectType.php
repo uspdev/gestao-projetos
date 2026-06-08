@@ -62,10 +62,11 @@ class ProjectType extends Model
             ->withTimestamps();
     }
 
-    public function enabledModules() {
+    public function enabledModules()
+    {
         return $this->modules
-              ->filter(fn($module) => (bool) ($module->pivot?->enabled ?? false))
-              ->values();
+            ->filter(fn($module) => (bool) ($module->pivot?->enabled ?? false))
+            ->values();
     }
 
     /**
@@ -90,14 +91,28 @@ class ProjectType extends Model
             return $module->slug === $normalized && (bool) ($module->pivot?->enabled ?? false);
         });
     }
-    // Retorna a configuração de um módulo específico para o projeto,
-    // considerando as regras de herança do tipo de projeto e os overrides específicos do projeto,
-    // para facilitar a verificação de disponibilidade de funcionalidades em diferentes partes da aplicação
-    // sem a necessidade de carregar toda a relação de módulos.
-    // Fiz dessa forma sem a necessidade de carregar toda a relação de módulos para otimizar o desempenho e
-    // deixar mais fácil a verificação
-    // como na tela de configurações do projeto, onde exibimos uma lista de módulos com seus status habilitado/desabilitado,
-    // obrigatoriedade e editabilidade.
+
+    /**
+     * Retorna a configuração resolvida de um módulo no projeto.
+     *
+     * Recupera o estado do módulo considerando o relacionamento
+     * entre projeto e módulos, incluindo os valores definidos
+     * no pivot (enabled, required e editable), sem a necessidade
+     * de percorrer manualmente toda a coleção de módulos.
+     *
+     * Útil para verificações rápidas de disponibilidade de funcionalidades
+     * e para telas de configuração do projeto, onde é necessário exibir
+     * ou validar o estado dos módulos de forma eficiente.
+     *
+     * @param string $slug Identificador único do módulo.
+     *
+     * @return array{
+     *     module: \App\Models\Module,
+     *     enabled: bool,
+     *     required: bool,
+     *     editable: bool
+     * }|null
+     */
     public function moduleConfig(string $slug): ?array
     {
         $normalized = strtolower(trim($slug));
