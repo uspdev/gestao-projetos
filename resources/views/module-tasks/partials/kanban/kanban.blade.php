@@ -9,7 +9,6 @@
           <div class="font-weight-bold text-capitalize">{{ $status->label() }}</div>
 
           <div class="d-flex align-items-center gap-2">
-            @include('module-tasks.partials.kanban.kanban-search')
             <span class="badge badge-{{ $status->color() }}">{{ $tasks->count() }}</span>
           </div>
         </div>
