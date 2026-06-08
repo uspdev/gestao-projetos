@@ -11,8 +11,8 @@
 
   <div class="row">
     @forelse($user->pinnedProjects() as $project)
-      <div class="col-md-4">
-        @include('projects.partials.components.preview')
+      <div class="col-12 col-lg-6 col-xl-4 project-item mb-2 px-2">
+        <x-project-card :project="$project" />
       </div>
     @empty
       <div class="col-12">
@@ -23,4 +23,3 @@
     @endforelse
   </div>
 </section>
-
