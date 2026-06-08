@@ -42,13 +42,10 @@
         class="text-decoration-none  {{ request('view', 'main') === 'main' ? 'text-dark' : 'text-secondary' }}">
         <span>{{ $project->name }}</span>
       </a>
+      <div class="mb-2">
+        @include('projects.partials.components.toggle-pin')
+      </div>
 
-      @if ($project->isSubproject())
-        <span class="badge badge-pill badge-info" style="font-size: 0.75rem; padding: 0.2rem 0.4rem;"
-          title="Este projeto é um subprojeto">
-          SUB
-        </span>
-      @endif
 
       @if ($project->isOrganizational())
         <a href="{{ route('projects.show', $project) }}?view=subprojects"
