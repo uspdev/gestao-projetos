@@ -121,25 +121,30 @@ class ProjectController extends Controller
         }
 
         // Se nenhum parâmetro de tipo de projeto for fornecido, exibe a tela de seleção de tipo,
-        // listando todos os tipos de projeto disponíveis ordenados por nome, e seus módulos
+        // listando todos os tipos de projeto não organizacional disponíveis
+        // ordenados por nome, e seus módulos
         $projectTypes = ProjectType::query()
             ->with(['modules' => fn($query) => $query->orderBy('name')])
             ->where('enabled', true)
             ->where('slug', '!=', 'organizacional')
             ->orderBy('name')->get();
 
-        $organizacional = ProjectType::where('slug', 'organizacional')->first();
+        $organizacional = ProjectType::query()
+            ->where(['slug' => 'organizacional'])
+            ->first();
 
         return view('projects.create', compact('projectTypes', 'organizacional'));
     }
 
+    /**
+     * Alterna o status de fixação (pinned) de um projeto
+     */
     public function togglePin(Project $project)
     {
-        $user = Auth::user();
         Gate::authorize('view', $project);
 
+        $user = Auth::user();
         $membership = $project->users()->where('users.id', $user->id)->first();
-
         abort_unless($membership, 403);
 
         $isPinned = (bool) ($membership->pivot->pinned ?? false);
