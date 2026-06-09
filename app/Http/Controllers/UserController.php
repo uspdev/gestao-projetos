@@ -13,7 +13,7 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            \UspTheme::activeUrl('meu-perfil');
+            \UspTheme::activeUrl('dashboard');
             return $next($request);
         })->only(['show']);
     }

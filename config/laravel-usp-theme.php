@@ -7,7 +7,7 @@ $menu = [
     ],
     [
         'text' => '<i class="fas fa-tachometer-alt"></i> Dashboard',
-        'url'  => 'meu-perfil',
+        'url'  => 'dashboard',
         'can'  => 'user',
     ],
 
@@ -16,11 +16,6 @@ $menu = [
         'url'  => 'projects',
         'can'  => 'user',
     ],
-    // [
-    //     'text' => '<i class="fas fa-tasks"></i> Minhas Tarefas',
-    //     'url'  => 'minhas-tasks',
-    //     'can'  => 'user',
-    // ],
     [
         'text' => '<i class="fas fa-book-open"></i> Sobre',
         'url'  => 'about',

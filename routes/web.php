@@ -154,8 +154,7 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // MENU / REDIRECTS
     // ==========================================
-    Route::get('/meus-projetos', fn() => redirect()->route('projects.index'));
-    Route::get('/meu-perfil', fn() => redirect()->route('users.show', Auth::id()));
+    Route::get('/dashboard', fn() => redirect()->route('users.show', Auth::id()));
 });
 
 // ==========================================
