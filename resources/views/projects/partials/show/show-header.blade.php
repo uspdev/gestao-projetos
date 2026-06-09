@@ -26,10 +26,7 @@
 ])>
   <div class="mb-0">
     <div class="h4 mb-0 d-flex align-items-center flex-wrap" style="gap: 0.35rem;">
-      <a href="{{ route('projects.index') }}" class="text-decoration-none text-secondary">
-        <i class="fas fa-home"></i>
-      </a>
-      <x-separator />
+      <i class="fas fa-folder-open text-secondary"></i>
 
       @if ($project->isSubproject() && $project->parent)
         <a href="{{ route('projects.show', $project->parent) }}" class="text-decoration-none text-secondary">

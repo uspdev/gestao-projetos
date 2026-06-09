@@ -6,13 +6,13 @@ $menu = [
         'key' => 'gestao-projetos',
     ],
     [
-        'text' => '<i class="fas fa-user-circle"></i> Dashboard',
+        'text' => '<i class="fas fa-tachometer-alt"></i> Dashboard',
         'url'  => 'meu-perfil',
         'can'  => 'user',
     ],
 
     [
-        'text' => '<i class="fas fa-home"></i> Projetos',
+        'text' => '<i class="fas fa-folder-open"></i> Projetos',
         'url'  => 'projects',
         'can'  => 'user',
     ],
