@@ -1,178 +1,342 @@
-***
+# Roadmap
 
-# 1. Features Futuras (Roadmap)
+> **Navegação rápida**
+>
+> [**Funcionalidades Implementadas**](#Funcionalidades-Implementadas)
+>
 
-## Funcionalidades planejadas para expandir a usabilidade, governança e integração da plataforma após a consolidação do MVP.
-
-> Este documento detalha as funcionalidades do sistema de gestão de projetos, especificamente o roadmap de melhorias contínuas (Features Futuras). A  lista  é ordenada por prioridade, ou seja, os últimos itens são considerados de baixo impacto e relevância.
+Este documento reúne as próximas funcionalidades planejadas para expandir a
+usabilidade, a governança e a integração da plataforma. A lista está ordenada
+por prioridade, com os itens de maior impacto apresentados primeiro.
 
 ---
 
-## 1. Reuniões (Meetings)
+## 1. Integração Bidirecional com GitHub
 
-> **Problema:** Sem um módulo dedicado de reuniões, decisões e alinhamentos importantes ficam dispersos em conversas informais, dificultando rastreabilidade e governança.
+> **Problema:** Desenvolvedores duplicam trabalho ao atualizar o GitHub e o
+> sistema interno de tarefas.
 >
-> **Solução:** Implementar uma entidade de reuniões para agendar e registrar checkpoints de projeto, centralizando contexto e histórico em um único local.
+> **Solução:** Sincronizar tarefas com Issues e Pull Requests, propagando
+> alterações relevantes entre os sistemas.
 
-* **Implementação:** Tabela `meetings` com CRUD no Laravel, vinculada aos projetos e preparada para consolidar pautas e registros associados.
-* **Prós:** Melhora a governança e cria trilha histórica de decisões por projeto.
-* **Contras:** Sem disciplina de uso, pode virar apenas um cadastro de eventos sem valor analítico.
+* **Implementação:** Usar a API oficial e Webhooks do GitHub, com mapeamento de
+  identificadores, autenticação e processamento assíncrono dos eventos.
+* **Prós:** Reduz o trabalho manual e mantém o sistema interno atualizado mesmo
+  quando a equipe opera principalmente pelo GitHub.
+* **Contras:** Exige tratamento de conflitos, indisponibilidade externa,
+  duplicidade de eventos e permissões de acesso aos repositórios.
 
 ---
 
-## 2. Atualizações de Status (Status Updates)
+## 2. Sistema de Texto Rico (Rich Text) e Menções
 
-> **Problema:** Sem atualizações estruturadas, o acompanhamento do progresso depende de relatos ad-hoc e perde previsibilidade.
->
-> **Solução:** Criar um fluxo de atualizações periódicas para registrar evolução, impedimentos e próximos passos por projeto e por reunião.
+> **Problema:** Descrições, notas e comentários em texto simples limitam a clareza e a eficácia da comunicação. A ausência de formatação, anexos visuais (como capturas de tela) e links cruzados dificulta o detalhamento de bugs, tarefas e requisitos do projeto.
+> **Solução:** Implementar um ecossistema de texto rico baseado em Markdown, com suporte a mídias, links e menções polimórficas (usuários, tarefas, projetos), dividindo a responsabilidade entre um editor no front-end e um parser robusto no back-end.
 
-* **Implementação:** Tabela `status_updates` relacionada a `projects` e `meetings`, permitindo agrupamento e leitura histórica no Laravel.
-* **Prós:** Gera visibilidade contínua da evolução e melhora a qualidade do acompanhamento.
-* **Contras:** Depende da adesão dos gerentes e responsáveis para manter os registros recorrentes.
+* **Implementação:**
+* Configurar o `league/commonmark` no back-end com políticas estritas de segurança (strip de HTML e bloqueio de links inseguros) para prevenção de XSS.
+* Criar uma tabela bidirecional `mentions` e definir uma sintaxe estável no Markdown (ex: `@[Nome](mention:user:ID)`).
+* Adicionar componentes Blade reutilizáveis (`<x-rich-text-editor>`) nos formulários de descrição, comentários e notas.
 
----
 
-## 3. Documentação Interna Nativa (Docs)
+* **Prós:** Melhora drasticamente a legibilidade, permite navegação rápida entre entidades mencionadas e centraliza anexos de forma rastreável, elevando a plataforma a um padrão profissional de gestão.
+* **Contras:** Introduz alta complexidade na camada de renderização, exige sanitização rigorosa contínua e aumenta o escopo de gerenciamento de arquivos estáticos.
 
-> **Problema:** Sem uma estrutura dedicada, o contexto e os requisitos de um projeto ficam restritos a um texto simples (descrição), limitando a formatação e fragmentando a informação em serviços externos (como Google Docs).
->
-> **Solução:** Tratar os documentos como entidades independentes em vez de apenas um campo de texto em `projects`.
+**Questões em Aberto e Definições de Arquitetura (A explorar):**
 
-* **Implementação:** Tabela própria de `documents` relacionada aos projetos (`project_id`), preparada para receber dados de um editor *rich text*.
-* **Prós:** Cria uma base de conhecimento interna e expansível.
-* **Contras:** Exige a integração e configuração de bibliotecas de edição de texto rico no front-end.
-
----
-
-## 4. Mídias em Tarefas (Fotos e Vídeos)
-
-> **Problema:** Bugs visuais ou fluxos complexos são difíceis de explicar apenas com texto.
->
-> **Solução:** Suporte nativo para anexar arquivos de mídia nas descrições e comentários das tarefas.
-
-* **Implementação:** Integração com Storage do Laravel (S3 ou disco local) e componentes de *drag-and-drop* no front-end.
-* **Prós:** Aumenta muito a clareza da comunicação técnica.
-* **Contras:** Complexidade em armazenar os arquivos e necessidade de implementar limpeza periódica de arquivos não utilizados.
+* **Mecânica da Persistência em Markdown:** Consolidar o entendimento sobre o armazenamento da string bruta (Markdown) no banco de dados em oposição ao HTML, e como ocorre a transformação dinâmica (renderização) apenas no momento em que a view é entregue ao usuário.
+* **Batalha de Editores (EasyMDE vs. TinyMCE vs. Tiptap):** Realizar um comparativo aprofundado e definitivo. Ponderar por que editores WYSIWYG baseados em HTML (TinyMCE) geram atrito com Markdown, as limitações visuais de editores leves (EasyMDE) e o alto custo de desenvolvimento de UI de frameworks modernos (Tiptap).
+* **Uploads e *Draft Tokens*:** Entender o padrão da indústria para anexos. Avaliar as razões pelas quais gigantes da tecnologia não utilizam Base64 in-line (tamanho de banco, lentidão de queries) e por que adotar o modelo de "upload temporário + consolidação no salvamento" é justificado mesmo para sistemas de menor porte, mapeando alternativas mais simples e seus respectivos prejuízos.
+* **Parsers e AST (Abstract Syntax Tree):** Desmistificar a extensão do motor CommonMark. Compreender o que é a Árvore de Sintaxe Abstrata (AST) e como manipular esses "nós" programaticamente no Laravel permite interceptar menções e links de forma segura, garantindo que expressões regulares (Regex) falhas não quebrem o sistema ou abram brechas de segurança.
 
 ---
 
-## 5. Dashboards Analíticos e Calendário do Projeto
+## 3. Mídias em Textos Ricos (Fotos, Vídeos e Arquivos)
 
-> **Problema:** À medida que o volume de trabalho cresce, acompanhar a saúde geral do projeto analisando apenas listas de tarefas torna-se inviável. Fica difícil visualizar os marcos temporais e a distribuição do esforço da equipe sem uma visão macro consolidada.
+> **Problema:** Informações visuais, arquivos de apoio e fluxos complexos são
+> difíceis de registrar e compreender apenas com texto.
 >
-> **Solução:** Telas gerenciais específicas dentro de cada projeto. Essa visualização deve incluir gráficos de progresso geral, porcentagem de contribuição por usuário, uma aba de calendário exibindo os deadlines das tarefas e as datas de reuniões atreladas àquele contexto.
+> **Solução:** Permitir o envio e a incorporação de mídias em qualquer campo com
+> editor de texto rico, incluindo documentos, descrições, comentários, reuniões
+> e demais conteúdos que adotem esse formato.
 
-* **Implementação:** Criação de um modelo ou tabela independente de `dashboards` atrelada aos projetos para gerenciar preferências de exibição. No backend, uso de consultas de agregação robustas com o Eloquent. No front-end, integração de bibliotecas de gráficos e de calendário para renderizar os dados de forma interativa.
-
-* **Prós:** Fornece uma visão executiva excelente e transparente, facilitando o acompanhamento de métricas e do cronograma para o seu chefe e outros gestores que utilizarão a plataforma na empresa.
-
-* **Contras:** O cálculo constante de porcentagens e a agregação dessas estatísticas podem sobrecarregar o banco de dados. Necessário desenhar estratégias de *cache* ou criar tabelas sumarizadas de consolidação no backend conforme o histórico do sistema interno da empresa for crescendo.
+* **Implementação:** Criar uma camada centralizada de anexos integrada ao
+  Storage do Laravel, em disco local ou serviço compatível com S3, e conectá-la
+  aos editores de texto rico. Os arquivos devem manter vínculo com o conteúdo de
+  origem e respeitar suas regras de acesso.
+* **Prós:** Enriquece a documentação e a comunicação em todo o sistema, permite
+  contextualizar informações com imagens, vídeos e arquivos e evita soluções de
+  upload diferentes para cada módulo.
+* **Contras:** Demanda validação de tipo e tamanho, controle de acesso, proteção
+  contra arquivos maliciosos, gerenciamento de armazenamento e limpeza de
+  anexos órfãos ou não utilizados.
 
 ---
 
-## 6. Dashboard e Calendário Pessoal do Usuário
+## 4. Relatórios, Dashboards e Inventário Gerencial
 
-> **Problema:** Usuários perdem tempo navegando pelas *views* de múltiplos projetos para descobrir quais são suas pendências do dia.
+> **Problema:** A execução técnica (tarefas e reuniões) já está coberta, mas falta uma visão gerencial para acompanhar o fluxo de trabalho. É impossível medir a capacidade da equipe, o tempo de entrega (Lead Time), o gargalo de atendimento aos setores ou mapear a infraestrutura de servidores e sistemas mantidos.
 >
-> **Solução:** Uma tela inicial (dashboard) focada no indivíduo, contendo apenas as tarefas atribuídas a ele e uma aba de calendário exibindo deadlines e datas de reuniões importantes.
+> **Solução:** Implementar um módulo de relatórios analíticos, separando conceitualmente as *Demandas Gerenciais* (o pedido do setor) das *Tarefas Técnicas* (a execução), e introduzir um inventário de infraestrutura de TI seguro e rastreável.
 
-* **Implementação:** Resolução voltada em sua maior parte para o front-end (usando bibliotecas de calendário), com o backend servindo *queries* simples filtradas por `user_id`.
-* **Prós:** Baixa complexidade no backend e alto impacto direto na organização pessoal.
-* **Contras:** A lógica do front-end com calendário exige cuidado rigoroso no tratamento de fusos horários (*timezones*).
+* **Implementação:**
+  * **Demandas e Entregas:** Criar a tabela `demands` com fluxo de estados explícito (recebido, em análise, aprovado, em andamento, entregue), vinculada a unidades solicitantes. Demandas podem gerar múltiplas tarefas e registrar entregas parciais.
+  * **Inventário Seguro:** Modelar `servers`, `services`, `technologies` e `systems` com relações N-N. Nenhuma credencial será armazenada; o foco é mapeamento de arquitetura, responsáveis e criticidade.
+  * **Métricas e Dashboards:** Usar consultas otimizadas no MySQL com cache (5 a 15 min). Criar classes de serviço dedicadas (`DemandReportService`) para centralizar os cálculos. O front-end utilizará Chart.js e componentes Blade, além de exportação direta para CSV.
+  * **Autorização:** Criar permissões globais específicas para relatórios gerenciais e gestão de inventário, separando esses papéis da administração do sistema.
+* **Prós:** Traz governança de TI. Permite responder "onde o tempo da equipe foi gasto", expõe a dívida técnica da infraestrutura e tira o foco apenas do micro-gerenciamento de tarefas.
+* **Contras:** Aumenta a carga cognitiva da plataforma. Introduz o risco de métricas divergentes se os filtros não forem unificados e requer maturidade da equipe para preencher horas e atualizar fluxos de demandas corretamente.
+
+**Questões em Aberto e Definições de Arquitetura (A explorar):**
+
+* **Limites de Agregação no MySQL:** Compreender a partir de que volume as consultas `GROUP BY` e cálculos estatísticos (como medianas de Lead Time) começarão a travar o banco transacional, exigindo tabelas sumarizadas (materialized views).
+* **Taxonomia e Fluxo de Trabalho:** Debater a usabilidade de forçar que o ciclo de vida comece sempre por uma "Demanda" em vez de uma "Tarefa" técnica direta, avaliando o impacto disso na agilidade de desenvolvedores que estão acostumados a criar tarefas *ad-hoc*.
+* **Relatórios como Código (Services vs. BI Tools):** Avaliar a decisão de codificar os dashboards diretamente no Laravel usando Chart.js contra o benefício e o custo de usar ferramentas maduras (como Metabase ou Apache Superset) conectadas a uma réplica de leitura do banco de dados.
 
 ---
 
-## 7. Integração Bidirecional com GitHub
+## 5. Interface de Auditoria do Projeto
 
-> **Problema:** Desenvolvedores duplicam trabalho atualizando o GitHub (Issues/PRs) e o sistema interno de tarefas.
+> **Problema:** O backend já registra as alterações realizadas no sistema, mas
+> esses dados não podem ser consultados pela interface. Isso dificulta descobrir
+> quem alterou um projeto, quando a alteração ocorreu e quais valores foram
+> modificados.
 >
-> **Solução:** Sincronização automática. Fechar uma Issue no GitHub fecha a Task no sistema interno e vice-versa.
+> **Solução:** Criar uma tela de auditoria no contexto de cada projeto, com uma
+> linha do tempo das atividades do próprio projeto e de seus recursos
+> relacionados.
 
-* **Implementação:** Utilização da API REST oficial do GitHub (ou Webhooks). O backend do Laravel precisará de rotas para escutar os *payloads* do GitHub.
-* **Prós:** Redução drástica de atrito e trabalho manual para os devs. Provável aumento de adesão ao sistema interno, e mesmo que a equipe esteja criando issues no GitHub o sistema está ciente disso e é atualizado.
-* **Contras:** Lógica complexa de mapeamento de IDs e tratamento de falhas de rede entre os dois sistemas.
+* **Implementação:** Usar o modelo e os filtros de auditoria existentes para
+  consultar eventos por projeto, usuário, tipo de recurso, ação e período. A
+  interface deve apresentar autor, data, evento e comparação entre valores
+  antigos e novos, com paginação e tratamento legível para relacionamentos,
+  enums e campos sem valor anterior. O acesso deve ser protegido por uma
+  permissão específica, respeitando o escopo do projeto.
+* **Prós:** Torna a rastreabilidade disponível aos responsáveis pelo projeto,
+  facilita investigações de alterações indevidas e melhora a transparência sem
+  exigir acesso direto ao banco de dados.
+* **Contras:** A diversidade dos eventos auditados exige formatação específica
+  para que os registros sejam compreensíveis. Consultas sobre históricos
+  extensos também podem demandar índices, paginação eficiente e limites de
+  período.
 
 ---
 
-## 8. Organização Estrutural (Pastas, Listas e Subtasks)
+## 6. Resumos de Reuniões e Projetos com LLM
 
-> **Problema:** À medida que a ferramenta cresce, um projeto contendo centenas de tarefas se torna inavegável.
+> **Problema:** Reuniões e projetos acumulam informações que demandam leitura
+> manual para a identificação de decisões, pendências e próximos passos.
 >
-> **Solução:** Permitir agrupamento de tarefas em listas, projetos em pastas com visibilidade controlada, e tarefas aninhadas.
+> **Solução:** Usar uma API de LLM para gerar resumos de reuniões e projetos,
+> com processamento em segundo plano e opção de execução manual pelo usuário.
 
-* **Implementação:** Tabelas `folders` (com hierarquia pai/filho), `lists` e self-joins na tabela `tasks` (coluna `parent_id`).
-* **Prós:** Organização comparável a ferramentas de ponta do mercado (semelhante ao Google Drive).
-* **Contras:** Consultas SQL complexas para buscar hierarquias profundas e riscos de performance sem cache adequado.
+* **Implementação:** Criar jobs enfileirados para geração dos resumos, permitir
+  a execução sob demanda e oferecer configuração do prompt utilizado em cada
+  contexto.
+* **Prós:** Reduz o tempo necessário para compreender o histórico e facilita a
+  comunicação de decisões e andamento.
+* **Contras:** Introduz custo de API, tratamento de falhas externas e cuidados
+  adicionais com privacidade, qualidade e previsibilidade dos resultados.
 
 ---
 
-## 8.1 Navegação Dinâmica e Centralizada (Breadcrumbs)
+## 7. Calendário Pessoal do Usuário e Calendário do Projeto
 
-> **Problema:** Com a introdução de hierarquias complexas na Feature 8 (Pastas infinitas e Subtasks), a navegação estrutural baseada em código estático (*hardcoded*) nas *views* se tornará insustentável. Qualquer alteração de rota ou nível exigirá a modificação manual de dezenas de arquivos, gerando alto risco de *shotgun surgery* e inconsistência visual.
+> **Problema:** Embora o dashboard pessoal já reúna projetos, reuniões e tarefas,
+> o usuário ainda não possui uma visão temporal unificada de seus compromissos.
+> Da mesma forma, cada projeto carece de uma visão cronológica própria para
+> acompanhar seus prazos e eventos.
 >
-> **Solução:** Implementar um gerenciador centralizado de rotas de navegação que construa dinamicamente a trilha do usuário (*breadcrumb*), mapeando a árvore de dependências (Pai > Filho) em uma única fonte de verdade.
+> **Solução:** Disponibilizar um calendário pessoal com os prazos e reuniões
+> acessíveis ao usuário e um calendário dentro de cada projeto, limitado às
+> tarefas e reuniões daquele contexto.
 
-* **Implementação:** Adoção do pacote `diglactic/laravel-breadcrumbs` (ou serviço customizado equivalente). Definição de *closures* em um arquivo central (`routes/breadcrumbs.php`) determinando a hierarquia das entidades, renderizado no front-end por um componente Blade único e burro.
-* **Prós:** Escala perfeitamente com a Feature 8, pois suporta recursividade nativa (uma subtask chama o breadcrumb da task pai, que chama a pasta, que chama o projeto). Desacopla a lógica de navegação dos Controllers e garante manutenção em um único arquivo.
-* **Contras:** Adiciona uma nova dependência ao projeto e requer configuração e mapeamento rigoroso de todas as ramificações de rotas criadas.
+* **Implementação:** Expor tarefas e reuniões em formato adequado a um componente
+  de calendário, com consultas específicas para o escopo do usuário e do
+  projeto, respeitando módulos habilitados, permissões e fusos horários.
+* **Prós:** Facilita o planejamento individual e oferece às equipes uma visão
+  compartilhada dos prazos, reuniões e possíveis conflitos do projeto.
+* **Contras:** A experiência depende de regras claras para datas, eventos sem
+  horário, sobreposição de compromissos e conversão de *timezones*.
 
 ---
 
-## 9. Múltiplas Visões (View de Dev vs. View Administrativa)
+## 8. Navegação por Atalhos de Teclado
 
-> **Problema:** Softwares como Jira são robustos, mas intimidam usuários não-técnicos. Equanto isso, softwares simplistas não atendem às métricas necessárias para desenvolvedores.
+> **Problema:** A dependência exclusiva do mouse desacelera ações frequentes,
+> principalmente para usuários intensivos da plataforma.
 >
-> **Solução:** Fornecer interfaces adaptáveis baseadas no perfil do usuário. Baseado no perfil do usuário devem ser renderizados componentes visuais diferentes no front-end.
+> **Solução:** Adicionar atalhos globais para ações como criar tarefas, focar
+> campos de busca e navegar entre áreas do sistema.
 
-* **Prós:** Maximiza a adesão em diferentes setores da instituição.
-* **Contras:** Aumenta significativamente a carga de trabalho no desenvolvimento do front-end (manutenção de duas interfaces).
+* **Implementação:** Configurar eventos globais de teclado e uma camada
+  centralizada para registrar e documentar os atalhos disponíveis.
+* **Prós:** Torna a navegação mais rápida e melhora a experiência de usuários
+  recorrentes.
+* **Contras:** É necessário evitar conflitos com campos de edição, navegador,
+  sistema operacional e requisitos de acessibilidade.
 
 ---
 
-## 10. Trilha de Auditoria Avançada (Logs)
+<a id="Funcionalidades-Implementadas"></a>
 
-> **Problema:** O MVP possui apenas o último usuário que modificou um registro, causando "amnésia de estado" sobre o histórico do projeto.
->
-> **Solução:** Registrar todas as mudanças de campos críticos (quem mudou, quando, valor antigo e valor novo). Um tipo de versionamento básico.
+# Funcionalidades Implementadas
 
-* **Implementação:** Tabela `audit_logs` acionada por Model Events do Laravel (pacotes como `spatie/laravel-activitylog`).
-* **Prós:** Rastreabilidade completa, segurança e transparência.
-* **Contras:** Implementação relativamente trabalhosa e alto consumo de armazenamento no banco de dados a longo prazo.
+Esta seção registra entregas concluídas. A ordem dos itens não representa
+prioridade.
 
----
+## Reuniões (Meetings)
 
-## 11. Central de Comunicação (Inbox, Menções e E-mails)
+**Implementado em:** 05/2026
 
-> **Problema:** A comunicação fica dispersa e os usuários não sabem quando são demandados.
->
-> **Solução:** Notificações in-app (Inbox central), envio de e-mails para eventos críticos e capacidade de mencionar pessoas (@masaki) nos documentos.
+O módulo permite criar, editar, consultar e remover reuniões vinculadas a um ou
+mais projetos, com data, local, notas e estados de rascunho, agendada, em
+andamento e concluída. A pauta pode ser composta por projetos e tarefas, inclusive
+de subprojetos, com ordenação e notas próprias para cada item. Reuniões concluídas
+podem ser ocultadas das listagens, e as reuniões pendentes também aparecem no
+dashboard dos usuários que possuem acesso aos projetos relacionados.
 
-* **Implementação:** Laravel Notifications (canais database e mail) e parser de texto rico no front-end/back-end para detectar `@usernames`.
-* **Prós:** Mantém a equipe engajada e responsiva dentro do ecossistema do sistema.
-* **Contras:** Requer configuração de infraestrutura de e-mail SMTP (Uma integração completa com o github mata esse problema, já que o GitHub se encarregaria de enviar emails por nós).
-
----
-
-## 12. Busca Global e Filtros Avançados
-
-> **Problema:** Encontrar tarefas ou documentos específicos se torna exaustivo quando o sistema escala e o número de cards aumenta.
->
-> **Solução:** Implementar barras de pesquisa avançada e a capacidade de combinar filtros nas listas de tarefas (por responsáveis, status, prioridade, data limite, label ou quem criou).
-
-* **Implementação:** Construção de *Query Scopes* no backend para processamento dos filtros combinados e formulários dinâmicos na interface.
-* **Prós:** Indispensável para a manutenção da produtividade e navegabilidade do software.
-* **Contras:** Combinações de filtros complexos podem exigir que a estrutura do banco possua índices bem elaborados para não gerar lentidão nas *queries*.
+O acesso respeita os módulos habilitados e as permissões de visualização e
+contribuição dos projetos. Alterações relevantes são auditadas e podem gerar
+notificações por e-mail para os participantes, mantendo decisões, contexto e
+acompanhamento associados aos objetos de trabalho do sistema.
 
 ---
 
-## 13. Navegação por Atalhos de Teclado
+## Atualizações de Status (Status Updates)
 
-> **Problema:** A dependência exclusiva do uso do mouse quebra o estado de *flow* (fluxo) e desacelera o trabalho, principalmente para desenvolvedores.
->
-> **Solução:** Adicionar *shortcuts* (atalhos de teclado) globais para ações comuns da plataforma, como criar uma tarefa nova, focar na barra de busca ou atribuir algo a si mesmo.
+**Implementado em:** 05/2026
 
-* **Implementação:** Configuração de *event listeners* globais e bibliotecas gerenciadoras de teclas de atalho no front-end.
-* **Prós:** Aumenta drasticamente a sensação de rapidez e melhora muito a experiência (UX) de *power users*.
-* **Contras:** Necessidade de gerenciar bem os conflitos no front-end (por exemplo, garantir que um atalho não seja disparado acidentalmente enquanto o usuário digita um comentário em uma tarefa).
+O acompanhamento de status foi incorporado diretamente aos principais fluxos,
+sem uma entidade separada de atualização periódica. Projetos possuem estados que
+cobrem planejamento, execução, espera, conclusão, cancelamento e arquivamento;
+tarefas transitam entre nova, atribuída, em andamento, em revisão, em espera e
+concluída; reuniões possuem seu próprio ciclo entre rascunho e conclusão.
 
-***
+As alterações podem ser feitas nas telas dos respectivos recursos e refletem nas
+visualizações. Tarefas recebem automaticamente o estado de atribuída ao ganhar um responsável,
+registram a data de conclusão e notificam os envolvidos quando concluídas. Essa
+abordagem mantém o andamento visível no contexto em que o trabalho acontece e
+evita a duplicação de informações em relatos paralelos.
+
+---
+
+## Dashboard Pessoal do Usuário
+
+**Implementado em:** 05/2026
+
+A página inicial autenticada funciona como dashboard individual. Ela reúne os
+projetos fixados pelo usuário, as reuniões agendadas dos projetos acessíveis e as
+tarefas atribuídas a ele. As tarefas podem ser exibidas em Kanban ou cartões,
+pesquisadas e filtradas para mostrar ou ocultar itens concluídos; as preferências
+de visualização são mantidas na sessão.
+
+O backend carrega somente tarefas de projetos com o módulo correspondente ativo
+e seleciona reuniões de acordo com o acesso do usuário. Assim, a tela reduz a
+necessidade de visitar cada projeto para descobrir pendências.
+
+---
+
+## Estrutura de Projetos e Subprojetos
+
+**Implementado em:** 06/2026
+
+Projetos podem ser organizacionais, independentes ou vinculados como subprojetos
+por meio de uma relação pai e filho. A interface permite localizar, vincular e
+desvincular subprojetos, exibi-los na visão geral do projeto organizacional e
+navegar entre os níveis. As regras impedem vínculos inválidos e exigem
+administração compatível entre os projetos envolvidos.
+
+A estrutura também oferece visibilidade e herança configurável de permissões,
+além de tipos de projeto que definem fases e módulos disponíveis. Cada projeto
+mantém sua própria configuração de módulos, como tarefas e reuniões, respeitando
+se eles são obrigatórios ou editáveis para o tipo escolhido. Isso substitui a
+ideia de pastas, listas e subtarefas por uma hierarquia alinhada ao domínio do
+sistema, com escopo funcional e acesso controlados por projeto.
+
+---
+
+## Navegação Contextual (Breadcrumbs)
+
+**Implementado em:** 05/2026
+
+As telas de projetos e tarefas exibem uma trilha contextual simples construída
+diretamente nos componentes Blade. Ela oferece retorno à lista principal,
+apresenta o projeto organizacional quando o usuário está em um subprojeto e
+mantém links para o projeto atual e seus módulos, como tarefas e reuniões.
+
+Os módulos ativos também alimentam o cabeçalho de navegação do projeto. A solução
+é intencionalmente simples e baseada na estrutura suportada atualmente, sem
+gerenciador central de breadcrumbs, pacote externo ou montagem recursiva de
+hierarquias arbitrárias.
+
+---
+
+## Visões e Experiências por Contexto
+
+**Implementado em:** 05/2026
+
+Em vez de manter interfaces completas e duplicadas para perfis técnicos e
+administrativos, o sistema adapta o conteúdo disponível ao contexto. Policies,
+papéis de administrador, colaborador e visualizador, visibilidade e herança de
+permissões determinam quais recursos e ações cada usuário pode acessar.
+
+Tipos de projeto, fases e ativação granular de módulos permitem criar projetos
+mais simples ou mais completos conforme a necessidade. No módulo de tarefas, o
+usuário ainda pode alternar entre tabela e Kanban, mostrar apenas suas tarefas e
+ocultar ou exibir itens concluídos. A combinação reduz sobrecarga visual sem
+duplicar o front-end e mantém as restrições aplicadas também no backend.
+
+---
+
+## Trilha de Auditoria Avançada (Logs)
+
+**Implementado em:** 06/2026
+
+O backend registra criação e alterações dos principais modelos, incluindo
+projetos, tarefas, reuniões, itens de pauta, comentários, tipos, módulos, fases e
+tags. Os registros identificam o recurso, o evento, o usuário causador e os
+valores antigos e novos dos campos modificados. Relações importantes, como
+membros, responsáveis, projetos de uma reunião e módulos habilitados, também são
+auditadas por meio dos modelos de pivot e de um subscriber dedicado.
+
+O modelo de atividade fornece filtros por categoria, autor, recurso e evento. Há
+ainda limpeza programada com políticas de retenção por categoria e suporte a
+simulação por `dry-run`, evitando crescimento indefinido da tabela. A camada de
+captura e consulta está pronta no backend, mas ainda não existe uma interface
+gráfica para visualização dos logs.
+
+---
+
+## Notificações por E-mail
+
+**Implementado em:** 05/2026
+
+O sistema envia e-mails assíncronos para eventos relevantes: entrada de membros
+em projetos, atribuição e conclusão de tarefas, criação de comentários,
+atualizações ou cancelamento de reuniões e vínculo ou desvínculo de subprojetos.
+As mensagens incluem o contexto do projeto e links para o recurso relacionado,
+e o usuário que executou a ação é excluído da lista de destinatários.
+
+Os envios usam filas por meio de classes `Mailable`, reduzindo o impacto no tempo
+de resposta das ações web. Regras específicas evitam notificações prematuras,
+como alterações em reuniões ainda mantidas como rascunho. A comunicação foi
+concentrada em e-mail; não há inbox interna nem sistema de menções.
+
+---
+
+## Buscas Contextuais e Filtros de Tarefas
+
+**Implementado em:** 06/2026
+
+Foram adicionadas buscas reativas nos contextos em que o volume de dados exige
+localização rápida. Projetos podem ser encontrados por nome, descrição e tags;
+subprojetos, por nome; e tarefas, por título, projeto, prioridade e responsáveis.
+As buscas funcionam nas visualizações pessoais e de projeto, inclusive em lista
+e Kanban, exibem o estado sem resultados e atualizam as contagens visíveis.
+
+As tarefas também podem ser filtradas entre todas ou somente as atribuídas ao
+usuário e entre concluídas ou pendentes, com preferências mantidas na sessão. A
+implementação atual é contextual e majoritariamente executada no front-end sobre
+os dados já autorizados e carregados; não existe ainda uma barra única de busca
+que consulte todas as entidades do sistema.
