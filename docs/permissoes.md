@@ -77,13 +77,71 @@
 
 ---
 
-## 8. Subprojetos e herança de permissões
+## 8. Subprojetos
 
-> A relação de subprojetos impõe regras específicas de vínculo e herança de acesso.
+> Subprojetos são projetos independentes vinculados a um projeto organizacional
+> por uma relação pai e filho. O vínculo organiza projetos relacionados sem
+> fundir seus membros, tarefas, reuniões, módulos ou configurações.
 
 * **Vínculo permitido:** apenas projetos organizacionais podem ter subprojetos; o subprojeto precisa ser projeto raiz e não pode ter subprojetos.
 * **Restrições de tipo:** projetos organizacionais não podem ser subprojetos de outros projetos organizacionais.
 * **Admin em comum:** o vínculo só é permitido se houver pelo menos um admin em comum entre pai e subprojeto.
 * **Quem pode vincular/desvincular:** vincular exige `ADMIN` do projeto pai e permissão de update no subprojeto; desvincular exige `ADMIN` do projeto pai ou `ADMIN` do subprojeto.
-* **Herança:** `READ` herda apenas visualização; `FULL` herda visualização e colaboração; `NONE` não herda nada.
-* **Regra de subprojeto:** membros que são `ADMIN` no projeto pai devem permanecer como `ADMIN` nos subprojetos vinculados. Por isso, não é permitido rebaixar sua role no subprojeto para `CONTRIBUTOR` ou `VIEWER`. Caso o usuário já possua outra role no subprojeto antes do vínculo, ele poderá ser promovido para `ADMIN`, mas não rebaixado posteriormente.
+
+---
+
+## 9. Herança de permissões em subprojetos
+
+> A herança controla o acesso de membros do projeto pai que ainda não possuem
+> vínculo direto com o subprojeto. Ela não copia automaticamente os membros para
+> a tabela `project_user` do filho e não transforma o usuário em participante
+> ativo sem uma ação explícita.
+
+* **Precedência da role local:** se o usuário já é membro do subprojeto, sua role
+  local (`ADMIN`, `CONTRIBUTOR` ou `VIEWER`) prevalece e a herança deixa de ser
+  consultada.
+* **`NONE` (Sem Herança):** membros do projeto pai não recebem acesso ao
+  subprojeto por herança.
+* **`READ` (Apenas Leitura):** membros que podem visualizar o projeto pai também
+  podem visualizar o subprojeto, mas não podem ingressar nele por meio do fluxo
+  de herança nem executar ações de colaboração.
+* **`FULL` (Herança Total):** permite a visualização herdada. Se o usuário possui
+  uma role explícita de `ADMIN` ou `CONTRIBUTOR` no projeto pai, a interface
+  oferece a ação **Participar do Projeto**.
+* **Ingresso voluntário:** ao confirmar a participação, o sistema cria um vínculo
+  explícito em `project_user` no subprojeto, preservando a role que o usuário
+  possui diretamente no projeto pai. A partir desse momento ele passa a ser um
+  membro ativo do subprojeto.
+* **Admins do projeto pai:** quando um `ADMIN` do pai ingressa ou já possui
+  vínculo local no subprojeto, sua role local deve permanecer `ADMIN`; a
+  interface impede seu rebaixamento para `CONTRIBUTOR` ou `VIEWER`.
+* **Configuração atual da interface:** o domínio suporta `NONE`, `READ` e `FULL`,
+  mas o seletor presente nas configurações do subprojeto atualmente expõe apenas
+  `FULL`. Novos projetos também recebem `FULL` como valor padrão.
+
+### Por que o ingresso não é automático
+
+O usuário deve entrar ativamente apenas nos subprojetos com os quais pretende
+interagir. Essa decisão evita os seguintes efeitos:
+
+1. **Notificações em massa (spam):** os destinatários de comentários e reuniões
+   são obtidos dos membros diretamente vinculados aos projetos. A associação
+   automática faria usuários do projeto pai receberem e-mails sobre subprojetos
+   nos quais não atuam.
+2. **Painéis de projetos poluídos:** “Meus Projetos”, projetos fixados e outras
+   consultas pessoais usam os vínculos diretos do usuário. Materializar toda a
+   herança faria projetos sem interesse imediato aparecerem nesses painéis.
+3. **Membros fantasmas:** sem ingresso voluntário, a equipe do subprojeto poderia
+   interpretar usuários herdados como participantes ativos e tentar atribuir
+   tarefas a pessoas que não acompanham aquele trabalho. Atualmente, somente
+   colaboradores vinculados diretamente ao subprojeto podem ser selecionados
+   como responsáveis.
+4. **Consultas mais simples e previsíveis:** dashboards, projetos pessoais,
+   tarefas atribuídas e parte das consultas de reuniões podem usar relações
+   diretas por `user_id`, sem precisar expandir recursivamente todos os projetos
+   filhos acessíveis por herança.
+
+Enquanto não ingressa, o usuário conserva apenas o acesso de visualização
+permitido pela configuração de herança. Ele não aparece como membro local, não
+pode ser atribuído a tarefas do subprojeto e não recebe automaticamente as
+notificações destinadas aos participantes desse projeto.
