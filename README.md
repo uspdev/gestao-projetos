@@ -1,6 +1,6 @@
 # Sistema de Gestão de Projetos USP
 
-## Sobre o projeto
+## Sobre
 
 Sistema interno construído em Laravel que organiza e centraliza projetos e tarefas, com base pronta para evoluir para reuniões e outras features do roadmap.
 
@@ -92,14 +92,24 @@ php artisan serve
 
 ## Histórico
 
-- Projeto iniciado em 2026 com foco no MVP de projetos e tarefas.
+- Iniciado em 2026 com foco no MVP de projetos e tarefas.
 
 ## Detalhamento técnico
 
-- Laravel 12 com Eloquent.
-- Padrão FormRequest + Action para casos de uso.
-- Tags com `spatie/laravel-tags`.
-- Slugs e auditoria automática via traits.
+- PHP 8.2 e Laravel 12, com persistência e relacionamentos modelados pelo Eloquent ORM.
+- Controllers coordenam os casos de uso, utilizando transações de banco para operações com múltiplas alterações.
+- `FormRequest` concentra validação e autorização de entrada; Policies e Gates controlam o acesso aos recursos.
+- Models reúnem relacionamentos, regras de domínio reutilizáveis, query scopes, casts e eventos do Eloquent.
+- Enums tipados representam estados, prioridades, papéis, visibilidade, fases e configurações de herança.
+- Interface server-side com Blade, componentes reutilizáveis e integração com `uspdev/laravel-usp-theme`.
+- Projetos possuem tipos, fases e módulos configuráveis por relações pivot, com habilitação específica por projeto.
+- Comentários e itens de pauta usam relações polimórficas registradas por morph maps explícitos.
+- Autenticação pela Senha Única, permissões globais com `spatie/laravel-permission` e integração ao Replicado.
+- Tags polimórficas com `spatie/laravel-tags` e slugs tratados por uma trait reutilizável.
+- Auditoria com `spatie/laravel-activitylog`, incluindo alterações em models e relações pivot.
+- Exclusão lógica em projetos, tarefas e reuniões, com rastreamento do usuário responsável pelas alterações.
+- Notificações por e-mail implementadas com Mailables processados pelas filas do Laravel.
+- Assets front-end compilados com Laravel Mix; testes disponíveis com PHPUnit e Laravel Dusk.
 
 ## Changelog
 
