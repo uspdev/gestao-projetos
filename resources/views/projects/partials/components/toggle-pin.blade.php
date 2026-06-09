@@ -7,10 +7,29 @@
   @csrf
   @method('PATCH')
 
-  <button type="submit"
-    class="badge badge-pill {{ $isPinned ? 'badge-warning text-dark' : 'badge-secondary' }} border-0 shadow-sm"
-    style="cursor: pointer; transition: opacity 0.2s; padding: 0.15rem 0.35rem; font-size: 0.75rem; line-height: 1;"
-    onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+  <button type="submit" data-toggle="tooltip"
+    class="pin-btn badge badge-pill {{ $isPinned ? 'badge-warning text-dark' : 'badge-secondary' }} border-0 shadow-sm"
+    title="{{ $isPinned ? 'Desafixar projeto' : 'Fixar projeto' }}">
     <i class="fas fa-thumbtack"></i>
   </button>
 </form>
+
+
+@once
+  @section('styles')
+    @parent
+    <style>
+      .pin-btn {
+        cursor: pointer;
+        padding: .15rem .35rem;
+        font-size: .75rem;
+        line-height: 1;
+        transition: opacity .2s;
+      }
+
+      .pin-btn:hover {
+        opacity: .75;
+      }
+    </style>
+  @endsection
+@endonce
