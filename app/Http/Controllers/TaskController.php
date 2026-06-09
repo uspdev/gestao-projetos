@@ -179,15 +179,36 @@ class TaskController extends Controller
     public function updateInfo(UpdateTaskRequest $request, Task $task)
     {
         $this->ensureTasksModuleEnabled($task->project);
+        $previousStatus = $task->status;
 
         DB::transaction(function () use ($task, $request) {
             $data = $request->only(['title', 'status', 'priority', 'start_date', 'due_date']);
             $data['updated_by'] = Auth::id();
 
+            if ($data['status'] === TaskStatus::DONE->value) {
+                $data['completed_at'] = now();
+            } else {
+                $data['completed_at'] = null;
+            }
             $task->update($data);
 
             $task->syncTagsByIds($request->tags ?? []);
         });
+        // Se a tarefa foi marcada como concluída agora, e antes não estava,
+        // enviar notificações para os usuários associados à tarefa, exceto para o próprio ator
+        $data = $request->only(['status']);
+
+        if ($previousStatus !== TaskStatus::DONE && $data['status'] === TaskStatus::DONE->value) {
+            $actor = Auth::user();
+            $task->load(['users', 'project']);
+
+            $task->users
+                ->unique('id')
+                ->filter(fn(User $user) => !$actor || $user->id !== $actor->id)
+                ->each(function (User $user) use ($actor, $task) {
+                    Mail::to($user->email)->queue(new TaskCompleted($user, $actor, $task));
+                });
+        }
 
         if ($request->has('action')) {
             return redirect($request->action)
@@ -227,7 +248,7 @@ class TaskController extends Controller
             $data = $request->validated();
             $data['updated_by'] = Auth::id();
 
-            if ($data['status'] === \App\Enums\Task\TaskStatus::DONE->value) {
+            if ($data['status'] === TaskStatus::DONE->value) {
                 $data['completed_at'] = now();
             } else {
                 $data['completed_at'] = null;
@@ -279,7 +300,7 @@ class TaskController extends Controller
         DB::transaction(function () use ($task, $user) {
             $task->users()->syncWithoutDetaching([$user->id]);
 
-            if($task->status === TaskStatus::NEW) {
+            if ($task->status === TaskStatus::NEW) {
                 $task->update([
                     'status' => TaskStatus::ASSIGNED
                 ]);
