@@ -6,7 +6,7 @@
       @php
         $tasks = $tasksByStatus->get($status->value, collect());
       @endphp
-      <div class="flex-shrink-0" style="width: 320px;">
+      <div class="flex-shrink-0" style="width: 330px;">
         <div class="card shadow-sm border-0">
           <div class="card-header d-flex align-items-center justify-content-between py-2">
             <div class="font-weight-bold text-capitalize">{{ $status->label() }}</div>
