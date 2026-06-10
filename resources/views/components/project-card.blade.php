@@ -73,9 +73,8 @@
   </style>
 @endonce
 
-
-
-<div {{ $attributes->class(['card project-card position-relative h-100']) }}>
+<div {{ $attributes->class(['card project-card position-relative h-100']) }}
+  style="border-color: {{ $project->projectType->slug == 'organizacional' ? 'DodgerBlue' : '' }};">
   <div class="card-body d-flex flex-column">
 
     {{-- Header --}}
