@@ -2,7 +2,7 @@
 
   <div class="dropdown flex-shrink-0">
 
-    <button class="btn btn-sm p-0 border-0 bg-transparent d-flex align-items-center" type="button" data-toggle="dropdown"
+    <button class="btn btn-sm bg-transparent d-flex align-items-center" type="button" data-toggle="dropdown"
       title="Alterar status da task">
       <span class="d-inline-block bg-{{ $task->status->color() }}" style="width:15px;height:15px;border-radius:50%;"></span>
       <i class="fas fa-chevron-down ml-1 text-muted" style="font-size:.6rem;"></i>
