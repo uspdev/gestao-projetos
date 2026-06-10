@@ -9,7 +9,7 @@
   <div class="row">
     @forelse ($meetings as $meeting)
         <div class="col-12 mb-2">
-          @include('module-meetings.partials.index-item', [
+          @include('module-meetings.partials.meeting-card', [
               'compact' => true,
               'project' => $meeting->contextProjectFor($user, $availableMeetingProjectIds), // Método para obter o projeto de contexto para a reunião
           ])

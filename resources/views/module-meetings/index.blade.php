@@ -14,7 +14,7 @@
     <div class="row">
       @foreach ($meetings as $meeting)
         <div class="col-md-6 mb-4">
-          @include('module-meetings.partials.index-item')
+          @include('module-meetings.partials.meeting-card')
         </div>
       @endforeach
     </div>

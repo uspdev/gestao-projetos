@@ -40,7 +40,7 @@
       <div class="d-flex align-items-start gap-2">
         <div class="small text-muted mb-1">
           <i class="ti ti-calendar-event mr-1"></i>
-          <x-local-date :date="$meeting->scheduled_at" empty="sem data" />
+          <x-local-date :date="$meeting->scheduled_at" empty="sem data" showTime="true" />
         </div>
 
         <div class="small text-muted text-truncate">
