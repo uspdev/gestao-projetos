@@ -1,8 +1,8 @@
 @extends('emails.layouts.base')
 
 @section('content')
-  <p>Voce foi adicionado ao projeto "{{ $project->name }}".</p>
-  <p>Responsavel pela acao: {{ $actor->name }}.</p>
+  <p>Você foi adicionado ao projeto "{{ $project->name }}".</p>
+  <p>Responsável pela ação: {{ $actor->name }}.</p>
 
   @include('emails.partials.action-link', [
       'url' => route('projects.show', $project),

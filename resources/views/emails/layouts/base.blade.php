@@ -7,12 +7,14 @@
 </head>
 
 <body>
-  <p>Ola {{ $recipient->name ?? 'usuario' }},</p>
+  <p>
+    Mensagem enviada para: {{ $recipient->name ?? 'usuario' }}<br>
+    Seu papel neste projeto: <br>
+    Este é um email automático - não responda.
+  </p>
 
   @yield('content')
 
-  <p>Atenciosamente,<br>
-    {{ config('app.name') }}</p>
 </body>
 
 </html>
