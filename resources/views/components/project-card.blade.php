@@ -1,4 +1,7 @@
-@props(['project'])
+@props([
+    'project',
+    'view' => 'default', // compact ou default
+])
 
 @php
   $user = auth()->user();
@@ -104,14 +107,15 @@
         <span>&nbsp;</span>
       @endif
     </div>
-
-    @if ($project->projectType)
-      <div class="d-flex justify-content-start w-100 mb-2">
-        <small class="text-muted d-flex align-items-center">
-          <i class="fas fa-sitemap mr-1" title="Tipo de projeto"></i>
-          <span>{{ $project->projectType->name }}</span>
-        </small>
-      </div>
+    @if ($view == 'default')
+      @if ($project->projectType)
+        <div class="d-flex justify-content-start w-100 mb-2">
+          <small class="text-muted d-flex align-items-center">
+            <i class="fas fa-sitemap mr-1" title="Tipo de projeto"></i>
+            <span>{{ $project->projectType->name }}</span>
+          </small>
+        </div>
+      @endif
     @endif
 
     {{-- Role --}}

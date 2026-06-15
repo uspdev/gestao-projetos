@@ -12,7 +12,7 @@
   <div class="row">
     @forelse($user->pinnedProjects() as $project)
       <div class="col-12 project-item mb-2 px-2">
-        <x-project-card :project="$project" />
+        <x-project-card :project="$project" view="compact"/>
       </div>
     @empty
       <div class="col-12">
