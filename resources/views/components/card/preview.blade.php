@@ -37,7 +37,7 @@
   $extraFooterTagsCount = max(0, $normalizedFooterTags->count() - $visibleFooterTags->count());
 @endphp
 
-@once
+@pushOnce('styles')
   <style>
     .preview-card {
       cursor: pointer;
@@ -159,7 +159,7 @@
       pointer-events: auto;
     }
   </style>
-@endonce
+@endPushOnce
 
 <div {{ $attributes->class(['card preview-card position-relative h-100']) }}>
   <div class="card-body p-3 d-flex flex-column">

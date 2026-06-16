@@ -93,29 +93,27 @@
     </div>
   </div>
 
-  @once
-    @push('scripts')
-      <script>
-        $(document).ready(function() {
-          $('.select2-meeting-projects').each(function() {
-            var $element = $(this);
-            var $modal = $element.closest('.modal');
+  @pushOnce('scripts')
+    <script>
+      $(document).ready(function() {
+        $('.select2-meeting-projects').each(function() {
+          var $element = $(this);
+          var $modal = $element.closest('.modal');
 
-            $element.select2({
-              placeholder: 'Selecione os projetos...',
-              allowClear: true,
-              dropdownParent: $modal.length ? $modal : $(document.body),
-              width: '100%'
-            });
+          $element.select2({
+            placeholder: 'Selecione os projetos...',
+            allowClear: true,
+            dropdownParent: $modal.length ? $modal : $(document.body),
+            width: '100%'
           });
-
-          if ($.fn.modal) {
-            $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-          }
         });
-      </script>
-    @endpush
-  @endonce
+
+        if ($.fn.modal) {
+          $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+        }
+      });
+    </script>
+  @endpushOnce
 
   <div class="d-flex justify-content-end">
     <x-form.save-button class="btn btn-primary" />

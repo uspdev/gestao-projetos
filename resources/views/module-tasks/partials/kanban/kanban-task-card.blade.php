@@ -1,43 +1,40 @@
-@once
-  @section('styles')
-    @parent
-    <style>
-      .kanban-task {
-        transition: all 0.2s ease;
-        cursor: pointer;
-        position: relative;
-      }
+@pushOnce('styles')
+  <style>
+    .kanban-task {
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
 
-      .kanban-task:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
-      }
+    .kanban-task:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+    }
 
-      .kanban-task:has(.dropdown.show):hover {
-        transform: none;
-        box-shadow: none;
-      }
+    .kanban-task:has(.dropdown.show):hover {
+      transform: none;
+      box-shadow: none;
+    }
 
-      .kanban-task .stretched-link::after {
-        z-index: 1;
-      }
+    .kanban-task .stretched-link::after {
+      z-index: 1;
+    }
 
-      .kanban-task .dropdown {
-        position: relative;
-        z-index: 10;
-      }
+    .kanban-task .dropdown {
+      position: relative;
+      z-index: 10;
+    }
 
-      .kanban-task .dropdown:hover {
-        position: relative;
-        z-index: 20;
-      }
+    .kanban-task .dropdown:hover {
+      position: relative;
+      z-index: 20;
+    }
 
-      .kanban-task .dropdown-menu {
-        z-index: 20;
-      }
-    </style>
-  @endsection
-@endonce
+    .kanban-task .dropdown-menu {
+      z-index: 20;
+    }
+  </style>
+@endPushOnce
 
 <div class="card border-0 shadow-sm kanban-task mb-2" data-search="{{ $task->searchableText() }}">
   <div class="card-body py-3">

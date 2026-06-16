@@ -2,22 +2,19 @@
     'compact' => false,
 ])
 
-@once
-  @section('styles')
-    @parent
-    <style>
-      .meeting-card {
-        border-radius: .75rem;
-        transition: transform .2s ease, box-shadow .2s ease;
-      }
+@pushOnce('styles')
+  <style>
+    .meeting-card {
+      border-radius: .75rem;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
 
-      .meeting-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
-      }
-    </style>
-  @endsection
-@endonce
+    .meeting-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+    }
+  </style>
+@endPushOnce
 
 <div class="card meeting-card">
   <div class="card-body py-2 px-3">

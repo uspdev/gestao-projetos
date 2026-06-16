@@ -11,7 +11,7 @@
   $isPinned = $canPin && $project->isPinnedBy($user);
 @endphp
 
-@once
+@pushOnce('styles')
   <style>
     .project-card {
       cursor: pointer;
@@ -74,7 +74,7 @@
       opacity: 1;
     }
   </style>
-@endonce
+@endPushOnce
 
 <div {{ $attributes->class(['card project-card position-relative h-100']) }}
   style="border-color: {{ $project->projectType->slug == 'organizacional' ? 'DodgerBlue' : '' }};">

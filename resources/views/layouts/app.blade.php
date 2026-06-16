@@ -19,6 +19,7 @@
 
 @section('styles')
   @parent
+  @stack('styles')
   <style>
     html {
       scroll-behavior: smooth;

@@ -19,31 +19,28 @@
 
 @endphp
 
-@once
-  @section('styles')
-    @parent
-    <style>
-      .task-card {
-        transition: transform .2s ease, box-shadow .2s ease;
-        border-radius: .75rem;
-        border-color: #d6d8db;
-      }
+@pushOnce('styles')
+  <style>
+    .task-card {
+      transition: transform .2s ease, box-shadow .2s ease;
+      border-radius: .75rem;
+      border-color: #d6d8db;
+    }
 
-      .task-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 .75rem 1.5rem rgba(0, 0, 0, .12);
-      }
+    .task-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 .75rem 1.5rem rgba(0, 0, 0, .12);
+    }
 
-      .task-card__title {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        line-height: 1.3;
-      }
-    </style>
-  @endsection
-@endonce
+    .task-card__title {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.3;
+    }
+  </style>
+@endPushOnce
 
 <div {{ $attributes->class(['card border-1 h-100 task-card mb-3 shadow-sm border-left', $borderClass]) }}>
   <div class="card-body d-flex flex-column">

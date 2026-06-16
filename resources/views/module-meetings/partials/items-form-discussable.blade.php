@@ -55,36 +55,34 @@
   </div>
 </div>
 
-@once
-  @push('scripts')
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var typeSelect = document.getElementById('meeting-item-type');
-        var projectGroup = document.getElementById('meeting-item-project-group');
-        var taskGroup = document.getElementById('meeting-item-task-group');
-        var projectSelect = document.getElementById('meeting-item-project');
-        var taskSelect = document.getElementById('meeting-item-task');
-        var projectType = @json($projectTypeKey);
-        var taskType = @json($taskTypeKey);
+@pushOnce('scripts')
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var typeSelect = document.getElementById('meeting-item-type');
+      var projectGroup = document.getElementById('meeting-item-project-group');
+      var taskGroup = document.getElementById('meeting-item-task-group');
+      var projectSelect = document.getElementById('meeting-item-project');
+      var taskSelect = document.getElementById('meeting-item-task');
+      var projectType = @json($projectTypeKey);
+      var taskType = @json($taskTypeKey);
 
-        if (!typeSelect || !projectGroup || !taskGroup || !projectSelect || !taskSelect) {
-          return;
-        }
+      if (!typeSelect || !projectGroup || !taskGroup || !projectSelect || !taskSelect) {
+        return;
+      }
 
-        function toggleDiscussable() {
-          var type = typeSelect.value;
-          var isProject = type === projectType;
-          var isTask = type === taskType;
+      function toggleDiscussable() {
+        var type = typeSelect.value;
+        var isProject = type === projectType;
+        var isTask = type === taskType;
 
-          projectGroup.style.display = isProject ? '' : 'none';
-          taskGroup.style.display = isTask ? '' : 'none';
-          projectSelect.disabled = !isProject;
-          taskSelect.disabled = !isTask;
-        }
+        projectGroup.style.display = isProject ? '' : 'none';
+        taskGroup.style.display = isTask ? '' : 'none';
+        projectSelect.disabled = !isProject;
+        taskSelect.disabled = !isTask;
+      }
 
-        typeSelect.addEventListener('change', toggleDiscussable);
-        toggleDiscussable();
-      });
-    </script>
-  @endpush
-@endonce
+      typeSelect.addEventListener('change', toggleDiscussable);
+      toggleDiscussable();
+    });
+  </script>
+@endPushOnce

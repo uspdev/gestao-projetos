@@ -14,22 +14,18 @@
   </button>
 </form>
 
+@pushOnce('styles')
+  <style>
+    .pin-btn {
+      cursor: pointer;
+      padding: .15rem .35rem;
+      font-size: .75rem;
+      line-height: 1;
+      transition: opacity .2s;
+    }
 
-@once
-  @section('styles')
-    @parent
-    <style>
-      .pin-btn {
-        cursor: pointer;
-        padding: .15rem .35rem;
-        font-size: .75rem;
-        line-height: 1;
-        transition: opacity .2s;
-      }
-
-      .pin-btn:hover {
-        opacity: .75;
-      }
-    </style>
-  @endsection
-@endonce
+    .pin-btn:hover {
+      opacity: .75;
+    }
+  </style>
+@endPushOnce

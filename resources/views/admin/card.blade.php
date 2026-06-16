@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
-@section('styles')
-  @parent
+@push('styles')
   <style>
     .card {
       transition: all .2s ease;
@@ -19,8 +18,7 @@
       cursor: not-allowed;
     }
   </style>
-@endsection
-
+@endpush
 @section('content')
   <div class="h4">Novo projeto</div>
   <div class="mb-4 text-muted">Escolha o tipo de projeto que deseja criar:</div>

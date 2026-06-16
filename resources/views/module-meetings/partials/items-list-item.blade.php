@@ -121,29 +121,27 @@
   </div>
 </li>
 
-@once
-  @push('scripts')
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.meeting-notes-toggle').forEach(function(button) {
-          var icon = button.querySelector('.meeting-notes-toggle-icon');
+@pushOnce('scripts')
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.meeting-notes-toggle').forEach(function(button) {
+        var icon = button.querySelector('.meeting-notes-toggle-icon');
 
-          if (!icon) {
-            return;
-          }
+        if (!icon) {
+          return;
+        }
 
-          function syncIcon() {
-            var expanded = button.getAttribute('aria-expanded') === 'true';
-            icon.textContent = expanded ? '▾' : '▸';
-          }
+        function syncIcon() {
+          var expanded = button.getAttribute('aria-expanded') === 'true';
+          icon.textContent = expanded ? '▾' : '▸';
+        }
 
-          button.addEventListener('click', function() {
-            window.setTimeout(syncIcon, 0);
-          });
-
-          syncIcon();
+        button.addEventListener('click', function() {
+          window.setTimeout(syncIcon, 0);
         });
+
+        syncIcon();
       });
-    </script>
-  @endpush
-@endonce
+    });
+  </script>
+@endPushOnce
