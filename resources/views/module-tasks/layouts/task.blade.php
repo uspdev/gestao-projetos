@@ -60,7 +60,7 @@
       }
 
       function countTableRows() {
-        const table = document.querySelector('table.datatable-simples');
+        const table = document.querySelector('table.task-search-table, table.datatable-simples');
         if (!table) return null;
 
         if (window.jQuery && jQuery.fn && jQuery.fn.dataTable && jQuery.fn.dataTable.isDataTable(table)) {
@@ -96,7 +96,7 @@
 
       if (window.jQuery) {
         jQuery(function() {
-          const table = jQuery('table.datatable-simples');
+          const table = jQuery('table.task-search-table, table.datatable-simples');
           if (table.length) {
             table.on('search.dt draw.dt', updateCount);
           }
