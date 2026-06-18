@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class MeetingController extends Controller
 {
@@ -27,7 +28,7 @@ class MeetingController extends Controller
             \UspTheme::activeUrl('meus-projetos');
 
             return $next($request);
-        })->only(['index', 'create', 'show', 'edit']);
+        })->only(['index', 'create', 'show', 'edit', 'export']);
     }
 
     public function index(Request $request, Project $project)
@@ -105,6 +106,41 @@ class MeetingController extends Controller
             compact('project', 'meeting', 'meetingItems'),
             $agendaData
         ));
+    }
+    /**
+     * Exporta o conteúdo de uma reunião em formato TXT.
+     *
+     *
+     * O arquivo gerado contém o título da reunião, os itens da reunião com suas
+     * notas, as notas gerais e os comentários, conforme definido em
+     * meetingExportContent().
+     *
+     * @param  \App\Models\Project  $project
+     * @param  \App\Models\Meeting  $meeting
+     * @return \Illuminate\Http\Response
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function export(Project $project, Meeting $meeting)
+    {
+        Gate::authorize('view', [$meeting, $project]);
+
+        $meeting->load([
+            'comments' => fn($query) => $query->active()->with('user')->oldest(),
+            'meetingItems' => fn($query) => $query->with('discussable')->orderBy('order'),
+        ]);
+
+        $content = $this->meetingExportContent($meeting);
+        $filename = sprintf(
+            'reuniao-%s-%s.txt',
+            Str::slug($meeting->title) ?: 'sem-titulo',
+            now()->format('YmdHis')
+        );
+
+        return response($content, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function edit(Project $project, Meeting $meeting)
@@ -326,5 +362,112 @@ class MeetingController extends Controller
         }
 
         return true;
+    }
+
+    /**
+     * Monta o conteúdo textual da reunião para exportação em TXT.
+     *
+     * Inclui o título da reunião, os itens com suas respectivas notas,
+     * as notas gerais e os comentários ativos da reunião.
+     *
+     * @param  \App\Models\Meeting  $meeting
+     * @return string
+     */
+    private function meetingExportContent(Meeting $meeting): string
+    {
+        $sections = [
+            $this->plainText($meeting->title),
+        ];
+
+        foreach ($meeting->meetingItems as $item) {
+            $sections[] = trim(implode(PHP_EOL, array_filter([
+                $this->plainText($this->meetingItemTitle($item)),
+                $this->plainText($item->notes),
+            ], fn($line) => $line !== '')));
+        }
+
+        $sections[] = trim(implode(PHP_EOL, array_filter([
+            'Notas gerais da reunião:',
+            $this->plainText($meeting->notes),
+        ], fn($line) => $line !== '')));
+
+        $sections[] = trim(implode(PHP_EOL, array_filter([
+            'Comentários da reunião:',
+            $meeting->comments
+                ->map(fn($comment) => $this->meetingCommentText($comment))
+                ->filter()
+                ->implode(PHP_EOL . PHP_EOL),
+        ], fn($line) => $line !== '')));
+
+        return collect($sections)
+            ->implode(PHP_EOL . PHP_EOL) . PHP_EOL;
+    }
+
+    /**
+     * Retorna o título exibível de um item da reunião.
+     *
+     * Usa o relacionamento discussable quando disponível, priorizando
+     * title, depois name. Caso não exista um título válido, retorna
+     * uma identificação baseada na ordem do item.
+     *
+     * @param  \App\Models\MeetingItem  $item
+     * @return string
+     */
+    private function meetingItemTitle(MeetingItem $item): string
+    {
+        $discussable = $item->discussable;
+
+        if (! $discussable) {
+            return 'Item #' . $item->order . ':';
+        }
+
+        return $discussable->title
+            ?? ($discussable->name . ':')
+            ?? ('Item #' . $item->order . ':');
+    }
+
+    /**
+     * Formata um comentário da reunião para texto simples.
+     *
+     * Retorna o comentário no formato "Autor: texto". Caso o comentário
+     * não possua conteúdo textual válido, retorna uma string vazia.
+     *
+     * @param  mixed  $comment
+     * @return string
+     */
+    private function meetingCommentText($comment): string
+    {
+        $author = $this->plainText($comment->user?->name ?? 'Usuário');
+        $text = $this->plainText($comment->text);
+
+        if ($text === '') {
+            return '';
+        }
+
+        return $author . ': ' . $text;
+    }
+
+    /**
+     * Converte um texto HTML em texto simples.
+     *
+     * Remove tags HTML, decodifica entidades, normaliza quebras de linha
+     * e remove espaços ou linhas em excesso.
+     *
+     * @param  string|null  $text
+     * @return string
+     */
+    private function plainText(?string $text): string
+    {
+        if (! filled($text)) {
+            return '';
+        }
+
+        $text = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // Normaliza quebras de linha para Unix-style e remove espaços antes de quebras de linha
+        $text = preg_replace("/\r\n|\r/", "\n", $text) ?? $text;
+        $text = preg_replace("/[ \t]+\n/", "\n", $text) ?? $text;
+        $text = preg_replace("/\n{3,}/", "\n\n", $text) ?? $text;
+
+        return trim($text);
     }
 }

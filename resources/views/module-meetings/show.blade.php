@@ -4,6 +4,10 @@
 
 @section('meeting-header')
   <x-separator /> <b>{{ $meeting->title }}</b>
+  <a href="{{ route('projects.meetings.export', [$project, $meeting]) }}"
+    class="btn btn-sm btn-outline-secondary py-0 float-right">
+    <i class="fas fa-download"></i> Exportar
+  </a>
 @endsection
 
 @section('meeting-content')

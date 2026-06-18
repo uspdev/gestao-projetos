@@ -13,6 +13,16 @@ Comportamento:
 
 --}}
 
+@push('styles')
+  <style>
+    textarea[data-autogrow-textarea] {
+      resize: none;
+      overflow: hidden;
+    }
+  </style>
+@endPush
+
+
 @pushOnce('scripts')
   <script>
     (function() {
