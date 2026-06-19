@@ -8,7 +8,7 @@
     O módulo de tarefas está desativado para este projeto.
   </div>
 @else
-  <table class="table table-bordered task-search-table">
+  <table class="table table-bordered table-hover task-search-table datatable-simples">
     <thead>
       <tr>
         <th></th>
@@ -63,3 +63,11 @@
 
   <div id="tasks-no-results" class="alert alert-info d-none mb-0">Nenhuma tarefa encontrada para sua busca.</div>
 @endif
+
+@pushOnce('styles')
+  <style>
+    .dataTables_wrapper .dt-top-bar {
+      display: none !important;
+    }
+  </style>
+@endPushOnce
