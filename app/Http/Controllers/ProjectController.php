@@ -96,6 +96,7 @@ class ProjectController extends Controller
     public function create(Request $request)
     {
         Gate::authorize('create', Project::class);
+        $parentProject = $this->resolveParentForCreation($request);
         // Permite receber um parâmetro opcional de tipo de projeto (id ou slug) para direcionar
         // o usuário diretamente para o formulário de criação específico daquele tipo,
         // ou para exibir a tela de seleção de tipo caso o parâmetro não seja fornecido
@@ -109,6 +110,10 @@ class ProjectController extends Controller
                 'phases'  => fn($query)  => $query->where('phases.is_active', true),
             ])->where('enabled', true);
 
+            if ($parentProject) {
+                $projectTypeQuery->where('slug', '!=', Project::ORGANIZATIONAL_TYPE_SLUG);
+            }
+
             if (ctype_digit($projectTypeParam)) {
                 $projectTypeQuery->where('id', (int) $projectTypeParam);
             } else {
@@ -117,7 +122,7 @@ class ProjectController extends Controller
 
             $projectType = $projectTypeQuery->firstOrFail();
 
-            return view('projects.create-form', compact('projectType'));
+            return view('projects.create-form', compact('projectType', 'parentProject'));
         }
 
         // Se nenhum parâmetro de tipo de projeto for fornecido, exibe a tela de seleção de tipo,
@@ -133,7 +138,34 @@ class ProjectController extends Controller
             ->where(['slug' => 'organizacional'])
             ->first();
 
-        return view('projects.create', compact('projectTypes', 'organizacional'));
+        return view('projects.create', compact('projectTypes', 'organizacional', 'parentProject'));
+    }
+
+    /**
+     * Resolve o projeto pai quando a criação foi iniciada pelo cartão de subprojetos.
+     */
+    protected function resolveParentForCreation(Request $request): ?Project
+    {
+        $parentId = trim((string) $request->query('parent_id', ''));
+
+        if ($parentId === '') {
+            return null;
+        }
+
+        abort_unless(ctype_digit($parentId) && (int) $parentId > 0, 404);
+
+        $parentProject = Project::query()
+            ->with('projectType')
+            ->findOrFail((int) $parentId);
+
+        Gate::authorize('storeMember', $parentProject);
+
+        abort_unless(
+            $parentProject->isRootProject() && $parentProject->isOrganizational(),
+            404
+        );
+
+        return $parentProject;
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\ProjectType;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 // rule classes returned by helpers are created via Rule::*, no direct Exists import needed
@@ -17,7 +18,18 @@ class StoreProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', Project::class);
+        if (! $this->user()->can('create', Project::class)) {
+            return false;
+        }
+
+        $parentId = (int) $this->input('parent_id');
+        if ($parentId <= 0) {
+            return true;
+        }
+
+        $parentProject = Project::find($parentId);
+
+        return ! $parentProject || $this->user()->can('storeMember', $parentProject);
     }
 
     protected function prepareForValidation(): void
@@ -68,6 +80,13 @@ class StoreProjectRequest extends FormRequest
             ],
             'visibility' => ['required', Rule::enum(ProjectVisibility::class)],
             'permission_inheritance' => ['required', Rule::enum(ProjectPermissionInheritance::class)],
+            'parent_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')
+                    ->whereNull('parent_id')
+                    ->whereNull('deleted_at'),
+            ],
             // A validação de phase_id é condicional, dependendo se o módulo de fases está habilitado para o tipo de projeto selecionado.
             'phase_id' => array_filter([
                 Rule::requiredIf($phaseModuleEnabled),
@@ -99,6 +118,9 @@ class StoreProjectRequest extends FormRequest
             'permission_inheritance.required' => 'É necessário definir a herança de permissões.',
             'permission_inheritance.enum' => 'A herança de permissões selecionada é inválida.',
 
+            'parent_id.integer' => 'O projeto pai selecionado é inválido.',
+            'parent_id.exists' => 'O projeto pai selecionado não existe ou não pode receber subprojetos.',
+
             'phase_id.required' => 'É necessário definir a fase do projeto.',
             'phase_id.integer' => 'A fase selecionada é inválida.',
             'phase_id.exists' => 'A fase selecionada é inválida.',
@@ -110,6 +132,45 @@ class StoreProjectRequest extends FormRequest
             'tags.*.integer' => 'Cada tag deve ser um ID válido.',
             'tags.*.exists' => 'Uma ou mais tags selecionadas não existem.',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            $parentId = (int) $this->input('parent_id');
+            if ($parentId <= 0) {
+                return;
+            }
+
+            $parentProject = Project::query()
+                ->with('projectType')
+                ->find($parentId);
+
+            if (! $parentProject) {
+                return;
+            }
+
+            if (! $parentProject->isRootProject() || ! $parentProject->isOrganizational()) {
+                $validator->errors()->add(
+                    'parent_id',
+                    'Apenas projetos organizacionais podem receber novos subprojetos.'
+                );
+
+                return;
+            }
+
+            $projectType = ProjectType::find((int) $this->input('project_type_id'));
+            if ($projectType?->slug === Project::ORGANIZATIONAL_TYPE_SLUG) {
+                $validator->errors()->add(
+                    'project_type_id',
+                    'Um subprojeto não pode ser do tipo organizacional.'
+                );
+            }
+        });
     }
 
     protected function slugBlocklist(): array

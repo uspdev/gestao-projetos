@@ -4,6 +4,9 @@
       @csrf
       <input type="hidden" name="project_type_id" value="{{ $projectTypeValue }}">
       <input type="hidden" name="permission_inheritance" value="{{ $permissionValue }}">
+      @if ($parentProject ?? null)
+        <input type="hidden" name="parent_id" value="{{ $parentProject->id }}">
+      @endif
 
       <div class="row">
         <div class="col-md-8">

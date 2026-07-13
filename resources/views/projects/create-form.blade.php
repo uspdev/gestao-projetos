@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $title . ' | Novo Projeto')
+@php
+  $parentProject = $parentProject ?? null;
+  $creationTitle = $parentProject ? 'Novo subprojeto' : 'Novo Projeto';
+@endphp
+
+@section('title', $title . ' | ' . $creationTitle)
 
 @section('content')
   @php
@@ -15,7 +20,7 @@
   @endphp
 
   <div class="container-fluid">
-    @include('projects.partials.create.header')
+    @include('projects.partials.create.header', ['parentProject' => $parentProject])
 
     <div class="row">
       <div class="col-lg-8">
