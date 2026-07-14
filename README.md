@@ -9,6 +9,7 @@ Sistema interno construído em Laravel que organiza e centraliza projetos e tare
 - [MVP](docs/MVP.md) — Escopo e decisões que orientaram o produto mínimo viável do sistema.
 - [Roadmap](docs/roadmap.md) — Funcionalidades planejadas, prioridades futuras e entregas já implementadas.
 - [Permissões](docs/permissoes.md) — Regras de acesso, papéis, policies, subprojetos e herança de permissões.
+- [Implantação dos registros de reunião](docs/implantacao-registros-de-reuniao.md) — Ordem de migração, validação da estrutura e publicação do código.
 - [Aware Prompt](docs/aware_prompt.md) — Aware prompt de contexto para assistentes de IA externos; NÃO é um arquivo do tipo `AGENTS.md`.
 
 ## Características
