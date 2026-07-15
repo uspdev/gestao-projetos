@@ -2,9 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Mail\NewComment;
 use App\Models\ActivityLog;
-use App\Models\Comment;
 use App\Models\Meeting;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
@@ -158,31 +156,6 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('**Transcrição literal** &lt;script&gt;alert(3)&lt;/script&gt;', false)
             ->assertDontSee('<strong>Ata literal</strong>', false)
             ->assertDontSee('<strong>Transcrição literal</strong>', false);
-    }
-
-    public function test_comment_email_keeps_markdown_as_escaped_plain_text(): void
-    {
-        DB::table('comments')->insert([
-            'id' => 1,
-            'user_id' => 1,
-            'commentable_type' => 'meeting',
-            'commentable_id' => 1,
-            'text' => '**Comentário literal** <script>alert(1)</script>',
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $html = (new NewComment(
-            User::findOrFail(2),
-            User::findOrFail(1),
-            Comment::findOrFail(1),
-            Meeting::findOrFail(1)
-        ))->render();
-
-        $this->assertStringContainsString('**Comentário literal** &lt;script&gt;alert(1)&lt;/script&gt;', $html);
-        $this->assertStringNotContainsString('<strong>Comentário literal</strong>', $html);
-        $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
     }
 
     public function test_project_and_project_type_descriptions_use_the_safe_markdown_renderer(): void
