@@ -92,7 +92,8 @@ class NewComment extends Mailable implements ShouldQueue
     {
         return match (true) {
             $this->commentable instanceof Project => $this->commentable->name,
-            $this->commentable instanceof MeetingItem => $this->commentable->discussable?->title
+            $this->commentable instanceof MeetingItem => $this->commentable->title
+                ?? $this->commentable->discussable?->title
                 ?? $this->commentable->discussable?->name
                 ?? ('Item #' . $this->commentable->order),
             default => $this->commentable->title ?? ('#' . $this->commentable->id),

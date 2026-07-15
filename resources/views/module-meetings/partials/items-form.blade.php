@@ -7,7 +7,7 @@
 
 @if ($canAdd)
   <button type="button" class="btn btn-sm btn-outline-success py-0" data-toggle="modal" data-target="#{{ $itemsModalId }}">
-    <i class="fas fa-plus-circle"></i>
+    <i class="fas fa-plus-circle mr-1"></i>Adicionar item de pauta
   </button>
 
   <div class="modal fade" id="{{ $itemsModalId }}" tabindex="-1" role="dialog" aria-labelledby="{{ $itemsModalId }}-label"

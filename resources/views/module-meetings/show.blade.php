@@ -9,7 +9,9 @@
 @section('meeting-content')
   <div class="row">
     <div class="col-lg-8 mb-4 mb-lg-0">
+      @include('module-meetings.partials.meeting-notes')
       @include('module-meetings.partials.meeting-actions')
+      @include('module-meetings.partials.meeting-records')
       @include('comments.partials.thread', ['commentable' => $meeting])
     </div>
 

@@ -9,7 +9,7 @@
 <div class="card mb-4 shadow-sm">
   <div class="card-header h5 py-1 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
-      <span class="font-weight-bold">{{ $meeting?->title ?? 'Reuniao' }}</span>
+      <span class="font-weight-bold">Pauta</span>
 
       @if ($meeting)
         @include('module-meetings.partials.status-badge')
@@ -30,7 +30,7 @@
       <div class="text-center text-muted p-4 bg-light rounded border">
         <i class="fas fa-clipboard-list fa-2x mb-3 text-secondary"></i>
         <div class="font-weight-bold mb-1">Nenhum item cadastrado</div>
-        <div>Adicione projetos ou tarefas para montar a pauta da reuniao.</div>
+        <div>Adicione projetos, tarefas ou itens independentes para montar a pauta da reuniao.</div>
       </div>
     @else
       <ul class="list-group list-group-flush">

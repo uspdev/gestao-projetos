@@ -118,10 +118,16 @@ Route::middleware('auth')->group(function () {
         ->name('meetings.updateMeetingStatus');
     Route::patch('projects/{project}/meetings/{meeting}/notes', [MeetingController::class, 'updateMeetingNotes'])
         ->name('projects.meetings.updateNotes');
+    Route::patch('projects/{project}/meetings/{meeting}/ata', [MeetingController::class, 'updateAta'])
+        ->name('projects.meetings.updateAta');
+    Route::patch('projects/{project}/meetings/{meeting}/transcription', [MeetingController::class, 'updateTranscription'])
+        ->name('projects.meetings.updateTranscription');
     Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
         ->name('projects.meetings.items.store');
     Route::delete('projects/{project}/meetings/{meeting}/items/{meetingItem}', [MeetingController::class, 'destroyItem'])
         ->name('projects.meetings.items.destroy');
+    Route::patch('projects/{project}/meetings/{meeting}/items/{meetingItem}', [MeetingController::class, 'updateItemTitle'])
+        ->name('projects.meetings.items.update');
     Route::patch('projects/{project}/meetings/{meeting}/items/{meetingItem}/notes', [MeetingController::class, 'updateNotes'])
         ->name('projects.meetings.items.updateNotes');
 

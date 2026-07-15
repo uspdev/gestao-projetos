@@ -19,6 +19,7 @@ use Illuminate\Support\Collection;
 use App\Morphs\DiscussableMap;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 
 class Meeting extends Model implements HasCommentRecipients
 {
@@ -29,6 +30,8 @@ class Meeting extends Model implements HasCommentRecipients
         'scheduled_at',
         'location',
         'notes',
+        'ata',
+        'transcription',
         'status',
     ];
 
@@ -49,6 +52,36 @@ class Meeting extends Model implements HasCommentRecipients
             ->logFillable()
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($eventName !== 'updated' || ! $activity->properties) {
+            return;
+        }
+
+        $properties = $activity->properties;
+
+        foreach (['attributes', 'old'] as $changeSet) {
+            $values = $properties->get($changeSet, []);
+
+            if (! array_key_exists('transcription', $values)) {
+                continue;
+            }
+
+            $transcription = $values['transcription'];
+            $values['transcription_length'] = is_string($transcription)
+                ? mb_strlen($transcription)
+                : null;
+            $values['transcription_sha256'] = is_string($transcription)
+                ? hash('sha256', $transcription)
+                : null;
+            unset($values['transcription']);
+
+            $properties->put($changeSet, $values);
+        }
+
+        $activity->properties = $properties;
     }
 
     /**
@@ -136,12 +169,13 @@ class Meeting extends Model implements HasCommentRecipients
         $discussableOptions = DiscussableMap::options();
         $projectTypeKey = 'project';
         $taskTypeKey = 'task';
+        $independentTypeKey = 'independent';
 
         $defaultType = array_key_exists($projectTypeKey, $discussableOptions)
             ? $projectTypeKey
             : (array_key_first($discussableOptions) ?: $projectTypeKey);
 
-        $typeValue = old('discussable_type', $defaultType);
+        $typeValue = old('item_type', $defaultType);
         $orderValue = old('order', (int) ($meetingItems->max('order') ?? 0) + 1);
 
         // Resolver as classes de projeto e tarefa para filtrar os itens de pauta existentes
@@ -220,6 +254,7 @@ class Meeting extends Model implements HasCommentRecipients
             'discussableOptions',
             'projectTypeKey',
             'taskTypeKey',
+            'independentTypeKey',
             'typeValue',
             'orderValue',
             'projectOptions',

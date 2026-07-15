@@ -64,7 +64,7 @@
   @if ($showNotesField)
     <div class="row">
       <div class="col-12">
-        <x-form.textarea name="notes" label="Notas" value="{{ old('notes', $meeting?->notes) }}" rows="4"
+        <x-form.textarea name="notes" label="Anotações prévias" value="{{ old('notes', $meeting?->notes) }}" rows="4"
           maxlength="10000" />
       </div>
     </div>

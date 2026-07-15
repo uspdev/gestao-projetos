@@ -8,7 +8,10 @@ use App\Http\Requests\Meeting\UpdateMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingNotesRequest;
 use App\Http\Requests\MeetingItem\StoreMeetingItemRequest;
 use App\Http\Requests\MeetingItem\UpdateMeetingItemNotesRequest;
+use App\Http\Requests\MeetingItem\UpdateMeetingItemTitleRequest;
 use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
+use App\Http\Requests\Meeting\UpdateMeetingAtaRequest;
+use App\Http\Requests\Meeting\UpdateMeetingTranscriptionRequest;
 use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
 use App\Models\Project;
@@ -181,6 +184,36 @@ class MeetingController extends Controller
             ->with('alert-success', 'Notas da reuniao atualizadas com sucesso!');
     }
 
+    public function updateAta(UpdateMeetingAtaRequest $request, Project $project, Meeting $meeting)
+    {
+        Gate::authorize('update', [$meeting, $project]);
+
+        $ata = trim((string) $request->validated('ata', ''));
+
+        $meeting->update([
+            'ata' => $ata === '' ? null : $ata,
+            'updated_by' => Auth::id(),
+        ]);
+
+        return redirect()->back()
+            ->with('alert-success', 'Ata da reuniao atualizada com sucesso!');
+    }
+
+    public function updateTranscription(UpdateMeetingTranscriptionRequest $request, Project $project, Meeting $meeting)
+    {
+        Gate::authorize('update', [$meeting, $project]);
+
+        $transcription = trim((string) $request->validated('transcription', ''));
+
+        $meeting->update([
+            'transcription' => $transcription === '' ? null : $transcription,
+            'updated_by' => Auth::id(),
+        ]);
+
+        return redirect()->back()
+            ->with('alert-success', 'Transcricao da reuniao atualizada com sucesso!');
+    }
+
     public function destroy(Project $project, Meeting $meeting)
     {
         Gate::authorize('delete', [$meeting, $project]);
@@ -213,7 +246,7 @@ class MeetingController extends Controller
         $discussable = $request->discussable();
 
         $requestedOrder = (int) $request->validated('order');
-        DB::transaction(function () use ($meeting, $discussable, $requestedOrder) {
+        DB::transaction(function () use ($request, $meeting, $discussable, $requestedOrder) {
             $maxOrder = (int) ($meeting->meetingItems()->max('order') ?? 0);
             $order = $requestedOrder;
 
@@ -227,8 +260,9 @@ class MeetingController extends Controller
 
             MeetingItem::create([
                 'meeting_id'       => $meeting->id,
-                'discussable_type' => $discussable->getMorphClass(),
-                'discussable_id'   => $discussable->getKey(),
+                'discussable_type' => $request->isIndependent() ? null : $discussable->getMorphClass(),
+                'discussable_id'   => $request->isIndependent() ? null : $discussable->getKey(),
+                'title'            => $request->isIndependent() ? $request->validated('title') : null,
                 'order'            => $order,
             ]);
         });
@@ -278,6 +312,20 @@ class MeetingController extends Controller
 
         return redirect()->back()
             ->with('alert-success', 'Notas do item atualizadas com sucesso!');
+    }
+
+    public function updateItemTitle(UpdateMeetingItemTitleRequest $request, Project $project, Meeting $meeting, MeetingItem $meetingItem)
+    {
+        if ($meetingItem->meeting_id !== $meeting->id) {
+            abort(404);
+        }
+
+        $meetingItem->update([
+            'title' => $request->validated('title'),
+        ]);
+
+        return redirect()->back()
+            ->with('alert-success', 'Título do item de pauta atualizado com sucesso!');
     }
 
     public function updateStatus(UpdateMeetingStatusRequest $request, Project $project, Meeting $meeting)
