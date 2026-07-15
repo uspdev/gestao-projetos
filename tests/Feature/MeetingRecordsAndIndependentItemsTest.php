@@ -106,7 +106,15 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('Anotações prévias')
             ->assertSee('Ata exibida')
             ->assertSee('Transcrição exibida')
-            ->assertSeeInOrder(['Anotações prévias', 'Pauta', 'Registro da reunião']);
+            ->assertSeeInOrder(['Anotações prévias', 'Pauta', 'Registro da reunião'])
+            ->assertSee('data-target="#meeting-ata-display"', false)
+            ->assertSee('data-target="#meeting-transcription-display"', false)
+            ->assertSee('aria-expanded="false"', false)
+            ->assertSee('meeting-record-toggle-icon', false)
+            ->assertSee('class="collapse" id="meeting-ata-display"', false)
+            ->assertSee('class="collapse" id="meeting-transcription-display"', false)
+            ->assertDontSee('class="collapse show" id="meeting-ata-display"', false)
+            ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
     }
 
     public function test_prior_notes_are_locked_when_completed_and_editable_again_after_reopening(): void

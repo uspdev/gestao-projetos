@@ -8,7 +8,16 @@
       <div class="border rounded p-3 {{ $loop->last ? '' : 'mb-3' }}">
         <div class="d-flex align-items-center justify-content-between mb-2">
           <div>
-            <h6 class="mb-0">{{ $record['label'] }}</h6>
+            <div class="d-flex align-items-center" style="gap: 0.25rem;">
+              <h6 class="mb-0">{{ $record['label'] }}</h6>
+              <button type="button" class="btn btn-link btn-sm p-0 text-primary meeting-record-toggle"
+                data-toggle="collapse" data-target="#meeting-{{ $field }}-display" aria-expanded="false"
+                aria-controls="meeting-{{ $field }}-display" title="Alternar {{ $record['label'] }}"
+                aria-label="Alternar {{ $record['label'] }}">
+                <span class="meeting-record-toggle-icon" aria-hidden="true"
+                  style="font-size: 1.25rem; font-weight: 700; line-height: 1;">▸</span>
+              </button>
+            </div>
             <small class="text-muted">{{ $record['description'] }}</small>
           </div>
           @can('update', [$meeting, $project])
@@ -20,7 +29,7 @@
           @endcan
         </div>
 
-        <div class="collapse show" id="meeting-{{ $field }}-display">
+        <div class="collapse" id="meeting-{{ $field }}-display">
           @if (filled($meeting->{$field}))
             <div class="text-dark text-break" style="white-space: pre-wrap;">{{ $meeting->{$field} }}</div>
           @else
@@ -48,3 +57,30 @@
     @endforeach
   </div>
 </div>
+
+@once
+  @push('scripts')
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.meeting-record-toggle').forEach(function(button) {
+          var icon = button.querySelector('.meeting-record-toggle-icon');
+
+          if (!icon) {
+            return;
+          }
+
+          function syncIcon() {
+            var expanded = button.getAttribute('aria-expanded') === 'true';
+            icon.textContent = expanded ? '▾' : '▸';
+          }
+
+          button.addEventListener('click', function() {
+            window.setTimeout(syncIcon, 0);
+          });
+
+          syncIcon();
+        });
+      });
+    </script>
+  @endpush
+@endonce
