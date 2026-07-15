@@ -2,6 +2,7 @@
 
 use App\Models\Tag;
 use Illuminate\Database\Migrations\Migration;
+use Spatie\Activitylog\Facades\Activity;
 
 return new class extends Migration
 {
@@ -40,16 +41,20 @@ return new class extends Migration
             ]
         ];
 
-        foreach ($initialTaskTags as $tagData) {
-            Tag::firstOrCreate(
-                ['name' => $tagData['name'], 'type' => $tagData['type']],
-                ['color' => $tagData['color'], 'description' => $tagData['description']]
-            );
-        }
+        Activity::withoutLogs(function () use ($initialTaskTags): void {
+            foreach ($initialTaskTags as $tagData) {
+                Tag::firstOrCreate(
+                    ['name' => $tagData['name'], 'type' => $tagData['type']],
+                    ['color' => $tagData['color'], 'description' => $tagData['description']]
+                );
+            }
+        });
     }
 
     public function down(): void
     {
-        Tag::whereIn('name', ['Correção', 'Funcionalidade'])->where('type', 'tasks')->delete();
+        Activity::withoutLogs(function (): void {
+            Tag::whereIn('name', ['Correção', 'Funcionalidade'])->where('type', 'tasks')->delete();
+        });
     }
 };
