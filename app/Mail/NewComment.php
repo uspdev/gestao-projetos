@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Comment;
 use App\Models\Meeting;
-use App\Models\MeetingItem;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -62,12 +61,6 @@ class NewComment extends Mailable implements ShouldQueue
             return $this->commentable->projects->first()?->name ?? 'Projeto';
         }
 
-        if ($this->commentable instanceof MeetingItem) {
-            $this->commentable->loadMissing('meeting.projects');
-
-            return $this->commentable->meeting?->projects->first()?->name ?? 'Projeto';
-        }
-
         return 'Projeto';
     }
 
@@ -80,7 +73,6 @@ class NewComment extends Mailable implements ShouldQueue
             $this->commentable instanceof Project => 'Projeto',
             $this->commentable instanceof Task => 'Task',
             $this->commentable instanceof Meeting => 'Reunião',
-            $this->commentable instanceof MeetingItem => 'Item de pauta',
             default => 'Recurso',
         };
     }
@@ -92,10 +84,6 @@ class NewComment extends Mailable implements ShouldQueue
     {
         return match (true) {
             $this->commentable instanceof Project => $this->commentable->name,
-            $this->commentable instanceof MeetingItem => $this->commentable->title
-                ?? $this->commentable->discussable?->title
-                ?? $this->commentable->discussable?->name
-                ?? ('Item #' . $this->commentable->order),
             default => $this->commentable->title ?? ('#' . $this->commentable->id),
         };
     }
@@ -108,8 +96,7 @@ class NewComment extends Mailable implements ShouldQueue
         return match (true) {
             $this->commentable instanceof Project => 'Ver projeto',
             $this->commentable instanceof Task => 'Ver tarefa',
-            $this->commentable instanceof Meeting,
-            $this->commentable instanceof MeetingItem => 'Ver reunião',
+            $this->commentable instanceof Meeting => 'Ver reunião',
             default => 'Ver detalhes',
         };
     }
@@ -125,8 +112,6 @@ class NewComment extends Mailable implements ShouldQueue
             $this->commentable instanceof Task => route('tasks.show', $this->commentable),
 
             $this->commentable instanceof Meeting => $this->meetingUrl($this->commentable),
-
-            $this->commentable instanceof MeetingItem => $this->meetingUrl($this->commentable->meeting),
 
             default => null,
         };

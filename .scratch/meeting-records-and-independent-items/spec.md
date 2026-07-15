@@ -10,7 +10,7 @@ O sistema também apresenta o botão de adição de item de pauta apenas como um
 
 Separar os registros da reunião em Anotações prévias, Ata e Transcrição, preservando o conteúdo legado de `notes`. Anotações prévias existirão em nível da reunião e em nível de item de pauta; Ata e Transcrição serão registros gerais da reunião.
 
-Permitir que a Pauta contenha itens independentes, com título próprio e sem vínculo com projeto ou tarefa. Esses itens usarão as mesmas regras de ordenação, anotações, comentários, permissões e remoção dos itens vinculados, mas não serão convertidos automaticamente em projetos ou tarefas.
+Permitir que a Pauta contenha itens independentes, com título próprio e sem vínculo com projeto ou tarefa. Esses itens usarão as mesmas regras de ordenação, anotações, permissões e remoção dos itens vinculados, mas não serão convertidos automaticamente em projetos ou tarefas.
 
 Tornar a ação de adicionar item de pauta explícita na interface, com texto visível junto do ícone.
 
@@ -41,11 +41,11 @@ Tornar a ação de adicionar item de pauta explícita na interface, com texto vi
 23. Como usuário, quero que o título de um Item independente aceite de 3 a 255 caracteres, para manter títulos úteis e consistentes com objetos existentes.
 24. Como colaborador, quero posicionar um Item independente em qualquer ordem da Pauta, para organizar a sequência de discussão.
 25. Como colaborador, quero reordenar implicitamente os itens ao inserir ou remover um Item independente, para manter uma sequência contínua.
-26. Como colaborador, quero registrar Anotações prévias e comentários em um Item independente, para preparar e discutir o assunto com o mesmo contexto dos demais itens.
-27. Como visualizador, quero consultar um Item independente e seus comentários conforme a permissão da reunião, para acompanhar assuntos ainda não convertidos em trabalho.
+26. Como colaborador, quero registrar Anotações prévias em um Item independente, para preparar o assunto com o mesmo contexto dos demais itens.
+27. Como visualizador, quero consultar um Item independente conforme a permissão da reunião, para acompanhar assuntos ainda não convertidos em trabalho.
 28. Como colaborador, quero remover um Item independente antes da conclusão da reunião, para retirar assuntos que deixaram de fazer parte da Pauta.
 29. Como usuário, quero que itens de projeto e tarefa existentes continuem aparecendo e funcionando sem alteração, para preservar a Pauta já cadastrada.
-30. Como usuário, quero ver o título próprio de um Item independente em telas e notificações de comentário, para não receber um identificador genérico de item.
+30. Como usuário, quero ver o título próprio de um Item independente nas telas, para não receber um identificador genérico de item.
 31. Como usuário, quero ver “Adicionar item de pauta” junto do botão `+`, para entender imediatamente a ação disponível.
 32. Como usuário, quero ver Anotações prévias gerais imediatamente acima da Pauta, para distinguir preparação da lista de assuntos.
 33. Como usuário, quero encontrar Ata e Transcrição próximas em um bloco de Registro da reunião abaixo da Pauta, para localizar facilmente o resultado e o registro bruto.
@@ -69,7 +69,7 @@ Tornar a ação de adicionar item de pauta explícita na interface, com texto vi
 - A Ata será um campo geral de texto livre, sem estrutura obrigatória de conclusão por item.
 - Itens independentes continuarão em `meeting_items`, com título próprio e `discussable_type`/`discussable_id` opcionais. Cada item deverá ter exatamente uma representação: projeto/tarefa vinculada ou título independente.
 - Itens existentes manterão seus vínculos polimórficos e seu comportamento atual. Não haverá registro artificial, segunda tabela ou conversão automática para projeto/tarefa.
-- Item independente terá título obrigatório de 3 a 255 caracteres e poderá ter Anotações prévias do item, comentários, ordem e remoção pelas regras existentes.
+- Item independente terá título obrigatório de 3 a 255 caracteres e poderá ter Anotações prévias do item, ordem e remoção pelas regras existentes. Itens de pauta não serão destinos de comentários.
 - A criação continuará usando o modal existente, acrescentando “Item independente” como tipo. Quando selecionado, o seletor de projeto/tarefa será substituído pelo campo “Título do item”.
 - O botão de adição exibirá “Adicionar item de pauta” junto do ícone `+`.
 - A tela de detalhes exibirá Anotações prévias gerais imediatamente acima da Pauta. Ata e Transcrição ficarão próximas em um bloco de Registro da reunião abaixo da Pauta. Cada conteúdo terá edição própria.
@@ -79,7 +79,7 @@ Tornar a ação de adicionar item de pauta explícita na interface, com texto vi
 - O método de reversão da migração não poderá remover a estrutura se houver Ata, Transcrição ou Item independente persistido; deverá falhar explicitamente para exigir decisão operacional.
 - A implantação será documentada em duas fases: executar e validar a migração antes de publicar o código. A execução da implantação não faz parte deste trabalho.
 - Ata continuará sendo auditada com conteúdo. Transcrição gerará apenas auditoria de alteração com usuário, data e metadados mínimos, sem copiar o texto bruto para `activity_log`.
-- Comentários em Itens independentes continuarão usando as permissões da reunião e notificações deverão exibir seu título próprio quando não houver objeto discutível.
+- Itens de pauta não serão destinos de comentários nem de notificações de comentário; comentários continuarão disponíveis nos contextos que já os suportam, como reunião, projeto e tarefa.
 
 ## Decisões de teste
 
@@ -88,7 +88,7 @@ Tornar a ação de adicionar item de pauta explícita na interface, com texto vi
 - Os testes deverão cobrir a migração em banco de teste, preservação de registros existentes, referências opcionais, reversão protegida e rejeição de dados que excedam limites.
 - Os testes deverão cobrir Ata e Transcrição em reuniões não concluídas e concluídas, incluindo visualização, edição, limpeza, limites e autorização.
 - Os testes deverão cobrir Anotações prévias gerais, Anotações prévias do item, reabertura de reunião e preservação do comportamento Markdown das anotações de item.
-- Os testes deverão cobrir criação, validação, edição, ordenação, remoção, comentários e notificações de Item independente, além de garantir que Projeto e Tarefa existentes continuem funcionando.
+- Os testes deverão cobrir criação, validação, edição, ordenação, remoção e rejeição de comentários em Itens de pauta, além de garantir que Projeto e Tarefa existentes continuem funcionando.
 - Os testes devem observar comportamento público, não detalhes internos de controllers, models ou queries. O cenário deve ser preparado com os dados mínimos necessários, pois o repositório ainda não possui factories de domínio para reuniões.
 - A referência de teste existente é a separação entre testes de funcionalidade HTTP do PHPUnit e Laravel Dusk para fluxos de navegador; não há testes de reuniões prévios a reutilizar.
 

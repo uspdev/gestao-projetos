@@ -4,10 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\ActivityLog;
 use App\Models\User;
-use App\Mail\NewComment;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
@@ -30,7 +28,6 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
 
         $this->createSchema();
         $this->seedMeetingContext();
-        Mail::fake();
     }
 
     protected function tearDown(): void
@@ -228,16 +225,30 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
         $this->assertDatabaseHas('meeting_items', ['id' => 1, 'title' => 'Título reaberto']);
     }
 
-    public function test_independent_items_accept_comments_and_notify_recipients_with_their_title(): void
+    public function test_meeting_items_do_not_accept_comments(): void
     {
         DB::table('meetings')->where('id', 1)->update(['status' => 'DRAFT']);
         DB::table('meeting_items')->insert([
-            'id' => 1,
-            'meeting_id' => 1,
-            'title' => 'Assunto independente',
-            'order' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
+            [
+                'id' => 1,
+                'meeting_id' => 1,
+                'discussable_type' => null,
+                'discussable_id' => null,
+                'title' => 'Assunto sem comentários próprios',
+                'order' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'meeting_id' => 1,
+                'discussable_type' => 'project',
+                'discussable_id' => 1,
+                'title' => null,
+                'order' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
 
         $this->actingAs(User::findOrFail(1));
@@ -245,22 +256,24 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
         $this->post('/comments', [
             'commentable_type' => 'meeting_item',
             'commentable_id' => 1,
-            'text' => 'Comentário sobre o assunto',
-        ])->assertRedirect();
+            'text' => 'Comentário não permitido',
+        ])->assertForbidden();
 
-        $this->assertDatabaseHas('comments', [
+        $this->assertDatabaseMissing('comments', [
             'commentable_type' => 'meeting_item',
             'commentable_id' => 1,
-            'text' => 'Comentário sobre o assunto',
         ]);
 
-        Mail::assertQueued(NewComment::class, function (NewComment $mail) {
-            return $mail->contextName === 'Assunto independente';
-        });
+        $this->post('/comments', [
+            'commentable_type' => 'meeting_item',
+            'commentable_id' => 2,
+            'text' => 'Comentário não permitido em item vinculado',
+        ])->assertForbidden();
 
-        $this->get('/projects/projeto-teste/meetings/1')
-            ->assertOk()
-            ->assertSee('Comentário sobre o assunto');
+        $this->assertDatabaseMissing('comments', [
+            'commentable_type' => 'meeting_item',
+            'commentable_id' => 2,
+        ]);
     }
 
     public function test_independent_item_notes_follow_markdown_and_completion_rules_and_removal_reindexes_the_agenda(): void

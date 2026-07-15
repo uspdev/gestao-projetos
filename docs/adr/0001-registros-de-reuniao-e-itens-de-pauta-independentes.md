@@ -23,11 +23,12 @@ O sistema está em produção ativa. Portanto, registros atuais não podem ser r
 
 ### Itens de pauta
 
-- Itens independentes continuarão sendo armazenados em `meeting_items`, para preservar ordenação, anotações do item, comentários, notificações, permissões e comportamento das associações já existentes.
+- Itens independentes continuarão sendo armazenados em `meeting_items`, para preservar ordenação, anotações do item, permissões e comportamento das associações já existentes. Itens de pauta não serão destinos de comentários.
 - As referências polimórficas de projeto ou tarefa passarão a ser opcionais para permitir itens independentes. Um item terá exatamente uma representação: projeto, tarefa ou título independente; essa regra será garantida na aplicação para manter compatibilidade entre MariaDB, MySQL e SQLite.
 - Um item independente terá título próprio obrigatório, com 3 a 255 caracteres após a remoção de espaços nas extremidades. O título poderá ser editado antes da conclusão da reunião, ficará bloqueado durante a conclusão e voltará a ser editável se a reunião for reaberta.
 - Não haverá conversão nem associação posterior de um item independente a projeto ou tarefa nesta implementação.
 - As anotações do item manterão o comportamento atual: texto Markdown, limite de 10.000 caracteres, conversão de vazio para `NULL` e edição bloqueada enquanto a reunião estiver concluída.
+- Itens de pauta não serão destinos de comentários nem de notificações de comentário; comentários continuarão disponíveis nos contextos que já os suportam, como reunião, projeto e tarefa.
 - A criação continuará exigindo pelo menos um projeto vinculado à reunião; essa exigência não impede a inclusão de itens independentes na pauta.
 
 ### Interface e permissões
@@ -52,7 +53,7 @@ O sistema está em produção ativa. Portanto, registros atuais não podem ser r
 
 ## Opções consideradas
 
-- **Criar uma tabela separada para itens independentes:** rejeitada porque duplicaria o modelo e exigiria replicar ordenação, comentários, notificações, permissões e anotações.
+- **Criar uma tabela separada para itens independentes:** rejeitada porque duplicaria o modelo e exigiria replicar ordenação, permissões e anotações.
 - **Copiar as anotações existentes para a Ata ou para a Transcrição:** rejeitada porque alteraria o significado de dados históricos e poderia duplicar conteúdo.
 - **Usar `minutes` como nome técnico da Ata:** rejeitada por poder ser confundido com a unidade de tempo “minutos”.
 - **Impor a representação exclusiva com `CHECK constraint`:** rejeitada para manter compatibilidade entre os bancos suportados; a aplicação será a autoridade dessa invariável.

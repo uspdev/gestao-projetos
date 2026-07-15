@@ -1,6 +1,6 @@
 # 03 — Implementar Itens independentes de pauta
 
-**O que construir:** permitir que colaboradores adicionem à Pauta um assunto com título próprio, sem projeto ou tarefa vinculada, mantendo ordenação, Anotações prévias do item, comentários, permissões e remoção consistentes com os demais itens.
+**O que construir:** permitir que colaboradores adicionem à Pauta um assunto com título próprio, sem projeto ou tarefa vinculada, mantendo ordenação, Anotações prévias do item, permissões e remoção consistentes com os demais itens. Itens de pauta não serão destinos de comentários.
 
 **Blocked by:** 01 — Expandir a estrutura do banco com segurança.
 
@@ -12,9 +12,7 @@
 - [ ] Permitir inserção em qualquer posição da Pauta e manter a sequência de ordem ao inserir ou remover itens.
 - [ ] Permitir edição do título enquanto a reunião não estiver `COMPLETED`, bloqueando-a durante `COMPLETED` e reabrindo-a quando o status mudar.
 - [ ] Permitir Anotações prévias do item com o comportamento atual de Markdown e limite de 10.000 caracteres.
-- [ ] Permitir comentários em Itens independentes usando a autorização da reunião.
-- [ ] Exibir o título próprio do Item independente na Pauta e nas notificações de comentários.
+- [ ] Não oferecer comentários em Itens de pauta nem notificações de comentário para esses itens.
 - [ ] Manter itens de Projeto e Tarefa existentes funcionando sem alteração e impedir conversão automática do Item independente.
 - [ ] Exibir o texto “Adicionar item de pauta” junto do ícone `+`.
-- [ ] Cobrir criação, edição, validação, autorização, status, ordenação, remoção, comentários, notificações e compatibilidade com itens legados em testes HTTP de funcionalidade.
-
+- [ ] Cobrir criação, edição, validação, autorização, status, ordenação, remoção, rejeição de comentários e compatibilidade com itens legados em testes HTTP de funcionalidade.

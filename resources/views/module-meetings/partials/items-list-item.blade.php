@@ -154,7 +154,6 @@
     </div>
   </div>
 
-  @include('comments.partials.thread', ['commentable' => $item])
 </li>
 
 @once

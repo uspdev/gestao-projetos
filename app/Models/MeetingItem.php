@@ -2,19 +2,16 @@
 
 namespace App\Models;
 
-use App\Contracts\HasCommentRecipients;
 use App\Morphs\DiscussableMap;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Collection;
 use InvalidArgumentException;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class MeetingItem extends Model implements HasCommentRecipients
+class MeetingItem extends Model
 {
     use HasFactory, LogsActivity;
 
@@ -54,18 +51,6 @@ class MeetingItem extends Model implements HasCommentRecipients
     public function discussable(): MorphTo
     {
         return $this->morphTo();
-    }
-
-    public function comments(): MorphMany
-    {
-        return $this->morphMany(Comment::class, 'commentable');
-    }
-
-    public function commentRecipients(): Collection
-    {
-        $this->loadMissing('meeting.projects.users');
-
-        return $this->meeting?->commentRecipients() ?? collect();
     }
 
     private function normalizeTitle(): void
