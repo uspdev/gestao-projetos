@@ -65,6 +65,10 @@ _Evitar_: Nome original, nome físico
 Ocorrência em um texto que aponta para um Arquivo existente sem se tornar proprietária dele.
 _Evitar_: Anexo, arquivo incorporado
 
+**Compartilhamento de arquivo com reunião**:
+Relação explícita que torna um Arquivo pertencente a outro objeto acessível aos participantes de uma reunião, sem alterar o Proprietário do arquivo.
+_Evitar_: Transferência do arquivo, referência de arquivo
+
 ## Menções e referências
 
 **Menção**:

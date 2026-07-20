@@ -24,6 +24,7 @@ Este glossário orienta a tradução dos termos operacionais usados pelas skills
 | `rollout` | implantação | Publicação gradual ou ordenada de uma mudança. |
 | `rollback` | reversão | Retorno controlado a uma versão ou estrutura anterior. |
 | `domain glossary` | glossário de domínio | Vocabulário canônico registrado em `CONTEXT.md`. |
+| `AST` / `Abstract Syntax Tree` | árvore de sintaxe abstrata | Representação estruturada produzida pelo parser antes da renderização; a sigla `AST` pode ser mantida no código e em explicações técnicas. |
 | `ADR` | ADR | Documento que registra uma decisão difícil de reverter e suas razões. |
 | `meeting` | reunião | Entidade de reunião do sistema. |
 | `meeting item` | item de pauta | Assunto individual dentro da pauta. |
