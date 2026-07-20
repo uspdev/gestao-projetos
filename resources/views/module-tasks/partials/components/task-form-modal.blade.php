@@ -116,210 +116,207 @@
   </div>
 </div>
 
-@once
-  @section('javascripts_bottom')
-    @parent
-    @include('module-tasks.partials.scripts.multi-select-script')
+@pushOnce('scripts')
+  @include('module-tasks.partials.scripts.multi-select-script')
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var modal = document.getElementById('{{ $modalId }}');
-        if (!modal) return;
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var modal = document.getElementById('{{ $modalId }}');
+      if (!modal) return;
 
-        var form = modal.querySelector('form');
-        var methodInput = form.querySelector('input[name="_method"]');
-        var taskIdInput = form.querySelector('input[name="task_id"]');
-        var titleInput = modal.querySelector('[name="title"]');
-        var statusSelect = form.querySelector('[name="status"]');
-        var prioritySelect = form.querySelector('[name="priority"]');
-        var startDateInput = form.querySelector('[name="start_date"]');
-        var dueDateInput = form.querySelector('[name="due_date"]');
-        var descriptionInput = null;
-        var tagsSelect = form.querySelector('[name="tags[]"]');
-        var modalTitle = modal.querySelector('[data-role="modal-title"]');
-        var submitBtn = modal.querySelector('[data-role="submit-btn"]');
+      var form = modal.querySelector('form');
+      var methodInput = form.querySelector('input[name="_method"]');
+      var taskIdInput = form.querySelector('input[name="task_id"]');
+      var titleInput = modal.querySelector('[name="title"]');
+      var statusSelect = form.querySelector('[name="status"]');
+      var prioritySelect = form.querySelector('[name="priority"]');
+      var startDateInput = form.querySelector('[name="start_date"]');
+      var dueDateInput = form.querySelector('[name="due_date"]');
+      var descriptionInput = null;
+      var tagsSelect = form.querySelector('[name="tags[]"]');
+      var modalTitle = modal.querySelector('[data-role="modal-title"]');
+      var submitBtn = modal.querySelector('[data-role="submit-btn"]');
 
-        function setSelectValue(select, value) {
-          if (!select) return;
-          var options = Array.prototype.slice.call(select.options || []);
-          options.forEach(function(option) {
-            option.selected = String(option.value) === String(value || '');
-          });
-        }
-
-        function setMultiSelect(select, values) {
-          if (!select) return;
-          var normalized = (values || []).map(function(value) {
-            return String(value);
-          });
-          Array.prototype.slice.call(select.options || []).forEach(function(option) {
-            option.selected = normalized.indexOf(String(option.value)) !== -1;
-          });
-
-          if (window.jQuery) {
-            var $select = window.jQuery(select);
-            if ($select.data('select2')) {
-              $select.trigger('change');
-            }
-          }
-        }
-
-        function decodeHtmlEntities(value) {
-          if (value === null || value === undefined) {
-            return '';
-          }
-
-          var current = String(value);
-
-          for (var i = 0; i < 5; i++) {
-            var textarea = document.createElement('textarea');
-            textarea.innerHTML = current;
-
-            var decoded = textarea.value;
-            if (decoded === current) {
-              return decoded;
-            }
-
-            current = decoded;
-          }
-
-          return current;
-        }
-
-        function prepareCreate(action) {
-          if (!form) return;
-          form.action = action || modal.dataset.createAction || form.action;
-          if (methodInput) {
-            methodInput.disabled = true;
-          }
-          if (taskIdInput) {
-            taskIdInput.value = '';
-          }
-          if (modalTitle) {
-            modalTitle.textContent = 'Nova Tarefa';
-          }
-          if (submitBtn) {
-            submitBtn.classList.remove('btn-primary');
-            submitBtn.classList.add('btn-success');
-            submitBtn.innerHTML =
-              '<i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Criar Tarefa</span>';
-          }
-        }
-
-        function resetToCreate(action) {
-          prepareCreate(action);
-          if (titleInput) {
-            titleInput.value = '';
-          }
-          if (statusSelect && statusSelect.options.length) {
-            statusSelect.selectedIndex = 0;
-          }
-          if (prioritySelect) {
-            setSelectValue(prioritySelect, '');
-          }
-          if (startDateInput) {
-            startDateInput.value = '';
-          }
-          if (dueDateInput) {
-            dueDateInput.value = '';
-          }
-          if (descriptionInput) {
-            descriptionInput.value = '';
-          }
-          if (tagsSelect) {
-            setMultiSelect(tagsSelect, []);
-          }
-        }
-
-        function applyEditData(data) {
-          form.action = data.action || form.action;
-          if (methodInput) {
-            methodInput.disabled = false;
-            methodInput.value = 'PATCH';
-          }
-          if (taskIdInput) {
-            taskIdInput.value = data.taskId || '';
-          }
-          if (titleInput && data.title !== undefined) {
-            titleInput.value = data.title;
-          }
-          if (statusSelect && data.status !== undefined) {
-            setSelectValue(statusSelect, data.status);
-          }
-          if (prioritySelect && data.priority !== undefined) {
-            setSelectValue(prioritySelect, data.priority);
-          }
-          if (startDateInput && data.startDate !== undefined) {
-            startDateInput.value = data.startDate || '';
-          }
-          if (dueDateInput && data.dueDate !== undefined) {
-            dueDateInput.value = data.dueDate || '';
-          }
-          // descrição gerenciada em modal separado
-          if (tagsSelect && data.tags !== undefined) {
-            setMultiSelect(tagsSelect, data.tags || []);
-          }
-          if (modalTitle) {
-            var title = data.title ? 'Editar Tarefa: ' + data.title : 'Editar Tarefa';
-            modalTitle.textContent = title;
-          }
-          if (submitBtn) {
-            submitBtn.classList.remove('btn-success');
-            submitBtn.classList.add('btn-primary');
-            submitBtn.innerHTML =
-              '<i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Salvar Alterações</span>';
-          }
-        }
-        document.querySelectorAll('[data-task-modal="task-form"]').forEach(function(button) {
-          button.addEventListener('click', function() {
-            var mode = button.getAttribute('data-mode') || 'create';
-            var action = button.getAttribute('data-action') || '';
-
-            if (mode === 'edit') {
-              var tagsRaw = button.getAttribute('data-tags');
-              var tags = [];
-              if (tagsRaw) {
-                try {
-                  tags = JSON.parse(tagsRaw);
-                } catch (error) {
-                  tags = tagsRaw.split(',').filter(Boolean).map(function(value) {
-                    return Number(value);
-                  });
-                }
-              }
-
-              applyEditData({
-                action: action,
-                taskId: button.getAttribute('data-task-id'),
-                title: button.getAttribute('data-title') || '',
-                status: button.getAttribute('data-status') || '',
-                priority: button.getAttribute('data-priority') || '',
-                startDate: button.getAttribute('data-start-date') || '',
-                dueDate: button.getAttribute('data-due-date') || '',
-                description: button.getAttribute('data-description') || '',
-                tags: tags
-              });
-            } else {
-              resetToCreate(action || modal.dataset.createAction || form.action);
-            }
-          });
+      function setSelectValue(select, value) {
+        if (!select) return;
+        var options = Array.prototype.slice.call(select.options || []);
+        options.forEach(function(option) {
+          option.selected = String(option.value) === String(value || '');
         });
-        if (modal.dataset.hasOldCreate === '1') {
-          prepareCreate(modal.dataset.createAction);
-          if (window.jQuery) {
-            window.jQuery(modal).modal('show');
+      }
+
+      function setMultiSelect(select, values) {
+        if (!select) return;
+        var normalized = (values || []).map(function(value) {
+          return String(value);
+        });
+        Array.prototype.slice.call(select.options || []).forEach(function(option) {
+          option.selected = normalized.indexOf(String(option.value)) !== -1;
+        });
+
+        if (window.jQuery) {
+          var $select = window.jQuery(select);
+          if ($select.data('select2')) {
+            $select.trigger('change');
           }
         }
-        if (modal.dataset.hasOldEdit === '1') {
-          applyEditData({
-            action: modal.dataset.oldUpdateAction,
-            taskId: modal.dataset.oldTaskId || ''
-          });
-          if (window.jQuery) {
-            window.jQuery(modal).modal('show');
-          }
+      }
+
+      function decodeHtmlEntities(value) {
+        if (value === null || value === undefined) {
+          return '';
         }
+
+        var current = String(value);
+
+        for (var i = 0; i < 5; i++) {
+          var textarea = document.createElement('textarea');
+          textarea.innerHTML = current;
+
+          var decoded = textarea.value;
+          if (decoded === current) {
+            return decoded;
+          }
+
+          current = decoded;
+        }
+
+        return current;
+      }
+
+      function prepareCreate(action) {
+        if (!form) return;
+        form.action = action || modal.dataset.createAction || form.action;
+        if (methodInput) {
+          methodInput.disabled = true;
+        }
+        if (taskIdInput) {
+          taskIdInput.value = '';
+        }
+        if (modalTitle) {
+          modalTitle.textContent = 'Nova Tarefa';
+        }
+        if (submitBtn) {
+          submitBtn.classList.remove('btn-primary');
+          submitBtn.classList.add('btn-success');
+          submitBtn.innerHTML =
+            '<i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Criar Tarefa</span>';
+        }
+      }
+
+      function resetToCreate(action) {
+        prepareCreate(action);
+        if (titleInput) {
+          titleInput.value = '';
+        }
+        if (statusSelect && statusSelect.options.length) {
+          statusSelect.selectedIndex = 0;
+        }
+        if (prioritySelect) {
+          setSelectValue(prioritySelect, '');
+        }
+        if (startDateInput) {
+          startDateInput.value = '';
+        }
+        if (dueDateInput) {
+          dueDateInput.value = '';
+        }
+        if (descriptionInput) {
+          descriptionInput.value = '';
+        }
+        if (tagsSelect) {
+          setMultiSelect(tagsSelect, []);
+        }
+      }
+
+      function applyEditData(data) {
+        form.action = data.action || form.action;
+        if (methodInput) {
+          methodInput.disabled = false;
+          methodInput.value = 'PATCH';
+        }
+        if (taskIdInput) {
+          taskIdInput.value = data.taskId || '';
+        }
+        if (titleInput && data.title !== undefined) {
+          titleInput.value = data.title;
+        }
+        if (statusSelect && data.status !== undefined) {
+          setSelectValue(statusSelect, data.status);
+        }
+        if (prioritySelect && data.priority !== undefined) {
+          setSelectValue(prioritySelect, data.priority);
+        }
+        if (startDateInput && data.startDate !== undefined) {
+          startDateInput.value = data.startDate || '';
+        }
+        if (dueDateInput && data.dueDate !== undefined) {
+          dueDateInput.value = data.dueDate || '';
+        }
+        // descrição gerenciada em modal separado
+        if (tagsSelect && data.tags !== undefined) {
+          setMultiSelect(tagsSelect, data.tags || []);
+        }
+        if (modalTitle) {
+          var title = data.title ? 'Editar Tarefa: ' + data.title : 'Editar Tarefa';
+          modalTitle.textContent = title;
+        }
+        if (submitBtn) {
+          submitBtn.classList.remove('btn-success');
+          submitBtn.classList.add('btn-primary');
+          submitBtn.innerHTML =
+            '<i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Salvar Alterações</span>';
+        }
+      }
+      document.querySelectorAll('[data-task-modal="task-form"]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          var mode = button.getAttribute('data-mode') || 'create';
+          var action = button.getAttribute('data-action') || '';
+
+          if (mode === 'edit') {
+            var tagsRaw = button.getAttribute('data-tags');
+            var tags = [];
+            if (tagsRaw) {
+              try {
+                tags = JSON.parse(tagsRaw);
+              } catch (error) {
+                tags = tagsRaw.split(',').filter(Boolean).map(function(value) {
+                  return Number(value);
+                });
+              }
+            }
+
+            applyEditData({
+              action: action,
+              taskId: button.getAttribute('data-task-id'),
+              title: button.getAttribute('data-title') || '',
+              status: button.getAttribute('data-status') || '',
+              priority: button.getAttribute('data-priority') || '',
+              startDate: button.getAttribute('data-start-date') || '',
+              dueDate: button.getAttribute('data-due-date') || '',
+              description: button.getAttribute('data-description') || '',
+              tags: tags
+            });
+          } else {
+            resetToCreate(action || modal.dataset.createAction || form.action);
+          }
+        });
       });
-    </script>
-  @endsection
-@endonce
+      if (modal.dataset.hasOldCreate === '1') {
+        prepareCreate(modal.dataset.createAction);
+        if (window.jQuery) {
+          window.jQuery(modal).modal('show');
+        }
+      }
+      if (modal.dataset.hasOldEdit === '1') {
+        applyEditData({
+          action: modal.dataset.oldUpdateAction,
+          taskId: modal.dataset.oldTaskId || ''
+        });
+        if (window.jQuery) {
+          window.jQuery(modal).modal('show');
+        }
+      }
+    });
+  </script>
+@endPushOnce

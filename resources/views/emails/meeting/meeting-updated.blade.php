@@ -7,13 +7,13 @@
   @endphp
 
   @if ($isCancelled)
-    <p>A reuniao "{{ $meeting->title }}" foi cancelada.</p>
+    <p>A reunião "{{ $meeting->title }}" foi cancelada.</p>
   @else
-    <p>A reuniao "{{ $meeting->title }}" foi atualizada.</p>
+    <p>A reunião "{{ $meeting->title }}" foi atualizada.</p>
   @endif
   <p>Data/hora: {{ $meeting->scheduled_at?->format('d/m/Y H:i') ?? '-' }}.</p>
   <p>Local: {{ $meeting->location ?? '-' }}.</p>
-  <p>Responsavel: {{ $actor->name }}.</p>
+  <p>Responsável: {{ $actor->name }}.</p>
 
   @if ($project)
     @include('emails.partials.action-link', [

@@ -1,4 +1,7 @@
-@props(['project'])
+@props([
+    'project',
+    'view' => 'default', // compact ou default
+])
 
 @php
   $user = auth()->user();
@@ -8,7 +11,7 @@
   $isPinned = $canPin && $project->isPinnedBy($user);
 @endphp
 
-@once
+@pushOnce('styles')
   <style>
     .project-card {
       cursor: pointer;
@@ -71,12 +74,11 @@
       opacity: 1;
     }
   </style>
-@endonce
+@endPushOnce
 
-
-
-<div {{ $attributes->class(['card project-card position-relative h-100']) }}>
-  <div class="card-body d-flex flex-column">
+<div {{ $attributes->class(['card project-card position-relative h-100']) }}
+  style="border-color: {{ $project->projectType->slug == 'organizacional' ? 'DodgerBlue' : '' }};">
+  <div class="card-body d-flex flex-column py-2">
 
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-start mb-1">
@@ -105,43 +107,46 @@
         <span>&nbsp;</span>
       @endif
     </div>
-
-    @if ($project->projectType)
-      <div class="d-flex justify-content-start w-100 mb-2">
-        <small class="text-muted d-flex align-items-center">
-          <i class="fas fa-sitemap mr-1" title="Tipo de projeto"></i>
-          <span>{{ $project->projectType->name }}</span>
-        </small>
-      </div>
+    @if ($view == 'default')
+      @if ($project->projectType)
+        <div class="d-flex justify-content-start w-100 mb-2">
+          <small class="text-muted d-flex align-items-center">
+            <i class="fas fa-sitemap mr-1" title="Tipo de projeto"></i>
+            <span>{{ $project->projectType->name }}</span>
+          </small>
+        </div>
+      @endif
     @endif
 
-    {{-- Role --}}
-    <div class="mb-2" title="Meu papel no projeto" style="z-index: 2;">
-      <span class="badge badge-outline-{{ $userRole?->color() ?? 'secondary' }}">
-        <i class="fas fa-user-circle mr-1"></i>
-        {{ $userRole?->label() ?? 'Sem vínculo' }}
-      </span>
+    <div class="d-flex align-items-center gap-2">
+      {{-- Role --}}
+      <div class="" title="Meu papel no projeto" style="z-index: 2;">
+        <span class="badge badge-outline-{{ $userRole?->color() ?? 'secondary' }}">
+          <i class="fas fa-user-circle"></i>
+          {{ $userRole?->label() ?? 'Sem vínculo' }}
+        </span>
+      </div>
+
+      {{-- Tags --}}
+      @if ($allTags->isNotEmpty())
+        <div class="text-muted">|</div>
+        <div class="d-flex flex-wrap">
+
+          @foreach ($allTags->take(2) as $tag)
+            <span class="badge {{ $tag->color ?? 'badge-light border text-muted' }} mr-1">
+              <i class="fas fa-tag"></i> {{ $tag->name }}
+            </span>
+          @endforeach
+
+          @if ($allTags->count() > 2)
+            <span class="badge badge-light border text-muted mr-1 mb-1">
+              +{{ $allTags->count() - 2 }}
+            </span>
+          @endif
+
+        </div>
+      @endif
     </div>
-
-    {{-- Tags --}}
-    @if ($allTags->isNotEmpty())
-      <div class="d-flex flex-wrap">
-
-        @foreach ($allTags->take(2) as $tag)
-          <span class="badge {{ $tag->color ?? 'badge-light border text-muted' }} mr-1 mb-1">
-            <i class="fas fa-tag mr-1"></i>
-            {{ $tag->name }}
-          </span>
-        @endforeach
-
-        @if ($allTags->count() > 2)
-          <span class="badge badge-light border text-muted mr-1 mb-1">
-            +{{ $allTags->count() - 2 }}
-          </span>
-        @endif
-
-      </div>
-    @endif
 
     {{-- <div class="mt-auto"></div> --}}
 

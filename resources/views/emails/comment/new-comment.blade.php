@@ -1,8 +1,8 @@
 @extends('emails.layouts.base')
 
 @section('content')
+  <p>Criado por: {{ $actor->name }}.</p>
   <p>Novo comentário em {{ $contextLabel }} "{{ $contextName }}".</p>
-  <p>Autor: {{ $actor->name }}.</p>
   <p>Comentário:</p>
   <p>{{ $comment->text }}</p>
 

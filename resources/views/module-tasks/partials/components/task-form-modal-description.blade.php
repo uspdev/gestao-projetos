@@ -41,61 +41,58 @@
   </div>
 </div>
 
-@once
-  @section('javascripts_bottom')
-    @parent
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var modal = document.getElementById('{{ $modalId }}');
-        if (!modal) return;
+@pushOnce('scripts')
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var modal = document.getElementById('{{ $modalId }}');
+      if (!modal) return;
 
-        var form = modal.querySelector('form');
-        var methodInput = form.querySelector('input[name="_method"]');
-        var taskIdInput = form.querySelector('input[name="task_id"]');
-        var descriptionInput = form.querySelector('[name="description"]');
-        var modalTitle = modal.querySelector('[data-role="modal-title"]');
-        var submitBtn = modal.querySelector('[data-role="submit-btn"]');
+      var form = modal.querySelector('form');
+      var methodInput = form.querySelector('input[name="_method"]');
+      var taskIdInput = form.querySelector('input[name="task_id"]');
+      var descriptionInput = form.querySelector('[name="description"]');
+      var modalTitle = modal.querySelector('[data-role="modal-title"]');
+      var submitBtn = modal.querySelector('[data-role="submit-btn"]');
 
-        function applyEditData(data) {
-          form.action = data.action || form.action;
-          if (methodInput) {
-            methodInput.disabled = false;
-            methodInput.value = 'PATCH';
-          }
-          if (taskIdInput) {
-            taskIdInput.value = data.taskId || '';
-          }
-          if (descriptionInput && data.description !== undefined) {
-            descriptionInput.value = data.description || '';
-          }
-          if (modalTitle) {
-            var title = data.title ? 'Editar Descrição: ' + data.title : 'Editar Descrição';
-            modalTitle.textContent = title;
-          }
+      function applyEditData(data) {
+        form.action = data.action || form.action;
+        if (methodInput) {
+          methodInput.disabled = false;
+          methodInput.value = 'PATCH';
         }
+        if (taskIdInput) {
+          taskIdInput.value = data.taskId || '';
+        }
+        if (descriptionInput && data.description !== undefined) {
+          descriptionInput.value = data.description || '';
+        }
+        if (modalTitle) {
+          var title = data.title ? 'Editar Descrição: ' + data.title : 'Editar Descrição';
+          modalTitle.textContent = title;
+        }
+      }
 
-        document.querySelectorAll('[data-task-modal="task-description-form"]').forEach(function(button) {
-          button.addEventListener('click', function() {
-            var action = button.getAttribute('data-action') || '';
-            applyEditData({
-              action: action,
-              taskId: button.getAttribute('data-task-id'),
-              title: button.getAttribute('data-title') || '',
-              description: button.getAttribute('data-description') || ''
-            });
+      document.querySelectorAll('[data-task-modal="task-description-form"]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          var action = button.getAttribute('data-action') || '';
+          applyEditData({
+            action: action,
+            taskId: button.getAttribute('data-task-id'),
+            title: button.getAttribute('data-title') || '',
+            description: button.getAttribute('data-description') || ''
           });
         });
-
-        if (modal.dataset.hasOldEdit === '1') {
-          applyEditData({
-            action: modal.dataset.oldUpdateAction,
-            taskId: modal.dataset.oldTaskId || ''
-          });
-          if (window.jQuery) {
-            window.jQuery(modal).modal('show');
-          }
-        }
       });
-    </script>
-  @endsection
-@endonce
+
+      if (modal.dataset.hasOldEdit === '1') {
+        applyEditData({
+          action: modal.dataset.oldUpdateAction,
+          taskId: modal.dataset.oldTaskId || ''
+        });
+        if (window.jQuery) {
+          window.jQuery(modal).modal('show');
+        }
+      }
+    });
+  </script>
+@endPushOnce

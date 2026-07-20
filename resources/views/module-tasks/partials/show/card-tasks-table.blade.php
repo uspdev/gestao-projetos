@@ -8,7 +8,7 @@
     O módulo de tarefas está desativado para este projeto.
   </div>
 @else
-  <table class="table table-bordered datatable-simples">
+  <table class="table table-bordered table-hover task-search-table datatable-simples">
     <thead>
       <tr>
         <th></th>
@@ -23,7 +23,7 @@
     </thead>
     <tbody>
       @foreach ($tasksByStatus as $task)
-        <tr>
+        <tr data-task-searchable="{{ $task->searchableText() }}">
           <td>
             @php
               $taskTagIds = $tasksTagsIds[$task->id] ?? [];
@@ -60,4 +60,14 @@
       @endforeach
     </tbody>
   </table>
+
+  <div id="tasks-no-results" class="alert alert-info d-none mb-0">Nenhuma tarefa encontrada para sua busca.</div>
 @endif
+
+@pushOnce('styles')
+  <style>
+    .dataTables_wrapper .dt-top-bar {
+      display: none !important;
+    }
+  </style>
+@endPushOnce

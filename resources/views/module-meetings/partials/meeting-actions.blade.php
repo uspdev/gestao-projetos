@@ -13,6 +13,16 @@
 
       @if ($meeting)
         @include('module-meetings.partials.status-badge')
+        @if ($meetingItems->isNotEmpty())
+          <button type="button" id="meeting-notes-toggle-all" class="btn btn-sm btn-outline-secondary py-0"
+            aria-expanded="false" title="Expandir anotações" aria-label="Expandir anotações">
+            <span class="meeting-notes-toggle-all-icon" aria-hidden="true">
+              <i class="far fa-envelope meeting-notes-toggle-all-icon-closed"></i>
+              <i class="far fa-envelope-open meeting-notes-toggle-all-icon-open d-none"></i>
+            </span>
+            <span class="meeting-notes-toggle-all-text sr-only">Expandir anotações</span>
+          </button>
+        @endif
         @include('module-meetings.partials.items-form')
       @endif
     </div>

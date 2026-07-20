@@ -11,6 +11,7 @@
   $notesEditCollapseId = 'meeting-item-notes-edit-' . $item->id;
   $titleDisplayId = 'meeting-item-title-display-' . $item->id;
   $titleEditId = 'meeting-item-title-edit-' . $item->id;
+  $hasNotes = filled($item->notes);
 
   if ($discussable) {
       $morphClass = $discussable->getMorphClass();
@@ -61,6 +62,11 @@
             @endcan
           @endif
 
+          @if ($hasNotes)
+            <i class="fa fa-sticky-note text-warning" title="Este item possui anotações"
+              aria-label="Este item possui anotações"></i>
+          @endif
+
           <button type="button" class="btn btn-link btn-sm p-0 text-primary meeting-notes-toggle"
             data-toggle="collapse" data-target="#{{ $notesCollapseId }}" aria-expanded="false"
             aria-controls="{{ $notesCollapseId }}" title="Alternar Anotações prévias" aria-label="Alternar Anotações prévias">
@@ -106,7 +112,7 @@
     @endcan
   @endif
 
-  <div class="collapse mt-2" id="{{ $notesCollapseId }}">
+  <div class="collapse mt-2 meeting-item-notes-collapse" id="{{ $notesCollapseId }}">
     <div class="border rounded bg-light p-2">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <small class="text-muted">Anotações prévias do item</small>
@@ -160,24 +166,99 @@
   @push('scripts')
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.meeting-notes-toggle').forEach(function(button) {
-          var icon = button.querySelector('.meeting-notes-toggle-icon');
+      var notesToggleAll = document.getElementById('meeting-notes-toggle-all');
+      var noteCollapses = Array.prototype.slice.call(document.querySelectorAll('.meeting-item-notes-collapse'));
+      // Verifica se um collapse está atualmente expandido
+      function isShown(collapse) {
+        return collapse.classList.contains('show');
+      }
+      // Atualiza o estado do botão "Toggle All" (ícone, texto e atributos ARIA) com base no estado de expansão das anotações
+      function setToggleAllState(expanded) {
+        if (!notesToggleAll) {
+          return;
+        }
 
-          if (!icon) {
-            return;
-          }
+        var closedIcon = notesToggleAll.querySelector('.meeting-notes-toggle-all-icon-closed');
+        var openIcon = notesToggleAll.querySelector('.meeting-notes-toggle-all-icon-open');
+        var text = notesToggleAll.querySelector('.meeting-notes-toggle-all-text');
+        var label = expanded ? 'Recolher anotações' : 'Expandir anotações';
 
-          function syncIcon() {
-            var expanded = button.getAttribute('aria-expanded') === 'true';
-            icon.textContent = expanded ? '▾' : '▸';
-          }
+        notesToggleAll.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        notesToggleAll.setAttribute('title', label);
+        notesToggleAll.setAttribute('aria-label', label);
 
-          button.addEventListener('click', function() {
-            window.setTimeout(syncIcon, 0);
-          });
+        if (closedIcon) {
+          closedIcon.classList.toggle('d-none', expanded);
+        }
 
-          syncIcon();
+        if (openIcon) {
+          openIcon.classList.toggle('d-none', !expanded);
+        }
+
+        if (text) {
+          text.textContent = label;
+        }
+      }
+      // Sincroniza o estado do botão "Toggle All" com base no estado individual das anotações
+      function syncToggleAllState() {
+        var allExpanded = noteCollapses.length > 0 && noteCollapses.every(isShown);
+        setToggleAllState(allExpanded);
+      }
+      // Sincroniza o ícone de cada botão de toggle individual com o estado da respectiva anotação
+      function syncNotesToggle(button) {
+        var icon = button.querySelector('.meeting-notes-toggle-icon');
+        var collapse = document.getElementById(button.getAttribute('aria-controls'));
+
+        if (!icon || !collapse) {
+          return;
+        }
+
+        icon.textContent = isShown(collapse) ? '▾' : '▸';
+      }
+
+      document.querySelectorAll('.meeting-notes-toggle').forEach(function(button) {
+        var collapse = document.getElementById(button.getAttribute('aria-controls'));
+
+        button.addEventListener('click', function() {
+          window.setTimeout(function() {
+            syncNotesToggle(button);
+            syncToggleAllState();
+          }, 0);
         });
+
+        if (collapse && window.jQuery) {
+          window.jQuery(collapse).on('shown.bs.collapse hidden.bs.collapse', function() {
+            syncNotesToggle(button);
+            syncToggleAllState();
+          });
+        }
+
+        syncNotesToggle(button);
+      });
+
+      // Toggle todas as anotações de uma vez
+      if (notesToggleAll) {
+        notesToggleAll.addEventListener('click', function() {
+          var shouldExpand = !noteCollapses.every(isShown);
+
+          setToggleAllState(shouldExpand);
+
+          if (window.jQuery) {
+            window.jQuery(noteCollapses).collapse(shouldExpand ? 'show' : 'hide');
+          } else {
+            noteCollapses.forEach(function(collapse) {
+              collapse.classList.toggle('show', shouldExpand);
+            });
+          }
+
+          window.setTimeout(function() {
+            document.querySelectorAll('.meeting-notes-toggle').forEach(syncNotesToggle);
+            syncToggleAllState();
+          }, 350);
+        });
+      }
+
+      syncToggleAllState();
       });
     </script>
   @endpush

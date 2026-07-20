@@ -65,7 +65,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
-        $view = $request->query('view', 'subprojects');
+        $view = $request->query('view');
 
         $showDone = request()->boolean('show_done');
         $tasksEnabled = $project->isModuleEnabled('tasks');

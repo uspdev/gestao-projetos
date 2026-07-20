@@ -2,22 +2,19 @@
   $completedTasks = $tasksByStatus->get(\App\Enums\Task\TaskStatus::DONE->value, collect());
 @endphp
 
-@once
-  @section('styles')
-    @parent
-    <style>
-      .kanban-completed-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
-      }
+@pushOnce('styles')
+  <style>
+    .kanban-completed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
 
-      .kanban-completed-grid .kanban-task {
-        margin-bottom: 0 !important;
-      }
-    </style>
-  @endsection
-@endonce
+    .kanban-completed-grid .kanban-task {
+      margin-bottom: 0 !important;
+    }
+  </style>
+@endPushOnce
 
 @if ($completedTasks->isNotEmpty())
   <div class="kanban-completed-grid">

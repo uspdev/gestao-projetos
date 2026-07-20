@@ -6,10 +6,10 @@
       $project = $meeting->projects->first();
   @endphp
 
-  <p>Uma nova reuniao foi criada: "{{ $meeting->title }}".</p>
+  <p>Uma nova reunião foi criada: "{{ $meeting->title }}".</p>
   <p>Data/hora: {{ $meeting->scheduled_at?->format('d/m/Y H:i') ?? '-' }}.</p>
   <p>Local: {{ $meeting->location ?? '-' }}.</p>
-  <p>Responsavel: {{ $actor->name }}.</p>
+  <p>Responsável: {{ $actor->name }}.</p>
 
   @if ($project)
     @include('emails.partials.action-link', [

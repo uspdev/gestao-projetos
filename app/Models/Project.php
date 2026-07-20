@@ -255,6 +255,17 @@ class Project extends Model implements Discussable, HasCommentRecipients
     }
 
     /**
+     * Modulos a serem listados no menu do projeto
+     */
+    public function activeModulesForMenu(): array
+    {
+        return collect($this->activeModuleSlugs())
+            ->diff(['phases'])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Relacionamento com fase N-1
      */
     public function phase(): BelongsTo

@@ -1,57 +1,34 @@
-@php
-  $modules = collect($project->activeModuleSlugs());
-
-  if ($modules->contains('phases')) {
-      $modules = $modules->reject('phases')->push('phases');
-  }
-
-  $modules = $modules->values()->all();
-
-  $routeName = Route::currentRouteName();
-@endphp
-
-@section('styles')
-  @parent
-  <style>
-    .border-bottom-2 {
-      border-bottom-width: 2px !important;
-    }
-  </style>
-@endsection
-
 <div @class([
     'card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky',
-    'border-bottom border-warning border-bottom-2' => request()->routeIs(
-        'projects.settings'),
+    'border-bottom border-warning' => request()->routeIs('projects.settings'),
 ])>
   <div class="mb-0">
     <div class="h4 mb-0 d-flex align-items-center flex-wrap" style="gap: 0.35rem;">
       <i class="fas fa-folder-open text-secondary"></i>
 
+      {{-- projeto pai --}}
       @if ($project->isSubproject() && $project->parent)
-        <a href="{{ route('projects.show', $project->parent) }}" class="text-decoration-none text-secondary">
-          {{ $project->parent->name }}
-        </a>
+        @include('projects.partials.show.project-name-menu-item', ['context' => 'parent'])
+        @include('projects.partials.show.subprojects-menu-item', ['context' => 'parent'])
+        @foreach ($project->parent->activeModulesForMenu() as $module)
+          {{-- o botão do menu do módulo pode não existir --}}
+          @includeIf("module-{$module}.partials.project-menu-item", ['context' => 'parent'])
+        @endforeach
         <x-separator />
       @endif
 
-      <a href="{{ route('projects.show', $project) }}?view=main"
-        class="text-decoration-none  {{ request('view', 'main') === 'main' ? 'text-dark' : 'text-secondary' }}">
-        <span>{{ $project->name }}</span>
-      </a>
+      {{-- projeto atual --}}
+      @include('projects.partials.show.project-name-menu-item')
+
       <div class="mb-2">
         @include('projects.partials.components.toggle-pin')
       </div>
 
-
       @if ($project->isOrganizational())
-        <a href="{{ route('projects.show', $project) }}?view=subprojects"
-          class="btn btn-sm {{ request('view') === 'subprojects' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-          <i class="fas fa-project-diagram"></i> Subprojetos
-        </a>
+        @include('projects.partials.show.subprojects-menu-item')
       @endif
 
-      @foreach ($modules as $module)
+      @foreach ($project->activeModulesForMenu() as $module)
         {{-- o botão do menu do módulo pode não existir --}}
         @includeIf("module-{$module}.partials.project-menu-item")
       @endforeach

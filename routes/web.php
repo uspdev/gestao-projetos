@@ -122,6 +122,8 @@ Route::middleware('auth')->group(function () {
         ->name('projects.meetings.updateAta');
     Route::patch('projects/{project}/meetings/{meeting}/transcription', [MeetingController::class, 'updateTranscription'])
         ->name('projects.meetings.updateTranscription');
+    Route::get('projects/{project}/meetings/{meeting}/export', [MeetingController::class, 'export'])
+        ->name('projects.meetings.export');
     Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
         ->name('projects.meetings.items.store');
     Route::delete('projects/{project}/meetings/{meeting}/items/{meetingItem}', [MeetingController::class, 'destroyItem'])
