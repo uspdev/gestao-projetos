@@ -291,13 +291,5 @@ Usuários com acesso apenas herdado não serão elegíveis. O próprio autor pod
 
 ## Decisões arquiteturais relacionadas
 
-- ADR 0002 — Markdown nas anotações prévias.
-- ADR 0003 — Proprietário único dos Arquivos.
-- ADR 0004 — Ciclo de vida dos Arquivos.
-- ADR 0005 — UUID nas Referências de arquivo.
-- ADR 0006 — Formatos gerais sem análise antivírus.
-- ADR 0007 — Conteúdo imutável dos Arquivos.
-- ADR 0008 — Hierarquia de Projetos não compartilha Arquivos.
-- ADR 0009 — Identidade e sintaxe das Menções.
-- ADR 0010 — Índice derivado de Menções.
-- ADR 0011 — Compartilhamento explícito de Arquivos com Reuniões.
+- ADR 0002 — Markdown e Menções nos campos textuais.
+- ADR 0003 — Modelo, segurança e compartilhamento de Arquivos.
