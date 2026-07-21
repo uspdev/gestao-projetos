@@ -41,6 +41,7 @@ return new class extends Migration
             ]
         ];
 
+        // Em bancos novos ou reconstruídos, estas tags são criadas antes da tabela activity_log. Não impacta banco já criado, como o existente em prod.
         Activity::withoutLogs(function () use ($initialTaskTags): void {
             foreach ($initialTaskTags as $tagData) {
                 Tag::firstOrCreate(
@@ -53,6 +54,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        // A reversão também deve funcionar quando a tabela activity_log ainda não existe.
         Activity::withoutLogs(function (): void {
             Tag::whereIn('name', ['Correção', 'Funcionalidade'])->where('type', 'tasks')->delete();
         });
