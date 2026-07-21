@@ -13,7 +13,7 @@
 - [ ] Emitir classes de linguagem em blocos de código sem realce HTML no servidor.
 - [ ] Migrar o componente `markdown-content` e os usos diretos da área administrativa para o novo serviço.
 - [ ] Remover o uso de `md2html()` na aplicação, a implementação local ineficaz e as dependências abandonadas de realce no servidor, sem alterar `text2html()`.
-- [ ] Centralizar o estilo do conteúdo Markdown em `resources/css/app.css`, sem `<style>` por conteúdo.
+- [ ] Centralizar o estilo do conteúdo Markdown em `resources/css/markdown.css`, importado pelo ponto de entrada `resources/css/app.css`, sem `<style>` por conteúdo.
 - [ ] Tornar as Anotações prévias da reunião Markdown e manter Ata e Transcrição como texto simples.
 - [ ] Aplicar a renderização segura às descrições de Tipo de projeto e converter de forma protegida e idempotente o registro HTML legado conhecido para Markdown.
 - [ ] Cobrir o serviço com testes unitários de HTML, XSS, URLs, imagens, links, aninhamento, blocos de código e conteúdo vazio.
