@@ -37,8 +37,10 @@ Ao duplicar pela página de um projeto, a nova reunião fica vinculada a todos o
 
 Reiniciar:
  - Status para SCHEDULED.
- - Exigir nova data e horário.
  - Auditoria e timestamps.
+
+Data e horário: manter os valores da reunião original. Ao selecionar a cópia de reuniões na duplicação do projeto,
+exibir um aviso para que o usuário confira as datas e os horários das reuniões copiadas antes de usá-las.
 
 Não copiar
 Comentários.

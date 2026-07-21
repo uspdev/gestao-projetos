@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
+use App\Morphs\Duplicable;
 use App\Morphs\Discussable;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
@@ -20,7 +21,7 @@ use Spatie\Tags\HasTags;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-class Task extends Model implements Discussable, HasCommentRecipients
+class Task extends Model implements Discussable, HasCommentRecipients, Duplicable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, LogsActivity;
 
@@ -157,5 +158,56 @@ class Task extends Model implements Discussable, HasCommentRecipients
                 $this->users->pluck('name')->implode(' '),
             ]))
         );
+    }
+    /**
+     * Cria uma cópia desta tarefa.
+     *
+     * @param array{
+     *     project_id?: int|string,
+     *     title?: string,
+     *     start_date?: \DateTimeInterface|string|null,
+     *     due_date?: \DateTimeInterface|string|null
+     * } $options Opções para a duplicação da tarefa.
+     *
+     * @return Model A nova tarefa criada.
+     */
+    public function duplicate(array $options = []): Model
+    {
+        $this->loadMissing(['tags', 'users']);
+
+        $assigneeIds = $this->users
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $copy = self::create([
+            'project_id' => (int) ($options['project_id'] ?? $this->project_id),
+            'title' => $options['title'] ?? $this->title,
+            'description' => $this->description,
+            'priority' => $this->priority?->value,
+            'status' => empty($assigneeIds)
+                ? TaskStatus::NEW->value
+                : TaskStatus::ASSIGNED->value,
+            'start_date' => array_key_exists('start_date', $options)
+                ? $options['start_date']
+                : $this->start_date,
+            'due_date' => array_key_exists('due_date', $options)
+                ? $options['due_date']
+                : $this->due_date,
+            'completed_at' => null,
+        ]);
+
+        $copy->syncTagsWithType(
+            $this->tags->where('type', Tag::TYPE_TASK),
+            Tag::TYPE_TASK
+        );
+        $copy->users()->sync($assigneeIds);
+
+        return $copy;
+    }
+
+    public function duplicationBlockReason(): ?string
+    {
+        return null;
     }
 }

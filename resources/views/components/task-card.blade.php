@@ -1,6 +1,6 @@
 {{-- resources/views/components/task-card.blade.php --}}
 
-@props(['task', 'showProject' => true])
+@props(['task', 'showProject' => true, 'showDuplicate' => true])
 
 @php
   $href = route('tasks.show', $task);
@@ -51,11 +51,19 @@
         {{ $task->title }} ok
       </h6>
 
-      @if ($status)
-        <span class="badge badge-{{ $status->color() }}">
-          {{ $status->label() }}
-        </span>
-      @endif
+      <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+        @if ($status)
+          <span class="badge badge-{{ $status->color() }}">
+            {{ $status->label() }}
+          </span>
+        @endif
+
+        @if ($showDuplicate)
+          <div class="ml-1">
+            @include('module-tasks.partials.buttons.duplicate-btn')
+          </div>
+        @endif
+      </div>
     </div>
 
     {{-- Project --}}

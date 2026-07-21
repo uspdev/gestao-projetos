@@ -22,7 +22,7 @@
     <div class="row">
       @forelse($tasksByStatus as $task)
         <div class="col-md-6 col-lg-4 mb-2 task-search-item" data-task-searchable="{{ $task->searchableText() }}">
-          <x-task-card :task="$task" />
+          <x-task-card :task="$task" :show-duplicate="false" />
         </div>
       @empty
         <div class="col-12">

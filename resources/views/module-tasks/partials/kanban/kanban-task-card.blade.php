@@ -41,8 +41,11 @@
     <a href="{{ route('tasks.show', $task->id) }}" class="stretched-link"></a>
 
     <div class="d-flex align-items-start justify-content-between gap-2 px-1">
-      {{ $task->title }}
-      @include('module-tasks.partials.kanban.kanban-update-status')
+      <span>{{ $task->title }}</span>
+      <div class="d-flex align-items-center flex-shrink-0 position-relative" style="z-index: 10;">
+        @include('module-tasks.partials.buttons.duplicate-btn')
+        @include('module-tasks.partials.kanban.kanban-update-status')
+      </div>
     </div>
 
     <div class="text-muted small mb-2">

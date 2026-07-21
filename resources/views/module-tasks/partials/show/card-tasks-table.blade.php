@@ -29,6 +29,7 @@
               $taskTagIds = $tasksTagsIds[$task->id] ?? [];
             @endphp
             @include('module-tasks.partials.buttons.edit-btn')
+            @include('module-tasks.partials.buttons.duplicate-btn')
           </td>
           <td>
             @include('module-tasks.partials.priority-badge')

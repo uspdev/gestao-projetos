@@ -33,6 +33,11 @@ class TaskPolicy
         return $this->tasksModuleEnabled($project) && $user->isContributorOfProject($project);
     }
 
+    public function duplicate(User $user, Task $task): bool
+    {
+        return $this->create($user, $task->project);
+    }
+
     public function update(User $user, Task $task): bool
     {
         //   return true;
