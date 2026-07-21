@@ -4,6 +4,8 @@
   @include('module-tasks.partials.buttons.toggle-layout-btn')
   @include('module-tasks.partials.buttons.show-done-btn')
   @include('module-tasks.partials.buttons.show-mine-btn')
+
+  @include('module-tasks.partials.buttons.search-task-form')
 @endsection
 
 @section('task-content')

@@ -25,7 +25,6 @@
 
       @section('task-header') @show
 
-      @include('module-tasks.partials.buttons.search-task-form')
     </div>
 
     <div class="card-body p-2">
