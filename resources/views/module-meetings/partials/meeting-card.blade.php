@@ -1,5 +1,6 @@
 @props([
     'compact' => false,
+    'showDuplicate' => true,
 ])
 
 @pushOnce('styles')
@@ -26,7 +27,14 @@
           <div class="small text-muted"><i class="fas fa-folder-open"></i> {{ $project->name }}</div>
         </div>
 
-        <span class="badge badge-{{ $meeting->status?->color() }}">{{ $meeting->status?->label() }}</span>
+        <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+          <span class="badge badge-{{ $meeting->status?->color() }}">{{ $meeting->status?->label() }}</span>
+          @if ($showDuplicate)
+            <div class="ml-1">
+              @include('module-meetings.partials.duplicate-btn')
+            </div>
+          @endif
+        </div>
       </div>
 
       <div class="d-flex align-items-start gap-2">
@@ -45,7 +53,14 @@
           <div class="text-dark font-weight-bold text-truncate">{{ $meeting->title }}</div>
         </div>
 
-        <span class="badge badge-{{ $meeting->status?->color() }}">{{ $meeting->status?->label() }}</span>
+        <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+          <span class="badge badge-{{ $meeting->status?->color() }}">{{ $meeting->status?->label() }}</span>
+          @if ($showDuplicate)
+            <div class="ml-1">
+              @include('module-meetings.partials.duplicate-btn')
+            </div>
+          @endif
+        </div>
       </div>
 
       <div class="d-flex align-items-start gap-2">

@@ -11,6 +11,7 @@
         <div class="col-12 mb-2">
           @include('module-meetings.partials.meeting-card', [
               'compact' => true,
+              'showDuplicate' => false,
               'project' => $meeting->contextProjectFor($user, $availableMeetingProjectIds), // Método para obter o projeto de contexto para a reunião
           ])
         </div>
