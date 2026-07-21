@@ -5,7 +5,7 @@
     <input type="hidden" name="commentable_id" value="{{ $commentable->getKey() }}">
 
     <div class="border rounded-lg bg-white p-2 shadow-sm">
-      <x-form.textarea name="text" id="comment-text" groupClass="mb-0" value="{{ old('text') }}" rows="1"
+      <x-form.textarea name="text" id="comment-text" groupClass="mb-0" value="{{ old('text') }}" markdown-profile="compact" rows="1"
         data-autogrow-textarea maxlength="10000" required placeholder="Escreva um comentário..."
         aria-label="Escreva um comentário" class="border-0 shadow-none p-0 mb-0" />
 

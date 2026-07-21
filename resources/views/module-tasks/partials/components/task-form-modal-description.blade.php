@@ -26,7 +26,7 @@
         <div class="modal-body">
           <div class="row">
             <div class="col-12">
-              <x-form.textarea name="description" label="Descrição Detalhada" value="{{ old('description') }}"
+              <x-form.textarea name="description" label="Descrição Detalhada" value="{{ old('description') }}" markdown-profile="full"
                 rows="6" maxlength="10000" />
             </div>
           </div>

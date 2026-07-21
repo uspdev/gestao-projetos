@@ -85,6 +85,7 @@
   @stack('modals')
   @parent
   @stack('scripts')
+  <script src="{{ asset('js/app.js') }}"></script>
   <script>
     // Seu código .js
   </script>

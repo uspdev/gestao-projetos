@@ -49,7 +49,7 @@
           <input type="hidden" name="project_id" value="{{ $project->id }}">
 
           <label for="{{ $descriptionEditId }}-textarea" class="sr-only">Editar descrição</label>
-          <x-form.textarea name="description" :id="$descriptionEditId . '-textarea'" :value="$project->description" groupClass="mb-2" rows="4"
+          <x-form.textarea name="description" :id="$descriptionEditId . '-textarea'" :value="$project->description" groupClass="mb-2" markdown-profile="full" rows="4"
             maxlength="10000" />
 
           <div class="d-flex justify-content-end" style="gap: 0.5rem;">

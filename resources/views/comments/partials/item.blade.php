@@ -32,7 +32,7 @@
         <input type="hidden" name="comment_id" value="{{ $comment->id }}">
 
         <label for="{{ $commentEditFormId }}-textarea" class="sr-only">Editar comentario</label>
-        <x-form.textarea name="text" :id="$commentEditFormId . '-textarea'" :value="$editTextValue" :error-bag="$isEditingComment ? $errors : new \Illuminate\Support\ViewErrorBag()" groupClass="form-group mb-2"
+        <x-form.textarea name="text" :id="$commentEditFormId . '-textarea'" :value="$editTextValue" :error-bag="$isEditingComment ? $errors : new \Illuminate\Support\ViewErrorBag()" groupClass="form-group mb-2" markdown-profile="compact"
           rows="2" maxlength="10000" required />
 
         <div class="d-flex justify-content-end" style="gap: 0.5rem;">

@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DuplicateController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MarkdownPreviewController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
@@ -25,6 +26,8 @@ Route::get('about', function () {
 })->name('about');
 
 Route::middleware('auth')->group(function () {
+
+    Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
 
     // ==========================================
     // BLOCO 1: PROJETOS

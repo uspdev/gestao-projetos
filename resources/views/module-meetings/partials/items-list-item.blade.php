@@ -145,7 +145,7 @@
               @method('PATCH')
               <div class="form-group mb-2">
                 <label for="{{ $notesEditCollapseId }}-textarea" class="sr-only">Anotações prévias do item</label>
-                <x-form.textarea name="notes" id="{{ $notesEditCollapseId }}-textarea" groupClass="mb-0"
+                <x-form.textarea name="notes" id="{{ $notesEditCollapseId }}-textarea" groupClass="mb-0" markdown-profile="full"
                   value="{{ old('notes', $item->notes) }}" rows="4" maxlength="10000" class="mb-0" />
               </div>
               <div class="d-flex justify-content-end" style="gap: 0.5rem;">

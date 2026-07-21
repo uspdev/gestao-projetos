@@ -39,7 +39,7 @@
             <input type="hidden" name="form_context" value="meeting-notes">
 
             <label for="{{ $notesEditId }}-textarea" class="sr-only">Anotações prévias</label>
-            <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2"
+            <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2" markdown-profile="full"
               rows="3" maxlength="10000" />
 
             <div class="d-flex justify-content-end" style="gap: 0.5rem;">

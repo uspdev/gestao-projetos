@@ -91,7 +91,7 @@
         @enderror
       </div>
 
-      <x-form.textarea name="description" label="Descrição" rows="3" maxlength="10000" />
+      <x-form.textarea name="description" label="Descrição" markdown-profile="full" rows="3" maxlength="10000" />
 
       <div class="d-flex justify-content-end">
         <x-form.save-button class="btn btn-primary" label="Salvar Projeto" />

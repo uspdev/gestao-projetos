@@ -227,6 +227,56 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertDontSee('<img src=x onerror=alert(1)>', false);
     }
 
+    public function test_markdown_fields_expose_their_editor_profiles_without_enabling_plain_text_records(): void
+    {
+        DB::table('project_user')->where('user_id', 1)->update(['role' => 'ADMIN']);
+        DB::table('meetings')->where('id', 1)->update(['status' => 'DRAFT']);
+        DB::table('meeting_items')->insert([
+            'id' => 1,
+            'meeting_id' => 1,
+            'title' => 'Item independente',
+            'order' => 1,
+            'notes' => 'Preparação do item',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('tasks')->insert([
+            'id' => 1,
+            'project_id' => 1,
+            'title' => 'Tarefa teste',
+            'description' => 'Descrição da tarefa',
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $projectPage = $this->get('/projects/projeto-teste')->assertOk()->getContent();
+        $taskPage = $this->get('/tasks/1')->assertOk()->getContent();
+        $meetingPage = $this->get('/projects/projeto-teste/meetings/1')->assertOk()->getContent();
+
+        $this->assertStringContainsString('id="project-description-edit-1-textarea"', $projectPage);
+        $this->assertStringContainsString('id="task-description-edit-1-textarea"', $taskPage);
+        $this->assertStringContainsString('id="meeting-notes-edit-1-textarea"', $meetingPage);
+        $this->assertStringContainsString('id="meeting-item-notes-edit-1-textarea"', $meetingPage);
+
+        foreach ([$projectPage, $taskPage, $meetingPage] as $page) {
+            $this->assertStringContainsString('data-markdown-profile="full"', $page);
+            $this->assertStringContainsString('data-markdown-profile="compact"', $page);
+            $this->assertMatchesRegularExpression(
+                '/data-markdown-preview-url="[^"]*\/markdown\/preview"/',
+                $page
+            );
+        }
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/id="meeting-(?:ata|transcription)-textarea"[^>]*data-markdown-editor/',
+            $meetingPage
+        );
+    }
+
     public function test_prior_notes_are_locked_when_completed_and_editable_again_after_reopening(): void
     {
         $this->actingAs(User::findOrFail(1));
