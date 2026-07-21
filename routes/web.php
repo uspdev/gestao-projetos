@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DuplicateController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
@@ -158,6 +159,12 @@ Route::middleware('auth')->group(function () {
     Route::post('comments', [CommentController::class, 'store'])->name('comments.store');
     Route::patch('comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
     Route::delete('comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // ==========================================
+    // DUPLICATES
+    // ==========================================
+    Route::post('projects/{project}/duplicates/{duplicable_type}/{duplicable_id}', [DuplicateController::class, 'store'])
+        ->name('projects.duplicates.store');
 
     // ==========================================
     // MENU / REDIRECTS
