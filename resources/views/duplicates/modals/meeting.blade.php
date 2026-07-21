@@ -4,9 +4,7 @@
   $copySuffix = '(Cópia)';
   $suggestedTitle = \Illuminate\Support\Str::limit($meeting->title, 120 - mb_strlen($copySuffix), '') . $copySuffix;
   $titleValue = $isDuplicationForm ? old('title') : $suggestedTitle;
-  $scheduledAtValue = $isDuplicationForm
-      ? old('scheduled_at')
-      : $meeting->scheduled_at?->format('Y-m-d\TH:i');
+  $scheduledAtValue = $isDuplicationForm ? old('scheduled_at') : $meeting->scheduled_at?->format('Y-m-d\TH:i');
   $scheduledAtIsPast = $meeting->scheduled_at?->isPast() ?? false;
 @endphp
 
@@ -27,13 +25,12 @@
 
         <div class="modal-body">
           <p class="text-muted">
-            Local, registros gerais, projetos vinculados e itens de pauta serão copiados. As anotações dos itens e os
-            comentários não serão levados para a nova reunião.
+            A cópia será criada com o status <strong>Agendada</strong>.
           </p>
 
           @if ($scheduledAtIsPast)
             <div class="alert alert-warning" role="alert">
-              A data desta reunião já passou. Remarque a reunião para uma nova data antes de duplicá-la.
+              A data desta reunião já passou. Remarque a reunião para uma nova data.
             </div>
           @endif
 
@@ -62,21 +59,25 @@
           </div>
 
           <div class="form-group mb-3">
-            <label>Projetos vinculados</label>
-            <div class="form-control-plaintext">{{ $meeting->projects->pluck('name')->join(', ') }}</div>
+            <label class="font-weight-bold">Projetos vinculados</label>
+
+            <div class="d-flex flex-wrap">
+              @forelse ($meeting->projects as $project)
+                <span class="badge badge-secondary badge-pill mr-1 mb-1 px-2 py-1">
+                  {{ $project->name }}
+                </span>
+              @empty
+                <span class="text-muted">Nenhum projeto vinculado</span>
+              @endforelse
+            </div>
           </div>
 
-          <div class="alert alert-light border mb-0">
-            A cópia será criada com o status <strong>Agendada</strong>.
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-copy mr-1" aria-hidden="true"></i> Duplicar reunião
+            </button>
           </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="fas fa-copy mr-1" aria-hidden="true"></i> Duplicar reunião
-          </button>
-        </div>
       </form>
     </div>
   </div>
