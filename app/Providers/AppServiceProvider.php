@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Morphs\CommentableMap;
+use App\Morphs\DuplicableMap;
 use App\Morphs\DiscussableMap;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Relation::morphMap(DiscussableMap::morphMap());
         Relation::morphMap(CommentableMap::morphMap());
+        Relation::morphMap(DuplicableMap::morphMap());
 
         // registrando pasta projects.components
         Blade::anonymousComponentPath(
