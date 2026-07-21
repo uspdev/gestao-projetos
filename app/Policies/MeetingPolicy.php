@@ -31,6 +31,12 @@ class MeetingPolicy
             && $user->isContributorOfProject($project);
     }
 
+    public function duplicate(User $user, Meeting $meeting, Project $project): bool
+    {
+        return $this->meetingBelongsToProject($meeting, $project)
+            && $this->create($user, $project);
+    }
+
     public function update(User $user, Meeting $meeting, Project $project): bool
     {
         if (!$this->meetingBelongsToProject($meeting, $project)) {

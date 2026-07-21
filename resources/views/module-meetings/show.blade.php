@@ -3,11 +3,17 @@
 @section('title', $title . ' | ' . $project->name)
 
 @section('meeting-header')
+  <div class="float-right d-flex align-items-center">
+    <div class="mr-2 mb-1">
+      @include('module-meetings.partials.duplicate-btn')
+    </div>
+
+    <a href="{{ route('projects.meetings.export', [$project, $meeting]) }}" class="btn btn-sm btn-outline-secondary py-0">
+      <i class="fas fa-download"></i> Exportar
+    </a>
+  </div>
+
   <x-separator /> <b>{{ $meeting->title }}</b>
-  <a href="{{ route('projects.meetings.export', [$project, $meeting]) }}"
-    class="btn btn-sm btn-outline-secondary py-0 float-right">
-    <i class="fas fa-download"></i> Exportar
-  </a>
 @endsection
 
 @section('meeting-content')

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Contracts\HasCommentRecipients;
 use App\Enums\Meeting\MeetingStatus;
+use App\Morphs\Duplicable;
 
 use App\Models\Project as ProjectModel;
 use App\Models\Task as TaskModel;
@@ -20,8 +21,9 @@ use App\Morphs\DiscussableMap;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
+use InvalidArgumentException;
 
-class Meeting extends Model implements HasCommentRecipients
+class Meeting extends Model implements HasCommentRecipients, Duplicable
 {
     use HasFactory, SoftDeletes, Auditable, LogsActivity;
 
@@ -56,7 +58,7 @@ class Meeting extends Model implements HasCommentRecipients
 
     public function tapActivity(Activity $activity, string $eventName): void
     {
-        if ($eventName !== 'updated' || ! $activity->properties) {
+        if (! in_array($eventName, ['created', 'updated'], true) || ! $activity->properties) {
             return;
         }
 
@@ -261,5 +263,64 @@ class Meeting extends Model implements HasCommentRecipients
             'taskOptions',
             'meetingProjects'
         );
+    }
+    /**
+     * Cria uma cópia desta reunião para uma nova data e hora.
+     *
+     * @param array{
+     *     scheduled_at: \DateTimeInterface|string,
+     *     title?: string,
+     *     project_ids?: array<int, int|string>
+     * } $options Opções para a duplicação da reunião.
+     *
+     * @return Model A nova reunião criada.
+     *
+     * @throws InvalidArgumentException Quando a nova data e hora não é informada.
+     */
+    public function duplicate(array $options = []): Model
+    {
+        $scheduledAt = $options['scheduled_at'] ?? null;
+
+        if (blank($scheduledAt)) {
+            throw new InvalidArgumentException('Informe a nova data e hora da reunião.');
+        }
+
+        $this->loadMissing(['projects', 'meetingItems']);
+
+        $projectIds = collect($options['project_ids'] ?? $this->projects->pluck('id')->all())
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $copy = self::create([
+            'title' => $options['title'] ?? $this->title,
+            'scheduled_at' => $scheduledAt,
+            'location' => $this->location,
+            'notes' => $this->notes,
+            'ata' => $this->ata,
+            'transcription' => $this->transcription,
+            'status' => MeetingStatus::SCHEDULED->value,
+        ]);
+
+        $copy->projects()->sync($projectIds);
+
+        foreach ($this->meetingItems->sortBy('order') as $item) {
+            MeetingItem::create([
+                'meeting_id' => $copy->id,
+                'discussable_type' => $item->discussable_type,
+                'discussable_id' => $item->discussable_id,
+                'title' => $item->title,
+                'order' => $item->order,
+                'notes' => null,
+            ]);
+        }
+
+        return $copy;
+    }
+
+    public function duplicationBlockReason(): ?string
+    {
+        return null;
     }
 }
