@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Mail\NewComment;
 use App\Models\ActivityLog;
+use App\Models\Comment;
+use App\Models\Meeting;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -115,6 +118,113 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('class="collapse" id="meeting-transcription-display"', false)
             ->assertDontSee('class="collapse show" id="meeting-ata-display"', false)
             ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
+    }
+
+    public function test_meeting_markdown_consumers_share_safe_rendering_while_records_remain_plain_text(): void
+    {
+        $markdown = '**Seguro** [Projeto](https://example.test) <script>alert(1)</script>';
+
+        DB::table('meetings')->where('id', 1)->update([
+            'notes' => $markdown,
+            'ata' => '**Ata literal** <script>alert(2)</script>',
+            'transcription' => '**Transcrição literal** <script>alert(3)</script>',
+        ]);
+        DB::table('meeting_items')->insert([
+            'id' => 1,
+            'meeting_id' => 1,
+            'title' => 'Item com Markdown',
+            'order' => 1,
+            'notes' => $markdown,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('comments')->insert([
+            'id' => 1,
+            'user_id' => 1,
+            'commentable_type' => 'meeting',
+            'commentable_id' => 1,
+            'text' => $markdown,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $response = $this->get('/projects/projeto-teste/meetings/1')->assertOk();
+
+        $this->assertSame(3, substr_count($response->getContent(), '<strong>Seguro</strong>'));
+        $this->assertSame(3, substr_count($response->getContent(), 'href="https://example.test" target="_blank" rel="noopener noreferrer"'));
+        $response
+            ->assertDontSee('<script>alert(1)</script>', false)
+            ->assertSee('**Ata literal** &lt;script&gt;alert(2)&lt;/script&gt;', false)
+            ->assertSee('**Transcrição literal** &lt;script&gt;alert(3)&lt;/script&gt;', false)
+            ->assertDontSee('<strong>Ata literal</strong>', false)
+            ->assertDontSee('<strong>Transcrição literal</strong>', false);
+    }
+
+    public function test_comment_email_keeps_markdown_as_escaped_plain_text(): void
+    {
+        DB::table('comments')->insert([
+            'id' => 1,
+            'user_id' => 1,
+            'commentable_type' => 'meeting',
+            'commentable_id' => 1,
+            'text' => '**Comentário literal** <script>alert(1)</script>',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $html = (new NewComment(
+            User::findOrFail(2),
+            User::findOrFail(1),
+            Comment::findOrFail(1),
+            Meeting::findOrFail(1)
+        ))->render();
+
+        $this->assertStringContainsString('**Comentário literal** &lt;script&gt;alert(1)&lt;/script&gt;', $html);
+        $this->assertStringNotContainsString('<strong>Comentário literal</strong>', $html);
+        $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
+    }
+
+    public function test_project_and_project_type_descriptions_use_the_safe_markdown_renderer(): void
+    {
+        $markdown = '**Descrição segura** [Destino](javascript:alert(1))';
+
+        DB::table('project_types')->where('id', 1)->update(['description' => $markdown]);
+        DB::table('projects')->where('id', 1)->update(['description' => $markdown]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $response = $this->get('/projects/projeto-teste')->assertOk();
+
+        $this->assertSame(2, substr_count($response->getContent(), '<strong>Descrição segura</strong>'));
+        $response
+            ->assertDontSee('href="javascript:alert(1)"', false)
+            ->assertDontSee('class="hljs', false);
+    }
+
+    public function test_task_description_uses_the_safe_markdown_renderer(): void
+    {
+        DB::table('tasks')->insert([
+            'id' => 1,
+            'project_id' => 1,
+            'title' => 'Tarefa com Markdown',
+            'description' => '**Tarefa segura** <img src=x onerror=alert(1)>',
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $this->get('/tasks/1')
+            ->assertOk()
+            ->assertSee('<strong>Tarefa segura</strong>', false)
+            ->assertSee('&lt;img src=x onerror=alert(1)&gt;', false)
+            ->assertDontSee('<img src=x onerror=alert(1)>', false);
     }
 
     public function test_prior_notes_are_locked_when_completed_and_editable_again_after_reopening(): void
@@ -365,22 +475,32 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
                 'updated_at' => now(),
             ])
             ->all());
-        DB::table('modules')->insert(['id' => 1, 'name' => 'Reuniões', 'slug' => 'meetings', 'created_at' => now(), 'updated_at' => now()]);
+        DB::table('modules')->insert([
+            ['id' => 1, 'name' => 'Reuniões', 'slug' => 'meetings', 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 2, 'name' => 'Tarefas', 'slug' => 'tasks', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        DB::table('project_types')->insert([
+            'id' => 1,
+            'name' => 'Tipo teste',
+            'slug' => 'tipo-teste',
+            'description' => null,
+            'enabled' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
         DB::table('projects')->insert([
             'id' => 1,
             'name' => 'Projeto teste',
             'slug' => 'projeto-teste',
             'status' => 'ACTIVE',
             'permission_inheritance' => 'NONE',
+            'project_type_id' => 1,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
         DB::table('project_modules')->insert([
-            'project_id' => 1,
-            'module_id' => 1,
-            'enabled' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
+            ['project_id' => 1, 'module_id' => 1, 'enabled' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['project_id' => 1, 'module_id' => 2, 'enabled' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
         DB::table('project_user')->insert([
             ['user_id' => 1, 'project_id' => 1, 'role' => 'CONTRIBUTOR', 'pinned' => false, 'created_at' => now(), 'updated_at' => now()],
@@ -444,6 +564,44 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             $table->string('name');
             $table->string('slug');
             $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('project_types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug');
+            $table->text('description')->nullable();
+            $table->boolean('enabled')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('project_type_modules', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('project_type_id');
+            $table->foreignId('module_id');
+            $table->boolean('enabled')->default(true);
+            $table->boolean('required')->default(false);
+            $table->boolean('editable')->default(true);
+            $table->json('config')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('phases', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('color')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('project_type_phases', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('project_type_id');
+            $table->foreignId('phase_id');
+            $table->unsignedInteger('order')->default(0);
+            $table->boolean('is_initial')->default(false);
+            $table->boolean('is_final')->default(false);
             $table->timestamps();
         });
 
@@ -539,9 +697,24 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             $table->id();
             $table->foreignId('project_id');
             $table->string('title');
-            $table->string('status')->nullable();
+            $table->text('description')->nullable();
+            $table->unsignedTinyInteger('priority')->nullable();
+            $table->string('status');
+            $table->date('start_date')->nullable();
+            $table->date('due_date')->nullable();
+            $table->dateTime('completed_at')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
+        });
+
+        Schema::create('task_user', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('task_id');
+            $table->foreignId('user_id');
+            $table->timestamps();
         });
 
         Schema::create('tags', function (Blueprint $table) {

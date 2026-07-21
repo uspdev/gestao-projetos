@@ -32,7 +32,7 @@
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <h5 class="card-title mb-0">{{ $organizacional->name }}</h5>
               </div>
-              <div class="text-muted"><x-markdown-content :text="$organizacional->description" :escape-html="false" /></div>
+              <div class="text-muted"><x-markdown-content :text="$organizacional->description" /></div>
               <div class="mb-3">
                 <strong class="d-block mb-2">Módulos ativos</strong>
                 <ul class="mb-0">
@@ -59,7 +59,7 @@
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <h5 class="card-title mb-0">{{ $projectType->name }}</h5>
               </div>
-              <div class="text-muted"><x-markdown-content :text="$projectType->description" :escape-html="false" /></div>
+              <div class="text-muted"><x-markdown-content :text="$projectType->description" /></div>
               <div class="mb-3">
                 <strong class="d-block mb-2">Módulos ativos</strong>
                 @if ($projectType->enabledModules()->isNotEmpty())

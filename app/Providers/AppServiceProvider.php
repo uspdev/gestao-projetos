@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Morphs\CommentableMap;
 use App\Morphs\DuplicableMap;
 use App\Morphs\DiscussableMap;
+use App\Services\MarkdownRenderer;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
@@ -20,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton(MarkdownRenderer::class);
     }
 
     /**

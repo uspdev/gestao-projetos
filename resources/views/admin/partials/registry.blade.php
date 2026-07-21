@@ -14,7 +14,7 @@
                 <div class="d-flex justify-content-between align-items-start mb-1">
                   <strong>{{ $module->name }}</strong>
                 </div>
-                <div class="text-muted">{!! md2html($module->description) !!}</div>
+                <div class="text-muted"><x-markdown-content :text="$module->description" /></div>
               </li>
             @endforeach
           </ul>
@@ -48,7 +48,7 @@
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <h6 class="mb-1">{{ $type->name }}</h6>
-                  <div class="text-muted">{!! md2html($type->description) !!}</div>
+                  <div class="text-muted"><x-markdown-content :text="$type->description" /></div>
                 </div>
               </div>
 

@@ -20,6 +20,7 @@
 @section('styles')
   @parent
   @stack('styles')
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   <style>
     html {
       scroll-behavior: smooth;

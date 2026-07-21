@@ -16,7 +16,7 @@
 
       @if ($projectType->description)
         <div class="text-muted mb-3">
-          <x-markdown-content :text="$projectType->description" :escape-html="false" />
+          <x-markdown-content :text="$projectType->description" />
         </div>
       @else
         <p class="text-muted mb-3">Sem descrição cadastrada para este tipo de projeto.</p>
