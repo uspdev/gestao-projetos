@@ -10,6 +10,7 @@ Sistema interno construído em Laravel que organiza e centraliza projetos e tare
 - [Roadmap](docs/roadmap.md) — Funcionalidades planejadas, prioridades futuras e entregas já implementadas.
 - [Permissões](docs/permissoes.md) — Regras de acesso, papéis, policies, subprojetos e herança de permissões.
 - [Implantação dos registros de reunião](docs/implantacao-registros-de-reuniao.md) — Ordem de migração, validação da estrutura e publicação do código.
+- [Implantação de Markdown, Arquivos e Menções — versão alfa](docs/implantacao-markdown-arquivos-mencoes.md) — Necessidades imediatas para compilar e publicar os ativos do editor Markdown.
 - [Aware Prompt](docs/aware_prompt.md) — Aware prompt de contexto para assistentes de IA externos; NÃO é um arquivo do tipo `AGENTS.md`.
 
 ## Características
