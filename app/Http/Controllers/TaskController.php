@@ -129,9 +129,13 @@ class TaskController extends Controller
             'tags',
         ]);
         $project = $task->project;
+        $files = $task->media()
+            ->with('uploader')
+            ->latest()
+            ->paginate(20, ['*'], 'files_page');
 
 
-        return view('module-tasks.show', compact('task', 'project'));
+        return view('module-tasks.show', compact('task', 'project', 'files'));
     }
 
     /**

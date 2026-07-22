@@ -19,6 +19,7 @@
   <div class="row">
     <div class="col-md-8">
       @include('module-tasks.partials.show.main-card')
+      <x-files.list :owner="$task" :files="$files" />
       @include('comments.partials.thread', ['commentable' => $task])
     </div>
     <div class="col-md-4">

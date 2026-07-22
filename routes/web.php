@@ -5,6 +5,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DuplicateController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MarkdownPreviewController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
@@ -27,13 +28,27 @@ Route::get('about', function () {
 
 Route::middleware('auth')->group(function () {
 
+    // ==========================================
+    // MARKDOWN
+    // ==========================================
     Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
+
+    // ==========================================
+    // ARQUIVOS
+    // ==========================================
+    // Operações por UUID independentes do tipo de Proprietário.
+    Route::get('files/{uuid}/metadata', [MediaController::class, 'metadata'])->name('files.metadata');
+    Route::get('files/{uuid}/download', [MediaController::class, 'download'])->name('files.download');
+    Route::get('files/{uuid}/thumbnail', [MediaController::class, 'thumbnail'])->name('files.thumbnail');
+    Route::patch('files/{uuid}', [MediaController::class, 'update'])->name('files.update');
+    Route::delete('files/{uuid}', [MediaController::class, 'destroy'])->name('files.destroy');
 
     // ==========================================
     // BLOCO 1: PROJETOS
     // ==========================================
 
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
+    Route::post('projects/{project}/files', [MediaController::class, 'storeProject'])->name('projects.files.store');
     Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
     Route::patch('projects/{project}/phase', [PhaseController::class, 'update'])->name('projects.updatePhase');
     Route::patch('projects/{project}/visibility', [ProjectController::class, 'updateProjectVisibility'])->name('projects.updateVisibility');
@@ -89,6 +104,7 @@ Route::middleware('auth')->group(function () {
     // Tarefas (Ações Diretas)
     Route::get('tasks', [TaskController::class, 'indexUser'])->name('tasks.index');
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
+    Route::post('tasks/{task}/files', [MediaController::class, 'storeTask'])->name('tasks.files.store');
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
     // Update split: description and other info
@@ -118,6 +134,7 @@ Route::middleware('auth')->group(function () {
     // ==========================================
     // BLOCO 3: REUNIOES
     // ==========================================
+    Route::post('meetings/{meeting}/files', [MediaController::class, 'storeMeeting'])->name('meetings.files.store');
     Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])
         ->name('meetings.updateMeetingStatus');
     Route::patch('projects/{project}/meetings/{meeting}/notes', [MeetingController::class, 'updateMeetingNotes'])

@@ -9,6 +9,7 @@
   <div class="row">
     <div class="col-md-8">
       <x-projects::show.descricao-card :project="$project" type="main" />
+      <x-files.list :owner="$project" :files="$files" />
       @include('comments.partials.thread', ['commentable' => $project])
     </div>
     <div class="col-md-4">

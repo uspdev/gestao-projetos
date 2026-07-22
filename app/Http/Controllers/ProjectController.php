@@ -88,8 +88,14 @@ class ProjectController extends Controller
             return view('projects.subprojects', compact('project'));
         }
 
+        $files = $project->media()
+            ->with('uploader')
+            ->latest()
+            ->paginate(20, ['*'], 'files_page');
+
         return view('projects.show', compact(
             'project',
+            'files',
         ));
     }
 

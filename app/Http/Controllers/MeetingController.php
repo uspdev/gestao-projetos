@@ -104,9 +104,13 @@ class MeetingController extends Controller
         $meetingProjects = $agendaData['meetingProjects'];
 
         $meeting->setRelation('projects', $meetingProjects);
+        $files = $meeting->media()
+            ->with('uploader')
+            ->latest()
+            ->paginate(20, ['*'], 'files_page');
 
         return view('module-meetings.show', array_merge(
-            compact('project', 'meeting', 'meetingItems'),
+            compact('project', 'meeting', 'meetingItems', 'files'),
             $agendaData
         ));
     }

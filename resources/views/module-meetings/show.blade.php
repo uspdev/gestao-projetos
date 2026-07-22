@@ -22,6 +22,7 @@
       @include('module-meetings.partials.meeting-notes')
       @include('module-meetings.partials.meeting-actions')
       @include('module-meetings.partials.meeting-records')
+      <x-files.list :owner="$meeting" :files="$files" />
       @include('comments.partials.thread', ['commentable' => $meeting])
     </div>
 

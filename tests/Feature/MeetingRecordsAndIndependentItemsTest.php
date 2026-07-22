@@ -783,5 +783,8 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             $table->string('taggable_type');
             $table->unsignedBigInteger('taggable_id');
         });
+
+        $migration = require database_path('migrations/2026_07_21_090000_create_media_table.php');
+        $migration->up();
     }
 }
