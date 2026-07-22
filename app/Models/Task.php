@@ -9,6 +9,7 @@ use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Tag;
 use App\Traits\Auditable;
+use App\Traits\InteractsWithFiles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,10 +21,11 @@ use Illuminate\Support\Collection;
 use Spatie\Tags\HasTags;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
 
-class Task extends Model implements Discussable, HasCommentRecipients, Duplicable
+class Task extends Model implements Discussable, HasCommentRecipients, Duplicable, HasMedia
 {
-    use HasFactory, SoftDeletes, Auditable, HasTags, LogsActivity;
+    use HasFactory, SoftDeletes, Auditable, HasTags, LogsActivity, InteractsWithFiles;
 
     protected $fillable = [
         'project_id',

@@ -9,6 +9,7 @@ use App\Morphs\Duplicable;
 use App\Models\Project as ProjectModel;
 use App\Models\Task as TaskModel;
 use App\Traits\Auditable;
+use App\Traits\InteractsWithFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -22,10 +23,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use InvalidArgumentException;
+use Spatie\MediaLibrary\HasMedia;
 
-class Meeting extends Model implements HasCommentRecipients, Duplicable
+class Meeting extends Model implements HasCommentRecipients, Duplicable, HasMedia
 {
-    use HasFactory, SoftDeletes, Auditable, LogsActivity;
+    use HasFactory, SoftDeletes, Auditable, LogsActivity, InteractsWithFiles;
 
     protected $fillable = [
         'title',

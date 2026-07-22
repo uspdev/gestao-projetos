@@ -1,8 +1,8 @@
 # Implantação de Markdown, Arquivos e Menções — versão alfa
 
-> **Documento alfa:** esta versão cobre somente as necessidades operacionais
-> imediatas do renderizador Markdown, do EasyMDE e da pré-visualização oficial.
-> Arquivos, compartilhamentos, Menções, fila e armazenamento privado serão
+> **Documento alfa:** esta versão cobre as necessidades operacionais imediatas
+> do renderizador Markdown, do EasyMDE, da pré-visualização oficial e da base
+> privada de Arquivos. Compartilhamentos, Menções e suas interfaces serão
 > acrescentados quando os respectivos tickets forem implementados. Este
 > documento não autoriza nem executa a implantação.
 
@@ -34,9 +34,32 @@ As ferramentas de compilação estão registradas em `devDependencies`. Não use
 durante o build, pois isso removeria Laravel Mix, EasyMDE e `highlight.js` antes
 da compilação.
 
-Nenhuma dependência PHP nova foi introduzida por esta etapa. Não execute
-`composer update` por causa do editor. O `composer install` permanece apenas
-como parte do procedimento normal de preparação da aplicação.
+O módulo de Arquivos usa `spatie/laravel-medialibrary`, já registrado em
+`composer.lock`. Não execute `composer update` durante a implantação. O
+`composer install` permanece apenas como parte do procedimento normal de
+preparação da aplicação.
+
+## Arquivos: identidade, nomes e armazenamento
+
+Cada Arquivo pertence exclusivamente a um Projeto, Tarefa ou Reunião. O disk
+`files` é privado e usa, inicialmente, `storage/app/files`; ele não depende de
+`storage:link` nem fornece URLs públicas diretas.
+
+| Campo da aplicação | Coluna persistida | Exemplo | Finalidade |
+|---|---|---|---|
+| `original_name` | `media.original_name` | `relatório final.PNG` | Nome informado pelo navegador no envio, preservado como proveniência. |
+| `uuid_name` | `media.file_name` | `550e8400-e29b-41d4-a716-446655440000.png` | Nome físico opaco no armazenamento privado. |
+| `uuid` | `media.uuid` | `550e8400-e29b-41d4-a716-446655440000` | Identidade pública estável para futuras rotas e Referências de arquivo. |
+| `display_name` | `media.name` | `relatório final` | Nome exibido, que poderá ser renomeado sem alterar o conteúdo ou a proveniência. |
+
+`display_name` e `uuid_name` são atributos da aplicação. As colunas `name` e
+`file_name` pertencem ao contrato técnico da Media Library e devem permanecer
+restritas à sua integração. Fora dessa fronteira, use os atributos da
+aplicação.
+
+`original_name`, `uuid_name`, `uuid`, conteúdo e Proprietário do arquivo são
+imutáveis. Uma renomeação altera somente `display_name`. O Nome original do
+arquivo não deve ser usado para caminhos, URLs ou cabeçalhos de download.
 
 ## Preparação dos ativos da release
 
@@ -101,4 +124,3 @@ repita as validações.
 
 Não tente corrigir uma falha de build com `composer update`, `npm update`, CDN
 ou edição manual de arquivos dentro de `public/`.
-

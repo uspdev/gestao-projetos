@@ -12,6 +12,7 @@ use App\Morphs\Duplicable;
 use App\Morphs\Discussable;
 use App\Traits\Auditable;
 use App\Traits\HasMeeting;
+use App\Traits\InteractsWithFiles;
 use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,11 +31,12 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Tags\HasTags;
+use Spatie\MediaLibrary\HasMedia;
 
-class Project extends Model implements Discussable, HasCommentRecipients, Duplicable
+class Project extends Model implements Discussable, HasCommentRecipients, Duplicable, HasMedia
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, LogsActivity;
-    use HasMeeting;
+    use HasMeeting, InteractsWithFiles;
 
     public const ORGANIZATIONAL_TYPE_SLUG = 'organizacional';
 
