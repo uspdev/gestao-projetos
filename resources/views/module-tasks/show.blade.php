@@ -4,13 +4,13 @@
 @section('title', $title . ' | Detalhes da Tarefa')
 
 @section('task-header')
-  <div class="d-flex align-items-center gap-2">
+  <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 0;">
     <x-separator />
-    <b>{{ $task->title }}</b>
+    <b class="text-truncate" title="{{ $task->title }}">{{ $task->title }}</b>
     @include('module-tasks.partials.components.update-status')
   </div>
 
-  <div class="ml-auto mb-1 flex-shrink-0">
+  <div class="ml-auto flex-shrink-0">
     @include('module-tasks.partials.buttons.duplicate-btn')
   </div>
 @endsection
