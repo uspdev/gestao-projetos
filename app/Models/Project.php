@@ -638,7 +638,7 @@ class Project extends Model implements Discussable, HasCommentRecipients, Duplic
 
         $copy->users()->sync($members);
 
-        if ((bool) ($options['copy_tasks'] ?? false)) {
+        if ((bool) ($options['copy_tasks'] ?? false) && $this->isModuleEnabled('tasks')) {
             $this->loadMissing('tasks.users', 'tasks.tags');
 
             foreach ($this->tasks as $task) {
@@ -654,7 +654,7 @@ class Project extends Model implements Discussable, HasCommentRecipients, Duplic
             }
         }
 
-        if ((bool) ($options['copy_meetings'] ?? false)) {
+        if ((bool) ($options['copy_meetings'] ?? false) && $this->isModuleEnabled('meetings')) {
             $this->loadMissing('meetings.projects', 'meetings.meetingItems');
 
             foreach ($this->meetings as $meeting) {

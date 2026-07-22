@@ -6,9 +6,13 @@
   $suggestedName = \Illuminate\Support\Str::limit($sourceProject->name, 50 - mb_strlen($copySuffix), '') . $copySuffix;
   $nameValue = $isDuplicationForm ? old('name') : $suggestedName;
   $copyMembers = $isDuplicationForm ? (string) old('copy_members', '0') === '1' : true;
-  $copyTasks = $isDuplicationForm ? (string) old('copy_tasks', '0') === '1' : false;
-  $copyMeetings = $isDuplicationForm ? (string) old('copy_meetings', '0') === '1' : false;
-  $projectMeetings = $sourceProject->meetings()->orderBy('scheduled_at')->orderBy('title')->get();
+  $tasksEnabled = $sourceProject->isModuleEnabled('tasks');
+  $meetingsEnabled = $sourceProject->isModuleEnabled('meetings');
+  $copyTasks = $tasksEnabled && ($isDuplicationForm ? (string) old('copy_tasks', '0') === '1' : false);
+  $copyMeetings = $meetingsEnabled && ($isDuplicationForm ? (string) old('copy_meetings', '0') === '1' : false);
+  $projectMeetings = $meetingsEnabled
+    ? $sourceProject->meetings()->orderBy('scheduled_at')->orderBy('title')->get()
+    : collect();
 @endphp
 
 <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}-label"
@@ -59,26 +63,30 @@
               </div>
 
               <input type="hidden" name="copy_tasks" value="0">
-              <div class="custom-control custom-checkbox mb-3">
-                <input type="checkbox" class="custom-control-input" id="{{ $modalId }}-copy-tasks"
-                  name="copy_tasks" value="1" @checked($copyTasks)>
-                <label class="custom-control-label" for="{{ $modalId }}-copy-tasks">Copiar tarefas</label>
-                <small class="form-text text-muted">
-                  Sem copiar os membros, as tarefas manterão o estágio atual e ficarão sem responsáveis.
-                </small>
-              </div>
+              @if ($tasksEnabled)
+                <div class="custom-control custom-checkbox mb-3">
+                  <input type="checkbox" class="custom-control-input" id="{{ $modalId }}-copy-tasks"
+                    name="copy_tasks" value="1" @checked($copyTasks)>
+                  <label class="custom-control-label" for="{{ $modalId }}-copy-tasks">Copiar tarefas</label>
+                  <small class="form-text text-muted">
+                    Sem copiar os membros, as tarefas manterão o estágio atual e ficarão sem responsáveis.
+                  </small>
+                </div>
+              @endif
 
               <input type="hidden" name="copy_meetings" value="0">
-              <div class="custom-control custom-checkbox mb-0">
-                <input type="checkbox" class="custom-control-input" id="{{ $modalId }}-copy-meetings"
-                  name="copy_meetings" value="1" @checked($copyMeetings) @disabled($projectMeetings->isEmpty())>
-                <label class="custom-control-label" for="{{ $modalId }}-copy-meetings">Copiar reuniões</label>
-                @if ($projectMeetings->isEmpty())
-                  <small class="form-text text-muted">Este projeto não possui reuniões para copiar.</small>
-                @else
-                  <small class="form-text text-muted">As reuniões serão copiadas com as datas e horários atuais.</small>
-                @endif
-              </div>
+              @if ($meetingsEnabled)
+                <div class="custom-control custom-checkbox mb-0">
+                  <input type="checkbox" class="custom-control-input" id="{{ $modalId }}-copy-meetings"
+                    name="copy_meetings" value="1" @checked($copyMeetings) @disabled($projectMeetings->isEmpty())>
+                  <label class="custom-control-label" for="{{ $modalId }}-copy-meetings">Copiar reuniões</label>
+                  @if ($projectMeetings->isEmpty())
+                    <small class="form-text text-muted">Este projeto não possui reuniões para copiar.</small>
+                  @else
+                    <small class="form-text text-muted">As reuniões serão copiadas com as datas e horários atuais.</small>
+                  @endif
+                </div>
+              @endif
             </div>
           </div>
 

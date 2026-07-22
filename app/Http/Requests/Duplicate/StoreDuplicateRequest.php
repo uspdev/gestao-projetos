@@ -95,6 +95,31 @@ class StoreDuplicateRequest extends FormRequest
         ];
     }
 
+    public function withValidator($validator): void
+    {
+        $duplicable = $this->duplicable();
+
+        if (! $duplicable instanceof Project) {
+            return;
+        }
+
+        $validator->after(function ($validator) use ($duplicable) {
+            if ($this->boolean('copy_tasks') && ! $duplicable->isModuleEnabled('tasks')) {
+                $validator->errors()->add(
+                    'copy_tasks',
+                    'As tarefas não podem ser copiadas porque o módulo de tarefas está desativado neste projeto.'
+                );
+            }
+
+            if ($this->boolean('copy_meetings') && ! $duplicable->isModuleEnabled('meetings')) {
+                $validator->errors()->add(
+                    'copy_meetings',
+                    'As reuniões não podem ser copiadas porque o módulo de reuniões está desativado neste projeto.'
+                );
+            }
+        });
+    }
+
     public function duplicable(): ?Model
     {
         if ($this->resolvedDuplicable) {
