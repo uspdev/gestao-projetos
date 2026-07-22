@@ -43,7 +43,9 @@
     <div class="d-flex align-items-start justify-content-between gap-2 px-1">
       <span>{{ $task->title }}</span>
       <div class="d-flex align-items-center flex-shrink-0 position-relative" style="z-index: 10;">
-        @include('module-tasks.partials.buttons.duplicate-btn')
+        @if ($showDuplicate ?? true)
+          @include('module-tasks.partials.buttons.duplicate-btn')
+        @endif
         @include('module-tasks.partials.kanban.kanban-update-status')
       </div>
     </div>

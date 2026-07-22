@@ -17,7 +17,7 @@
   </div>
 
   @if (session('tasks_view') === 'kanban')
-    @include('module-tasks.partials.kanban.kanban')
+    @include('module-tasks.partials.kanban.kanban', ['showDuplicate' => false])
   @else
     <div class="row">
       @forelse($tasksByStatus as $task)
