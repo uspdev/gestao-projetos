@@ -658,17 +658,9 @@ class Project extends Model implements Discussable, HasCommentRecipients, Duplic
             $this->loadMissing('meetings.projects', 'meetings.meetingItems');
 
             foreach ($this->meetings as $meeting) {
-                $projectIds = $meeting->projects
-                    ->pluck('id')
-                    ->push($copy->id)
-                    ->map(fn($id) => (int) $id)
-                    ->unique()
-                    ->values()
-                    ->all();
-
                 $meeting->duplicate([
                     'scheduled_at' => $meeting->scheduled_at,
-                    'project_ids' => $projectIds,
+                    'project_ids' => [$copy->id],
                 ]);
             }
         }
