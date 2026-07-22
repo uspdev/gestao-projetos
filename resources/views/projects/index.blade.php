@@ -17,7 +17,7 @@
       @foreach ($projects as $project)
         <div class="col-12 col-lg-6 col-xl-4 project-item mb-2 px-2"
           data-searchable="{{ strtolower($project->name . ' ' . ($project->description ?? '') . ' ' . ($project->tags->pluck('name')->implode(' ') ?? '')) }}">
-          <x-project-card :project="$project" />
+          <x-project-card :project="$project" :show-actions-menu="true" />
         </div>
       @endforeach
     </div>

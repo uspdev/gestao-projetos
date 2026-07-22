@@ -1,14 +1,13 @@
 @props([
     'project',
     'view' => 'default', // compact ou default
+    'showActionsMenu' => false,
 ])
 
 @php
   $user = auth()->user();
   $userRole = $user ? $project->userRole($user) : null;
   $allTags = $project->tagsWithType('projects');
-  $canPin = (bool) $userRole;
-  $isPinned = $canPin && $project->isPinnedBy($user);
 @endphp
 
 @pushOnce('styles')
@@ -92,9 +91,15 @@
           {{ $project->status->label() }}
         </span>
 
-        <div class="ml-1" style="z-index: 2;">
-          @include('projects.partials.components.toggle-pin')
-        </div>
+        @if ($showActionsMenu)
+          <div class="ml-1" style="z-index: 2;">
+            @include('projects.partials.components.index-actions-menu')
+          </div>
+        @else
+          <div class="ml-1" style="z-index: 2;">
+            @include('projects.partials.components.toggle-pin')
+          </div>
+        @endif
       </div>
     </div>
 
