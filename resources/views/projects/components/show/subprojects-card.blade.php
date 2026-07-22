@@ -15,7 +15,7 @@
         <div class="mr-3">
           <i class="fas fa-sitemap"></i> Subprojetos
         </div>
-        
+
         {{-- 2. Barra de Busca (Imediatamente após o título) --}}
         @if(!$isPreview && $totalSubprojects > 0)
           <div class="mr-2">
@@ -39,7 +39,7 @@
               !$isPreview && $user && ($user->isAdminOfProject($project) || $user->isAdminOfProject($subproject));
           $userRole = $user ? $subproject->userRole($user) : null;
         @endphp
-        
+
         <div class="col-md-6 col-lg-6 mb-3" data-subproject-searchable="{{ $subproject->name }}">
           <x-card.preview href="{{ route('projects.show', $subproject) }}"
             aria-label="Acessar subprojeto {{ $subproject->name }}" :card-title="$subproject->name" title-variant="project"

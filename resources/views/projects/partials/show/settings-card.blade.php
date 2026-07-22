@@ -136,6 +136,15 @@
           </td>
         </tr>
       @endif
+      <tr>
+        <td class="pl-3 pr-2 py-2">
+          <div class="settings-label d-flex align-items-center gap-2">
+            <i class="ti ti-circle-check" aria-hidden="true"></i>
+            Duplicar projeto
+          </div>
+        </td>
+        <td class="pr-3 py-2">@include('projects.partials.show.duplicate-btn')</td>
+      </tr>
     </tbody>
   </table>
 </div>
