@@ -36,6 +36,13 @@ class ProjectPolicy
         ]);
     }
 
+    public function duplicate(User $user, Project $project): bool
+    {
+        return $this->create($user)
+            && $this->view($user, $project)
+            && $project->duplicationBlockReason() === null;
+    }
+
     public function update(User $user, Project $project): bool
     {
         return $user->isAdminOfProject($project);

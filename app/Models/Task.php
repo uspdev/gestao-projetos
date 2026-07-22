@@ -166,7 +166,9 @@ class Task extends Model implements Discussable, HasCommentRecipients, Duplicabl
      *     project_id?: int|string,
      *     title?: string,
      *     start_date?: \DateTimeInterface|string|null,
-     *     due_date?: \DateTimeInterface|string|null
+     *     due_date?: \DateTimeInterface|string|null,
+     *     copy_assignees?: bool,
+     *     preserve_status?: bool
      * } $options Opções para a duplicação da tarefa.
      *
      * @return Model A nova tarefa criada.
@@ -175,19 +177,19 @@ class Task extends Model implements Discussable, HasCommentRecipients, Duplicabl
     {
         $this->loadMissing(['tags', 'users']);
 
-        $assigneeIds = $this->users
-            ->pluck('id')
-            ->map(fn($id) => (int) $id)
-            ->all();
+        $copyAssignees = (bool) ($options['copy_assignees'] ?? true);
+        $assigneeIds = $copyAssignees
+            ? $this->users->pluck('id')->map(fn($id) => (int) $id)->all()
+            : [];
 
         $copy = self::create([
             'project_id' => (int) ($options['project_id'] ?? $this->project_id),
             'title' => $options['title'] ?? $this->title,
             'description' => $this->description,
             'priority' => $this->priority?->value,
-            'status' => empty($assigneeIds)
-                ? TaskStatus::NEW->value
-                : TaskStatus::ASSIGNED->value,
+            'status' => (bool) ($options['preserve_status'] ?? false)
+                ? $this->status?->value
+                : (empty($assigneeIds) ? TaskStatus::NEW->value : TaskStatus::ASSIGNED->value),
             'start_date' => array_key_exists('start_date', $options)
                 ? $options['start_date']
                 : $this->start_date,

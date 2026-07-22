@@ -8,6 +8,7 @@ use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Project\ProjectVisibility;
 use App\Models\Module;
+use App\Morphs\Duplicable;
 use App\Morphs\Discussable;
 use App\Traits\Auditable;
 use App\Traits\HasMeeting;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -29,7 +31,7 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Tags\HasTags;
 
-class Project extends Model implements Discussable, HasCommentRecipients
+class Project extends Model implements Discussable, HasCommentRecipients, Duplicable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, LogsActivity;
     use HasMeeting;
@@ -555,6 +557,200 @@ class Project extends Model implements Discussable, HasCommentRecipients
         return $this->tasks()
             ->where('status', '!=', \App\Enums\Task\TaskStatus::DONE)
             ->count();
+    }
+    /**
+     * Cria uma cópia deste projeto e, opcionalmente, duplica seus membros,
+     * tarefas e reuniões.
+     *
+     * @param array{
+     *     name?: string,
+     *     copy_members?: bool,
+     *     copy_tasks?: bool,
+     *     copy_meetings?: bool
+     * } $options Opções de configuração da duplicação.
+     *
+     * @return Model O novo projeto criado.
+     *
+     * @throws \LogicException Quando o projeto não pode ser duplicado.
+     */
+    public function duplicate(array $options = []): Model
+    {
+        $this->loadMissing([
+            'tags',
+            'users',
+            'projectModules',
+            'projectType.modules',
+            'projectType.phases',
+        ]);
+
+        if ($reason = $this->duplicationBlockReason()) {
+            throw new \LogicException($reason);
+        }
+
+        $copy = self::create([
+            'name' => $options['name'] ?? ($this->name . '(Cópia)'),
+            'slug' => null,
+            'status' => ProjectStatus::DRAFT->value,
+            'description' => $this->description,
+            'project_type_id' => $this->project_type_id,
+            'parent_id' => null,
+            'visibility' => $this->visibility?->value,
+            'permission_inheritance' => $this->permission_inheritance?->value,
+            'phase_id' => $this->initialPhaseId(),
+        ]);
+
+        $sourceModuleIds = $this->projectModules
+            ->pluck('module_id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        if (! empty($sourceModuleIds)) {
+            $copy->projectModules()
+                ->whereNotIn('module_id', $sourceModuleIds)
+                ->delete();
+        }
+
+        foreach ($this->projectModules as $projectModule) {
+            ProjectModule::query()->updateOrCreate(
+                [
+                    'project_id' => $copy->id,
+                    'module_id' => $projectModule->module_id,
+                ],
+                ['enabled' => (bool) $projectModule->enabled]
+            );
+        }
+
+        $copy->syncTagsWithType(
+            $this->tags->where('type', Tag::TYPE_PROJECT),
+            Tag::TYPE_PROJECT
+        );
+
+        $copyMembers = (bool) ($options['copy_members'] ?? false);
+        $members = $copyMembers ? $this->duplicatedMembers() : [];
+        $actorId = Auth::id();
+
+        if ($actorId) {
+            $members[$actorId] = [
+                'role' => ProjectUserRole::ADMIN->value,
+                'pinned' => false,
+            ];
+        }
+
+        $copy->users()->sync($members);
+
+        if ((bool) ($options['copy_tasks'] ?? false)) {
+            $this->loadMissing('tasks.users', 'tasks.tags');
+
+            foreach ($this->tasks as $task) {
+                $task->duplicate([
+                    'project_id' => $copy->id,
+                    'copy_assignees' => $copyMembers,
+                    'preserve_status' => ! $copyMembers,
+                ]);
+            }
+
+            if ($copyMembers) {
+                $this->ensureCopiedAssigneesAreMembers($copy);
+            }
+        }
+
+        if ((bool) ($options['copy_meetings'] ?? false)) {
+            $this->loadMissing('meetings.projects', 'meetings.meetingItems');
+
+            foreach ($this->meetings as $meeting) {
+                $projectIds = $meeting->projects
+                    ->pluck('id')
+                    ->push($copy->id)
+                    ->map(fn($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $meeting->duplicate([
+                    'scheduled_at' => $meeting->scheduled_at,
+                    'project_ids' => $projectIds,
+                ]);
+            }
+        }
+
+        return $copy;
+    }
+
+    /**
+     * A duplicação é bloqueada quando o projeto é organizacional ou possui
+     * subprojetos. Caso nenhuma restrição seja encontrada, retorna `null`.
+     *
+     * @return string|null Motivo do bloqueio, ou `null` quando o projeto pode ser duplicado.
+     */
+    public function duplicationBlockReason(): ?string
+    {
+        if ($this->isOrganizational()) {
+            return 'Projetos organizacionais não podem ser duplicados.';
+        }
+
+        if ($this->hasSubprojects()) {
+            return 'Projetos com subprojetos não podem ser duplicados.';
+        }
+
+        return null;
+    }
+
+    private function initialPhaseId(): ?int
+    {
+        $projectType = $this->projectType;
+
+        if (! $projectType || ! $projectType->isModuleEnabled('phases')) {
+            return null;
+        }
+
+        $initialPhase = $projectType->phases
+            ->filter(fn(Phase $phase) => $phase->is_active && (bool) ($phase->pivot?->is_initial ?? false))
+            ->sortBy(fn(Phase $phase) => (int) ($phase->pivot?->order ?? 0))
+            ->first();
+
+        $initialPhase ??= $projectType->phases
+            ->filter(fn(Phase $phase) => $phase->is_active && ! (bool) ($phase->pivot?->is_final ?? false))
+            ->sortBy(fn(Phase $phase) => (int) ($phase->pivot?->order ?? 0))
+            ->first();
+
+        return $initialPhase?->id;
+    }
+
+    private function duplicatedMembers(): array
+    {
+        return $this->users->mapWithKeys(function (User $user) {
+            $role = $this->userRole($user);
+
+            return [
+                $user->id => [
+                    'role' => $role?->value ?? ProjectUserRole::VIEWER->value,
+                    'pinned' => false,
+                ],
+            ];
+        })->all();
+    }
+
+    private function ensureCopiedAssigneesAreMembers(Project $copy): void
+    {
+        $this->loadMissing('users', 'tasks.users');
+        $copy->load('users');
+        $memberIds = $copy->users->pluck('id')->map(fn($id) => (int) $id);
+
+        $assignees = $this->tasks
+            ->flatMap(fn(Task $task) => $task->users)
+            ->unique('id');
+
+        foreach ($assignees as $assignee) {
+            if ($memberIds->contains((int) $assignee->id)) {
+                continue;
+            }
+
+            $copy->users()->attach($assignee->id, [
+                'role' => ProjectUserRole::CONTRIBUTOR->value,
+                'pinned' => false,
+            ]);
+            $memberIds->push((int) $assignee->id);
+        }
     }
 
     private function parseProjectUserRole(mixed $roleValue): ?ProjectUserRole

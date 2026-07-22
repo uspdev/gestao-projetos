@@ -65,14 +65,7 @@ class StoreDuplicateRequest extends FormRequest
                 'copy_members' => ['required', 'boolean'],
                 'copy_tasks' => ['required', 'boolean'],
                 'copy_meetings' => ['required', 'boolean'],
-                'meeting_dates' => ['nullable', 'array'],
             ];
-
-            if ($this->boolean('copy_meetings')) {
-                foreach ($duplicable->meetings()->pluck('meetings.id') as $meetingId) {
-                    $rules['meeting_dates.' . $meetingId] = ['required', 'date'];
-                }
-            }
 
             return $rules;
         }
@@ -99,8 +92,6 @@ class StoreDuplicateRequest extends FormRequest
             'copy_members.required' => 'Informe se os membros devem ser copiados.',
             'copy_tasks.required' => 'Informe se as tarefas devem ser copiadas.',
             'copy_meetings.required' => 'Informe se as reuniões devem ser copiadas.',
-            'meeting_dates.*.required' => 'Informe a nova data e hora de cada reunião selecionada.',
-            'meeting_dates.*.date' => 'A nova data e hora da reunião deve ser válida.',
         ];
     }
 
@@ -141,7 +132,6 @@ class StoreDuplicateRequest extends FormRequest
                 'copy_members' => (bool) $data['copy_members'],
                 'copy_tasks' => (bool) $data['copy_tasks'],
                 'copy_meetings' => (bool) $data['copy_meetings'],
-                'meeting_dates' => $data['meeting_dates'] ?? [],
             ],
             default => [],
         };
