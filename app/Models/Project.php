@@ -7,6 +7,7 @@ use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Project\ProjectVisibility;
+use App\Enums\Task\TaskStatus;
 use App\Models\Module;
 use App\Morphs\Duplicable;
 use App\Morphs\Discussable;
@@ -557,7 +558,7 @@ class Project extends Model implements Discussable, HasCommentRecipients, Duplic
     public function getIncompleteTasksCount(): int
     {
         return $this->tasks()
-            ->where('status', '!=', \App\Enums\Task\TaskStatus::DONE)
+            ->where('status', '!=', TaskStatus::DONE->value)
             ->count();
     }
     /**

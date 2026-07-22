@@ -37,10 +37,6 @@
         if (noResults) {
           noResults.classList.toggle('d-none', items.length === 0 || visible !== 0);
         }
-
-        if (window.updateProjectTasksCount) {
-          window.updateProjectTasksCount();
-        }
       }
 
       if (clearBtn) {
