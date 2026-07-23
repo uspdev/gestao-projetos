@@ -10,7 +10,7 @@
 - [ ] Restringir Projeto aos próprios Arquivos; Tarefa aos próprios e aos do mesmo Projeto; Comentário ao conjunto do objeto comentado; Reunião e Item aos próprios e compartilhados.
 - [ ] Não ampliar seletores por herança entre Projetos.
 - [ ] Omitir seletor em novos Projetos e novas Reuniões ainda não persistidos; permitir Arquivos do Projeto na criação de Tarefa e do objeto na criação de Comentário.
-- [ ] Inserir a sintaxe `[Nome exibido](/files/{uuid})`, sem reescrever rótulos depois de renomeação ou exclusão.
+- [ ] Inserir a sintaxe `[Nome exibido]({caminho público da aplicação}/files/{uuid})`, sem reescrever rótulos depois de renomeação ou exclusão.
 - [ ] Criar `meeting_file_shares` e relações/modelos com unicidade, usuário autor, datas e remoção em exclusões definitivas.
 - [ ] Permitir como origem Arquivos de Projetos vinculados ou incluídos na pauta e de Tarefas incluídas na pauta, independentemente de status, desde que o usuário edite a Reunião e visualize a origem.
 - [ ] Implementar **Compartilhar com a reunião e inserir** como operação que persiste o acesso antes de inserir o link.

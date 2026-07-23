@@ -90,6 +90,49 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff');
     }
 
+    public function test_mention_selector_returns_only_direct_members_and_saving_rejects_new_ineligible_mentions(): void
+    {
+        $editor = $this->user('Pessoa que edita');
+        $directMember = $this->user('Pessoa diretamente vinculada');
+        $inheritedMember = $this->user('Pessoa com acesso herdado');
+        $outsider = $this->user('Pessoa de outro projeto');
+        $project = $this->projectWithMember('Projeto com menções', $editor, 'ADMIN');
+        $project->users()->attach($directMember, ['role' => 'VIEWER']);
+        $parent = $this->projectWithMember('Projeto pai', $inheritedMember, 'VIEWER');
+        $project->update(['parent_id' => $parent->id, 'permission_inheritance' => 'FULL']);
+
+        $this->actingAs($editor)
+            ->getJson(route('mentions.selectable', [
+                'context_type' => 'project',
+                'context_id' => $project->id,
+                'term' => 'Pessoa',
+            ]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $editor->id, 'name' => $editor->name])
+            ->assertJsonFragment(['id' => $directMember->id, 'name' => $directMember->name])
+            ->assertJsonMissing(['id' => $inheritedMember->id])
+            ->assertJsonMissing(['id' => $outsider->id]);
+
+        $allowed = '@[Pessoa diretamente vinculada](mention:user:' . $directMember->id . ')';
+        $this->patch(route('projects.updateDescription', $project), ['description' => $allowed])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('mentions', [
+            'mentionable_id' => $project->id,
+            'field' => 'description',
+            'mentioned_user_id' => $directMember->id,
+            'created_by' => $editor->id,
+        ]);
+
+        $this->patch(route('projects.updateDescription', $project), [
+            'description' => $allowed . ' @[Pessoa de outro projeto](mention:user:' . $outsider->id . ')',
+        ])
+            ->assertSessionHasErrors('description');
+
+        $this->assertSame($allowed, $project->fresh()->description);
+        $this->assertDatabaseCount('mentions', 1);
+    }
+
     public function test_task_file_selector_returns_its_own_files_and_files_from_its_project_without_inheriting_other_projects(): void
     {
         Storage::fake('files');
@@ -439,11 +482,15 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->addMedia(UploadedFile::fake()->createWithContent('contexto-da-pauta.pdf', 'conteudo'))
             ->toMediaCollection();
 
-        $this->postJson(route('meetings.file-shares.store', $meeting), [
+        $shareRoute = route('meetings.file-shares.store', $meeting);
+        config(['app.url' => 'http://localhost/gestao-projetos/public']);
+        URL::forceRootUrl('http://localhost/gestao-projetos/public');
+
+        $this->postJson($shareRoute, [
             'media_uuid' => $media->uuid,
         ])
             ->assertCreated()
-            ->assertJsonPath('markdown', "[contexto-da-pauta](/files/{$media->uuid})");
+            ->assertJsonPath('markdown', "[contexto-da-pauta](/gestao-projetos/public/files/{$media->uuid})");
 
         $this->assertDatabaseHas('meeting_file_shares', [
             'meeting_id' => $meeting->id,
@@ -599,6 +646,9 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('status');
+            $table->text('description')->nullable();
+            $table->foreignId('parent_id')->nullable();
+            $table->string('permission_inheritance')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
             $table->foreignId('deleted_by')->nullable();
@@ -725,6 +775,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         (require database_path('migrations/2026_07_21_090000_create_media_table.php'))->up();
         (require database_path('migrations/2026_07_22_090000_create_meeting_file_shares_table.php'))->up();
+        (require database_path('migrations/2026_07_23_090000_create_mentions_table.php'))->up();
 
         DB::table('permissions')->insert(collect([
             'admin', 'boss', 'manager', 'poweruser', 'user',

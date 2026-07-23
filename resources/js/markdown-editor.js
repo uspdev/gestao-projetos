@@ -14,6 +14,7 @@ const editors = new WeakMap();
 
 const DEBOUNCE_MS = 500;
 const COMPACT_EDITOR_MIN_HEIGHT = "60px";
+let activeMentionSelector = null;
 
 // -----------------------------------------------------------------------------
 // Utilitários de edição do conteúdo
@@ -25,6 +26,7 @@ const COMPACT_EDITOR_MIN_HEIGHT = "60px";
  * Exemplo:
  * wrapSelection(editor, "**") transforma "texto" em "**texto**".
  */
+
 function wrapSelection(editor, opening, closing = opening) {
     const codeMirror = editor.codemirror;
     const selection = codeMirror.getSelection();
@@ -180,11 +182,143 @@ function closeFileReferenceSelector(selector) {
     selector.remove();
 }
 
+function closeMentionSelector() {
+    if (activeMentionSelector) {
+        activeMentionSelector.element.remove();
+        activeMentionSelector = null;
+    }
+}
+
+function mentionRange(editor) {
+    const codeMirror = editor.codemirror;
+    const cursor = codeMirror.getCursor();
+    const beforeCursor = codeMirror.getRange({ line: cursor.line, ch: 0 }, cursor);
+    const match = beforeCursor.match(/(^|\s)@([^\s@]*)$/u);
+
+    if (!match) {
+        return null;
+    }
+
+    return {
+        from: { line: cursor.line, ch: match.index + match[1].length },
+        to: cursor,
+        term: match[2],
+    };
+}
+
+function insertMention(editor, range, user) {
+    editor.codemirror.replaceRange(`@[${user.name}](mention:user:${user.id})`, range.from, range.to);
+    editor.codemirror.focus();
+    closeMentionSelector();
+}
+
+function renderMentionSelector(editor, range, users) {
+    closeMentionSelector();
+
+    if (users.length === 0) {
+        return;
+    }
+
+    const selector = document.createElement('div');
+    selector.id = 'mention-selector';
+    selector.className = 'list-group position-absolute shadow';
+    selector.style.zIndex = '1060';
+    selector.style.minWidth = '16rem';
+    const position = editor.codemirror.cursorCoords(range.to, 'page');
+    selector.style.left = `${position.left}px`;
+    selector.style.top = `${position.bottom + 4}px`;
+
+    users.forEach((user, index) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = `list-group-item list-group-item-action${index === 0 ? ' active' : ''}`;
+        option.dataset.mentionUserId = user.id;
+        option.textContent = user.name;
+        option.addEventListener('click', () => {
+            insertMention(editor, range, user);
+        });
+        selector.appendChild(option);
+    });
+
+    document.body.appendChild(selector);
+    activeMentionSelector = { element: selector, editor, range, users, activeIndex: 0 };
+}
+
+function selectActiveMention() {
+    if (!activeMentionSelector) {
+        return false;
+    }
+
+    insertMention(
+        activeMentionSelector.editor,
+        activeMentionSelector.range,
+        activeMentionSelector.users[activeMentionSelector.activeIndex],
+    );
+
+    return true;
+}
+
+function moveActiveMention(step) {
+    if (!activeMentionSelector) {
+        return false;
+    }
+
+    const { users, element } = activeMentionSelector;
+    activeMentionSelector.activeIndex = (activeMentionSelector.activeIndex + step + users.length) % users.length;
+    element.querySelectorAll('[data-mention-user-id]').forEach((option, index) => {
+        option.classList.toggle('active', index === activeMentionSelector.activeIndex);
+    });
+
+    return true;
+}
+
+function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
+    const searchUrl = textarea.dataset.mentionSearchUrl;
+
+    if (!searchUrl || !range) {
+        closeMentionSelector();
+        return;
+    }
+
+    const url = new URL(searchUrl, window.location.origin);
+    url.searchParams.set('term', range.term);
+    const requestId = Symbol('mention-request');
+    textarea.mentionRequestId = requestId;
+
+    window.fetch(url.toString(), {
+        credentials: 'same-origin',
+        headers: csrfHeaders(),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Falha ao consultar usuários: HTTP ${response.status}`);
+            }
+
+            return response.json();
+        })
+        .then((payload) => {
+            if (textarea.mentionRequestId !== requestId) {
+                return;
+            }
+
+            renderMentionSelector(editor, range, Array.isArray(payload.results) ? payload.results : []);
+        })
+        .catch(() => closeMentionSelector());
+}
+
+function fileDownloadUrl(uuid) {
+    const template = window.fileDownloadUrlTemplate;
+
+    return typeof template === 'string'
+        ? template.replace('__uuid__', encodeURIComponent(uuid))
+        : `/files/${uuid}`;
+}
+
 /**
  * Insere no editor o link Markdown correspondente ao arquivo selecionado.
  */
 function insertFileReference(editor, file) {
-    editor.codemirror.replaceSelection(`[${file.name}](/files/${file.uuid})`);
+    editor.codemirror.replaceSelection(`[${file.name}](${fileDownloadUrl(file.uuid)})`);
     editor.codemirror.focus();
 }
 
@@ -548,8 +682,23 @@ function preventFileInsertion(editor) {
  * Aplica highlight.js aos blocos de código já renderizados no DOM.
  */
 function highlightMarkdown(root = document) {
-    root.querySelectorAll(".markdown-content pre code").forEach((block) => {
-        hljs.highlightElement(block);
+    const markdownContents = root.matches && root.matches('.markdown-content')
+        ? [root]
+        : root.querySelectorAll('.markdown-content');
+
+    markdownContents.forEach((content) => {
+        content.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+
+        content.querySelectorAll('a[href]').forEach((link) => {
+            const legacyFileReference = link.getAttribute('href')
+                ?.match(/^\/files\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+
+            if (legacyFileReference) {
+                link.setAttribute('href', fileDownloadUrl(legacyFileReference[1]));
+            }
+        });
     });
 }
 
@@ -600,6 +749,22 @@ function initializeEditor(textarea) {
     preview = new OfficialPreview(editor, textarea);
     editor.codemirror.getInputField().setAttribute("spellcheck", "true");
     editor.codemirror.on("change", () => preview.schedule());
+    editor.codemirror.on('inputRead', () => loadMentionSelector(textarea, editor));
+    editor.codemirror.getWrapperElement().addEventListener('keydown', (event) => {
+        if (!activeMentionSelector || activeMentionSelector.editor !== editor) {
+            return;
+        }
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            moveActiveMention(event.key === 'ArrowDown' ? 1 : -1);
+        } else if (event.key === 'Enter' || event.key === 'Tab') {
+            event.preventDefault();
+            selectActiveMention();
+        } else if (event.key === 'Escape') {
+            closeMentionSelector();
+        }
+    });
     preventFileInsertion(editor);
 
     editors.set(textarea, { editor, preview });
@@ -653,6 +818,19 @@ function startMarkdownEditors() {
 
     document.addEventListener("markdown-editor:file-reference", (event) => {
         openFileReferenceSelector(event.target, event.detail.editor);
+    });
+    document.addEventListener('markdown-editor:mention', (event) => {
+        const editor = event.detail.editor;
+        const range = mentionRange(editor);
+
+        if (range) {
+            loadMentionSelector(event.target, editor, range);
+            return;
+        }
+
+        editor.codemirror.replaceSelection('@');
+        editor.codemirror.focus();
+        loadMentionSelector(event.target, editor);
     });
 
     const observer = new MutationObserver((mutations) => {

@@ -170,7 +170,7 @@ Para Arquivo de Projeto, o Projeto relacionado é o próprio Proprietário; para
 
 ## Referências de arquivo
 
-- Persistir inicialmente uma Referência de arquivo como link Markdown comum: `[Nome exibido](/files/{uuid})`.
+- Persistir inicialmente uma Referência de arquivo como link Markdown comum, usando o caminho público da aplicação para `/files/{uuid}`.
 - O rótulo persistido será histórico: renomear o Arquivo não reescreverá textos existentes. Excluir o Arquivo também não reescreverá conteúdo.
 - Não criar tabela derivada de referências na primeira versão. Links quebrados são uma consequência aceita.
 - O seletor mostrará apenas Arquivos que o autor possa visualizar no contexto de destino:

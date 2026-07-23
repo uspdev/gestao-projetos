@@ -82,9 +82,15 @@
 @endsection
 
 @section('javascripts_bottom')
+  @php
+    $fileDownloadUrlTemplate = parse_url(route('files.show', ['uuid' => '__uuid__']), PHP_URL_PATH);
+  @endphp
   @stack('modals')
   @parent
   @stack('scripts')
+  <script>
+    window.fileDownloadUrlTemplate = @json($fileDownloadUrlTemplate);
+  </script>
   <script src="{{ mix('js/app.js') }}"></script>
   <script>
     // Seu código .js

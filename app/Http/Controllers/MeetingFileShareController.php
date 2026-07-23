@@ -27,6 +27,8 @@ class MeetingFileShareController extends Controller
 
         abort_unless($this->isAllowedSource($meeting, $media), 404);
 
+        $downloadUrl = parse_url(route('files.show', ['uuid' => $media->uuid]), PHP_URL_PATH);
+
         $share = DB::transaction(fn (): MeetingFileShare => MeetingFileShare::query()->firstOrCreate(
             ['meeting_id' => $meeting->id, 'media_id' => $media->id],
             ['shared_by' => $request->user()->id],
@@ -35,7 +37,7 @@ class MeetingFileShareController extends Controller
         return response()->json([
             'uuid' => $media->uuid,
             'name' => $media->display_name,
-            'markdown' => "[{$media->display_name}](/files/{$media->uuid})",
+            'markdown' => "[{$media->display_name}]({$downloadUrl})",
         ], $share->wasRecentlyCreated ? 201 : 200);
     }
 

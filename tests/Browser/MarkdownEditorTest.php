@@ -202,11 +202,43 @@ class MarkdownEditorTest extends DuskTestCase
 
             $browser
                 ->waitFor('#file-reference-selector')
-                ->click('[data-file-reference-uuid="11111111-1111-4111-8111-111111111111"]')
+                ->click('[data-file-reference-uuid="11111111-1111-4111-8111-111111111111"]');
+
+            $browser
                 ->assertScript(
-                    "window.MarkdownEditors.get(document.querySelector('#file-reference-editor')).editor.value()",
-                    '[Decisão registrada](/files/11111111-1111-4111-8111-111111111111)'
+                    <<<'JS'
+                        (() => {
+                            const appBase = window.location.pathname.split('/projects/')[0];
+                            const value = window.MarkdownEditors.get(document.querySelector('#file-reference-editor')).editor.value();
+                            return value === `[Decisão registrada](${appBase}/files/11111111-1111-4111-8111-111111111111)`;
+                        })()
+                    JS,
+                    true
                 );
+        });
+    }
+
+    public function test_legacy_file_references_keep_the_application_public_path_when_rendered(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                const content = document.createElement('div');
+                content.className = 'markdown-content';
+                content.innerHTML = '<a id="legacy-file-reference" href="/files/11111111-1111-4111-8111-111111111111">Documento</a>';
+                document.body.appendChild(content);
+            JS);
+
+            $browser->assertScript(<<<'JS'
+                (() => {
+                    const appBase = window.location.pathname.split('/projects/')[0];
+                    return document.querySelector('#legacy-file-reference').getAttribute('href')
+                        === `${appBase}/files/11111111-1111-4111-8111-111111111111`;
+                })()
+            JS, true);
         });
     }
 
@@ -282,6 +314,81 @@ class MarkdownEditorTest extends DuskTestCase
                 ->assertScript('window.fileReferenceRequests.length', 2)
                 ->assertScript("window.fileReferenceRequests[1].url", '/meetings/1/file-shares')
                 ->assertScript("JSON.parse(window.fileReferenceRequests[1].options.body).media_uuid", '22222222-2222-4222-8222-222222222222');
+        });
+    }
+
+    public function test_mention_selector_inserts_only_explicit_mouse_or_keyboard_selections(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [
+                                    { id: 9, name: 'Ana' },
+                                    { id: 10, name: 'Bruno' }
+                                ]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#mention-editor + .EasyMDEContainer')
+                ->assertScript($this->toolbarHasFor('#mention-editor', 'mention'), true);
+
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-user-id="9"]')
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.value()",
+                    '@[Ana](mention:user:9)'
+                );
+
+            $browser->script(<<<'JS'
+                const entry = window.MarkdownEditors.get(document.querySelector('#mention-editor'));
+                entry.editor.value('@br');
+                entry.editor.toolbarElements.mention.click();
+            JS)
+            ;
+
+            $browser
+                ->waitFor('#mention-selector');
+
+            $browser->script(<<<'JS'
+                    const wrapper = window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.codemirror.getWrapperElement();
+                    wrapper.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+                    wrapper.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+                JS);
+
+            $browser
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.value()",
+                    '@[Bruno](mention:user:10)'
+                );
+
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.value('texto @Ana');");
+
+            $browser
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.value()",
+                    'texto @Ana'
+                );
         });
     }
 
