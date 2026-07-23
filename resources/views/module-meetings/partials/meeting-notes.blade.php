@@ -40,7 +40,8 @@
 
             <label for="{{ $notesEditId }}-textarea" class="sr-only">Anotações prévias</label>
             <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2" markdown-profile="full"
-              rows="3" maxlength="10000" />
+              rows="3" maxlength="10000" data-file-reference-url="{{ route('files.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}"
+              data-file-share-url="{{ route('meetings.file-shares.store', $meeting) }}" />
 
             <div class="d-flex justify-content-end" style="gap: 0.5rem;">
               <x-form.cancel-button class="btn-sm" data-toggle="collapse"

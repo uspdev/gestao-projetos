@@ -108,9 +108,13 @@ class MeetingController extends Controller
             ->with('uploader')
             ->latest()
             ->paginate(20, ['*'], 'files_page');
+        $sharedFiles = $meeting->sharedFiles()
+            ->with('uploader')
+            ->latest()
+            ->get();
 
         return view('module-meetings.show', array_merge(
-            compact('project', 'meeting', 'meetingItems', 'files'),
+            compact('project', 'meeting', 'meetingItems', 'files', 'sharedFiles'),
             $agendaData
         ));
     }

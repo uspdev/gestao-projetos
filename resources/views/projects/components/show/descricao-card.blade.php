@@ -47,7 +47,7 @@
 
         <label for="{{ $descriptionEditId }}-textarea" class="sr-only">Editar descrição</label>
         <x-form.textarea name="description" :id="$descriptionEditId . '-textarea'" :value="$project->description" groupClass="mb-2" markdown-profile="full" rows="4"
-          maxlength="10000" />
+          maxlength="10000" data-file-reference-url="{{ route('files.selectable', ['context_type' => 'project', 'context_id' => $project->id]) }}" />
 
         <div class="d-flex justify-content-end" style="gap: 0.5rem;">
           <x-form.cancel-button class="btn-sm" data-toggle="collapse"

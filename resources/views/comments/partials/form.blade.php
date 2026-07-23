@@ -7,7 +7,8 @@
     <div class="border rounded-lg bg-white p-2 shadow-sm">
       <x-form.textarea name="text" id="comment-text" groupClass="mb-0" value="{{ old('text') }}" markdown-profile="compact" rows="1"
         data-autogrow-textarea maxlength="10000" required placeholder="Escreva um comentário..."
-        aria-label="Escreva um comentário" class="border-0 shadow-none p-0 mb-0" />
+        aria-label="Escreva um comentário" class="border-0 shadow-none p-0 mb-0"
+        data-file-reference-url="{{ route('files.selectable', ['context_type' => 'comment', 'commentable_type' => $commentableType, 'commentable_id' => $commentable->getKey()]) }}" />
 
       <div class="d-flex justify-content-end mt-2">
         <button type="submit" class="btn btn-primary btn-sm">

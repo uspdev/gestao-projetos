@@ -1,4 +1,4 @@
-@props(['owner', 'files'])
+@props(['owner', 'files', 'sharedFiles' => null])
 
 @php
   $uploadRoute = match ($owner::class) {
@@ -23,7 +23,7 @@
   </div>
 
   <div class="card-body">
-    @if ($files->isEmpty())
+    @if ($files->isEmpty() && ($sharedFiles === null || $sharedFiles->isEmpty()))
       <p class="text-muted mb-0">Nenhum Arquivo disponível.</p>
     @else
       <div class="row">
@@ -73,6 +73,41 @@
           @endcan
         @endforeach
       </div>
+
+      @if ($sharedFiles?->isNotEmpty())
+        <h3 class="h6 mt-3">Compartilhados com a reunião</h3>
+        <div class="row">
+          @foreach ($sharedFiles as $media)
+            @can('view', $media)
+              <article class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}" data-file-shared-with-meeting>
+                <div class="border rounded p-2 d-flex flex-wrap align-items-center gap-2">
+                  <div class="text-center" style="width: 64px">
+                    @if ($media->getCustomProperty('thumbnail_status') === 'ready')
+                      <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt="Miniatura de {{ $media->display_name }}" class="img-fluid rounded" style="max-height: 56px">
+                    @else
+                      <i class="far fa-file fa-2x text-secondary" aria-hidden="true"></i>
+                    @endif
+                  </div>
+                  <div class="flex-grow-1 min-width-0">
+                    <a href="{{ route('files.download', ['uuid' => $media->uuid]) }}" class="font-weight-bold">{{ $media->display_name }}</a>
+                    <div class="small text-muted">Arquivo compartilhado com a reunião · {{ $media->uploader?->name ?? 'Usuário removido' }}</div>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('files.download', ['uuid' => $media->uuid]) }}">Baixar</a>
+                    @can('manageFileShares', $owner)
+                      <form action="{{ route('meetings.file-shares.destroy', [$owner, $media->uuid]) }}" method="post">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Remover da reunião</button>
+                      </form>
+                    @endcan
+                  </div>
+                </div>
+              </article>
+            @endcan
+          @endforeach
+        </div>
+      @endif
 
       <div class="mt-2">{{ $files->links() }}</div>
     @endif

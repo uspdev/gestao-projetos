@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
 use LogicException;
@@ -74,6 +75,13 @@ class Media extends BaseMedia
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function sharedWithMeetings(): BelongsToMany
+    {
+        return $this->belongsToMany(Meeting::class, 'meeting_file_shares')
+            ->withPivot('shared_by')
+            ->withTimestamps();
     }
 
     protected function displayName(): Attribute

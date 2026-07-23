@@ -6,6 +6,7 @@ use App\Http\Controllers\DuplicateController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MarkdownPreviewController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\MeetingFileShareController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
@@ -37,9 +38,11 @@ Route::middleware('auth')->group(function () {
     // ARQUIVOS
     // ==========================================
     // Operações por UUID independentes do tipo de Proprietário.
+    Route::get('files/selectable', [MediaController::class, 'selectable'])->name('files.selectable');
     Route::get('files/{uuid}/metadata', [MediaController::class, 'metadata'])->name('files.metadata');
     Route::get('files/{uuid}/download', [MediaController::class, 'download'])->name('files.download');
     Route::get('files/{uuid}/thumbnail', [MediaController::class, 'thumbnail'])->name('files.thumbnail');
+    Route::get('files/{uuid}', [MediaController::class, 'download'])->name('files.show');
     Route::patch('files/{uuid}', [MediaController::class, 'update'])->name('files.update');
     Route::delete('files/{uuid}', [MediaController::class, 'destroy'])->name('files.destroy');
 
@@ -137,6 +140,10 @@ Route::middleware('auth')->group(function () {
     // BLOCO 3: REUNIOES
     // ==========================================
     Route::post('meetings/{meeting}/files', [MediaController::class, 'storeMeeting'])->name('meetings.files.store');
+    Route::post('meetings/{meeting}/file-shares', [MeetingFileShareController::class, 'store'])
+        ->name('meetings.file-shares.store');
+    Route::delete('meetings/{meeting}/file-shares/{uuid}', [MeetingFileShareController::class, 'destroy'])
+        ->name('meetings.file-shares.destroy');
     Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])
         ->name('meetings.updateMeetingStatus');
     Route::patch('projects/{project}/meetings/{meeting}/notes', [MeetingController::class, 'updateMeetingNotes'])

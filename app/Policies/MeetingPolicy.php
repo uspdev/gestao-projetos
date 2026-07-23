@@ -64,6 +64,18 @@ class MeetingPolicy
         );
     }
 
+    public function manageFileShares(User $user, Meeting $meeting): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $meeting->projects()
+            ->get()
+            ->contains(fn (Project $project) => $this->meetingsModuleEnabled($project)
+                && $user->isContributorOfProject($project));
+    }
+
     public function restore(User $user, Meeting $meeting): bool
     {
         return false;

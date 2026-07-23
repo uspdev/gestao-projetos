@@ -184,13 +184,15 @@ Para Arquivo de Projeto, o Projeto relacionado é o próprio Proprietário; para
 
 - A hierarquia entre Projetos não amplia o seletor: pai, filho e irmãos não compartilham Arquivos por herança.
 - Formulários de novos Projetos e novas Reuniões não terão seletor antes da persistência. Novas Tarefas poderão selecionar Arquivos existentes do Projeto e novos Comentários poderão selecionar Arquivos do objeto comentado. Não haverá token de rascunho.
-- Para trazer um Arquivo de Projeto vinculado ou Tarefa presente na pauta para o contexto da Reunião, o colaborador usará **Compartilhar com a reunião e inserir**. A ação persistirá o compartilhamento antes de inserir o link.
+- Para trazer um Arquivo de Projeto vinculado ou presente na pauta, ou de Tarefa presente na pauta, para o contexto da Reunião, o colaborador usará **Compartilhar com a reunião e inserir**. A ação persistirá o compartilhamento antes de inserir o link.
+- Arquivos já compartilhados aparecerão somente no conjunto selecionável da Reunião, e não como novos candidatos de compartilhamento.
+- Os candidatos a compartilhamento serão agrupados pela origem concreta: Projeto vinculado, Projeto na pauta ou Tarefa na pauta, identificando o respectivo nome.
 - Endpoints por UUID retornarão a mesma resposta de não encontrado para UUID inexistente, Arquivo inacessível, Proprietário excluído ou compartilhamento ausente.
 
 ## Compartilhamento de arquivo com reunião
 
 - Persistir uma relação única entre Reunião e Arquivo, com o usuário que criou o compartilhamento e datas.
-- Permitir como origem Arquivos de Projetos vinculados e de Tarefas incluídas na pauta, desde que o Proprietário não esteja excluído. O status do Projeto ou da Tarefa de origem não impede compartilhar um Arquivo existente.
+- Permitir como origem Arquivos de Projetos vinculados ou incluídos na pauta e de Tarefas incluídas na pauta, desde que o Proprietário não esteja excluído. O status do Projeto ou da Tarefa de origem não impede compartilhar um Arquivo existente.
 - O compartilhamento concede leitura a todos que possam visualizar a Reunião; não transfere propriedade, não duplica conteúdo e não autoriza outros Arquivos da origem.
 - Remover o link do Markdown não revoga o compartilhamento. A ação **Remover da reunião** revoga apenas o acesso adicional e não altera o texto nem exclui o Arquivo.
 - Mudanças posteriores na pauta, Projetos vinculados, status ou módulos não revogam relações existentes.

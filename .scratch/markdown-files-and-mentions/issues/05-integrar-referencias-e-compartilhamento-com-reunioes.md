@@ -12,7 +12,7 @@
 - [ ] Omitir seletor em novos Projetos e novas Reuniões ainda não persistidos; permitir Arquivos do Projeto na criação de Tarefa e do objeto na criação de Comentário.
 - [ ] Inserir a sintaxe `[Nome exibido](/files/{uuid})`, sem reescrever rótulos depois de renomeação ou exclusão.
 - [ ] Criar `meeting_file_shares` e relações/modelos com unicidade, usuário autor, datas e remoção em exclusões definitivas.
-- [ ] Permitir como origem Arquivos de Projetos vinculados e de Tarefas incluídas na pauta, independentemente de status, desde que o usuário edite a Reunião e visualize a origem.
+- [ ] Permitir como origem Arquivos de Projetos vinculados ou incluídos na pauta e de Tarefas incluídas na pauta, independentemente de status, desde que o usuário edite a Reunião e visualize a origem.
 - [ ] Implementar **Compartilhar com a reunião e inserir** como operação que persiste o acesso antes de inserir o link.
 - [ ] Conceder leitura dos Arquivos compartilhados a qualquer usuário que possa visualizar a Reunião, inclusive em Reuniões multiprojeto.
 - [ ] Exibir Arquivos próprios e compartilhados no card da Reunião, distinguindo a origem.

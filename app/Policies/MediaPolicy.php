@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 
 class MediaPolicy
 {
@@ -20,8 +21,10 @@ class MediaPolicy
             return false;
         }
 
-        return $user->isAdmin() || $this->relatedProjects($owner)
-            ->contains(fn (Project $project) => $user->isViewerOfProject($project));
+        return $user->isAdmin()
+            || $this->relatedProjects($owner)
+                ->contains(fn (Project $project) => $user->isViewerOfProject($project))
+            || $this->isSharedWithViewableMeeting($user, $media);
     }
 
     public function viewOriginal(User $user, Media $media): bool
@@ -88,6 +91,22 @@ class MediaPolicy
     private function isLockedTask(Model $owner): bool
     {
         return $owner instanceof Task && $owner->isLocked();
+    }
+
+    private function isSharedWithViewableMeeting(User $user, Media $media): bool
+    {
+        return $media->sharedWithMeetings()
+            ->with('projects')
+            ->get()
+            ->contains(function (Meeting $meeting) use ($user): bool {
+                if ($meeting->trashed()) {
+                    return false;
+                }
+
+                return $meeting->projects->contains(
+                    fn (Project $project) => Gate::forUser($user)->allows('view', [$meeting, $project])
+                );
+            });
     }
 
     /** @return Collection<int, Project> */

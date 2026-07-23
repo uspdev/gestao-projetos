@@ -6,6 +6,8 @@ use App\Models\Media;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
+use App\Services\FileReferenceSelector;
+use App\Support\Files\FileReferenceContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +18,20 @@ use Illuminate\Support\Str;
 
 class MediaController extends Controller
 {
+    public function selectable(Request $request, FileReferenceSelector $selector): JsonResponse
+    {
+        $validated = $request->validate([
+            'context_type' => ['required', 'in:project,task,meeting,meeting_item,comment'],
+            'context_id' => ['required_unless:context_type,comment', 'integer'],
+            'commentable_type' => ['required_if:context_type,comment', 'string'],
+            'commentable_id' => ['required_if:context_type,comment', 'integer'],
+        ]);
+
+        return response()->json(
+            $selector->select($request->user(), FileReferenceContext::fromValidated($validated))
+        );
+    }
+
     public function storeProject(Request $request, Project $project)
     {
         return $this->storeForOwner($request, $project);

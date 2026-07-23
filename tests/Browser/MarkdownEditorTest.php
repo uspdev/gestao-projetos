@@ -14,6 +14,10 @@ class MarkdownEditorTest extends DuskTestCase
                 ->visit('/projects/create?project_type=organizacional')
                 ->waitFor('.EasyMDEContainer')
                 ->assertScript(
+                    "Array.from(document.scripts).some((script) => /\\/js\\/app\\.js\\?id=/.test(script.src))",
+                    true
+                )
+                ->assertScript(
                     "document.querySelector('[data-markdown-profile=\"full\"]') !== null",
                     true
                 )
@@ -21,7 +25,7 @@ class MarkdownEditorTest extends DuskTestCase
                 ->assertScript($this->toolbarHas('full', 'task-list'), true)
                 ->assertScript($this->toolbarHas('full', 'table'), true)
                 ->assertScript($this->toolbarHas('full', 'mention'), true)
-                ->assertScript($this->toolbarHas('full', 'file-reference'), true)
+                ->assertScript($this->toolbarHas('full', 'file-reference'), false)
                 ->assertScript($this->toolbarHas('full', 'markdown-help'), true)
                 ->assertScript($this->toolbarHas('full', 'fullscreen'), false)
                 ->assertScript($this->toolbarHas('full', 'side-by-side'), false)
@@ -54,7 +58,7 @@ class MarkdownEditorTest extends DuskTestCase
                 ->waitFor('#markdown-collapse.show')
                 ->assertScript($this->toolbarHas('compact', 'bold'), true)
                 ->assertScript($this->toolbarHas('compact', 'mention'), true)
-                ->assertScript($this->toolbarHas('compact', 'file-reference'), true)
+                ->assertScript($this->toolbarHas('compact', 'file-reference'), false)
                 ->assertScript($this->toolbarHas('compact', 'heading'), false)
                 ->assertScript($this->toolbarHas('compact', 'task-list'), false)
                 ->assertScript($this->toolbarHas('compact', 'table'), false)
@@ -151,11 +155,143 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_file_reference_selector_inserts_the_historical_markdown_link_after_selection(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [{
+                                    uuid: '11111111-1111-4111-8111-111111111111',
+                                    name: 'Decisão registrada'
+                                }],
+                                shareable_results: []
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'file-reference-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-file-reference-url', '/files/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#file-reference-editor + .EasyMDEContainer')
+                ->assertScript($this->toolbarHasFor('#file-reference-editor', 'file-reference'), true);
+
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#file-reference-editor')).editor.toolbarElements['file-reference'].click();");
+
+            $browser
+                ->waitFor('#file-reference-selector')
+                ->click('[data-file-reference-uuid="11111111-1111-4111-8111-111111111111"]')
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#file-reference-editor')).editor.value()",
+                    '[Decisão registrada](/files/11111111-1111-4111-8111-111111111111)'
+                );
+        });
+    }
+
+    public function test_file_reference_selector_shares_with_the_meeting_before_inserting_the_link(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fileReferenceRequests = [];
+                window.fetch = function (url, options) {
+                    window.fileReferenceRequests.push({ url: url, options: options || {} });
+                    if (options && options.method === 'POST') {
+                        return Promise.resolve({
+                            ok: true,
+                            json: function () {
+                                return Promise.resolve({
+                                    markdown: '[Arquivo da pauta](/files/22222222-2222-4222-8222-222222222222)'
+                                });
+                            }
+                        });
+                    }
+
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [],
+                                shareable_results: [{
+                                    uuid: '22222222-2222-4222-8222-222222222222',
+                                    name: 'Arquivo da pauta'
+                                }],
+                                shareable_groups: [{
+                                    label: 'Projeto na pauta: Gestão Projetos',
+                                    results: [{
+                                        uuid: '22222222-2222-4222-8222-222222222222',
+                                        name: 'Arquivo da pauta'
+                                    }]
+                                }, {
+                                    label: 'Tarefa na pauta: Revisar documentação',
+                                    results: [{
+                                        uuid: '33333333-3333-4333-8333-333333333333',
+                                        name: 'Registro técnico'
+                                    }]
+                                }]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'meeting-file-reference-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-file-reference-url', '/files/selectable?context_type=meeting&context_id=1');
+                fixture.setAttribute('data-file-share-url', '/meetings/1/file-shares');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#meeting-file-reference-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#meeting-file-reference-editor')).editor.toolbarElements['file-reference'].click();");
+
+            $browser->waitFor('#file-reference-selector')
+                ->assertSeeIn('#file-reference-selector', 'Projeto na pauta: Gestão Projetos')
+                ->assertSeeIn('#file-reference-selector', 'Tarefa na pauta: Revisar documentação')
+                ->click('[data-file-share-uuid="22222222-2222-4222-8222-222222222222"]')
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#meeting-file-reference-editor')).editor.value()",
+                    '[Arquivo da pauta](/files/22222222-2222-4222-8222-222222222222)'
+                )
+                ->assertScript('window.fileReferenceRequests.length', 2)
+                ->assertScript("window.fileReferenceRequests[1].url", '/meetings/1/file-shares')
+                ->assertScript("JSON.parse(window.fileReferenceRequests[1].options.body).media_uuid", '22222222-2222-4222-8222-222222222222');
+        });
+    }
+
     private function toolbarHas(string $profile, string $button): string
     {
         return <<<JS
             (() => {
                 const textarea = document.querySelector('[data-markdown-profile="{$profile}"]');
+                const entry = textarea && window.MarkdownEditors.get(textarea);
+                return Boolean(entry && entry.editor.toolbarElements['{$button}']);
+            })()
+        JS;
+    }
+
+    private function toolbarHasFor(string $selector, string $button): string
+    {
+        return <<<JS
+            (() => {
+                const textarea = document.querySelector('{$selector}');
                 const entry = textarea && window.MarkdownEditors.get(textarea);
                 return Boolean(entry && entry.editor.toolbarElements['{$button}']);
             })()

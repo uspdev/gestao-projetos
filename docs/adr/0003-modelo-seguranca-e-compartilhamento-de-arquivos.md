@@ -55,7 +55,7 @@ Essa separação é necessária porque um usuário pode ser membro direto do sub
 
 ### Compartilhamento com reuniões
 
-- Uma reunião poderá compartilhar explicitamente Arquivos pertencentes aos projetos vinculados e às tarefas incluídas em sua pauta.
+- Uma reunião poderá compartilhar explicitamente Arquivos pertencentes aos projetos vinculados ou incluídos como itens de pauta e às tarefas incluídas em sua pauta.
 - O compartilhamento concederá acesso a todos que puderem visualizar a reunião, sem transferir o Proprietário do arquivo nem liberar automaticamente outros Arquivos dos mesmos objetos relacionados.
 - Essa exceção à regra geral de que referências não concedem acesso atenderá à audiência conjunta de reuniões com participantes de projetos diferentes sem transformar o texto editável em mecanismo de autorização. Arquivos não compartilhados continuarão sujeitos exclusivamente ao acesso derivado de seu Proprietário.
 - O compartilhamento será uma relação persistida e independente do Markdown. O seletor poderá executar a ação **Compartilhar com a reunião e inserir**, mas remover uma Referência de arquivo do texto não revogará acesso.

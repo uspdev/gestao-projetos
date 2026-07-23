@@ -140,6 +140,13 @@ class Meeting extends Model implements HasCommentRecipients, Duplicable, HasMedi
         return $this->hasMany(MeetingItem::class);
     }
 
+    public function sharedFiles(): BelongsToMany
+    {
+        return $this->belongsToMany(Media::class, 'meeting_file_shares')
+            ->withPivot('shared_by')
+            ->withTimestamps();
+    }
+
     // Método para obter os projetos relacionados à reunião, incluindo os filhos, para uso na agenda
     public function projectsForAgenda(): EloquentCollection
     {

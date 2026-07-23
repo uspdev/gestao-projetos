@@ -74,7 +74,7 @@ const helpButton = {
     title: 'Ajuda rápida de Markdown',
 };
 
-function toolbarFor(profile, previewAction) {
+function toolbarFor(profile, previewAction, supportsFileReferences = true) {
     const emphasis = ['bold', 'italic'];
     const lists = [
         'quote',
@@ -86,7 +86,9 @@ function toolbarFor(profile, previewAction) {
         inlineCodeButton,
         codeBlockButton,
     ];
-    const extensions = [mentionButton, fileReferenceButton];
+    const extensions = supportsFileReferences
+        ? [mentionButton, fileReferenceButton]
+        : [mentionButton];
 
     if (profile === 'compact') {
         return [...emphasis, ...lists, ...linkAndCode, ...extensions, '|', previewAction];
@@ -104,6 +106,174 @@ function toolbarFor(profile, previewAction) {
         previewAction,
         helpButton,
     ];
+}
+
+function csrfHeaders() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    const headers = {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    };
+
+    if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+    }
+
+    return headers;
+}
+
+function closeFileReferenceSelector(selector) {
+    if (window.jQuery) {
+        window.jQuery(selector).modal('hide');
+    }
+
+    selector.remove();
+}
+
+function insertFileReference(editor, file) {
+    editor.codemirror.replaceSelection(`[${file.name}](/files/${file.uuid})`);
+    editor.codemirror.focus();
+}
+
+function createSelectorButton(file, label, action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn btn-outline-primary btn-sm btn-block text-left mb-2';
+    button.textContent = label || file.name;
+    action(button);
+
+    return button;
+}
+
+function openFileReferenceSelector(textarea, editor) {
+    const url = textarea.dataset.fileReferenceUrl;
+
+    if (!url) {
+        return;
+    }
+
+    document.querySelector('#file-reference-selector')?.remove();
+
+    window.fetch(url, {
+        credentials: 'same-origin',
+        headers: csrfHeaders(),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Falha ao consultar Arquivos: HTTP ${response.status}`);
+            }
+
+            return response.json();
+        })
+        .then((payload) => {
+            const selector = document.createElement('div');
+            selector.id = 'file-reference-selector';
+            selector.className = 'modal fade show';
+            selector.tabIndex = -1;
+            selector.setAttribute('role', 'dialog');
+            selector.style.display = 'block';
+            selector.setAttribute('aria-modal', 'true');
+
+            const dialog = document.createElement('div');
+            dialog.className = 'modal-dialog modal-dialog-scrollable';
+            const content = document.createElement('div');
+            content.className = 'modal-content';
+            const header = document.createElement('div');
+            header.className = 'modal-header';
+            const title = document.createElement('h2');
+            title.className = 'modal-title h5';
+            title.textContent = 'Referenciar Arquivo';
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'close';
+            close.setAttribute('aria-label', 'Fechar');
+            close.textContent = '×';
+            close.addEventListener('click', () => closeFileReferenceSelector(selector));
+            header.append(title, close);
+
+            const body = document.createElement('div');
+            body.className = 'modal-body';
+            const results = Array.isArray(payload.results) ? payload.results : [];
+
+            if (results.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'text-muted mb-0';
+                empty.textContent = 'Nenhum Arquivo disponível neste contexto.';
+                body.appendChild(empty);
+            } else {
+                results.forEach((file) => {
+                    body.appendChild(createSelectorButton(file, file.name, (button) => {
+                        button.dataset.fileReferenceUuid = file.uuid;
+                        button.addEventListener('click', () => {
+                            insertFileReference(editor, file);
+                            closeFileReferenceSelector(selector);
+                        });
+                    }));
+                });
+            }
+
+            const shareable = Array.isArray(payload.shareable_results) ? payload.shareable_results : [];
+            const shareableGroups = Array.isArray(payload.shareable_groups)
+                ? payload.shareable_groups.filter((group) => Array.isArray(group.results) && group.results.length > 0)
+                : (shareable.length > 0 ? [{ results: shareable }] : []);
+
+            if (textarea.dataset.fileShareUrl && shareableGroups.length > 0) {
+                const heading = document.createElement('h3');
+                heading.className = 'h6 mt-4';
+                heading.textContent = 'Arquivos que podem ser compartilhados com a reunião';
+                body.appendChild(heading);
+
+                shareableGroups.forEach((group) => {
+                    if (group.label) {
+                        const groupHeading = document.createElement('h4');
+                        groupHeading.className = 'h6 text-muted mt-3';
+                        groupHeading.textContent = group.label;
+                        body.appendChild(groupHeading);
+                    }
+
+                    group.results.forEach((file) => {
+                        body.appendChild(createSelectorButton(file, `Compartilhar com a reunião e inserir: ${file.name}`, (button) => {
+                            button.dataset.fileShareUuid = file.uuid;
+                            button.addEventListener('click', () => {
+                                button.disabled = true;
+                                window.fetch(textarea.dataset.fileShareUrl, {
+                                    method: 'POST',
+                                    credentials: 'same-origin',
+                                    headers: {
+                                        ...csrfHeaders(),
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ media_uuid: file.uuid }),
+                                })
+                                    .then((response) => {
+                                        if (!response.ok) {
+                                            throw new Error(`Falha ao compartilhar Arquivo: HTTP ${response.status}`);
+                                        }
+
+                                        return response.json();
+                                    })
+                                    .then((shared) => {
+                                        editor.codemirror.replaceSelection(shared.markdown);
+                                        editor.codemirror.focus();
+                                        closeFileReferenceSelector(selector);
+                                    })
+                                    .catch(() => {
+                                        button.disabled = false;
+                                    });
+                                });
+                        }));
+                    });
+                });
+            }
+
+            content.append(header, body);
+            dialog.appendChild(content);
+            selector.appendChild(dialog);
+            document.body.appendChild(selector);
+        })
+        .catch(() => {
+            window.alert('Não foi possível carregar os Arquivos disponíveis.');
+        });
 }
 
 class OfficialPreview {
@@ -245,7 +415,11 @@ function initializeEditor(textarea) {
 
     const editor = new EasyMDE({
         element: textarea,
-        toolbar: toolbarFor(textarea.dataset.markdownProfile, previewAction),
+        toolbar: toolbarFor(
+            textarea.dataset.markdownProfile,
+            previewAction,
+            Boolean(textarea.dataset.fileReferenceUrl),
+        ),
         autosave: { enabled: false },
         spellChecker: false,
         nativeSpellcheck: true,
@@ -287,6 +461,10 @@ function refreshEditors(root) {
 function startMarkdownEditors() {
     initializeMarkdownEditors();
     highlightMarkdown();
+
+    document.addEventListener('markdown-editor:file-reference', (event) => {
+        openFileReferenceSelector(event.target, event.detail.editor);
+    });
 
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {

@@ -91,6 +91,7 @@ class FilePersistenceTest extends TestCase
 
         $migration = require database_path('migrations/2026_07_21_090000_create_media_table.php');
         $migration->up();
+        (require database_path('migrations/2026_07_22_090000_create_meeting_file_shares_table.php'))->up();
     }
 
     protected function tearDown(): void

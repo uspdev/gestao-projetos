@@ -21,7 +21,7 @@
     <div class="col-lg-8 mb-4 mb-lg-0">
       @include('module-meetings.partials.meeting-actions')
       @include('module-meetings.partials.meeting-records')
-      <x-files.list :owner="$meeting" :files="$files" />
+      <x-files.list :owner="$meeting" :files="$files" :shared-files="$sharedFiles" />
       @include('comments.partials.thread', ['commentable' => $meeting])
     </div>
 
