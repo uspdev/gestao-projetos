@@ -1,6 +1,8 @@
 <div class="card mb-3">
-  <div class="card-header h5 py-2 d-flex justify-content-between align-items-center">
-    <span>Informações da reunião</span>
+  <div class="card-header py-2 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 text-muted mr-2">
+      <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações da reunião
+    </h6>
 
     <div class="d-flex align-items-center" style="gap: 0.5rem;">
       @include('module-meetings.partials.edit-btn')

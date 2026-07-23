@@ -1,7 +1,9 @@
 <div class="card border">
-  <div class="card-header h6 py-2">
-    <i class="fas fa-user-shield mr-1" aria-hidden="true"></i>
-    {{ $project->isSubproject() ? 'Herança de permissões' : 'Herança nos subprojetos' }}
+  <div class="card-header d-flex align-items-center py-2">
+    <h6 class="m-0 text-muted mr-2">
+      <i class="fas fa-user-shield mr-1" aria-hidden="true"></i>
+      {{ $project->isSubproject() ? 'Herança de permissões' : 'Herança nos subprojetos' }}
+    </h6>
   </div>
 
   <div class="card-body">

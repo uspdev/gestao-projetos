@@ -6,7 +6,11 @@
 @endphp
 
 <div class="card mb-4 shadow-sm">
-  <div class="card-header h5 py-2">Anotações prévias</div>
+  <div class="card-header d-flex align-items-center py-2">
+    <h6 class="m-0 text-muted mr-2">
+      <i class="fas fa-sticky-note mr-1" aria-hidden="true"></i> Anotações prévias
+    </h6>
+  </div>
   <div class="card-body">
     <div class="d-flex align-items-center justify-content-between mb-2">
       <span class="text-muted">Preparação geral da reunião</span>

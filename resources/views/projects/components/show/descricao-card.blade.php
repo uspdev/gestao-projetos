@@ -9,11 +9,10 @@
 
 <x-projects::show.card-template :type="$type">
   <x-slot:header>
-    <div class="d-flex align-items-center justify-content-start" style="gap: 0.75rem;">
-      <div class="d-flex align-items-center" style="gap: 0.5rem;">
-        <i class="fas fa-id-card"></i>
-        <span>Descrição</span>
-      </div>
+    <div class="d-flex align-items-center justify-content-between" style="gap: 0.75rem;">
+      <h6 class="m-0 text-muted mr-2">
+        <i class="fas fa-align-left mr-1" aria-hidden="true"></i> Descrição
+      </h6>
       @can('update', $project)
         <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"
           data-target="#{{ $descriptionDisplayId }}, #{{ $descriptionEditId }}" aria-label="Editar descrição">

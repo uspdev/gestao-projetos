@@ -1,9 +1,13 @@
 <div class="card mb-4 shadow-sm border-top-primary">
-  <div class="card-header py-2">
-    <span class=""><i class="fas fa-info-circle"></i> Informações</span>
-    @include('module-tasks.partials.buttons.edit-btn')
+  <div class="card-header d-flex align-items-center justify-content-between py-2">
+    <h6 class="m-0 text-muted mr-2">
+      <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações
+    </h6>
 
-    @include('module-tasks.partials.buttons.delete-btn')
+    <div class="d-flex align-items-center">
+      @include('module-tasks.partials.buttons.edit-btn')
+      @include('module-tasks.partials.buttons.delete-btn')
+    </div>
   </div>
   <div class="card-body">
     <ul class="list-unstyled m-0">
