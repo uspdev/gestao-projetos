@@ -32,6 +32,7 @@ class OrganizationalProjectSettingsTest extends TestCase
         $this->assertStringContainsString('Sem Herança', $html);
         $this->assertStringContainsString('Apenas Leitura', $html);
         $this->assertStringContainsString('Herança Total', $html);
+        $this->assertStringNotContainsString('Configuração atual', $html);
         $this->assertStringContainsString('Gerenciar membros dos subprojetos', $html);
         $this->assertStringContainsString(
             route('projects.subprojects.members', $organizationalProject),
@@ -58,6 +59,7 @@ class OrganizationalProjectSettingsTest extends TestCase
             'Os membros do projeto organizacional pai podem visualizar este subprojeto',
             $html,
         );
+        $this->assertStringContainsString('Configuração atual', $html);
         $this->assertStringNotContainsString('Gerenciar membros dos subprojetos', $html);
         $this->assertStringNotContainsString(
             route('projects.subprojects.members', $subproject),

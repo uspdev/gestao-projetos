@@ -167,15 +167,6 @@
         <td class="pl-5 py-2">@include('projects.partials.components.update-visibility')</td>
       </tr>
       @if ($project->isSubproject())
-        <tr>
-          <td class="pl-3 pr-2 py-2">
-            <div class="settings-label d-flex align-items-center gap-2">
-              <i class="ti ti-shield-check" aria-hidden="true"></i>
-              Herança de permissões
-            </div>
-          </td>
-          <td class="pl-5 py-2">@include('projects.partials.components.update-permission-inheritance')</td>
-        </tr>
         @if ($project->parent)
           <tr>
             <td class="pl-3 pr-2 py-2">

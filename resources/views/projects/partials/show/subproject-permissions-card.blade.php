@@ -26,11 +26,20 @@
       </li>
     </ul>
 
-    <p class="small text-muted">
+    <p class="small text-muted mb-3">
       Quando uma pessoa possui vínculo direto com o subprojeto, a função local prevalece.
     </p>
 
-    @if ($project->isOrganizational())
+    @if ($project->isSubproject())
+      <div class="d-flex align-items-center justify-content-between flex-wrap border-top pt-3">
+        <span class="small font-weight-bold text-muted mr-3 mb-1">
+          Configuração atual
+        </span>
+        <div class="mb-1">
+          @include('projects.partials.components.update-permission-inheritance')
+        </div>
+      </div>
+    @elseif ($project->isOrganizational())
       <a href="{{ route('projects.subprojects.members', $project) }}" class="btn btn-outline-primary btn-sm btn-block">
         <i class="fas fa-users-cog mr-1" aria-hidden="true"></i>
         Gerenciar membros dos subprojetos
