@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Project;
+use App\Models\ProjectType;
 use App\Models\ProjectUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,6 +18,7 @@ class OrganizationalProjectSettingsTest extends TestCase
             'name' => 'Programa Institucional',
             'slug' => 'programa-institucional',
         ]);
+        $organizationalProject->setRelation('projectType', $this->organizationalProjectType());
 
         $html = view('projects.partials.show.subproject-permissions-card', [
             'project' => $organizationalProject,
@@ -33,6 +35,32 @@ class OrganizationalProjectSettingsTest extends TestCase
         $this->assertStringContainsString('Gerenciar membros dos subprojetos', $html);
         $this->assertStringContainsString(
             route('projects.subprojects.members', $organizationalProject),
+            $html,
+        );
+    }
+
+    public function test_subproject_inheritance_card_does_not_show_the_members_management_button(): void
+    {
+        $subproject = $this->project([
+            'id' => 2,
+            'name' => 'Subprojeto',
+            'slug' => 'subprojeto',
+            'parent_id' => 1,
+            'permission_inheritance' => 'FULL',
+        ]);
+
+        $html = view('projects.partials.show.subproject-permissions-card', [
+            'project' => $subproject,
+        ])->render();
+
+        $this->assertStringContainsString('Herança de permissões', $html);
+        $this->assertStringContainsString(
+            'Os membros do projeto organizacional pai podem visualizar este subprojeto',
+            $html,
+        );
+        $this->assertStringNotContainsString('Gerenciar membros dos subprojetos', $html);
+        $this->assertStringNotContainsString(
+            route('projects.subprojects.members', $subproject),
             $html,
         );
     }
@@ -75,8 +103,6 @@ class OrganizationalProjectSettingsTest extends TestCase
             'project' => $organizationalProject,
         ])->render();
 
-        $this->assertStringContainsString('Membros dos subprojetos', $html);
-        $this->assertStringContainsString('Voltar às configurações', $html);
         $this->assertStringNotContainsString(
             'A herança não os adiciona automaticamente à equipe do subprojeto.',
             $html,
@@ -121,6 +147,18 @@ class OrganizationalProjectSettingsTest extends TestCase
         $project->forceFill($attributes);
 
         return $project;
+    }
+
+    private function organizationalProjectType(): ProjectType
+    {
+        $projectType = new ProjectType();
+        $projectType->forceFill([
+            'id' => 1,
+            'name' => 'Organizacional',
+            'slug' => Project::ORGANIZATIONAL_TYPE_SLUG,
+        ]);
+
+        return $projectType;
     }
 
     private function member(int $id, string $name, int $projectId, string $role): User

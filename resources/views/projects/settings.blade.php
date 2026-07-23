@@ -22,7 +22,7 @@
             @include('projects.partials.show.show-card-membros')
           </div>
 
-          @if ($project->isOrganizational())
+          @if ($project->isOrganizational() || $project->isSubproject())
             <div class="mb-4">
               @include('projects.partials.show.subproject-permissions-card')
             </div>
