@@ -678,8 +678,31 @@ class ProjectController extends Controller
     {
         Gate::authorize('view', $project);
 
-        $project->load('projectType.phases', 'phase', 'projectType.modules');
+        $project->load(
+            'users',
+            'projectType.phases',
+            'phase',
+            'projectType.modules',
+        );
 
         return view('projects.settings', compact('project'));
+    }
+
+    /**
+     * Lista os membros vinculados diretamente a cada subprojeto de um projeto organizacional.
+     */
+    public function subprojectMembers(Project $project)
+    {
+        Gate::authorize('view', $project);
+        abort_unless($project->isOrganizational(), 404);
+
+        $project->load([
+            'users',
+            'projectType.modules',
+            'children' => fn($query) => $query->orderBy('name'),
+            'children.users',
+        ]);
+
+        return view('projects.subproject-members', compact('project'));
     }
 }

@@ -19,6 +19,12 @@
             @include('projects.partials.show.show-card-membros')
           </div>
 
+          @if ($project->isOrganizational())
+            <div class="mb-4">
+              @include('projects.partials.show.subproject-permissions-card')
+            </div>
+          @endif
+
           <div class="mb-4">
             @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
           </div>
