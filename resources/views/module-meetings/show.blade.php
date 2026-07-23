@@ -19,7 +19,6 @@
 @section('meeting-content')
   <div class="row">
     <div class="col-lg-8 mb-4 mb-lg-0">
-      @include('module-meetings.partials.meeting-notes')
       @include('module-meetings.partials.meeting-actions')
       @include('module-meetings.partials.meeting-records')
       <x-files.list :owner="$meeting" :files="$files" />
@@ -28,6 +27,7 @@
 
     <div class="col-lg-4">
       @include('module-meetings.partials.overview')
+      @include('module-meetings.partials.meeting-notes')
     </div>
   </div>
 @endsection

@@ -27,13 +27,6 @@
       @endif
     </div>
 
-    @if ($meeting && $project)
-      <div class="d-flex align-items-center" style="gap: 0.5rem;">
-        @include('module-meetings.partials.edit-btn')
-        @include('module-meetings.partials.delete-btn')
-      </div>
-    @endif
-
   </div>
   <div class="card-body">
     @if ($meetingItems->isEmpty())
