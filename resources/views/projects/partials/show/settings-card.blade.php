@@ -1,12 +1,4 @@
 <style>
-  .settings-section-header {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #9ca3af;
-  }
-
   .settings-label {
     font-size: 12px;
     font-weight: 600;
@@ -82,8 +74,14 @@
   }
 </style>
 
-<div class="card border mb-5" style="border-radius: 12px;">
-  <div class="settings-section-header bg-light border-bottom px-3 py-2">Informações gerais</div>
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center py-2">
+    <div class="d-flex align-items-center flex-wrap">
+      <h6 class="m-0 text-muted mr-2">
+        <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações gerais
+      </h6>
+    </div>
+  </div>
   <table class="table mb-0 settings-table">
     <tbody>
       <tr>
@@ -149,8 +147,14 @@
   </table>
 </div>
 
-<div class="card border mb-5" style="border-radius: 12px;">
-  <div class="settings-section-header bg-light border-bottom px-3 py-2">Acesso e permissões</div>
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center py-2">
+    <div class="d-flex align-items-center flex-wrap">
+      <h6 class="m-0 text-muted mr-2">
+        <i class="fas fa-user-shield mr-1" aria-hidden="true"></i> Acesso e permissões
+      </h6>
+    </div>
+  </div>
   <table class="table mb-0 settings-table">
     <tbody>
       <tr>
@@ -213,8 +217,14 @@
   </table>
 </div>
 
-<div class="card border overflow-hidden" style="border-radius: 12px;">
-  <div class="settings-section-header bg-light border-bottom px-3 py-2">Classificação</div>
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center py-2">
+    <div class="d-flex align-items-center flex-wrap">
+      <h6 class="m-0 text-muted mr-2">
+        <i class="fas fa-tags mr-1" aria-hidden="true"></i> Classificação
+      </h6>
+    </div>
+  </div>
   <table class="table mb-0 settings-table">
     <tbody>
       <tr>

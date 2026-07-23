@@ -8,6 +8,9 @@
       <div class="row">
         <div class="col-12 col-lg-6 mb-4">
           @include('projects.partials.show.settings-card')
+          <div class="mt-4">
+            @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
+          </div>
         </div>
 
         <div class="col-12 col-lg-6">
@@ -24,10 +27,6 @@
               @include('projects.partials.show.subproject-permissions-card')
             </div>
           @endif
-
-          <div class="mb-4">
-            @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
-          </div>
 
           <div class="card border-danger">
             <div class="card-header h6 py-2 text-danger font-weight-bold">Área de risco</div>
