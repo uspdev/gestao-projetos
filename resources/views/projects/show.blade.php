@@ -9,14 +9,14 @@
   <div class="row">
     <div class="col-md-8">
       <x-projects::show.descricao-card :project="$project" />
-      <x-files.list :owner="$project" :files="$files" />
       @include('comments.partials.thread', ['commentable' => $project])
     </div>
     <div class="col-md-4">
       <x-projects::show.tipo-card :project="$project" />
-      <x-projects::show.subprojects-card :project="$project" type="preview" />
+      <x-files.list :owner="$project" :files="$files" />
       <x-projects::show.membros-preview-card :project="$project" />
       @include('projects.partials.show.show-card-modulos')
+      <x-projects::show.subprojects-card :project="$project" type="preview" />
     </div>
   </div>
 @endsection

@@ -8,7 +8,7 @@
   };
 @endphp
 
-<section class="card mt-3" aria-labelledby="files-heading">
+<section class="card my-4" aria-labelledby="files-heading">
   <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
     <h2 id="files-heading" class="h6 m-0 text-muted mr-2">
       <i class="fas fa-paperclip mr-1" aria-hidden="true"></i> Arquivos
