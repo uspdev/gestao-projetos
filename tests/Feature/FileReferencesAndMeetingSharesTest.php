@@ -213,6 +213,34 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertOk();
     }
 
+    public function test_removing_a_share_from_the_meeting_page_redirects_back_to_it(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $editor = $this->user('Pessoa que remove da reunião');
+        $project = $this->projectWithMember('Projeto da reunião', $editor, 'CONTRIBUTOR');
+        $this->enableModule($project, 'meetings');
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião compartilhada',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach($project);
+
+        $this->actingAs($editor);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('decisao.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $this->postJson(route('meetings.file-shares.store', $meeting), ['media_uuid' => $media->uuid])
+            ->assertCreated();
+
+        $meetingPage = route('projects.meetings.show', [$project, $meeting]);
+
+        $this->from($meetingPage)
+            ->delete(route('meetings.file-shares.destroy', [$meeting, $media->uuid]))
+            ->assertRedirect($meetingPage);
+    }
+
     public function test_share_persists_while_a_soft_deleted_source_temporarily_hides_the_file_and_restoration_recovers_access(): void
     {
         Storage::fake('files');

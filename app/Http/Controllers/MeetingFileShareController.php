@@ -52,7 +52,11 @@ class MeetingFileShareController extends Controller
 
         $share->delete();
 
-        return response()->noContent();
+        if ($request->expectsJson()) {
+            return response()->noContent();
+        }
+
+        return back()->with('alert-success', 'Arquivo removido da reunião com sucesso.');
     }
 
     private function isAllowedSource(Meeting $meeting, Media $media): bool
