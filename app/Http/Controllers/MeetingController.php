@@ -16,6 +16,7 @@ use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\MeetingItem;
+use App\Services\MentionIndexer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -70,9 +71,9 @@ class MeetingController extends Controller
         return view('module-meetings.create', compact('project', 'availableProjects', 'selectedProjects'));
     }
 
-    public function store(StoreMeetingRequest $request, Project $project)
+    public function store(StoreMeetingRequest $request, Project $project, MentionIndexer $mentionIndexer)
     {
-        $meeting = DB::transaction(function () use ($request) {
+        $meeting = DB::transaction(function () use ($request, $mentionIndexer) {
             $data = $request->validated();
             $projects = $data['projects'] ?? [];
             unset($data['projects']);
@@ -83,6 +84,8 @@ class MeetingController extends Controller
 
             $meeting = Meeting::create($data);
             $meeting->projects()->sync($projects);
+            $mentionIndexer->validateAllMentions($meeting, 'notes', $data['notes'] ?? null);
+            $mentionIndexer->synchronize($meeting, 'notes', $data['notes'] ?? null, Auth::id());
 
             return $meeting;
         });
@@ -210,18 +213,20 @@ class MeetingController extends Controller
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
     }
 
-    public function updateMeetingNotes(UpdateMeetingNotesRequest $request, Project $project, Meeting $meeting)
+    public function updateMeetingNotes(UpdateMeetingNotesRequest $request, Project $project, Meeting $meeting, MentionIndexer $mentionIndexer)
     {
         Gate::authorize('update', [$meeting, $project]);
 
-        DB::transaction(function () use ($request, $meeting) {
+        DB::transaction(function () use ($request, $meeting, $mentionIndexer) {
             $notes = $request->validated('meeting_notes');
             $notes = is_string($notes) ? trim($notes) : $notes;
 
+            $mentionIndexer->validateNewMentions($meeting, 'notes', $notes);
             $meeting->update([
                 'notes' => $notes === '' ? null : $notes,
                 'updated_by' => Auth::id(),
             ]);
+            $mentionIndexer->synchronize($meeting, 'notes', $notes, Auth::id());
         });
 
         return redirect()->back()
@@ -342,17 +347,21 @@ class MeetingController extends Controller
             ->with('alert-success', 'Item de pauta removido com sucesso!');
     }
 
-    public function updateNotes(UpdateMeetingItemNotesRequest $request, Project $project, Meeting $meeting, MeetingItem $meetingItem)
+    public function updateNotes(UpdateMeetingItemNotesRequest $request, Project $project, Meeting $meeting, MeetingItem $meetingItem, MentionIndexer $mentionIndexer)
     {
         if ($meetingItem->meeting_id !== $meeting->id) {
             abort(404);
         }
 
-        $notes = $request->validated('notes');
-        $notes = is_string($notes) ? trim($notes) : $notes;
+        DB::transaction(function () use ($request, $meetingItem, $mentionIndexer): void {
+            $notes = $request->validated('notes');
+            $notes = is_string($notes) ? trim($notes) : $notes;
 
-        $meetingItem->notes = $notes === '' ? null : $notes;
-        $meetingItem->save();
+            $mentionIndexer->validateNewMentions($meetingItem, 'notes', $notes);
+            $meetingItem->notes = $notes === '' ? null : $notes;
+            $meetingItem->save();
+            $mentionIndexer->synchronize($meetingItem, 'notes', $notes, Auth::id());
+        });
 
         return redirect()->back()
             ->with('alert-success', 'Notas do item atualizadas com sucesso!');

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Morphs\DiscussableMap;
+use App\Traits\HasMentions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Spatie\Activitylog\LogOptions;
 
 class MeetingItem extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, HasMentions, LogsActivity;
 
     protected $fillable = [
         'meeting_id',

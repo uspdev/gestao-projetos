@@ -15,6 +15,7 @@ use App\Traits\Auditable;
 use App\Traits\HasMeeting;
 use App\Traits\InteractsWithFiles;
 use App\Traits\HasSlug;
+use App\Traits\HasMentions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,7 +37,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 class Project extends Model implements Discussable, HasCommentRecipients, Duplicable, HasMedia
 {
-    use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, LogsActivity;
+    use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, HasMentions, LogsActivity;
     use HasMeeting, InteractsWithFiles;
 
     public const ORGANIZATIONAL_TYPE_SLUG = 'organizacional';

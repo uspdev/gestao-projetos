@@ -15,6 +15,7 @@ use App\Models\Tag;
 use App\Models\Module;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\MentionIndexer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -90,17 +91,20 @@ class TaskController extends Controller
     }
 
 
-    public function store(StoreTaskRequest $request, Project $project)
+    public function store(StoreTaskRequest $request, Project $project, MentionIndexer $mentionIndexer)
     {
         $this->ensureTasksModuleEnabled($project);
 
-        $task = DB::transaction(function () use ($project, $request) {
+        $task = DB::transaction(function () use ($project, $request, $mentionIndexer) {
             $data = $request->validated();
             $data['project_id'] = $project->id;
             $data['created_by'] = Auth::id();
             $data['status'] = $data['status'] ?? TaskStatus::ASSIGNED->value;
 
             $task = Task::create($data);
+
+            $mentionIndexer->validateAllMentions($task, 'description', $data['description'] ?? null);
+            $mentionIndexer->synchronize($task, 'description', $data['description'] ?? null, Auth::id());
 
             if ($request->has('tags')) {
                 $tagsToSync = Tag::withType(Tag::TYPE_TASK)
@@ -145,20 +149,22 @@ class TaskController extends Controller
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateDescription(UpdateTaskDescriptionRequest $request, Task $task)
+    public function updateDescription(UpdateTaskDescriptionRequest $request, Task $task, MentionIndexer $mentionIndexer)
     {
         $this->ensureTasksModuleEnabled($task->project);
 
-        DB::transaction(function () use ($task, $request) {
+        DB::transaction(function () use ($task, $request, $mentionIndexer) {
             $description = $request->input('description', '');
             if (is_string($description)) {
                 $description = html_entity_decode($description, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             }
 
+            $mentionIndexer->validateNewMentions($task, 'description', $description);
             $task->update([
                 'description' => $description,
                 'updated_by' => Auth::id(),
             ]);
+            $mentionIndexer->synchronize($task, 'description', $description, Auth::id());
         });
 
         if ($request->has('action')) {

@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Markdown\SafeUrlRenderer;
 use App\Markdown\UrlPolicy;
+use Closure;
+use Illuminate\Support\Facades\Auth;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Image;
@@ -15,7 +18,10 @@ class MarkdownRenderer
 {
     private MarkdownConverter $converter;
 
-    public function __construct()
+    /**
+     * @param Closure(int): ?array{name: string, url: string}|null $mentionResolver
+     */
+    public function __construct(?Closure $mentionResolver = null)
     {
         $environment = new Environment([
             'html_input' => 'escape',
@@ -25,7 +31,19 @@ class MarkdownRenderer
         $environment->addExtension(new CommonMarkCoreExtension());
         $environment->addExtension(new GithubFlavoredMarkdownExtension());
         $urlPolicy = new UrlPolicy();
-        $safeUrlRenderer = new SafeUrlRenderer($urlPolicy);
+        $safeUrlRenderer = new SafeUrlRenderer($urlPolicy, $mentionResolver ?? function (int $userId): ?array {
+            $mentionedUser = User::query()->find($userId);
+            $reader = Auth::user();
+
+            if (! $mentionedUser || ! $reader || ! $reader->can('view', $mentionedUser)) {
+                return null;
+            }
+
+            return [
+                'name' => $mentionedUser->name,
+                'url' => route('users.show', $mentionedUser),
+            ];
+        });
         $environment->addRenderer(Link::class, $safeUrlRenderer, 10);
         $environment->addRenderer(Image::class, $safeUrlRenderer, 10);
 

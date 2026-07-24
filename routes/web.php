@@ -5,6 +5,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DuplicateController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MarkdownPreviewController;
+use App\Http\Controllers\MentionController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MeetingFileShareController;
 use App\Http\Controllers\ProjectController;
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function () {
     // MARKDOWN
     // ==========================================
     Route::post('markdown/preview', MarkdownPreviewController::class)->name('markdown.preview');
+    Route::get('mentions/selectable', [MentionController::class, 'selectable'])->name('mentions.selectable');
 
     // ==========================================
     // ARQUIVOS

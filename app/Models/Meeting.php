@@ -10,6 +10,7 @@ use App\Models\Project as ProjectModel;
 use App\Models\Task as TaskModel;
 use App\Traits\Auditable;
 use App\Traits\InteractsWithFiles;
+use App\Traits\HasMentions;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -27,7 +28,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 class Meeting extends Model implements HasCommentRecipients, Duplicable, HasMedia
 {
-    use HasFactory, SoftDeletes, Auditable, LogsActivity, InteractsWithFiles;
+    use HasFactory, SoftDeletes, Auditable, HasMentions, LogsActivity, InteractsWithFiles;
 
     protected $fillable = [
         'title',

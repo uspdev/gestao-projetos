@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Traits\HasMentions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
 class Comment extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, HasMentions, LogsActivity;
 
     protected $fillable = [
         'user_id',

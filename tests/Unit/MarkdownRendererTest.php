@@ -129,4 +129,27 @@ class MarkdownRendererTest extends TestCase
 
         $this->assertSame(20, substr_count($html, '<blockquote>'));
     }
+
+    public function test_it_hides_an_unavailable_mentioned_user_without_a_link(): void
+    {
+        $renderer = new MarkdownRenderer(fn (): null => null);
+
+        $this->assertSame(
+            "<p>@Usuário indisponível</p>\n",
+            $renderer->render('@[Nome histórico](mention:user:42)')
+        );
+    }
+
+    public function test_it_uses_the_current_name_and_profile_link_for_an_available_mentioned_user(): void
+    {
+        $renderer = new MarkdownRenderer(fn (): array => [
+            'name' => 'Nome atual',
+            'url' => '/users/42',
+        ]);
+
+        $this->assertSame(
+            "<p>@<a href=\"/users/42\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"markdown-mention\">Nome atual</a></p>\n",
+            $renderer->render('@[Nome histórico](mention:user:42)')
+        );
+    }
 }

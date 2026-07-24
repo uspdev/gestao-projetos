@@ -34,7 +34,8 @@
         <label for="{{ $commentEditFormId }}-textarea" class="sr-only">Editar comentario</label>
         <x-form.textarea name="text" :id="$commentEditFormId . '-textarea'" :value="$editTextValue" :error-bag="$isEditingComment ? $errors : new \Illuminate\Support\ViewErrorBag()" groupClass="form-group mb-2" markdown-profile="compact"
           rows="2" maxlength="10000" required
-          data-file-reference-url="{{ route('files.selectable', ['context_type' => 'comment', 'commentable_type' => $comment->commentable->getMorphClass(), 'commentable_id' => $comment->commentable->getKey()]) }}" />
+          data-file-reference-url="{{ route('files.selectable', ['context_type' => 'comment', 'commentable_type' => $comment->commentable->getMorphClass(), 'commentable_id' => $comment->commentable->getKey()]) }}"
+          data-mention-search-url="{{ route('mentions.selectable', ['context_type' => 'comment', 'commentable_type' => $comment->commentable->getMorphClass(), 'commentable_id' => $comment->commentable->getKey()]) }}" />
 
         <div class="d-flex justify-content-end" style="gap: 0.5rem;">
           <x-form.cancel-button class="btn-sm" data-toggle="collapse"

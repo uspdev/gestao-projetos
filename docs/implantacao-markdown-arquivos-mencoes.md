@@ -1,10 +1,10 @@
 # Implantação de Markdown, Arquivos e Menções — versão alfa
 
 > **Documento alfa:** esta versão cobre as necessidades operacionais imediatas
-> do renderizador Markdown, do EasyMDE, da pré-visualização oficial e da base
-> privada de Arquivos. Compartilhamentos, Menções e suas interfaces serão
-> acrescentados quando os respectivos tickets forem implementados. Este
-> documento não autoriza nem executa a implantação.
+> do renderizador Markdown, do EasyMDE, da pré-visualização oficial, da base
+> privada de Arquivos e do índice derivado de Menções. Compartilhamentos e
+> suas interfaces serão acrescentados quando os respectivos tickets forem
+> implementados. Este documento não autoriza nem executa a implantação.
 
 ## Escopo atual
 
@@ -38,6 +38,31 @@ O módulo de Arquivos usa `spatie/laravel-medialibrary`, já registrado em
 `composer.lock`. Não execute `composer update` durante a implantação. O
 `composer install` permanece apenas como parte do procedimento normal de
 preparação da aplicação.
+
+## Menções e índice derivado
+
+As Menções permanecem no Markdown como fonte editorial da verdade. A tabela
+`mentions` é somente um índice derivado, mantido automaticamente na mesma
+transação que salva um campo Markdown: novas relações são criadas, relações
+ausentes são removidas e as existentes são preservadas.
+
+Não é necessário executar nenhum comando periódico, criar uma tarefa agendada
+nem depender de uma ação humana para manter esse índice em produção. A remoção
+ou inativação de uma fonte limpa suas relações, e a restauração de uma fonte
+com exclusão lógica recompõe suas Menções a partir do Markdown.
+
+O comando abaixo existe apenas para recuperação excepcional, como uma
+importação que tenha gravado Markdown sem passar pela aplicação, uma correção
+manual indevida no banco ou a recuperação de um incidente:
+
+```sh
+php artisan mentions:rebuild
+```
+
+Ele é idempotente, não altera o Markdown, não envia notificações e não deve
+fazer parte da rotina de implantação ou operação normal. Em uma instalação
+nova, sem Markdown prévio com a sintaxe `mention:user:ID`, não é necessária
+nem mesmo uma execução inicial.
 
 ## Arquivos: identidade, nomes e armazenamento
 

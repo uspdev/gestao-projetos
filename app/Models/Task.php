@@ -10,6 +10,7 @@ use App\Enums\Task\TaskStatus;
 use App\Models\Tag;
 use App\Traits\Auditable;
 use App\Traits\InteractsWithFiles;
+use App\Traits\HasMentions;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +26,7 @@ use Spatie\MediaLibrary\HasMedia;
 
 class Task extends Model implements Discussable, HasCommentRecipients, Duplicable, HasMedia
 {
-    use HasFactory, SoftDeletes, Auditable, HasTags, LogsActivity, InteractsWithFiles;
+    use HasFactory, SoftDeletes, Auditable, HasTags, HasMentions, LogsActivity, InteractsWithFiles;
 
     protected $fillable = [
         'project_id',
