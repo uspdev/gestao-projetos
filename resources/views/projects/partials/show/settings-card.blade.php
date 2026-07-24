@@ -207,6 +207,11 @@
     </tbody>
   </table>
 </div>
+@if ($project->isOrganizational() || $project->isSubproject())
+  <div class="mb-4">
+    @include('projects.partials.show.subproject-permissions-card')
+  </div>
+@endif
 
 <div class="card mb-4">
   <div class="card-header d-flex align-items-center py-2">
