@@ -28,6 +28,15 @@ class FileCardsTest extends DuskTestCase
             $browser->loginAs($administrator)
                 ->visit(route('projects.show', $project))
                 ->waitFor('[data-file-upload-form]')
+                ->assertDisabled('[data-file-upload-submit]')
+                ->attach(
+                    '#file-upload-'.$project->getMorphClass().'-'.$project->id,
+                    base_path('tests/Browser/source/arquivo-dusk.txt'),
+                )
+                ->assertEnabled('[data-file-upload-submit]')
+                ->assertVisible('[data-file-upload-feedback]')
+                ->click('[data-file-upload-clear]')
+                ->assertDisabled('[data-file-upload-submit]')
                 ->attach(
                     '#file-upload-'.$project->getMorphClass().'-'.$project->id,
                     base_path('tests/Browser/source/arquivo-dusk.txt'),
@@ -35,7 +44,13 @@ class FileCardsTest extends DuskTestCase
                 ->press('Enviar Arquivo')
                 ->waitFor('[data-file-card]')
                 ->assertSee('arquivo-dusk')
-                ->assertPresent('[data-file-card] a[href*="/download"]');
+                ->assertPresent('[data-file-card] a[href*="/download"]')
+                ->assertMissing('[data-file-card] .btn[href*="/download"]')
+                ->assertPresent('[data-file-rename-toggle]')
+                ->assertMissing('[data-file-rename-form]:not([hidden])')
+                ->click('[data-file-rename-toggle]')
+                ->assertVisible('[data-file-rename-form]')
+                ->assertVisible('[data-file-rename-form] button[type="submit"]');
         });
     }
 }

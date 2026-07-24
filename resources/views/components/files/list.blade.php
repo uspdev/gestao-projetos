@@ -9,17 +9,25 @@
 @endphp
 
 <section class="card my-4" aria-labelledby="files-heading">
-  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
-    <h2 id="files-heading" class="h6 m-0 text-muted mr-2">
+  <div class="card-header d-flex align-items-start py-2">
+    <h2 id="files-heading" class="h6 m-0 mt-1 mr-3 text-muted text-nowrap">
       <i class="fas fa-paperclip mr-1" aria-hidden="true"></i> Arquivos
     </h2>
 
     @can('create', [\App\Models\Media::class, $owner])
-      <form action="{{ $uploadRoute }}" method="post" enctype="multipart/form-data" class="form-inline" data-file-upload-form>
+      <form action="{{ $uploadRoute }}" method="post" enctype="multipart/form-data" class="d-flex flex-column flex-grow-1 mb-0 file-upload-form" data-file-upload-form data-disable-client-validation>
         @csrf
-        <label class="sr-only" for="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}">Enviar Arquivo</label>
-        <input id="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}" type="file" name="file" required class="form-control form-control-sm mr-2">
-        <button class="btn btn-sm btn-primary" type="submit">Enviar Arquivo</button>
+        <div class="d-flex align-items-center">
+          <input id="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}" type="file" name="file" required class="sr-only" data-file-upload-input>
+          <label class="btn btn-sm btn-outline-secondary mb-0 mr-2" for="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}">Procurar</label>
+          <button class="btn btn-sm btn-primary" type="submit" data-file-upload-submit disabled aria-disabled="true">Enviar Arquivo</button>
+        </div>
+        <span class="d-none mt-1 small text-success text-truncate file-upload-feedback" data-file-upload-feedback aria-live="polite">
+          <button class="btn btn-sm btn-link p-0 mr-1 text-danger" type="button" data-file-upload-clear aria-label="Remover arquivo selecionado">
+            <i class="fas fa-times" aria-hidden="true"></i>
+          </button>
+          <i class="fas fa-check-circle mr-1" aria-hidden="true"></i><span data-file-upload-name></span>
+        </span>
       </form>
     @endcan
   </div>
@@ -53,16 +61,20 @@
                     <div class="small text-muted">Nome original: {{ $media->original_name }}</div>
                   @endcan
                 </div>
-                <div class="d-flex flex-wrap gap-2">
-                  <a class="btn btn-sm btn-outline-secondary" href="{{ route('files.download', ['uuid' => $media->uuid]) }}">Baixar</a>
+                <div class="d-flex align-items-center flex-nowrap gap-2">
                   @can('update', $media)
-                    <form action="{{ route('files.update', ['uuid' => $media->uuid]) }}" method="post" class="form-inline">
-                      @csrf
-                      @method('PATCH')
-                      <label class="sr-only" for="file-name-{{ $media->uuid }}">Nome exibido</label>
-                      <input id="file-name-{{ $media->uuid }}" name="name" value="{{ $media->display_name }}" class="form-control form-control-sm" required maxlength="255">
-                      <button type="submit" class="btn btn-sm btn-outline-primary ml-1">Renomear</button>
-                    </form>
+                    <div class="d-flex align-items-center flex-nowrap">
+                      <button type="button" class="btn btn-sm btn-outline-primary" data-file-rename-toggle aria-controls="file-rename-{{ $media->uuid }}" aria-expanded="false">Renomear</button>
+                      <form id="file-rename-{{ $media->uuid }}" action="{{ route('files.update', ['uuid' => $media->uuid]) }}" method="post" class="input-group input-group-sm" data-file-rename-form data-disable-client-validation hidden>
+                        @csrf
+                        @method('PATCH')
+                        <label class="sr-only" for="file-name-{{ $media->uuid }}">Nome exibido</label>
+                        <input id="file-name-{{ $media->uuid }}" name="name" value="{{ $media->display_name }}" class="form-control form-control-sm" required maxlength="255" data-file-rename-input>
+                        <div class="input-group-append">
+                          <button type="submit" class="btn btn-outline-primary" aria-label="Confirmar novo nome">OK</button>
+                        </div>
+                      </form>
+                    </div>
                     <form action="{{ route('files.destroy', ['uuid' => $media->uuid]) }}" method="post" onsubmit="return confirm('A exclusão é definitiva e referências existentes poderão deixar de funcionar.');">
                       @csrf
                       @method('DELETE')
@@ -95,7 +107,6 @@
                     <div class="small text-muted">Arquivo compartilhado com a reunião · {{ $media->uploader?->name ?? 'Usuário removido' }}</div>
                   </div>
                   <div class="d-flex flex-wrap gap-2">
-                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('files.download', ['uuid' => $media->uuid]) }}">Baixar</a>
                     @can('manageFileShares', $owner)
                       <form action="{{ route('meetings.file-shares.destroy', [$owner, $media->uuid]) }}" method="post">
                         @csrf
