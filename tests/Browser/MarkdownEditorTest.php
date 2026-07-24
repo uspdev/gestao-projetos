@@ -26,10 +26,11 @@ class MarkdownEditorTest extends DuskTestCase
                 ->assertScript($this->toolbarHas('full', 'table'), true)
                 ->assertScript($this->toolbarHas('full', 'mention'), true)
                 ->assertScript($this->toolbarHas('full', 'file-reference'), false)
-                ->assertScript($this->toolbarHas('full', 'markdown-help'), true)
+                ->assertScript($this->toolbarHas('full', 'markdown-help'), false)
                 ->assertScript($this->toolbarHas('full', 'fullscreen'), false)
                 ->assertScript($this->toolbarHas('full', 'side-by-side'), false)
                 ->assertScript($this->toolbarHas('full', 'image'), false)
+                ->assertScript($this->fullToolbarLayoutIsCorrect(), true)
                 ->assertScript($this->editorOption('spellChecker'), false)
                 ->assertScript($this->editorOption('nativeSpellcheck'), true)
                 ->assertScript($this->editorOption('uploadImage'), false)
@@ -313,6 +314,31 @@ class MarkdownEditorTest extends DuskTestCase
                 const textarea = document.querySelector('[data-markdown-profile="full"]');
                 const preview = window.MarkdownEditors.get(textarea).preview.element();
                 return preview.{$assertion};
+            })()
+        JS;
+    }
+
+    private function fullToolbarLayoutIsCorrect(): string
+    {
+        return <<<'JS'
+            (() => {
+                const textarea = document.querySelector('[data-markdown-profile="full"]');
+                const editor = window.MarkdownEditors.get(textarea).editor;
+                const toolbar = editor.toolbar_div;
+                const bold = editor.toolbarElements.bold;
+                const table = editor.toolbarElements.table;
+                const preview = editor.toolbarElements.preview;
+                const toolbarBounds = toolbar.getBoundingClientRect();
+                const previewBounds = preview.getBoundingClientRect();
+                const previewStyle = window.getComputedStyle(preview);
+                const previewRightOffset = toolbarBounds.right - previewBounds.right;
+
+                return table.offsetWidth < toolbar.clientWidth / 2
+                    && table.offsetTop === bold.offsetTop
+                    && previewRightOffset >= 0
+                    && previewRightOffset <= 12
+                    && previewStyle.backgroundColor !== 'rgba(0, 0, 0, 0)'
+                    && previewStyle.color !== 'rgb(0, 0, 0)';
             })()
         JS;
     }
