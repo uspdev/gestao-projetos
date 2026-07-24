@@ -63,6 +63,14 @@ class MarkdownEditorTest extends DuskTestCase
                 ->assertScript($this->toolbarHas('compact', 'task-list'), false)
                 ->assertScript($this->toolbarHas('compact', 'table'), false)
                 ->assertScript($this->toolbarHas('compact', 'markdown-help'), false)
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#modal-markdown')).editor.codemirror.getScrollerElement().style.minHeight",
+                    '60px'
+                )
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#collapse-markdown')).editor.codemirror.getScrollerElement().style.minHeight",
+                    '300px'
+                )
                 ->assertScript("window.MarkdownEditors.get(document.querySelector('#modal-markdown')).editor.value()", 'Valor preservado no modal')
                 ->assertScript("window.MarkdownEditors.get(document.querySelector('#collapse-markdown')).editor.value()", 'Valor preservado no colapso')
                 ->assertSeeIn('#markdown-modal', 'Erro preservado no modal')

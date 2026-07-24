@@ -6,6 +6,7 @@ require('highlight.js/styles/github.css');
 
 const editors = new WeakMap();
 const DEBOUNCE_MS = 500;
+const COMPACT_EDITOR_MIN_HEIGHT = '60px';
 
 function wrapSelection(editor, opening, closing = opening) {
     const codeMirror = editor.codemirror;
@@ -415,6 +416,9 @@ function initializeEditor(textarea) {
 
     const editor = new EasyMDE({
         element: textarea,
+        minHeight: textarea.dataset.markdownProfile === 'compact'
+            ? COMPACT_EDITOR_MIN_HEIGHT
+            : undefined,
         toolbar: toolbarFor(
             textarea.dataset.markdownProfile,
             previewAction,
