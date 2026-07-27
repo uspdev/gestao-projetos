@@ -37,6 +37,7 @@
   </div>
 
   <div class="d-flex align-items-center gap-2">
+    @include('watches.partials.control', ['watchable' => $project])
     @include('projects.partials.show.show-tag-badges')
     @include('projects.partials.show.settings-btn')
   </div>

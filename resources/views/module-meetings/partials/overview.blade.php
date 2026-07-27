@@ -5,6 +5,7 @@
     </h6>
 
     <div class="d-flex align-items-center" style="gap: 0.5rem;">
+      @include('watches.partials.control', ['watchable' => $meeting])
       @include('module-meetings.partials.edit-btn')
       @include('module-meetings.partials.delete-btn')
     </div>

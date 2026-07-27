@@ -29,6 +29,12 @@ class TaskUser extends Pivot
                     ],
                 ])
                 ->log('attached');
+
+            $task = static::resolveOwner(Task::class, $pivot->task_id);
+
+            if ($task) {
+                Watch::enableFor((int) $pivot->user_id, $task);
+            }
         });
 
         static::deleted(function (TaskUser $pivot) {
@@ -42,6 +48,12 @@ class TaskUser extends Pivot
                     ],
                 ])
                 ->log('detached');
+
+            $task = static::resolveOwner(Task::class, $pivot->task_id);
+
+            if ($task) {
+                Watch::disableFor((int) $pivot->user_id, $task);
+            }
         });
     }
 

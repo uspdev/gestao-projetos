@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Contracts\HasCommentRecipients;
+use App\Contracts\Watchable;
 use App\Enums\Project\ProjectPermissionInheritance;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
@@ -35,7 +35,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
 
-class Project extends Model implements Discussable, HasCommentRecipients, Duplicable, HasMedia
+class Project extends Model implements Discussable, Duplicable, HasMedia, Watchable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, HasMentions, LogsActivity;
     use HasMeeting, InteractsWithFiles;
@@ -193,14 +193,21 @@ class Project extends Model implements Discussable, HasCommentRecipients, Duplic
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
-    // Método para obter os destinatários de comentários relacionados ao projeto
-    public function commentRecipients(): SupportCollection
-    {
-        $this->loadMissing('users');
 
-        return $this->users->unique('id')->values();
+    public function watchLabel(): string
+    {
+        return $this->name;
     }
 
+    public function watchUrl(): ?string
+    {
+        return route('projects.show', $this);
+    }
+
+    public function watchCanBeViewedBy(User $user): bool
+    {
+        return $user->isViewerOfProject($this);
+    }
     public function parentProjectId(): ?int
     {
         return $this->parent_id ?: $this->getKey();

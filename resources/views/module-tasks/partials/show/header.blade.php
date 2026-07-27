@@ -25,4 +25,5 @@
     </a>
     @include('module-tasks.partials.buttons.create-task-btn', ['project' => $project])
   </div>
+  @include('watches.partials.control', ['watchable' => $task])
 </div>

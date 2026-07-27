@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Contracts\HasCommentRecipients;
+use App\Contracts\Watchable;
 use App\Morphs\Duplicable;
 use App\Morphs\Discussable;
 use App\Enums\Task\TaskPriority;
@@ -18,13 +18,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Collection;
 use Spatie\Tags\HasTags;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
 
-class Task extends Model implements Discussable, HasCommentRecipients, Duplicable, HasMedia
+class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasMentions, LogsActivity, InteractsWithFiles;
 
@@ -80,15 +79,25 @@ class Task extends Model implements Discussable, HasCommentRecipients, Duplicabl
     {
         return $this->morphMany(Comment::class, 'commentable');
     }
-    // Implementação do método da interface HasCommentRecipients
-    // para obter os destinatários de comentários relacionados à tarefa
-    public function commentRecipients(): Collection
-    {
-        $this->loadMissing('users');
 
-        return $this->users->unique('id')->values();
+    public function watchLabel(): string
+    {
+        return $this->title;
     }
 
+    public function watchUrl(): ?string
+    {
+        return route('tasks.show', $this);
+    }
+
+    public function watchCanBeViewedBy(User $user): bool
+    {
+        $this->loadMissing('project');
+
+        return $this->project
+            && $this->project->isModuleEnabled('tasks')
+            && $user->isViewerOfProject($this->project);
+    }
     /**
      * Relacionamento com meeting items via morph (Task pode ser um meeting item)
      */

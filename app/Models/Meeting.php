@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Contracts\HasCommentRecipients;
+use App\Contracts\Watchable;
 use App\Enums\Meeting\MeetingStatus;
 use App\Morphs\Duplicable;
 
@@ -26,7 +26,7 @@ use Spatie\Activitylog\Models\Activity;
 use InvalidArgumentException;
 use Spatie\MediaLibrary\HasMedia;
 
-class Meeting extends Model implements HasCommentRecipients, Duplicable, HasMedia
+class Meeting extends Model implements Duplicable, HasMedia, Watchable
 {
     use HasFactory, SoftDeletes, Auditable, HasMentions, LogsActivity, InteractsWithFiles;
 
@@ -121,16 +121,27 @@ class Meeting extends Model implements HasCommentRecipients, Duplicable, HasMedi
         return $this->morphMany(Comment::class, 'commentable');
     }
 
-    // Implementação do método da interface HasCommentRecipients
-    // para obter os destinatários de comentários relacionados à reunião
-    public function commentRecipients(): Collection
+    public function watchLabel(): string
     {
-        $this->loadMissing('projects.users');
+        return $this->title;
+    }
 
-        return $this->projects
-            ->flatMap(fn($project) => $project->users)
-            ->unique('id')
-            ->values();
+    public function watchUrl(): ?string
+    {
+        $this->loadMissing('projects');
+        $project = $this->projects->first();
+
+        return $project ? route('projects.meetings.show', [$project, $this]) : null;
+    }
+
+    public function watchCanBeViewedBy(User $user): bool
+    {
+        $this->loadMissing('projects');
+
+        return $this->projects->contains(
+            fn (Project $project) => $project->isModuleEnabled('meetings')
+                && $user->isViewerOfProject($project)
+        );
     }
 
     /**
