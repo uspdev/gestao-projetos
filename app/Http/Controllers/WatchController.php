@@ -7,10 +7,24 @@ use App\Morphs\CommentableMap;
 use App\Models\User;
 use App\Models\Watch;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class WatchController extends Controller
 {
+    /**
+     * Ativa as notificações de um recurso para o usuário autenticado.
+     *
+     *
+     * @param Request $request Requisição contendo o usuário autenticado.
+     * @param string $watchableType Tipo do recurso observável.
+     * @param int $watchableId Identificador do recurso observável.
+     *
+     * @return RedirectResponse
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
     public function update(
         Request $request,
         string $watchableType,
@@ -24,6 +38,18 @@ class WatchController extends Controller
         return back()->with('alert-success', 'Notificações ativadas com sucesso!');
     }
 
+    /**
+     * Desativa as notificações de um recurso para o usuário autenticado.
+     *
+     * @param Request $request Requisição contendo o usuário autenticado.
+     * @param string $watchableType Tipo do recurso observável.
+     * @param int $watchableId Identificador do recurso observável.
+     *
+     * @return RedirectResponse
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     */
     public function destroy(
         Request $request,
         string $watchableType,
