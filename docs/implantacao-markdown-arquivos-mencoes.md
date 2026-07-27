@@ -1,151 +1,318 @@
-# Implantação de Markdown, Arquivos e Menções — versão alfa
+# Implantação de Markdown, Arquivos e Menções
 
-> **Documento alfa:** esta versão cobre as necessidades operacionais imediatas
-> do renderizador Markdown, do EasyMDE, da pré-visualização oficial, da base
-> privada de Arquivos e do índice derivado de Menções. Compartilhamentos e
-> suas interfaces serão acrescentados quando os respectivos tickets forem
-> implementados. Este documento não autoriza nem executa a implantação.
+> **Rascunho:** este guia deve ser revisado e aprovado com o responsável pelo
+> deploy antes de ser adotado como procedimento de produção.
 
-## Escopo atual
+Este guia orienta a preparação, a publicação e a validação da release. Execute
+as etapas na ordem apresentada e interrompa o deploy se alguma validação falhar.
 
-A entrega atual acrescenta ativos JavaScript e CSS compilados localmente por
-Laravel Mix. O EasyMDE e o `highlight.js` são dependências npm locais e não
-devem ser substituídos por CDN.
+## Requisitos do ambiente
 
-O arquivo-fonte `resources/js/app.js` não é servido diretamente ao navegador.
-O Laravel Mix precisa gerar, no mínimo:
+### Ativos do editor
 
-- `public/js/app.js`;
-- `public/css/app.css`;
-- `public/mix-manifest.json`.
-
-Esses arquivos compilados não são versionados no repositório. Portanto, uma
-nova release não deve ser publicada sem executar a compilação ou sem receber
-os artefatos produzidos por um pipeline de build.
-
-## Requisito do ambiente de build
-
-O ambiente responsável por preparar a release precisa ter Node.js e npm
-disponíveis. Eles não precisam permanecer instalados no servidor de execução
-quando um pipeline externo gerar e entregar os ativos compilados.
-
-As ferramentas de compilação estão registradas em `devDependencies`. Não use
-`npm ci --omit=dev`, `npm install --production` nem configuração equivalente
-durante o build, pois isso removeria Laravel Mix, EasyMDE e `highlight.js` antes
-da compilação.
-
-O módulo de Arquivos usa `spatie/laravel-medialibrary`, já registrado em
-`composer.lock`. Não execute `composer update` durante a implantação. O
-`composer install` permanece apenas como parte do procedimento normal de
-preparação da aplicação.
-
-## Menções e índice derivado
-
-As Menções permanecem no Markdown como fonte editorial da verdade. A tabela
-`mentions` é somente um índice derivado, mantido automaticamente na mesma
-transação que salva um campo Markdown: novas relações são criadas, relações
-ausentes são removidas e as existentes são preservadas.
-
-Não é necessário executar nenhum comando periódico, criar uma tarefa agendada
-nem depender de uma ação humana para manter esse índice em produção. A remoção
-ou inativação de uma fonte limpa suas relações, e a restauração de uma fonte
-com exclusão lógica recompõe suas Menções a partir do Markdown.
-
-O comando abaixo existe apenas para recuperação excepcional, como uma
-importação que tenha gravado Markdown sem passar pela aplicação, uma correção
-manual indevida no banco ou a recuperação de um incidente:
+Execute npm ci e npm run production. A compilação grava os ativos diretamente em public/; esses arquivos não são trazidos pelo Git e nenhuma cópia adicional é necessária.
 
 ```sh
-php artisan mentions:rebuild
-```
-
-Ele é idempotente, não altera o Markdown, não envia notificações e não deve
-fazer parte da rotina de implantação ou operação normal. Em uma instalação
-nova, sem Markdown prévio com a sintaxe `mention:user:ID`, não é necessária
-nem mesmo uma execução inicial.
-
-## Arquivos: identidade, nomes e armazenamento
-
-Cada Arquivo pertence exclusivamente a um Projeto, Tarefa ou Reunião. O disk
-`files` é privado e usa, inicialmente, `storage/app/files`; ele não depende de
-`storage:link` nem fornece URLs públicas diretas.
-
-| Campo da aplicação | Coluna persistida | Exemplo | Finalidade |
-|---|---|---|---|
-| `original_name` | `media.original_name` | `relatório final.PNG` | Nome informado pelo navegador no envio, preservado como proveniência. |
-| `uuid_name` | `media.file_name` | `550e8400-e29b-41d4-a716-446655440000.png` | Nome físico opaco no armazenamento privado. |
-| `uuid` | `media.uuid` | `550e8400-e29b-41d4-a716-446655440000` | Identidade pública estável para futuras rotas e Referências de arquivo. |
-| `display_name` | `media.name` | `relatório final` | Nome exibido, que poderá ser renomeado sem alterar o conteúdo ou a proveniência. |
-
-`display_name` e `uuid_name` são atributos da aplicação. As colunas `name` e
-`file_name` pertencem ao contrato técnico da Media Library e devem permanecer
-restritas à sua integração. Fora dessa fronteira, use os atributos da
-aplicação.
-
-`original_name`, `uuid_name`, `uuid`, conteúdo e Proprietário do arquivo são
-imutáveis. Uma renomeação altera somente `display_name`. O Nome original do
-arquivo não deve ser usado para caminhos, URLs ou cabeçalhos de download.
-
-## Preparação dos ativos da release
-
-No código exato que será publicado, execute:
-
-```sh
+# Instala as dependências registradas em package-lock.json.
 npm ci
+
+# Gera os ativos otimizados em public/.
 npm run production
 ```
 
-`npm ci` instala exatamente a árvore registrada em `package-lock.json` e falha
-se o manifesto e o lockfile estiverem divergentes. `npm run production` gera os
-ativos minificados em `public/`.
+### Armazenamento privado
 
-A compilação pode ocorrer de duas formas:
-
-1. **Na preparação da release no ambiente de produção:** execute os comandos no
-   diretório da nova release antes de torná-la ativa.
-2. **Em pipeline de build:** execute os mesmos comandos no pipeline e publique
-   junto com a release todo o conteúdo gerado necessário em `public/`.
-
-Em ambos os casos, os ativos precisam corresponder ao mesmo commit do código
-PHP e das views. Não reutilize `public/js/app.js` de uma release anterior.
-
-## Validação antes da publicação
-
-Depois da compilação e antes de ativar a release, confirme:
+Os Arquivos ficam em `storage/app/files` e não podem ser servidos diretamente
+pelo servidor web. Garanta que o PHP e o processador de fila tenham permissão
+de leitura e escrita nesse diretório. Não execute `php artisan storage:link`
+para disponibilizá-lo.
 
 ```sh
-test -s public/js/app.js
-test -s public/css/app.css
-test -s public/mix-manifest.json
+# Cria o diretório privado caso ele ainda não exista.
+mkdir -p storage/app/files
 ```
 
-Também valide que `public/mix-manifest.json` contém entradas para `/js/app.js`
-e `/css/app.css`.
+### Limite de upload
 
-Se qualquer comando npm ou validação falhar, interrompa a publicação. Não
-publique apenas o código PHP: sem o bundle correspondente, os campos continuam
-no HTML, mas não recebem o editor nem a pré-visualização no navegador.
+A aplicação aceita um Arquivo por requisição, até 100 MiB. Configure o SAPI web
+e todos os proxies para aceitar o corpo multipart completo.
 
-## Verificação funcional após a publicação
+```ini
+; Define os limites mínimos no php.ini usado pelo servidor web.
+upload_max_filesize = 100M
+post_max_size = 110M
+max_input_time = 300
+```
 
-Com um usuário autenticado e autorizado, verifique ao menos:
+Para Apache:
 
-1. uma descrição de Projeto ou Tarefa abre o perfil completo do editor;
-2. um Comentário abre o perfil compacto;
-3. Anotações prévias de Reunião e de item de pauta abrem o perfil completo;
-4. Ata e Transcrição continuam como texto simples;
-5. a pré-visualização exibe o Markdown após a pausa de digitação;
-6. blocos de código recebem realce no navegador;
-7. não há requisições a CDN para EasyMDE, `highlight.js` ou dicionários de
-   correção ortográfica.
+```apache
+# Permite até 110 MiB por requisição.
+LimitRequestBody 115343360
+```
 
-## Recuperação imediata
+Reinicie os serviços alterados. Em homologação, consulte um `phpinfo()`
+restrito e temporário para confirmar o arquivo carregado e os valores efetivos
+do SAPI web; remova esse diagnóstico após a conferência. O teste definitivo é
+o envio próximo de 100 MiB descrito no plano de homologação.
 
-Esta etapa do editor não cria migrações nem altera dados persistidos. Se os
-ativos estiverem ausentes ou incorretos, mantenha a release anterior ativa ou
-restaure o conjunto de código e ativos da release anterior. Depois de corrigir
-o ambiente de build, gere novamente os ativos a partir do commit pretendido e
-repita as validações.
+### GD e fila
 
-Não tente corrigir uma falha de build com `composer update`, `npm update`, CDN
-ou edição manual de arquivos dentro de `public/`.
+GD gera as miniaturas e o processador de fila executa esse trabalho de forma
+assíncrona. Verifique GD com o mesmo binário PHP usado pelo processador:
+
+```sh
+# Falha quando GD ou a função de decodificação não estão disponíveis.
+php -r 'exit(extension_loaded("gd") && function_exists("imagecreatefromstring") ? 0 : 1);'
+
+# Exibe a configuração carregada da extensão GD.
+php --ri gd
+```
+
+Use `QUEUE_CONNECTION=database` e mantenha um worker supervisionado consumindo
+a fila padrão:
+
+```sh
+# Processa miniaturas e os demais trabalhos da fila padrão.
+php artisan queue:work database --queue=default --sleep=3 --tries=3 --timeout=60
+```
+
+O supervisor deve reiniciar o processo após falhas e publicações. Monitore
+`jobs`, `failed_jobs`, logs e espaço disponível em `storage/app/files`.
+
+## Ordem de implantação
+
+Realize o deploy em janela controlada para impedir gravações durante a cópia de
+segurança e a validação do esquema.
+
+### 1. Criar a cópia de segurança
+
+Faça uma cópia consistente do banco e de `storage/app/files`. Registre as
+contagens e a descrição que será convertida:
+
+```sql
+-- Registra a linha de base antes das migrações.
+SELECT COUNT(*) AS project_types FROM project_types;
+SELECT COUNT(*) AS meetings FROM meetings;
+SELECT COUNT(*) AS meeting_items FROM meeting_items;
+SELECT id, slug, description
+FROM project_types
+WHERE slug = 'organizacional';
+```
+
+Não avance sem confirmar que o banco e os binários podem ser restaurados como
+um único conjunto.
+
+### 2. Preparar a nova release
+
+No diretório ainda inativo da nova release, instale as dependências travadas
+nos arquivos de lock e compile os ativos:
+
+```sh
+# Instala as dependências PHP de produção conforme composer.lock.
+composer install --no-dev --prefer-dist --optimize-autoloader
+
+# Instala as dependências registradas em package-lock.json.
+npm ci
+
+# Gera os ativos otimizados em public/.
+npm run production
+```
+
+Não execute `composer update` nem `npm update` durante o deploy.
+
+### 3. Executar as migrações estruturais
+
+Confirme que a expansão dos registros de reunião já foi aplicada. Se estiver
+pendente, siga
+[`implantacao-registros-de-reuniao.md`](implantacao-registros-de-reuniao.md).
+
+```sh
+# Exibe as migrações aplicadas e pendentes.
+php artisan migrate:status
+
+# Cria a estrutura de Arquivos.
+php artisan migrate --path=database/migrations/2026_07_21_090000_create_media_table.php --force
+
+# Cria os Compartilhamentos de arquivo com reunião.
+php artisan migrate --path=database/migrations/2026_07_22_090000_create_meeting_file_shares_table.php --force
+
+# Cria o índice derivado de Menções.
+php artisan migrate --path=database/migrations/2026_07_23_090000_create_mentions_table.php --force
+
+# Confirma que as migrações estruturais foram aplicadas.
+php artisan migrate:status
+```
+
+Valide que as tabelas podem ser consultadas antes de ativar o código:
+
+```sql
+-- Confirma a criação e a leitura das novas tabelas.
+SELECT COUNT(*) FROM media;
+SELECT COUNT(*) FROM meeting_file_shares;
+SELECT COUNT(*) FROM mentions;
+```
+
+### 4. Preparar o processador de fila
+
+Confirme que o worker documentado em **GD e fila** está configurado e ativo. O
+usuário do processo deve escrever em `storage/app/files`.
+
+### 5. Ativar a nova release
+
+Ative juntos o código, as views e os ativos compilados. Depois, atualize os
+caches e reinicie os workers:
+
+```sh
+# Remove caches produzidos pela release anterior.
+php artisan optimize:clear
+
+# Gera o cache de configuração da nova release.
+php artisan config:cache
+
+# Solicita a reinicialização segura dos workers.
+php artisan queue:restart
+```
+
+Confirme que o supervisor reiniciou o worker da fila padrão.
+
+### 6. Converter o conteúdo legado
+
+A conversão altera apenas a descrição legada conhecida do Tipo de projeto
+`organizacional`. Execute-a depois da ativação do novo renderizador:
+
+```sh
+# Converte o HTML legado conhecido para Markdown.
+php artisan migrate --path=database/migrations/2026_07_20_120000_convert_organizational_project_type_description_to_markdown.php --force
+
+# Confirma o registro da migração.
+php artisan migrate:status
+```
+
+Compare a descrição com a linha de base e abra uma tela que a exiba. Descrições
+personalizadas não devem ser alteradas.
+
+### 7. Validar a release
+
+Execute integralmente o plano de homologação abaixo. Só encerre a janela
+controlada depois que todos os itens forem aprovados.
+
+## Plano de homologação
+
+Registre o usuário, horário, recurso testado e resultado de cada verificação.
+
+### Markdown
+
+Valide descrição de Projeto, descrição de Tarefa, Comentário, Anotações prévias
+de Reunião e Anotações prévias do item:
+
+1. abra o editor;
+2. edite conteúdo com ênfase, link, código e HTML bruto;
+3. confira a pré-visualização;
+4. salve e recarregue a página;
+5. confirme a formatação e o escape do HTML;
+6. confirme que `javascript:` não gera link e que imagens Markdown não são
+   incorporadas.
+
+Confirme também que Ata e Transcrição continuam como texto simples e que a
+descrição do Tipo de projeto é exibida corretamente.
+
+### Arquivos
+
+1. envie um Arquivo pequeno a Projeto, Tarefa e Reunião;
+2. confirme upload em Reunião `COMPLETED`;
+3. confirme que Tarefa `DONE` bloqueia upload, renomeação e exclusão;
+4. confira processamento, card, Referência de arquivo e download;
+5. renomeie e confirme que UUID, Nome original e conteúdo não mudaram;
+6. exclua e confirme a remoção de metadados, original e miniatura;
+7. envie uma imagem e confirme que a miniatura aparece após o worker processar
+   o trabalho.
+
+Envie um Arquivo acima de 99 MiB e até 100 MiB. Ele não deve sofrer `413`,
+truncamento ou timeout. Um Arquivo acima de 100 MiB deve ser rejeitado pela
+aplicação.
+
+Em um download autorizado, confirme:
+
+- `Content-Disposition: attachment`;
+- `X-Content-Type-Options: nosniff`;
+- conteúdo idêntico ao enviado;
+- ausência de URL pública para `storage/app/files`;
+- resposta `404` para UUID inexistente ou sem autorização.
+
+### Reunião multiprojeto
+
+1. crie uma Reunião com dois Projetos e audiências diferentes;
+2. compartilhe um Arquivo relacionado e insira sua referência;
+3. confirme que todos os visualizadores da Reunião acessam somente o Arquivo
+   compartilhado;
+4. altere pauta e Projetos vinculados e confirme que o compartilhamento
+   permanece;
+5. exclua logicamente a origem e confirme resposta `404`;
+6. restaure a origem e confirme o retorno do acesso pelo mesmo UUID;
+7. remova o compartilhamento e confirme que o Arquivo original permanece.
+
+### Menções
+
+1. busque um membro diretamente vinculado ao contexto;
+2. selecione-o e confirme a sintaxe `@[Nome](mention:user:ID)`;
+3. salve e confirme uma única relação no índice derivado;
+4. remova a elegibilidade e confirme a preservação da Menção histórica;
+5. confirme que uma nova Menção inelegível é rejeitada;
+6. confirme que nenhuma notificação ou mensagem de e-mail foi criada.
+
+Use o comando abaixo somente para validar uma recuperação em cópia de
+homologação. Duas execuções devem produzir contagens estáveis e zero erros:
+
+```sh
+# Reconstrói o índice derivado de Menções a partir do Markdown.
+php artisan mentions:rebuild
+```
+
+Não agende esse comando; o índice é atualizado durante o salvamento normal.
+
+## Testes automatizados
+
+Execute os testes no ambiente preparado para a release antes de iniciar o
+deploy:
+
+```sh
+# Executa as suítes unitária e HTTP.
+php artisan test
+
+# Executa os fluxos de navegador.
+php artisan dusk
+```
+
+Os testes Dusk exigem navegador, ChromeDriver compatível, banco isolado e
+servidor da aplicação. Não publique a release se algum teste falhar.
+
+## Recuperação
+
+Não execute `migrate:rollback` nem remova as novas tabelas depois que houver
+Arquivos, Compartilhamentos ou Menções. Essas ações podem causar perda de dados.
+
+Se o código falhar após as migrações:
+
+1. interrompa novas gravações;
+2. preserve o banco e `storage/app/files`;
+3. pare o worker da fila;
+4. reative o código e os ativos da release anterior sem remover as novas
+   tabelas;
+5. investigue e publique uma correção progressiva.
+
+Se houver corrupção, restaure banco e armazenamento a partir da mesma cópia
+consistente. `php artisan mentions:rebuild` recupera apenas o índice de Menções;
+ele não recupera Markdown nem Arquivos.
+
+## Riscos operacionais
+
+Considere estes riscos no monitoramento e no dimensionamento do ambiente:
+
+- não há antivírus nem certificação de segurança pelo MIME;
+- não há cotas por usuário nem por Proprietário do arquivo;
+- Referências de arquivo podem quebrar após exclusão ou revogação de acesso;
+- fila indisponível mantém miniaturas pendentes;
+- uploads de 100 MiB consomem rede, disco e espaço temporário;
+- imagens consomem CPU e memória durante a geração da miniatura;
+- banco e `storage/app/files` precisam de cópias de segurança consistentes.
