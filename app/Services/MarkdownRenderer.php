@@ -20,8 +20,9 @@ class MarkdownRenderer
 
     /**
      * @param Closure(int): ?array{name: string, url: string}|null $mentionResolver
+     * @param Closure(string): string|null $urlResolver
      */
-    public function __construct(?Closure $mentionResolver = null)
+    public function __construct(?Closure $mentionResolver = null, ?Closure $urlResolver = null)
     {
         $environment = new Environment([
             'html_input' => 'escape',
@@ -31,19 +32,23 @@ class MarkdownRenderer
         $environment->addExtension(new CommonMarkCoreExtension());
         $environment->addExtension(new GithubFlavoredMarkdownExtension());
         $urlPolicy = new UrlPolicy();
-        $safeUrlRenderer = new SafeUrlRenderer($urlPolicy, $mentionResolver ?? function (int $userId): ?array {
-            $mentionedUser = User::query()->find($userId);
-            $reader = Auth::user();
+        $safeUrlRenderer = new SafeUrlRenderer(
+            $urlPolicy,
+            $mentionResolver ?? function (int $userId): ?array {
+                $mentionedUser = User::query()->find($userId);
+                $reader = Auth::user();
 
-            if (! $mentionedUser || ! $reader || ! $reader->can('view', $mentionedUser)) {
-                return null;
-            }
+                if (! $mentionedUser || ! $reader || ! $reader->can('view', $mentionedUser)) {
+                    return null;
+                }
 
-            return [
-                'name' => $mentionedUser->name,
-                'url' => route('users.show', $mentionedUser),
-            ];
-        });
+                return [
+                    'name' => $mentionedUser->name,
+                    'url' => route('users.show', $mentionedUser),
+                ];
+            },
+            $urlResolver
+        );
         $environment->addRenderer(Link::class, $safeUrlRenderer, 10);
         $environment->addRenderer(Image::class, $safeUrlRenderer, 10);
 

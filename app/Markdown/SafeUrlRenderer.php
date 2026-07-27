@@ -18,12 +18,20 @@ class SafeUrlRenderer implements NodeRendererInterface
     /** @var Closure(int): ?array{name: string, url: string} */
     private Closure $mentionResolver;
 
+    /** @var Closure(string): string */
+    private Closure $urlResolver;
+
     /**
      * @param Closure(int): ?array{name: string, url: string} $mentionResolver
+     * @param Closure(string): string $urlResolver
      */
-    public function __construct(private UrlPolicy $urlPolicy, ?Closure $mentionResolver = null)
-    {
+    public function __construct(
+        private UrlPolicy $urlPolicy,
+        ?Closure $mentionResolver = null,
+        ?Closure $urlResolver = null
+    ) {
         $this->mentionResolver = $mentionResolver ?? fn (): ?array => null;
+        $this->urlResolver = $urlResolver ?? fn (string $url): string => $url;
     }
 
     public function render(Node $node, ChildNodeRendererInterface $childRenderer): \Stringable|string
@@ -44,7 +52,7 @@ class SafeUrlRenderer implements NodeRendererInterface
         }
 
         $attributes = [
-            'href' => $node->getUrl(),
+            'href' => ($this->urlResolver)($node->getUrl()),
             'target' => '_blank',
             'rel' => 'noopener noreferrer',
         ];

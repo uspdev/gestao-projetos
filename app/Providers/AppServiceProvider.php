@@ -21,7 +21,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(MarkdownRenderer::class);
+        $this->app->singleton(MarkdownRenderer::class, fn (): MarkdownRenderer => new MarkdownRenderer(
+            urlResolver: function (string $url): string {
+                if (! str_starts_with($url, '/') || str_starts_with($url, '//')) {
+                    return $url;
+                }
+
+                return rtrim(route('dashboard'), '/') . $url;
+            }
+        ));
     }
 
     /**
