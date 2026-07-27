@@ -31,8 +31,6 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         DB::purge('sqlite');
         DB::setDefaultConnection('sqlite');
-        URL::forceRootUrl('http://localhost');
-
         $this->createSchema();
     }
 
@@ -418,8 +416,11 @@ class FileReferencesAndMeetingSharesTest extends TestCase
         Queue::fake();
 
         $editor = $this->user('Pessoa que edita a reunião');
+        $viewer = $this->user('Pessoa que visualiza a reunião');
         $project = $this->projectWithMember('Projeto da pauta', $editor, 'CONTRIBUTOR');
+        $viewerProject = $this->projectWithMember('Projeto da audiência', $viewer, 'VIEWER');
         $this->enableModule($project, 'meetings');
+        $this->enableModule($viewerProject, 'meetings');
 
         $task = Task::query()->create([
             'project_id' => $project->id,
@@ -430,8 +431,8 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             'title' => 'Reunião da pauta',
             'status' => 'DRAFT',
         ]);
-        $meeting->projects()->attach($project);
-        MeetingItem::query()->create([
+        $meeting->projects()->attach([$project->id, $viewerProject->id]);
+        $meetingItem = MeetingItem::query()->create([
             'meeting_id' => $meeting->id,
             'discussable_type' => $task->getMorphClass(),
             'discussable_id' => $task->id,
@@ -453,6 +454,16 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             'meeting_id' => $meeting->id,
             'media_id' => $media->id,
         ]);
+
+        $meetingItem->delete();
+
+        $this->assertDatabaseHas('meeting_file_shares', [
+            'meeting_id' => $meeting->id,
+            'media_id' => $media->id,
+        ]);
+        $this->actingAs($viewer)
+            ->getJson(route('files.metadata', ['uuid' => $media->uuid]))
+            ->assertOk();
     }
 
     public function test_file_of_a_project_in_the_agenda_can_be_shared_with_the_meeting(): void

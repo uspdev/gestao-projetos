@@ -6,18 +6,10 @@ use App\Models\User;
 use App\Services\MarkdownRenderer;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class MarkdownPreviewTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        URL::forceRootUrl('http://localhost');
-    }
-
     public function test_authenticated_user_can_preview_markdown_with_the_official_renderer(): void
     {
         $user = new User();

@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -27,8 +26,6 @@ class FileExposureTest extends TestCase
             'database.default' => 'sqlite',
             'database.connections.sqlite.database' => ':memory:',
         ]);
-        URL::forceRootUrl('http://localhost');
-
         DB::purge('sqlite');
         DB::setDefaultConnection('sqlite');
 

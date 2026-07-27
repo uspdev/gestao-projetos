@@ -2,11 +2,61 @@
 
 namespace Tests\Browser;
 
+use App\Enums\Project\ProjectStatus;
+use App\Models\Project;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
 class MarkdownEditorTest extends DuskTestCase
 {
+    public function test_project_description_uses_the_real_preview_save_and_safe_display_flow(): void
+    {
+        $administrator = self::getUser('admin');
+        $project = Project::query()->firstOrCreate(
+            ['slug' => 'dusk-markdown-real'],
+            [
+                'name' => 'Projeto Dusk Markdown',
+                'status' => ProjectStatus::ACTIVE,
+            ],
+        );
+        $project->description = 'Descrição inicial';
+        $project->save();
+
+        $textarea = '#project-description-edit-'.$project->id.'-textarea';
+
+        $this->browse(function (Browser $browser) use ($administrator, $project, $textarea): void {
+            $browser->loginAs($administrator)
+                ->visit(route('projects.show', $project))
+                ->click('[aria-label="Editar descrição"]')
+                ->waitFor($textarea.' + .EasyMDEContainer');
+
+            $browser->script(<<<JS
+                const entry = window.MarkdownEditors.get(document.querySelector('{$textarea}'));
+                entry.editor.value('**Descrição validada** <script>alert(1)</script>');
+                entry.editor.toolbarElements.preview.click();
+            JS);
+
+            $browser
+                ->waitFor($textarea.' + .EasyMDEContainer .editor-preview-active')
+                ->waitForTextIn($textarea.' + .EasyMDEContainer .editor-preview-active', 'Descrição validada')
+                ->assertSeeIn($textarea.' + .EasyMDEContainer .editor-preview-active', 'Descrição validada');
+
+            $browser->script(<<<JS
+                window.MarkdownEditors.get(document.querySelector('{$textarea}')).editor.toolbarElements.preview.click();
+            JS);
+
+            $browser
+                ->waitForReload(fn (Browser $browser) => $browser->press('Salvar'))
+                ->assertSee('Descrição validada')
+                ->assertSourceMissing('<script>alert(1)</script>');
+        });
+
+        $this->assertSame(
+            '**Descrição validada** <script>alert(1)</script>',
+            $project->fresh()->description
+        );
+    }
+
     public function test_editor_profiles_initialize_on_the_page_and_in_dynamic_containers(): void
     {
         $this->browse(function (Browser $browser) {
@@ -363,6 +413,7 @@ class MarkdownEditorTest extends DuskTestCase
             $browser->script(<<<'JS'
                 const entry = window.MarkdownEditors.get(document.querySelector('#mention-editor'));
                 entry.editor.value('@br');
+                entry.editor.codemirror.setCursor({ line: 0, ch: 3 });
                 entry.editor.toolbarElements.mention.click();
             JS)
             ;
