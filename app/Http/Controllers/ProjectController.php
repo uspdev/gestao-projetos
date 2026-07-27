@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\Project\ProjectStatus;
 use App\Enums\Project\ProjectUserRole;
 use App\Enums\Task\TaskStatus;
+use App\Enums\Watch\WatchEventType;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectDescriptionRequest;
 use App\Http\Requests\Project\UpdateProjectModuleRequest;
@@ -14,9 +15,8 @@ use App\Http\Requests\Project\UpdateProjectSlugRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
-use App\Mail\ProjectLinkedAsSubproject;
-use App\Mail\ProjectUnlinkedAsSubproject;
 use App\Models\Module;
+use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Models\ProjectType;
@@ -25,7 +25,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Mail;
 
 class ProjectController extends Controller
 {
@@ -339,25 +338,16 @@ class ProjectController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        $actor = Auth::user();
-        $project->load('users');
-        $subproject->load('users');
-
-        $parentRecipients = $project->users
-            ->filter(fn($user) => $project->userRole($user) !== ProjectUserRole::VIEWER);
-        $subprojectRecipients = $subproject->users
-            ->filter(fn($user) => $subproject->userRole($user) !== ProjectUserRole::VIEWER);
-        // Notifica os usuários relevantes do projeto pai e do subprojeto sobre a vinculação,
-        // evitando notificar espectadores e o próprio ator da ação
-        $parentRecipients
-            ->merge($subprojectRecipients)
-            ->unique('id')
-            ->filter(fn($user) => ! $actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $project, $subproject) {
-                Mail::to($user->email)->queue(
-                    new ProjectLinkedAsSubproject($user, $actor, $project, $subproject)
-                );
-            });
+        if ($actor = Auth::user()) {
+            PendingWatchNotification::addForWatchers(
+                $subproject,
+                WatchEventType::SUBPROJECT_LINKED,
+                $actor,
+                "Vinculado como subprojeto de \"{$project->name}\".",
+                null,
+                $subproject->watchUrl(),
+            );
+        }
 
         return redirect()->back()
             ->with('alert-success', 'Subprojeto vinculado com sucesso!');
@@ -397,24 +387,16 @@ class ProjectController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        $actor = Auth::user();
-        $parent->load('users');
-        $project->load('users');
-
-        $parentRecipients = $parent->users
-            ->filter(fn($user) => $parent->userRole($user) !== ProjectUserRole::VIEWER);
-        $subprojectRecipients = $project->users
-            ->filter(fn($user) => $project->userRole($user) !== ProjectUserRole::VIEWER);
-
-        $parentRecipients
-            ->merge($subprojectRecipients)
-            ->unique('id')
-            ->filter(fn($user) => ! $actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $parent, $project) {
-                Mail::to($user->email)->queue(
-                    new ProjectLinkedAsSubproject($user, $actor, $parent, $project)
-                );
-            });
+        if ($actor = Auth::user()) {
+            PendingWatchNotification::addForWatchers(
+                $project,
+                WatchEventType::SUBPROJECT_LINKED,
+                $actor,
+                "Vinculado como subprojeto de \"{$parent->name}\".",
+                null,
+                $project->watchUrl(),
+            );
+        }
 
         return redirect()->back()
             ->with('alert-success', 'Projeto vinculado com sucesso!');
@@ -446,25 +428,16 @@ class ProjectController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        $actor = Auth::user();
-        $project->load('users');
-        $subproject->load('users');
-
-        $parentRecipients = $project->users
-            ->filter(fn($user) => $project->userRole($user) !== ProjectUserRole::VIEWER);
-        $subprojectRecipients = $subproject->users
-            ->filter(fn($user) => $subproject->userRole($user) !== ProjectUserRole::VIEWER);
-        // Notifica os usuários relevantes do projeto pai e do subprojeto sobre a desvinculação,
-        // evitando notificar espectadores e o próprio ator da ação
-        $parentRecipients
-            ->merge($subprojectRecipients)
-            ->unique('id')
-            ->filter(fn($user) => ! $actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $project, $subproject) {
-                Mail::to($user->email)->queue(
-                    new ProjectUnlinkedAsSubproject($user, $actor, $project, $subproject)
-                );
-            });
+        if ($actor = Auth::user()) {
+            PendingWatchNotification::addForWatchers(
+                $subproject,
+                WatchEventType::SUBPROJECT_UNLINKED,
+                $actor,
+                "Desvinculado do projeto organizacional \"{$project->name}\".",
+                null,
+                $subproject->watchUrl(),
+            );
+        }
 
         return redirect()->back()
             ->with('alert-success', 'Subprojeto desvinculado com sucesso!');

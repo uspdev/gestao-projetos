@@ -43,8 +43,7 @@ class ProjectMemberController extends Controller
                 'role' => $data['role'],
             ]]);
         });
-        // Lida com a notificação de adição ao projeto após a transaction
-        // para evitar enviar emails caso haja falha na adição do membro ao projeto
+
         $actor = Auth::user();
         if ($actor && $actor->id !== $user->id) {
             Mail::to($user->email)->queue(new ProjectUserAdded($user, $actor, $project));

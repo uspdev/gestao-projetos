@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Meeting\MeetingStatus;
+use App\Enums\Watch\WatchEventType;
 use App\Http\Requests\Meeting\StoreMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingRequest;
 use App\Http\Requests\Meeting\UpdateMeetingNotesRequest;
@@ -12,8 +13,8 @@ use App\Http\Requests\MeetingItem\UpdateMeetingItemTitleRequest;
 use App\Http\Requests\Meeting\UpdateMeetingStatusRequest;
 use App\Http\Requests\Meeting\UpdateMeetingAtaRequest;
 use App\Http\Requests\Meeting\UpdateMeetingTranscriptionRequest;
-use App\Mail\MeetingUpdated;
 use App\Models\Meeting;
+use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\MeetingItem;
 use App\Services\MentionIndexer;
@@ -21,7 +22,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class MeetingController extends Controller
@@ -207,7 +207,7 @@ class MeetingController extends Controller
             $meeting->projects()->sync($projects);
         });
 
-        $this->notifyMeetingUsers($meeting, $originalStatus);
+        $this->notifyMeetingUpdated($meeting, $originalStatus);
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
@@ -266,24 +266,21 @@ class MeetingController extends Controller
     public function destroy(Project $project, Meeting $meeting)
     {
         Gate::authorize('delete', [$meeting, $project]);
-
-        // Coleta os destinatarios da notificacao antes de deletar a reuniao,
-        // para evitar problemas com o modelo deletado durante o processo de envio dos emails
-        $actor = Auth::user();
-        $meeting->load('projects.users');
-        $recipients = $meeting->projects
-            ->flatMap(fn(Project $project) => $project->users)
-            ->unique('id')
-            ->filter(fn($user) => !$actor || $user->id !== $actor->id);
+        $shouldNotify = $meeting->status !== MeetingStatus::DRAFT;
 
         DB::transaction(function () use ($meeting) {
             $meeting->delete();
         });
 
-        if ($meeting->status !== MeetingStatus::DRAFT) {
-            $recipients->each(function ($user) use ($actor, $meeting) {
-                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting, true));
-            });
+        if ($shouldNotify && ($actor = Auth::user())) {
+            PendingWatchNotification::addForWatchers(
+                $meeting,
+                WatchEventType::MEETING_REMOVED,
+                $actor,
+                'Reunião removida.',
+                null,
+                null,
+            );
         }
 
         return redirect()->route('projects.meetings.index', $project)
@@ -392,41 +389,32 @@ class MeetingController extends Controller
             $meeting->update($data);
         });
 
-        $this->notifyMeetingUsers($meeting, $originalStatus);
+        $this->notifyMeetingUpdated($meeting, $originalStatus);
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
             ->with('alert-success', 'Status da reunião atualizado com sucesso!');
     }
 
-    private function notifyMeetingUsers(Meeting $meeting, ?MeetingStatus $originalStatus = null, bool $isCancelled = false): void
+    private function notifyMeetingUpdated(Meeting $meeting, MeetingStatus $originalStatus): void
     {
-        if (! $this->shouldNotifyMeetingUsers($meeting, $originalStatus)) {
+        $actor = Auth::user();
+
+        if (! $actor || $meeting->status === MeetingStatus::DRAFT) {
             return;
         }
 
-        $actor = Auth::user();
-        $meeting->load('projects.users');
+        $summary = $originalStatus === MeetingStatus::DRAFT
+            ? 'Reunião agendada.'
+            : 'Reunião atualizada.';
 
-        $meeting->projects
-            ->flatMap(fn(Project $project) => $project->users)
-            ->unique('id')
-            ->filter(fn($user) => !$actor || $user->id !== $actor->id)
-            ->each(function ($user) use ($actor, $meeting, $isCancelled) {
-                Mail::to($user->email)->queue(new MeetingUpdated($user, $actor, $meeting, $isCancelled));
-            });
-    }
-
-    private function shouldNotifyMeetingUsers(Meeting $meeting, ?MeetingStatus $originalStatus = null): bool
-    {
-        if ($meeting->status === MeetingStatus::DRAFT) {
-            return false;
-        }
-
-        if ($originalStatus === MeetingStatus::DRAFT) {
-            return $meeting->status === MeetingStatus::SCHEDULED;
-        }
-
-        return true;
+        PendingWatchNotification::addForWatchers(
+            $meeting,
+            WatchEventType::MEETING_UPDATED,
+            $actor,
+            $summary,
+            null,
+            $meeting->watchUrl(),
+        );
     }
 
     /**
