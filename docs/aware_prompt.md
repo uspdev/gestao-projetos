@@ -152,12 +152,11 @@
 - TaggablePivot registra attach/detach de tags.
 
 ## Comentarios e notificacoes
-- Interface HasCommentRecipients define destinatarios de comentarios por modelo.
-- Notificacoes por email (queue) em:
-  - ProjectUserAdded, TaskAssigned, TaskCompleted
-  - MeetingCreated, MeetingUpdated
-  - ProjectLinkedAsSubproject, ProjectUnlinkedAsSubproject
-  - NewComment
+- Interface Watchable define rotulo, URL e verificacao de acesso para Project, Task e Meeting.
+- A existencia de um Watch ativa notificacoes apenas para a entidade exata.
+- PendingWatchNotification reune os eventos por usuario depois de cinco minutos sem nova atividade.
+- Entram no resumo: comentarios, conclusao de tarefa, atualizacao/remocao de reuniao fora de rascunho e vinculo/desvinculo de subprojeto.
+- ProjectUserAdded e TaskAssigned continuam como avisos pessoais diretos.
 
 ## Rotas principais (web.php)
 - Projetos:
@@ -215,7 +214,7 @@
 
 ### Model: Project (traits, casts, pivot com role/pinned)
 ```php
-class Project extends Model implements Discussable, HasCommentRecipients
+class Project extends Model implements Discussable, Watchable
 {
   use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug;
 
@@ -259,7 +258,7 @@ class Project extends Model implements Discussable, HasCommentRecipients
 
 ### Model: Task (casts, escopos por modulo)
 ```php
-class Task extends Model implements Discussable, HasCommentRecipients
+class Task extends Model implements Discussable, Watchable
 {
   use HasFactory, SoftDeletes, Auditable, HasTags;
 
@@ -627,17 +626,17 @@ public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
     $task->update($data);
   });
 
-  $data = $request->validated();
-  if ($previousStatus !== TaskStatus::DONE && $data['status'] === TaskStatus::DONE->value) {
+  if ($previousStatus !== TaskStatus::DONE && $task->status === TaskStatus::DONE) {
     $actor = Auth::user();
-    $task->load(['users', 'project']);
 
-    $task->users
-      ->unique('id')
-      ->filter(fn(User $user) => !$actor || $user->id !== $actor->id)
-      ->each(function (User $user) use ($actor, $task) {
-        Mail::to($user->email)->queue(new TaskCompleted($user, $actor, $task));
-      });
+    PendingWatchNotification::addForWatchers(
+      $task,
+      PendingWatchNotification::TASK_COMPLETED,
+      $actor,
+      'Tarefa concluida.',
+      null,
+      $task->watchUrl(),
+    );
   }
 
   return back()
@@ -734,23 +733,21 @@ enum TaskStatus: string
 }
 ```
 
-### Mail: NewComment
+### Mail: WatchDigest
 ```php
-class NewComment extends Mailable implements ShouldQueue
+class WatchDigest extends Mailable
 {
   use Queueable, SerializesModels;
 
   public function __construct(
     public User $recipient,
-    public User $actor,
-    public Comment $comment,
-    public Model $commentable
+    public Collection $notifications,
   ) {}
 
   public function build(): self
   {
-    return $this->subject('Novo comentario registrado')
-      ->view('emails.comment.new-comment');
+    return $this->subject('Resumo de atividades')
+      ->view('emails.watch.digest');
   }
 }
 ```
