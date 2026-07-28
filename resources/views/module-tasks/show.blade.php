@@ -11,6 +11,7 @@
   </div>
 
   <div class="ml-auto flex-shrink-0">
+    @include('watches.partials.control', ['watchable' => $task])
     @include('module-tasks.partials.buttons.duplicate-btn')
   </div>
 @endsection
