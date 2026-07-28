@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Watchable;
+use App\Enums\Watch\WatchEventType;
 use App\Jobs\SendWatchDigest;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Model;
@@ -13,13 +14,6 @@ use Illuminate\Support\Facades\Schema;
 
 class PendingWatchNotification extends Model
 {
-    public const COMMENT_CREATED = 'comment.created';
-    public const TASK_COMPLETED = 'task.completed';
-    public const MEETING_UPDATED = 'meeting.updated';
-    public const MEETING_REMOVED = 'meeting.removed';
-    public const SUBPROJECT_LINKED = 'subproject.linked';
-    public const SUBPROJECT_UNLINKED = 'subproject.unlinked';
-
     protected $fillable = [
         'user_id',
         'watchable_type',
@@ -37,6 +31,7 @@ class PendingWatchNotification extends Model
     protected function casts(): array
     {
         return [
+            'event_type' => WatchEventType::class,
             'occurred_at' => 'datetime',
             'send_after' => 'datetime',
         ];
@@ -44,14 +39,16 @@ class PendingWatchNotification extends Model
 
     public static function addForWatchers(
         Watchable&EloquentModel $watchable,
-        string $eventType,
+        WatchEventType $eventType,
         User $actor,
         string $summary,
         ?string $details,
         ?string $url,
     ): void {
-        if (! Schema::hasTable('watches')
-            || ! Schema::hasTable('pending_watch_notifications')) {
+        if (
+            ! Schema::hasTable('watches')
+            || ! Schema::hasTable('pending_watch_notifications')
+        ) {
             return;
         }
 
@@ -126,7 +123,7 @@ class PendingWatchNotification extends Model
             ]);
 
             DB::afterCommit(
-                fn () => SendWatchDigest::dispatch($pending->id)->delay($sendAfter)
+                fn() => SendWatchDigest::dispatch($pending->id)->delay($sendAfter)
             );
         });
     }

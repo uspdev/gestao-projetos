@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\Watchable;
+use App\Enums\Watch\WatchEventType;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Models\Comment;
@@ -41,7 +42,7 @@ class CommentController extends Controller
         if ($actor && $commentable instanceof Watchable) {
             PendingWatchNotification::addForWatchers(
                 $commentable,
-                PendingWatchNotification::COMMENT_CREATED,
+                WatchEventType::COMMENT_CREATED,
                 $actor,
                 'Novo comentário.',
                 $comment->text,
