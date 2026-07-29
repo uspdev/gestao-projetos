@@ -74,7 +74,7 @@ class PendingWatchNotification extends Model
     private static function addForUser(
         int $userId,
         Watchable&EloquentModel $watchable,
-        string $eventType,
+        WatchEventType $eventType,
         User $actor,
         string $summary,
         ?string $details,
