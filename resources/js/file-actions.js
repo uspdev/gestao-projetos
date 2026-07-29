@@ -1,4 +1,57 @@
 document.addEventListener("DOMContentLoaded", function () {
+    var fileReferenceHighlightTimeout = null;
+    var highlightedFileCard = null;
+
+    function highlightFileCard(hash) {
+        var targetId;
+
+        try {
+            targetId = decodeURIComponent((hash || "").replace(/^#/, ""));
+        } catch (error) {
+            return;
+        }
+
+        var card = targetId ? document.getElementById(targetId) : null;
+
+        if (!card || !card.matches("[data-file-card]")) return;
+
+        if (highlightedFileCard) {
+            highlightedFileCard.classList.remove("file-reference-highlight");
+        }
+
+        window.clearTimeout(fileReferenceHighlightTimeout);
+        highlightedFileCard = card;
+        card.classList.add("file-reference-highlight");
+
+        fileReferenceHighlightTimeout = window.setTimeout(function () {
+            card.classList.remove("file-reference-highlight");
+
+            if (highlightedFileCard === card) {
+                highlightedFileCard = null;
+            }
+        }, 3000);
+    }
+
+    highlightFileCard(window.location.hash);
+
+    window.addEventListener("hashchange", function () {
+        highlightFileCard(window.location.hash);
+    });
+
+    document.addEventListener("click", function (event) {
+        var link = event.target.closest && event.target.closest("a[href]");
+
+        if (!link) return;
+
+        var destination = new URL(link.href, window.location.href);
+
+        if (destination.origin === window.location.origin
+            && destination.pathname === window.location.pathname
+            && destination.search === window.location.search) {
+            highlightFileCard(destination.hash);
+        }
+    });
+
     document.querySelectorAll("[data-file-upload-form]").forEach(function (form) {
         var input = form.querySelector("[data-file-upload-input]");
         var submit = form.querySelector("[data-file-upload-submit]");

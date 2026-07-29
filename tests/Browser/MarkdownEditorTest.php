@@ -309,7 +309,9 @@ class MarkdownEditorTest extends DuskTestCase
                 wrapper.setAttribute('data-file-reference-context-type', 'project');
                 wrapper.setAttribute('data-file-reference-context-id', '47');
                 wrapper.innerHTML = `
-                    <article id="file-11111111-1111-4111-8111-111111111111"></article>
+                    <article id="file-11111111-1111-4111-8111-111111111111" data-file-card>
+                        <div></div>
+                    </article>
                     <div class="markdown-content">
                         <a
                             id="local-file-reference"
@@ -343,6 +345,17 @@ class MarkdownEditorTest extends DuskTestCase
                         && window.location.search === sessionStorage.getItem('file-reference-original-search')
                         && window.location.hash === '#file-11111111-1111-4111-8111-111111111111'
                 JS, true);
+
+            $highlightedCard = <<<'JS'
+                getComputedStyle(
+                    document.querySelector('#file-11111111-1111-4111-8111-111111111111 > div')
+                ).backgroundColor === 'rgb(255, 248, 219)'
+            JS;
+
+            $browser
+                ->assertScript($highlightedCard, true)
+                ->pause(5200)
+                ->assertScript($highlightedCard, false);
         });
     }
 

@@ -7,7 +7,7 @@
     scroll-margin-top: 1rem;
 }
 
-[data-file-card]:target > div {
+[data-file-card].file-reference-highlight > div {
     background-color: #fff8db;
     border-color: #d6a800 !important;
     box-shadow: 0 0 0 0.2rem rgba(214, 168, 0, 0.2);
