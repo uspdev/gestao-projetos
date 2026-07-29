@@ -393,6 +393,65 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_task_file_reference_selector_groups_task_and_project_files(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [{
+                                    uuid: '11111111-1111-4111-8111-111111111111',
+                                    name: 'Arquivo da tarefa'
+                                }, {
+                                    uuid: '22222222-2222-4222-8222-222222222222',
+                                    name: 'Arquivo do projeto'
+                                }],
+                                result_groups: [{
+                                    label: 'Tarefa atual: Revisar documentação',
+                                    results: [{
+                                        uuid: '11111111-1111-4111-8111-111111111111',
+                                        name: 'Arquivo da tarefa'
+                                    }]
+                                }, {
+                                    label: 'Projeto da tarefa: Gestão Projetos',
+                                    results: [{
+                                        uuid: '22222222-2222-4222-8222-222222222222',
+                                        name: 'Arquivo do projeto'
+                                    }]
+                                }]
+                            });
+                        }
+                    });
+                };
+
+                const fixture = document.createElement('textarea');
+                fixture.id = 'task-file-reference-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-file-reference-url', '/files/selectable?context_type=task&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#task-file-reference-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#task-file-reference-editor')).editor.toolbarElements['file-reference'].click();");
+
+            $browser
+                ->waitFor('#file-reference-selector')
+                ->assertSeeIn('#file-reference-selector', 'Tarefa atual: Revisar documentação')
+                ->assertSeeIn('#file-reference-selector', 'Projeto da tarefa: Gestão Projetos')
+                ->assertPresent('[data-file-reference-uuid="11111111-1111-4111-8111-111111111111"]')
+                ->assertPresent('[data-file-reference-uuid="22222222-2222-4222-8222-222222222222"]');
+        });
+    }
+
     public function test_file_reference_selector_shares_with_the_meeting_before_inserting_the_link(): void
     {
         $this->browse(function (Browser $browser): void {

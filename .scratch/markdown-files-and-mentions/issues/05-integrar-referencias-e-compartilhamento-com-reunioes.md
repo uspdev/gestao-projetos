@@ -7,7 +7,7 @@
 **Status:** ready-for-agent
 
 - [ ] Implementar seletor contextual no botão Referência de arquivo, retornando somente Arquivos visualizáveis e permitidos para o campo de destino.
-- [ ] Restringir Projeto aos próprios Arquivos; Tarefa aos próprios e aos do mesmo Projeto; Comentário ao conjunto do objeto comentado; Reunião e Item aos próprios e compartilhados.
+- [ ] Restringir Projeto aos próprios Arquivos; Tarefa aos próprios e aos do mesmo Projeto, separados por origem no seletor; Comentário ao conjunto do objeto comentado; Reunião e Item aos próprios e compartilhados.
 - [ ] Não ampliar seletores por herança entre Projetos.
 - [ ] Omitir seletor em novos Projetos e novas Reuniões ainda não persistidos; permitir Arquivos do Projeto na criação de Tarefa e do objeto na criação de Comentário.
 - [ ] Inserir a sintaxe `[Nome exibido]({caminho público da aplicação}/files/{uuid})`, sem reescrever rótulos depois de renomeação ou exclusão.

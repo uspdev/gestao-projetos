@@ -392,6 +392,10 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             'context_id' => $task->id,
         ]))
             ->assertOk()
+            ->assertJsonPath('result_groups.0.label', 'Tarefa atual: '.$task->title)
+            ->assertJsonPath('result_groups.0.results.0.uuid', $taskMedia->uuid)
+            ->assertJsonPath('result_groups.1.label', 'Projeto da tarefa: '.$project->name)
+            ->assertJsonPath('result_groups.1.results.0.uuid', $projectMedia->uuid)
             ->assertJsonFragment(['uuid' => $projectMedia->uuid])
             ->assertJsonFragment(['uuid' => $taskMedia->uuid])
             ->assertJsonMissing(['uuid' => $otherMedia->uuid]);

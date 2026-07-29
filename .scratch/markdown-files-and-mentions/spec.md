@@ -178,7 +178,7 @@ Para Arquivo de Projeto, o Projeto relacionado é o próprio Proprietário; para
 | Texto de destino | Arquivos selecionáveis |
 |---|---|
 | Projeto | Arquivos do próprio Projeto |
-| Tarefa | Arquivos da Tarefa e do mesmo Projeto |
+| Tarefa | Arquivos da Tarefa e do mesmo Projeto, apresentados em subseções distintas por origem |
 | Comentário de Projeto/Tarefa | mesmo conjunto do objeto comentado |
 | Reunião, Item de pauta ou Comentário de Reunião | Arquivos próprios da Reunião e Arquivos explicitamente compartilhados |
 

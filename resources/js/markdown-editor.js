@@ -465,6 +465,33 @@ function createSelectorButton(file, label, action) {
     return button;
 }
 
+function selectorGroups(groups, fallbackResults) {
+    const validGroups = Array.isArray(groups)
+        ? groups.filter(
+              (group) =>
+                  Array.isArray(group.results) &&
+                  group.results.length > 0,
+          )
+        : [];
+
+    return validGroups.length > 0
+        ? validGroups
+        : fallbackResults.length > 0
+          ? [{ results: fallbackResults }]
+          : [];
+}
+
+function appendSelectorGroupHeading(body, group, tagName, className) {
+    if (!group.label) {
+        return;
+    }
+
+    const heading = document.createElement(tagName);
+    heading.className = className;
+    heading.textContent = group.label;
+    body.appendChild(heading);
+}
+
 /**
  * Busca os arquivos disponíveis e monta dinamicamente o modal de seleção.
  *
@@ -527,6 +554,10 @@ function openFileReferenceSelector(textarea, editor) {
             const results = Array.isArray(payload.results)
                 ? payload.results
                 : [];
+            const resultGroups = selectorGroups(
+                payload.result_groups,
+                results,
+            );
 
             if (results.length === 0) {
                 const empty = document.createElement("p");
@@ -534,31 +565,35 @@ function openFileReferenceSelector(textarea, editor) {
                 empty.textContent = "Nenhum Arquivo disponível neste contexto.";
                 body.appendChild(empty);
             } else {
-                results.forEach((file) => {
-                    body.appendChild(
-                        createSelectorButton(file, file.name, (button) => {
-                            button.dataset.fileReferenceUuid = file.uuid;
-                            button.addEventListener("click", () => {
-                                insertFileReference(editor, file);
-                                closeFileReferenceSelector(selector);
-                            });
-                        }),
+                resultGroups.forEach((group, index) => {
+                    appendSelectorGroupHeading(
+                        body,
+                        group,
+                        "h3",
+                        `h6 text-muted${index > 0 ? " mt-3" : ""}`,
                     );
+
+                    group.results.forEach((file) => {
+                        body.appendChild(
+                            createSelectorButton(file, file.name, (button) => {
+                                button.dataset.fileReferenceUuid = file.uuid;
+                                button.addEventListener("click", () => {
+                                    insertFileReference(editor, file);
+                                    closeFileReferenceSelector(selector);
+                                });
+                            }),
+                        );
+                    });
                 });
             }
 
             const shareable = Array.isArray(payload.shareable_results)
                 ? payload.shareable_results
                 : [];
-            const shareableGroups = Array.isArray(payload.shareable_groups)
-                ? payload.shareable_groups.filter(
-                      (group) =>
-                          Array.isArray(group.results) &&
-                          group.results.length > 0,
-                  )
-                : shareable.length > 0
-                  ? [{ results: shareable }]
-                  : [];
+            const shareableGroups = selectorGroups(
+                payload.shareable_groups,
+                shareable,
+            );
 
             if (textarea.dataset.fileShareUrl && shareableGroups.length > 0) {
                 const heading = document.createElement("h3");
@@ -568,12 +603,12 @@ function openFileReferenceSelector(textarea, editor) {
                 body.appendChild(heading);
 
                 shareableGroups.forEach((group) => {
-                    if (group.label) {
-                        const groupHeading = document.createElement("h4");
-                        groupHeading.className = "h6 text-muted mt-3";
-                        groupHeading.textContent = group.label;
-                        body.appendChild(groupHeading);
-                    }
+                    appendSelectorGroupHeading(
+                        body,
+                        group,
+                        "h4",
+                        "h6 text-muted mt-3",
+                    );
 
                     group.results.forEach((file) => {
                         body.appendChild(

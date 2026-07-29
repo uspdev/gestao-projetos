@@ -15,7 +15,13 @@ use Illuminate\Support\Facades\Gate;
 
 class FileReferenceSelector
 {
-    /** @return array{results: Collection<int, array{uuid: string, name: string}>, shareable_results?: Collection<int, array{uuid: string, name: string}>} */
+    /** @return array{
+     *     results: Collection<int, array{uuid: string, name: string}>,
+     *     result_groups?: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>,
+     *     shareable_results?: Collection<int, array{uuid: string, name: string}>,
+     *     shareable_groups?: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>
+     * }
+     */
     public function select(User $user, FileReferenceContext $context): array
     {
         return match ($context->type) {
@@ -35,19 +41,30 @@ class FileReferenceSelector
         return $this->payload($user, $project->media()->latest()->get());
     }
 
-    /** @return array{results: Collection<int, array{uuid: string, name: string}>} */
+    /** @return array{results: Collection<int, array{uuid: string, name: string}>, result_groups: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>} */
     private function forTask(User $user, Task $task): array
     {
         Gate::forUser($user)->authorize('view', $task);
 
-        return $this->payload(
-            $user,
-            $task->media()
-                ->latest()
-                ->get()
-                ->merge($task->project->media()->latest()->get())
-                ->unique('id'),
-        );
+        $groups = $this->visibleGroups($user, collect([
+            [
+                'label' => "Tarefa atual: {$task->title}",
+                'media' => $task->media()->latest()->get(),
+            ],
+            [
+                'label' => "Projeto da tarefa: {$task->project->name}",
+                'media' => $task->project->media()->latest()->get(),
+            ],
+        ]));
+
+        return [
+            'results' => $groups
+                ->pluck('results')
+                ->collapse()
+                ->unique('uuid')
+                ->values(),
+            'result_groups' => $groups,
+        ];
     }
 
     /** @return array{results: Collection<int, array{uuid: string, name: string}>, shareable_results: Collection<int, array{uuid: string, name: string}>, shareable_groups: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>} */
@@ -56,7 +73,7 @@ class FileReferenceSelector
         abort_unless(! $meeting->trashed() && $this->canViewMeeting($user, $meeting), 404);
 
         $shareableGroups = Gate::forUser($user)->allows('manageFileShares', $meeting)
-            ? $this->visibleShareableGroups($user, $this->shareableMeetingSources($meeting))
+            ? $this->visibleGroups($user, $this->shareableMeetingSources($meeting))
             : collect();
 
         $payload = $this->payload(
@@ -86,7 +103,13 @@ class FileReferenceSelector
         return $this->forMeeting($user, $meeting);
     }
 
-    /** @return array{results: Collection<int, array{uuid: string, name: string}>}|array{results: Collection<int, array{uuid: string, name: string}>, shareable_results: Collection<int, array{uuid: string, name: string}>} */
+    /** @return array{
+     *     results: Collection<int, array{uuid: string, name: string}>,
+     *     result_groups?: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>,
+     *     shareable_results?: Collection<int, array{uuid: string, name: string}>,
+     *     shareable_groups?: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>
+     * }
+     */
     private function forComment(User $user, FileReferenceContext $context): array
     {
         $commentableClass = CommentableMap::resolveClass((string) $context->commentableType);
@@ -156,7 +179,7 @@ class FileReferenceSelector
     /** @param Collection<int, array{label: string, media: Collection<int, Media>}> $sources
      *  @return Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>
      */
-    private function visibleShareableGroups(User $user, Collection $sources): Collection
+    private function visibleGroups(User $user, Collection $sources): Collection
     {
         return $sources
             ->map(fn (array $source) => [
