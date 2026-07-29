@@ -90,7 +90,8 @@ class ProjectController extends Controller
 
         $files = $project->media()
             ->with('uploader')
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
 
         return view('projects.show', compact(

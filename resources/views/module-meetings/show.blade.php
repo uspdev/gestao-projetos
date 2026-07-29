@@ -17,17 +17,20 @@
 @endsection
 
 @section('meeting-content')
-  <div class="row">
-    <div class="col-lg-8 mb-4 mb-lg-0">
-      @include('module-meetings.partials.meeting-notes')
-      @include('module-meetings.partials.meeting-actions')
-      @include('module-meetings.partials.meeting-records')
-      <x-files.list :owner="$meeting" :files="$files" :shared-files="$sharedFiles" />
-      @include('comments.partials.thread', ['commentable' => $meeting])
-    </div>
+  <div data-file-reference-context-type="meeting" data-file-reference-context-id="{{ $meeting->id }}"
+    data-file-reference-context-project-id="{{ $project->id }}">
+    <div class="row">
+      <div class="col-lg-8 mb-4 mb-lg-0">
+        @include('module-meetings.partials.meeting-notes')
+        @include('module-meetings.partials.meeting-actions')
+        @include('module-meetings.partials.meeting-records')
+        <x-files.list :owner="$meeting" :files="$files" :shared-files="$sharedFiles" />
+        @include('comments.partials.thread', ['commentable' => $meeting])
+      </div>
 
-    <div class="col-lg-4">
-      @include('module-meetings.partials.overview')
+      <div class="col-lg-4">
+        @include('module-meetings.partials.overview')
+      </div>
     </div>
   </div>
 @endsection

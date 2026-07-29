@@ -314,6 +314,47 @@ function fileDownloadUrl(uuid) {
         : `/files/${uuid}`;
 }
 
+function contextualFileReferenceUrl(uuid, content) {
+    const url = new URL(fileDownloadUrl(uuid), window.location.origin);
+    const context = content.closest('[data-file-reference-context-type]');
+
+    if (context) {
+        url.searchParams.set(
+            'context_type',
+            context.dataset.fileReferenceContextType,
+        );
+        url.searchParams.set(
+            'context_id',
+            context.dataset.fileReferenceContextId,
+        );
+
+        if (context.dataset.fileReferenceContextProjectId) {
+            url.searchParams.set(
+                'context_project_id',
+                context.dataset.fileReferenceContextProjectId,
+            );
+        }
+    }
+
+    return `${url.pathname}${url.search}`;
+}
+
+function referencedFileUuid(href) {
+    try {
+        const url = new URL(href, window.location.origin);
+
+        if (url.origin !== window.location.origin) {
+            return null;
+        }
+
+        return url.pathname
+            .match(/\/files\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i)
+            ?.[1] ?? null;
+    } catch {
+        return null;
+    }
+}
+
 /**
  * Insere no editor o link Markdown correspondente ao arquivo selecionado.
  */
@@ -692,11 +733,13 @@ function highlightMarkdown(root = document) {
         });
 
         content.querySelectorAll('a[href]').forEach((link) => {
-            const legacyFileReference = link.getAttribute('href')
-                ?.match(/^\/files\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+            const fileUuid = referencedFileUuid(link.getAttribute('href'));
 
-            if (legacyFileReference) {
-                link.setAttribute('href', fileDownloadUrl(legacyFileReference[1]));
+            if (fileUuid) {
+                link.setAttribute(
+                    'href',
+                    contextualFileReferenceUrl(fileUuid, content),
+                );
             }
         });
     });

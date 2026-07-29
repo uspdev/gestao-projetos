@@ -6,10 +6,12 @@ use App\Models\Media;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
+use App\Services\FileReferenceNavigator;
 use App\Services\FileReferenceSelector;
 use App\Support\Files\FileReferenceContext;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
@@ -112,6 +114,30 @@ class MediaController extends Controller
                 'X-Content-Type-Options' => 'nosniff',
             ],
         );
+    }
+
+    public function show(
+        Request $request,
+        string $uuid,
+        FileReferenceNavigator $navigator,
+    ): RedirectResponse {
+        $media = $this->visibleMedia($request, $uuid);
+        $validated = $request->validate([
+            'context_type' => ['sometimes', 'string', 'in:project,task,meeting'],
+            'context_id' => ['required_with:context_type', 'integer'],
+            'context_project_id' => ['sometimes', 'integer'],
+        ]);
+        $url = $navigator->url($request->user(), $media, [
+            'type' => $validated['context_type'] ?? null,
+            'id' => isset($validated['context_id']) ? (int) $validated['context_id'] : null,
+            'project_id' => isset($validated['context_project_id'])
+                ? (int) $validated['context_project_id']
+                : null,
+        ]);
+
+        abort_unless($url, 404);
+
+        return redirect()->to($url);
     }
 
     public function thumbnail(Request $request, string $uuid)

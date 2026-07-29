@@ -109,7 +109,8 @@ class MeetingController extends Controller
         $meeting->setRelation('projects', $meetingProjects);
         $files = $meeting->media()
             ->with('uploader')
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
         $sharedFiles = $meeting->sharedFiles()
             ->with('uploader')

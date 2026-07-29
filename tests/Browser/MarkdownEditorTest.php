@@ -278,6 +278,8 @@ class MarkdownEditorTest extends DuskTestCase
             $browser->script(<<<'JS'
                 const content = document.createElement('div');
                 content.className = 'markdown-content';
+                content.setAttribute('data-file-reference-context-type', 'project');
+                content.setAttribute('data-file-reference-context-id', '47');
                 content.innerHTML = '<a id="legacy-file-reference" href="/files/11111111-1111-4111-8111-111111111111">Documento</a>';
                 document.body.appendChild(content);
             JS);
@@ -286,7 +288,7 @@ class MarkdownEditorTest extends DuskTestCase
                 (() => {
                     const appBase = window.location.pathname.split('/projects/')[0];
                     return document.querySelector('#legacy-file-reference').getAttribute('href')
-                        === `${appBase}/files/11111111-1111-4111-8111-111111111111`;
+                        === `${appBase}/files/11111111-1111-4111-8111-111111111111?context_type=project&context_id=47`;
                 })()
             JS, true);
         });

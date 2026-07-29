@@ -136,7 +136,8 @@ class TaskController extends Controller
         $project = $task->project;
         $files = $task->media()
             ->with('uploader')
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
 
 

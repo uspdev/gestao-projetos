@@ -44,6 +44,7 @@ class FileCardsTest extends DuskTestCase
                 ->press('Enviar Arquivo')
                 ->waitFor('[data-file-card]')
                 ->assertSee('arquivo-dusk')
+                ->assertPresent('[data-file-card][id^="file-"]')
                 ->assertPresent('[data-file-card] a[href*="/download"]')
                 ->assertMissing('[data-file-card] .btn[href*="/download"]')
                 ->script(<<<'JS'

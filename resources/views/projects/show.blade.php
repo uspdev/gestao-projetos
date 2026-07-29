@@ -4,19 +4,21 @@
 @section('title', $title . ' | Detalhes do Projeto')
 
 @section('project-content')
-  @include('projects.partials.show.join-inherited-banner')
+  <div data-file-reference-context-type="project" data-file-reference-context-id="{{ $project->id }}">
+    @include('projects.partials.show.join-inherited-banner')
 
-  <div class="row">
-    <div class="col-md-8">
-      <x-projects::show.descricao-card :project="$project" />
-      @include('comments.partials.thread', ['commentable' => $project])
-    </div>
-    <div class="col-md-4">
-      <x-projects::show.tipo-card :project="$project" />
-      <x-files.list :owner="$project" :files="$files" />
-      <x-projects::show.membros-preview-card :project="$project" />
-      @include('projects.partials.show.show-card-modulos')
-      <x-projects::show.subprojects-card :project="$project" type="preview" />
+    <div class="row">
+      <div class="col-md-8">
+        <x-projects::show.descricao-card :project="$project" />
+        @include('comments.partials.thread', ['commentable' => $project])
+      </div>
+      <div class="col-md-4">
+        <x-projects::show.tipo-card :project="$project" />
+        <x-files.list :owner="$project" :files="$files" />
+        <x-projects::show.membros-preview-card :project="$project" />
+        @include('projects.partials.show.show-card-modulos')
+        <x-projects::show.subprojects-card :project="$project" type="preview" />
+      </div>
     </div>
   </div>
 @endsection

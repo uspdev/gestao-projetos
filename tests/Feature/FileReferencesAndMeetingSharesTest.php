@@ -70,7 +70,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertJsonMissing(['uuid' => $excluded->uuid]);
     }
 
-    public function test_markdown_file_reference_url_downloads_the_authorized_file_by_uuid(): void
+    public function test_markdown_file_reference_url_navigates_to_the_project_file_card(): void
     {
         Storage::fake('files');
         Queue::fake();
@@ -83,9 +83,169 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->addMedia(UploadedFile::fake()->createWithContent('registro.pdf', 'conteudo'))
             ->toMediaCollection();
 
-        $this->get("/files/{$media->uuid}")
+        $destination = route('projects.show', $project).'#file-'.$media->uuid;
+
+        $this->get(route('files.show', [
+            'uuid' => $media->uuid,
+            'context_type' => 'project',
+            'context_id' => $project->id,
+        ]))->assertRedirect($destination);
+
+        $this->get(route('files.show', ['uuid' => $media->uuid]))
+            ->assertRedirect($destination);
+
+        $this->get(route('files.download', ['uuid' => $media->uuid]))
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff');
+    }
+
+    public function test_task_context_uses_the_task_for_its_own_file_and_the_project_for_a_project_file(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $user = $this->user('Pessoa da tarefa');
+        $project = $this->projectWithMember('Projeto da tarefa navegável', $user);
+        $this->enableModule($project, 'tasks');
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa navegável',
+            'status' => 'NEW',
+        ]);
+
+        $this->actingAs($user);
+        $taskFile = $task
+            ->addMedia(UploadedFile::fake()->createWithContent('tarefa.txt', 'tarefa'))
+            ->toMediaCollection();
+        $projectFile = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('projeto.txt', 'projeto'))
+            ->toMediaCollection();
+        $context = [
+            'context_type' => 'task',
+            'context_id' => $task->id,
+        ];
+
+        $this->get(route('files.show', ['uuid' => $taskFile->uuid, ...$context]))
+            ->assertRedirect(route('tasks.show', $task).'#file-'.$taskFile->uuid);
+        $this->get(route('files.show', ['uuid' => $projectFile->uuid, ...$context]))
+            ->assertRedirect(route('projects.show', $project).'#file-'.$projectFile->uuid);
+    }
+
+    public function test_meeting_context_prioritizes_its_shared_file_section(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $user = $this->user('Pessoa da reunião');
+        $project = $this->projectWithMember('Projeto da reunião navegável', $user);
+        $this->enableModule($project, 'meetings');
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião navegável',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach($project);
+
+        $this->actingAs($user);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('compartilhado.txt', 'conteudo'))
+            ->toMediaCollection();
+        DB::table('meeting_file_shares')->insert([
+            'meeting_id' => $meeting->id,
+            'media_id' => $media->id,
+            'shared_by' => $user->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->get(route('files.show', [
+            'uuid' => $media->uuid,
+            'context_type' => 'meeting',
+            'context_id' => $meeting->id,
+            'context_project_id' => $project->id,
+        ]))->assertRedirect(
+            route('projects.meetings.show', [$project, $meeting]).'#file-'.$media->uuid
+        );
+    }
+
+    public function test_shared_only_access_falls_back_to_a_viewable_meeting(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $ownerUser = $this->user('Pessoa do projeto de origem');
+        $viewer = $this->user('Pessoa da audiência');
+        $ownerProject = $this->projectWithMember('Projeto de origem', $ownerUser);
+        $meetingProject = $this->projectWithMember('Projeto da audiência navegável', $viewer, 'VIEWER');
+        $this->enableModule($meetingProject, 'meetings');
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião compartilhada navegável',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach([$ownerProject->id, $meetingProject->id]);
+
+        $this->actingAs($ownerUser);
+        $media = $ownerProject
+            ->addMedia(UploadedFile::fake()->createWithContent('restrito.txt', 'conteudo'))
+            ->toMediaCollection();
+        DB::table('meeting_file_shares')->insert([
+            'meeting_id' => $meeting->id,
+            'media_id' => $media->id,
+            'shared_by' => $ownerUser->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('files.show', ['uuid' => $media->uuid]))
+            ->assertRedirect(
+                route('projects.meetings.show', [$meetingProject, $meeting])
+                    .'#file-'.$media->uuid
+            );
+    }
+
+    public function test_file_reference_navigates_to_the_page_that_contains_the_card(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $user = $this->user('Pessoa com muitos arquivos');
+        $project = $this->projectWithMember('Projeto paginado', $user);
+        $this->actingAs($user);
+        $oldest = null;
+
+        foreach (range(1, 21) as $number) {
+            $media = $project
+                ->addMedia(UploadedFile::fake()->createWithContent("arquivo-{$number}.txt", 'conteudo'))
+                ->toMediaCollection();
+            $oldest ??= $media;
+        }
+
+        $this->get(route('files.show', ['uuid' => $oldest->uuid]))
+            ->assertRedirect(
+                route('projects.show', $project)
+                    .'?files_page=2#file-'.$oldest->uuid
+            );
+    }
+
+    public function test_file_reference_hides_missing_and_inaccessible_files_as_not_found(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $owner = $this->user('Pessoa proprietária do contexto');
+        $outsider = $this->user('Pessoa sem acesso ao contexto');
+        $project = $this->projectWithMember('Projeto reservado', $owner);
+        $this->actingAs($owner);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('reservado.txt', 'conteudo'))
+            ->toMediaCollection();
+
+        $this->actingAs($outsider)
+            ->get(route('files.show', ['uuid' => $media->uuid]))
+            ->assertNotFound();
+        $this->get(route('files.show', [
+            'uuid' => '11111111-1111-4111-8111-111111111111',
+        ]))->assertNotFound();
     }
 
     public function test_mention_selector_returns_only_direct_members_and_saving_rejects_new_ineligible_mentions(): void

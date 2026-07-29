@@ -39,7 +39,7 @@
       <div class="row">
         @foreach ($files as $media)
           @can('view', $media)
-            <article class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}">
+            <article id="file-{{ $media->uuid }}" class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}">
               <div class="border rounded p-2 d-flex flex-wrap align-items-center gap-2">
                 <div class="text-center" style="width: 64px">
                   @if ($media->getCustomProperty('thumbnail_status') === 'ready')
@@ -93,7 +93,7 @@
         <div class="row">
           @foreach ($sharedFiles as $media)
             @can('view', $media)
-              <article class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}" data-file-shared-with-meeting>
+              <article id="file-{{ $media->uuid }}" class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}" data-file-shared-with-meeting>
                 <div class="border rounded p-2 d-flex flex-wrap align-items-center gap-2">
                   <div class="text-center" style="width: 64px">
                     @if ($media->getCustomProperty('thumbnail_status') === 'ready')
