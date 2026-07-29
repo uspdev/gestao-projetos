@@ -51,11 +51,12 @@ class SafeUrlRenderer implements NodeRendererInterface
             return $contents;
         }
 
-        $attributes = [
-            'href' => ($this->urlResolver)($node->getUrl()),
-            'target' => '_blank',
-            'rel' => 'noopener noreferrer',
-        ];
+        $attributes = ['href' => ($this->urlResolver)($node->getUrl())];
+
+        if (! str_starts_with($node->getUrl(), '#')) {
+            $attributes['target'] = '_blank';
+            $attributes['rel'] = 'noopener noreferrer';
+        }
 
         if (($title = $node->getTitle()) !== null) {
             $attributes['title'] = $title;

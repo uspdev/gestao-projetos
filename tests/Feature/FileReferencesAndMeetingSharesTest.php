@@ -91,8 +91,26 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             'context_id' => $project->id,
         ]))->assertRedirect($destination);
 
+        $this->getJson(route('files.navigation', [
+            'uuid' => $media->uuid,
+            'context_type' => 'project',
+            'context_id' => $project->id,
+        ]))
+            ->assertOk()
+            ->assertExactJson([
+                'url' => $destination,
+                'opens_new_tab' => false,
+            ]);
+
         $this->get(route('files.show', ['uuid' => $media->uuid]))
             ->assertRedirect($destination);
+
+        $this->getJson(route('files.navigation', ['uuid' => $media->uuid]))
+            ->assertOk()
+            ->assertExactJson([
+                'url' => $destination,
+                'opens_new_tab' => true,
+            ]);
 
         $this->get(route('files.download', ['uuid' => $media->uuid]))
             ->assertOk()
@@ -129,6 +147,15 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertRedirect(route('tasks.show', $task).'#file-'.$taskFile->uuid);
         $this->get(route('files.show', ['uuid' => $projectFile->uuid, ...$context]))
             ->assertRedirect(route('projects.show', $project).'#file-'.$projectFile->uuid);
+
+        $this->getJson(route('files.navigation', ['uuid' => $taskFile->uuid, ...$context]))
+            ->assertOk()
+            ->assertJsonPath('url', route('tasks.show', $task).'#file-'.$taskFile->uuid)
+            ->assertJsonPath('opens_new_tab', false);
+        $this->getJson(route('files.navigation', ['uuid' => $projectFile->uuid, ...$context]))
+            ->assertOk()
+            ->assertJsonPath('url', route('projects.show', $project).'#file-'.$projectFile->uuid)
+            ->assertJsonPath('opens_new_tab', true);
     }
 
     public function test_meeting_context_prioritizes_its_shared_file_section(): void
@@ -165,6 +192,36 @@ class FileReferencesAndMeetingSharesTest extends TestCase
         ]))->assertRedirect(
             route('projects.meetings.show', [$project, $meeting]).'#file-'.$media->uuid
         );
+
+        $this->getJson(route('files.navigation', [
+            'uuid' => $media->uuid,
+            'context_type' => 'meeting',
+            'context_id' => $meeting->id,
+            'context_project_id' => $project->id,
+        ]))
+            ->assertOk()
+            ->assertJsonPath(
+                'url',
+                route('projects.meetings.show', [$project, $meeting]).'#file-'.$media->uuid
+            )
+            ->assertJsonPath('opens_new_tab', false);
+
+        $meetingFile = $meeting
+            ->addMedia(UploadedFile::fake()->createWithContent('reuniao.txt', 'conteudo'))
+            ->toMediaCollection();
+
+        $this->getJson(route('files.navigation', [
+            'uuid' => $meetingFile->uuid,
+            'context_type' => 'meeting',
+            'context_id' => $meeting->id,
+            'context_project_id' => $project->id,
+        ]))
+            ->assertOk()
+            ->assertJsonPath(
+                'url',
+                route('projects.meetings.show', [$project, $meeting]).'#file-'.$meetingFile->uuid
+            )
+            ->assertJsonPath('opens_new_tab', false);
     }
 
     public function test_shared_only_access_falls_back_to_a_viewable_meeting(): void
@@ -220,11 +277,21 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             $oldest ??= $media;
         }
 
+        $destination = route('projects.show', $project)
+            .'?files_page=2#file-'.$oldest->uuid;
+
         $this->get(route('files.show', ['uuid' => $oldest->uuid]))
-            ->assertRedirect(
-                route('projects.show', $project)
-                    .'?files_page=2#file-'.$oldest->uuid
-            );
+            ->assertRedirect($destination);
+        $this->getJson(route('files.navigation', [
+            'uuid' => $oldest->uuid,
+            'context_type' => 'project',
+            'context_id' => $project->id,
+        ]))
+            ->assertOk()
+            ->assertExactJson([
+                'url' => $destination,
+                'opens_new_tab' => false,
+            ]);
     }
 
     public function test_file_reference_hides_missing_and_inaccessible_files_as_not_found(): void
@@ -242,6 +309,8 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         $this->actingAs($outsider)
             ->get(route('files.show', ['uuid' => $media->uuid]))
+            ->assertNotFound();
+        $this->getJson(route('files.navigation', ['uuid' => $media->uuid]))
             ->assertNotFound();
         $this->get(route('files.show', [
             'uuid' => '11111111-1111-4111-8111-111111111111',

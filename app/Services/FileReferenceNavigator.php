@@ -7,6 +7,7 @@ use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\Files\FileReferenceDestination;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 
@@ -15,15 +16,28 @@ class FileReferenceNavigator
     private const FILES_PER_PAGE = 20;
 
     /**
-     * Resolve a seção de Arquivos mais próxima do texto que contém a referência.
+     * Resolve a seção de Arquivos mais próxima e se ela exige outra aba.
      *
      * @param  array{type?: string, id?: int, project_id?: int}  $context
      */
-    public function url(User $user, Media $media, array $context = []): ?string
+    public function destination(
+        User $user,
+        Media $media,
+        array $context = [],
+    ): ?FileReferenceDestination
     {
-        return $this->contextUrl($user, $media, $context)
-            ?? $this->ownerUrl($user, $media)
+        $url = $this->contextUrl($user, $media, $context);
+
+        if ($url !== null) {
+            return new FileReferenceDestination($url, false);
+        }
+
+        $url = $this->ownerUrl($user, $media)
             ?? $this->sharedMeetingUrl($user, $media);
+
+        return $url === null
+            ? null
+            : new FileReferenceDestination($url, true);
     }
 
     /**

@@ -35,6 +35,16 @@ class MarkdownRendererTest extends TestCase
         );
     }
 
+    public function test_it_keeps_same_page_anchors_in_the_current_tab(): void
+    {
+        $renderer = new MarkdownRenderer();
+
+        $this->assertSame(
+            "<p><a href=\"#agenda\">Agenda</a></p>\n",
+            $renderer->render('[Agenda](#agenda)')
+        );
+    }
+
     #[DataProvider('unsafeUrlProvider')]
     public function test_it_does_not_render_links_for_disallowed_url_schemes(string $url): void
     {

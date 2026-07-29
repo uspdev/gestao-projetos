@@ -294,6 +294,92 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_file_reference_to_a_visible_card_does_not_leave_the_current_page(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                sessionStorage.setItem('file-reference-original-path', window.location.pathname);
+                sessionStorage.setItem('file-reference-original-search', window.location.search);
+
+                const wrapper = document.createElement('div');
+                wrapper.setAttribute('data-file-reference-context-type', 'project');
+                wrapper.setAttribute('data-file-reference-context-id', '47');
+                wrapper.innerHTML = `
+                    <article id="file-11111111-1111-4111-8111-111111111111"></article>
+                    <div class="markdown-content">
+                        <a
+                            id="local-file-reference"
+                            href="/files/11111111-1111-4111-8111-111111111111"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >Documento</a>
+                    </div>
+                `;
+                document.body.appendChild(wrapper);
+            JS);
+
+            $browser
+                ->waitUntil(<<<'JS'
+                    document.querySelector('#local-file-reference').dataset.fileReferenceNavigation === 'resolved'
+                JS)
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const link = document.querySelector('#local-file-reference');
+
+                        return link.getAttribute('target') === null
+                            && link.getAttribute('rel') === null;
+                    })()
+                JS, true)
+                ->script('document.querySelector("#local-file-reference").click()');
+
+            $browser
+                ->pause(300)
+                ->assertScript(<<<'JS'
+                    window.location.pathname === sessionStorage.getItem('file-reference-original-path')
+                        && window.location.search === sessionStorage.getItem('file-reference-original-search')
+                        && window.location.hash === '#file-11111111-1111-4111-8111-111111111111'
+                JS, true);
+        });
+    }
+
+    public function test_same_page_markdown_anchor_ignores_the_theme_base_url(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                sessionStorage.setItem('markdown-anchor-original-path', window.location.pathname);
+                sessionStorage.setItem('markdown-anchor-original-search', window.location.search);
+
+                const content = document.createElement('div');
+                content.className = 'markdown-content';
+                content.innerHTML = `
+                    <a id="same-page-markdown-anchor" href="#agenda">Agenda</a>
+                    <h2 id="agenda">Agenda</h2>
+                `;
+                document.body.appendChild(content);
+            JS);
+
+            $browser
+                ->pause(50)
+                ->script('document.querySelector("#same-page-markdown-anchor").click()');
+
+            $browser
+                ->pause(300)
+                ->assertScript(<<<'JS'
+                    window.location.pathname === sessionStorage.getItem('markdown-anchor-original-path')
+                        && window.location.search === sessionStorage.getItem('markdown-anchor-original-search')
+                        && window.location.hash === '#agenda'
+                JS, true);
+        });
+    }
+
     public function test_file_reference_selector_shares_with_the_meeting_before_inserting_the_link(): void
     {
         $this->browse(function (Browser $browser): void {

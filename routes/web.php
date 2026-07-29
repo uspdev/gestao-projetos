@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('files/{uuid}/metadata', [MediaController::class, 'metadata'])->name('files.metadata');
     Route::get('files/{uuid}/download', [MediaController::class, 'download'])->name('files.download');
     Route::get('files/{uuid}/thumbnail', [MediaController::class, 'thumbnail'])->name('files.thumbnail');
+    Route::get('files/{uuid}/navigation', [MediaController::class, 'navigation'])->name('files.navigation');
     Route::get('files/{uuid}', [MediaController::class, 'show'])->name('files.show');
     Route::patch('files/{uuid}', [MediaController::class, 'update'])->name('files.update');
     Route::delete('files/{uuid}', [MediaController::class, 'destroy'])->name('files.destroy');

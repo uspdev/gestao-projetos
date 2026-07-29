@@ -84,12 +84,14 @@
 @section('javascripts_bottom')
   @php
     $fileDownloadUrlTemplate = parse_url(route('files.show', ['uuid' => '__uuid__']), PHP_URL_PATH);
+    $fileNavigationUrlTemplate = parse_url(route('files.navigation', ['uuid' => '__uuid__']), PHP_URL_PATH);
   @endphp
   @stack('modals')
   @parent
   @stack('scripts')
   <script>
     window.fileDownloadUrlTemplate = @json($fileDownloadUrlTemplate);
+    window.fileNavigationUrlTemplate = @json($fileNavigationUrlTemplate);
   </script>
   <script src="{{ mix('js/app.js') }}"></script>
   <script>

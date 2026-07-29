@@ -314,29 +314,37 @@ function fileDownloadUrl(uuid) {
         : `/files/${uuid}`;
 }
 
-function contextualFileReferenceUrl(uuid, content) {
-    const url = new URL(fileDownloadUrl(uuid), window.location.origin);
+function fileNavigationUrl(uuid) {
+    const template = window.fileNavigationUrlTemplate;
+
+    return typeof template === 'string'
+        ? template.replace('__uuid__', encodeURIComponent(uuid))
+        : `/files/${uuid}/navigation`;
+}
+
+function contextualFileReferenceUrl(url, content) {
+    const contextualUrl = new URL(url, window.location.origin);
     const context = content.closest('[data-file-reference-context-type]');
 
     if (context) {
-        url.searchParams.set(
+        contextualUrl.searchParams.set(
             'context_type',
             context.dataset.fileReferenceContextType,
         );
-        url.searchParams.set(
+        contextualUrl.searchParams.set(
             'context_id',
             context.dataset.fileReferenceContextId,
         );
 
         if (context.dataset.fileReferenceContextProjectId) {
-            url.searchParams.set(
+            contextualUrl.searchParams.set(
                 'context_project_id',
                 context.dataset.fileReferenceContextProjectId,
             );
         }
     }
 
-    return `${url.pathname}${url.search}`;
+    return `${contextualUrl.pathname}${contextualUrl.search}`;
 }
 
 function referencedFileUuid(href) {
@@ -353,6 +361,84 @@ function referencedFileUuid(href) {
     } catch {
         return null;
     }
+}
+
+function internalUrl(url) {
+    const resolved = new URL(url, window.location.origin);
+
+    return resolved.origin === window.location.origin
+        ? `${resolved.pathname}${resolved.search}${resolved.hash}`
+        : url;
+}
+
+function currentPageAnchorUrl(anchor) {
+    const url = new URL(window.location.href);
+    url.hash = anchor;
+
+    return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function configureFileReference(link, content, uuid) {
+    if (link.dataset.fileReferenceNavigation) {
+        return;
+    }
+
+    const anchor = `file-${uuid}`;
+    const contextualUrl = contextualFileReferenceUrl(
+        fileDownloadUrl(uuid),
+        content,
+    );
+
+    link.dataset.fileReferenceNavigation = 'pending';
+    link.setAttribute('href', contextualUrl);
+
+    if (document.getElementById(anchor)) {
+        link.setAttribute('href', currentPageAnchorUrl(anchor));
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+        link.dataset.fileReferenceNavigation = 'resolved';
+
+        return;
+    }
+
+    window.fetch(
+        contextualFileReferenceUrl(fileNavigationUrl(uuid), content),
+        {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: csrfHeaders(),
+        },
+    )
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(
+                    `Falha ao resolver referência de Arquivo: HTTP ${response.status}`,
+                );
+            }
+
+            return response.json();
+        })
+        .then((destination) => {
+            if (typeof destination.url !== 'string'
+                || typeof destination.opens_new_tab !== 'boolean') {
+                throw new Error('Destino de referência de Arquivo inválido.');
+            }
+
+            link.setAttribute('href', internalUrl(destination.url));
+
+            if (destination.opens_new_tab) {
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+            } else {
+                link.removeAttribute('target');
+                link.removeAttribute('rel');
+            }
+
+            link.dataset.fileReferenceNavigation = 'resolved';
+        })
+        .catch(() => {
+            link.dataset.fileReferenceNavigation = 'failed';
+        });
 }
 
 /**
@@ -733,13 +819,19 @@ function highlightMarkdown(root = document) {
         });
 
         content.querySelectorAll('a[href]').forEach((link) => {
-            const fileUuid = referencedFileUuid(link.getAttribute('href'));
+            const href = link.getAttribute('href');
+            const fileUuid = referencedFileUuid(href);
 
             if (fileUuid) {
-                link.setAttribute(
-                    'href',
-                    contextualFileReferenceUrl(fileUuid, content),
-                );
+                configureFileReference(link, content, fileUuid);
+
+                return;
+            }
+
+            if (href.startsWith('#')) {
+                link.setAttribute('href', currentPageAnchorUrl(href));
+                link.removeAttribute('target');
+                link.removeAttribute('rel');
             }
         });
     });

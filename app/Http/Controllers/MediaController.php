@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Services\FileReferenceNavigator;
 use App\Services\FileReferenceSelector;
 use App\Support\Files\FileReferenceContext;
+use App\Support\Files\FileReferenceDestination;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -121,23 +122,22 @@ class MediaController extends Controller
         string $uuid,
         FileReferenceNavigator $navigator,
     ): RedirectResponse {
-        $media = $this->visibleMedia($request, $uuid);
-        $validated = $request->validate([
-            'context_type' => ['sometimes', 'string', 'in:project,task,meeting'],
-            'context_id' => ['required_with:context_type', 'integer'],
-            'context_project_id' => ['sometimes', 'integer'],
-        ]);
-        $url = $navigator->url($request->user(), $media, [
-            'type' => $validated['context_type'] ?? null,
-            'id' => isset($validated['context_id']) ? (int) $validated['context_id'] : null,
-            'project_id' => isset($validated['context_project_id'])
-                ? (int) $validated['context_project_id']
-                : null,
-        ]);
+        $destination = $this->referenceDestination($request, $uuid, $navigator);
 
-        abort_unless($url, 404);
+        return redirect()->to($destination->url);
+    }
 
-        return redirect()->to($url);
+    public function navigation(
+        Request $request,
+        string $uuid,
+        FileReferenceNavigator $navigator,
+    ): JsonResponse {
+        $destination = $this->referenceDestination($request, $uuid, $navigator);
+
+        return response()->json([
+            'url' => $destination->url,
+            'opens_new_tab' => $destination->opensInNewTab,
+        ]);
     }
 
     public function thumbnail(Request $request, string $uuid)
@@ -145,8 +145,10 @@ class MediaController extends Controller
         $media = $this->visibleMedia($request, $uuid);
         $path = $this->thumbnailPath($media);
 
-        if ($media->getCustomProperty('thumbnail_status') !== 'ready'
-            || ! Storage::disk($media->conversions_disk ?: $media->disk)->exists($path)) {
+        if (
+            $media->getCustomProperty('thumbnail_status') !== 'ready'
+            || ! Storage::disk($media->conversions_disk ?: $media->disk)->exists($path)
+        ) {
             abort(404);
         }
 
@@ -216,6 +218,33 @@ class MediaController extends Controller
         return back()->with('alert-success', 'Arquivo excluído definitivamente.');
     }
 
+    private function referenceDestination(
+        Request $request,
+        string $uuid,
+        FileReferenceNavigator $navigator,
+    ): FileReferenceDestination {
+        $validated = $request->validate([
+            'context_type' => ['sometimes', 'string', 'in:project,task,meeting'],
+            'context_id' => ['required_with:context_type', 'integer'],
+            'context_project_id' => ['sometimes', 'integer'],
+        ]);
+        $destination = $navigator->destination(
+            $request->user(),
+            $this->visibleMedia($request, $uuid),
+            [
+                'type' => $validated['context_type'] ?? null,
+                'id' => isset($validated['context_id']) ? (int) $validated['context_id'] : null,
+                'project_id' => isset($validated['context_project_id'])
+                    ? (int) $validated['context_project_id']
+                    : null,
+            ],
+        );
+
+        abort_unless($destination, 404);
+
+        return $destination;
+    }
+
     private function visibleMedia(Request $request, string $uuid): Media
     {
         $media = Media::query()->where('uuid', $uuid)->first();
@@ -241,8 +270,8 @@ class MediaController extends Controller
 
     private function thumbnailPath(Media $media): string
     {
-        return $media->id.'/conversions/'
-            .pathinfo($media->file_name, PATHINFO_FILENAME)
-            .'-thumbnail.jpg';
+        return $media->id . '/conversions/'
+            . pathinfo($media->file_name, PATHINFO_FILENAME)
+            . '-thumbnail.jpg';
     }
 }
