@@ -89,10 +89,9 @@ Links são escritos com `[texto](destino)`. O destino pode ser interno ou extern
 | Projeto | `[Programa](/projects/programa-modernizacao)` | Abre uma página de projeto, sujeita às permissões da pessoa. |
 | Tarefa | `[Revisar protótipo](/tasks/42)` | Abre uma tarefa, sujeita às permissões do projeto. |
 | Reunião | `[Reunião de kickoff](/projects/programa-modernizacao/meetings/17)` | Abre uma reunião vinculada ao projeto. |
-| Arquivo | `[Termo de abertura](/files/550e8400-e29b-41d4-a716-446655440000)` | Navega até o arquivo, se a pessoa puder acessá-lo. |
+| Arquivo | `[Termo de abertura](/files/550e8400-e29b-41d4-a716-446655440000)` | Navega na mesma aba quando o card está na tela atual; abre a tela proprietária em nova aba nos demais casos. |
 | Externo | `[Documentação institucional](https://www5.usp.br/)` | Abre um site externo em nova aba. |
-| Âncora | `[Ir para a agenda](#agenda)` | Abre um site externo em nova aba. | aponta para um título ou elemento com a
-  âncora `agenda` na mesma página.
+| Âncora | `[Ir para a agenda](#agenda)` | Navega para o título ou elemento com a âncora `agenda` na mesma aba. |
 
 Links internos usam caminhos relativos à aplicação, normalmente iniciados por
 `/`, e continuam protegidos por autenticação e autorização. Links externos devem

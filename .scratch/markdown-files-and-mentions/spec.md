@@ -39,7 +39,7 @@ Cada ticket depende do anterior. Essa ordem preserva os marcos aprovados na sess
 1. Como autor, quero editar os campos Markdown com uma barra de ferramentas adequada ao contexto, para formatar conteúdo sem memorizar toda a sintaxe.
 2. Como autor, quero consultar uma pré-visualização fiel à renderização oficial antes de salvar, para identificar erros de formatação.
 3. Como leitor, quero que HTML bruto, URLs perigosas e imagens externas não executem conteúdo ativo, para consultar textos sem ampliar a superfície de ataque.
-4. Como leitor, quero que todos os links abram em nova aba, para preservar a página atual do sistema.
+4. Como leitor, quero que links para outros destinos abram em nova aba, mas âncoras e Referências de arquivo da tela atual permaneçam nela, para preservar o contexto sem criar abas desnecessárias.
 5. Como usuário, quero que Anotações prévias da reunião e dos itens aceitem o mesmo Markdown, para ter uma experiência coerente.
 6. Como usuário, quero que Ata e Transcrição permaneçam texto simples, para não alterar o significado já definido desses registros.
 7. Como equipe de manutenção, quero uma única implementação de renderização, para evitar diferenças de segurança entre telas.
@@ -91,7 +91,7 @@ Descrições de Tipo de projeto serão renderizadas pela mesma política segura 
 - Remover o uso do helper global `md2html()` no código da aplicação e retirar sua implementação local ineficaz depois da migração dos consumidores. `text2html()` continuará atendendo os campos de texto simples.
 - Usar GitHub Flavored Markdown com `html_input: escape`, bloqueio de URLs inseguras e `max_nesting_level` igual a 20.
 - Admitir em links somente URLs relativas, âncoras `#...`, `http` e `https`. `mailto:`, `javascript:`, `data:` e qualquer outro esquema ficarão fora da lista permitida.
-- Todos os links, internos ou externos, receberão `target="_blank"` e `rel="noopener noreferrer"`.
+- Links internos ou externos para outro destino receberão `target="_blank"` e `rel="noopener noreferrer"`. Âncoras `#...` e Referências de arquivo resolvidas para a tela contextual atual navegarão na mesma aba. Quando o Arquivo pertencer a outra tela — inclusive um Arquivo do Projeto referenciado na Tarefa — a nova aba será mantida.
 - Não incorporar imagens declaradas no Markdown na primeira versão. A sintaxe de imagem será degradada para um link seguro; miniaturas aparecerão apenas nos cards de Arquivo. Isso inclui imagens externas.
 - Resolver Menções e aplicar regras de links na árvore de sintaxe abstrata, antes da emissão do HTML; não reescrever HTML final com expressões regulares.
 - Emitir classes de linguagem nos blocos de código. O realce será feito no navegador por `highlight.js`, empacotado localmente, sem HTML de realce produzido pelo servidor.

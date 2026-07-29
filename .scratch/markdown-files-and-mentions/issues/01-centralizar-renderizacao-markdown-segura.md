@@ -8,7 +8,7 @@
 
 - [ ] Registrar `MarkdownRenderer` como serviço injetável de instância única e configurá-lo com GitHub Flavored Markdown, `html_input: escape`, URLs inseguras bloqueadas e aninhamento máximo de 20 níveis.
 - [ ] Implementar na árvore de sintaxe abstrata a lista permitida de URLs relativas, âncoras, HTTP e HTTPS; bloquear os demais esquemas.
-- [ ] Fazer todos os links internos e externos abrirem em nova aba com `noopener noreferrer`.
+- [ ] Fazer links internos e externos para outro destino abrirem em nova aba com `noopener noreferrer`; âncoras da página atual permanecem na mesma aba.
 - [ ] Degradar toda sintaxe de imagem Markdown para link seguro, sem emitir `<img>` nesta versão.
 - [ ] Emitir classes de linguagem em blocos de código sem realce HTML no servidor.
 - [ ] Migrar o componente `markdown-content` e os usos diretos da área administrativa para o novo serviço.
