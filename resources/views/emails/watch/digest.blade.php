@@ -25,5 +25,5 @@
     @endforeach
   </ul>
 
-  <p>Você pode deixar de receber notificações na página de cada item.</p>
+  <p>Você pode alterar essa preferência nas configurações do projeto ou na página de cada tarefa e reunião.</p>
 @endsection

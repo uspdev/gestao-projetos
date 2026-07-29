@@ -16,6 +16,8 @@
             @include('projects.partials.show.project-type-card')
           </div> --}}
 
+          @include('projects.partials.show.watch-settings-card')
+
           <div class="mb-4">
             @include('projects.partials.show.show-card-membros')
           </div>
