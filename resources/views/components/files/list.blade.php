@@ -6,11 +6,33 @@
     \App\Models\Task::class => route('tasks.files.store', $owner),
     \App\Models\Meeting::class => route('meetings.files.store', $owner),
   };
+  $componentId = 'files-'.$owner->getMorphClass().'-'.$owner->id;
+  $ownedVisibleFiles = $files->getCollection()
+    ->filter(fn ($media) => \Illuminate\Support\Facades\Gate::allows('view', $media));
+  $sharedVisibleFiles = collect($sharedFiles ?? [])
+    ->filter(fn ($media) => \Illuminate\Support\Facades\Gate::allows('view', $media));
+  $sharedMediaIds = $sharedVisibleFiles->pluck('id');
+  $visibleFiles = $ownedVisibleFiles
+    ->concat($sharedVisibleFiles)
+    ->unique('id')
+    ->values();
+  $rasterMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/avif',
+  ];
+  $imageFiles = $visibleFiles
+    ->filter(fn ($media) => in_array($media->mime_type, $rasterMimeTypes, true));
+  $otherFiles = $visibleFiles
+    ->reject(fn ($media) => in_array($media->mime_type, $rasterMimeTypes, true));
+  $initialTab = $imageFiles->isNotEmpty() ? 'images' : 'files';
 @endphp
 
-<section class="card my-4" aria-labelledby="files-heading">
+<section class="card my-4 file-browser" aria-labelledby="{{ $componentId }}-heading" data-file-browser>
   <div class="card-header d-flex align-items-start py-2">
-    <h2 id="files-heading" class="h6 m-0 mt-1 mr-3 text-muted text-nowrap">
+    <h2 id="{{ $componentId }}-heading" class="h6 m-0 mt-1 mr-3 text-muted text-nowrap">
       <i class="fas fa-paperclip mr-1" aria-hidden="true"></i> Arquivos
     </h2>
 
@@ -32,97 +54,207 @@
     @endcan
   </div>
 
-  <div class="card-body">
-    @if ($files->isEmpty() && ($sharedFiles === null || $sharedFiles->isEmpty()))
-      <p class="text-muted mb-0">Nenhum Arquivo disponível.</p>
+  <div class="card-body p-0">
+    @if ($visibleFiles->isEmpty())
+      <p class="text-muted m-3">Nenhum Arquivo disponível.</p>
     @else
-      <div class="row">
-        @foreach ($files as $media)
-          @can('view', $media)
-            <article id="file-{{ $media->uuid }}" class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}">
-              <div class="border rounded p-2 d-flex flex-wrap align-items-center gap-2">
-                <div class="text-center" style="width: 64px">
-                  @if ($media->getCustomProperty('thumbnail_status') === 'ready')
-                    <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt="Miniatura de {{ $media->display_name }}" class="img-fluid rounded" style="max-height: 56px">
-                  @else
-                    <i class="far fa-file fa-2x text-secondary" aria-hidden="true"></i>
-                  @endif
-                </div>
-                <div class="flex-grow-1 min-width-0">
-                  <a href="{{ route('files.download', ['uuid' => $media->uuid]) }}" class="font-weight-bold">{{ $media->display_name }}</a>
-                  <div class="small text-muted">
-                    {{ strtoupper(pathinfo($media->file_name, PATHINFO_EXTENSION)) ?: 'SEM EXTENSÃO' }} ·
-                    {{ number_format($media->size / 1024, 1, ',', '.') }} KB ·
-                    {{ $media->uploader?->name ?? 'Usuário removido' }} ·
-                    {{ optional($media->created_at)->format('d/m/Y H:i') }}
-                  </div>
-                  <div class="small text-muted">Miniatura: {{ $media->getCustomProperty('thumbnail_status') ?? 'pending' }}</div>
-                  @can('viewOriginal', $media)
-                    <div class="small text-muted">Nome original: {{ $media->original_name }}</div>
-                  @endcan
-                </div>
-                <div class="d-flex align-items-center flex-nowrap gap-2">
-                  @can('update', $media)
-                    <div class="d-flex align-items-center flex-nowrap">
-                      <button type="button" class="btn btn-sm btn-outline-primary" data-file-rename-toggle aria-controls="file-rename-{{ $media->uuid }}" aria-expanded="false">Renomear</button>
-                      <form id="file-rename-{{ $media->uuid }}" action="{{ route('files.update', ['uuid' => $media->uuid]) }}" method="post" class="input-group input-group-sm" data-file-rename-form data-disable-client-validation hidden>
-                        @csrf
-                        @method('PATCH')
-                        <label class="sr-only" for="file-name-{{ $media->uuid }}">Nome exibido</label>
-                        <input id="file-name-{{ $media->uuid }}" name="name" value="{{ $media->display_name }}" class="form-control form-control-sm" required maxlength="255" data-file-rename-input>
-                        <div class="input-group-append">
-                          <button type="submit" class="btn btn-outline-primary" aria-label="Confirmar novo nome">OK</button>
-                        </div>
-                      </form>
+      <ul class="nav nav-tabs file-tabs px-3 pt-2" role="tablist" aria-label="Visualização dos Arquivos">
+        <li class="nav-item">
+          <button
+            id="{{ $componentId }}-images-tab"
+            class="nav-link {{ $initialTab === 'images' ? 'active' : '' }}"
+            type="button"
+            role="tab"
+            aria-selected="{{ $initialTab === 'images' ? 'true' : 'false' }}"
+            aria-controls="{{ $componentId }}-images-panel"
+            tabindex="{{ $initialTab === 'images' ? '0' : '-1' }}"
+            data-file-tab="images">
+            <i class="far fa-images mr-1" aria-hidden="true"></i>
+            Imagens <span class="badge badge-light ml-1">{{ $imageFiles->count() }}</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button
+            id="{{ $componentId }}-files-tab"
+            class="nav-link {{ $initialTab === 'files' ? 'active' : '' }}"
+            type="button"
+            role="tab"
+            aria-selected="{{ $initialTab === 'files' ? 'true' : 'false' }}"
+            aria-controls="{{ $componentId }}-files-panel"
+            tabindex="{{ $initialTab === 'files' ? '0' : '-1' }}"
+            data-file-tab="files">
+            <i class="far fa-file mr-1" aria-hidden="true"></i>
+            Arquivos <span class="badge badge-light ml-1">{{ $otherFiles->count() }}</span>
+          </button>
+        </li>
+      </ul>
+
+      <div class="file-browser-scroll" data-file-browser-scroll>
+        <div
+          id="{{ $componentId }}-images-panel"
+          class="file-tab-panel p-2 {{ $initialTab !== 'images' ? 'd-none' : '' }}"
+          role="tabpanel"
+          aria-labelledby="{{ $componentId }}-images-tab"
+          data-file-tab-panel="images">
+          @if ($imageFiles->isEmpty())
+            <p class="text-muted small m-2">Nenhuma imagem com pré-visualização disponível.</p>
+          @else
+            <div class="row mx-n1">
+              @foreach ($imageFiles as $media)
+                @php
+                  $isShared = $sharedMediaIds->contains($media->id);
+                  $isPreviewable = $media->getCustomProperty('thumbnail_status') === 'ready';
+                @endphp
+                <article
+                  id="file-{{ $media->uuid }}"
+                  class="file-image-item col-6 col-sm-4 col-lg-3 px-1 mb-2"
+                  data-file-card
+                  data-file-uuid="{{ $media->uuid }}"
+                  @if ($isShared) data-file-shared-with-meeting @endif>
+                  <div class="file-image-card border rounded h-100 bg-white">
+                    <button
+                      type="button"
+                      class="file-image-select"
+                      aria-label="Abrir pré-visualização e metadados de {{ $media->display_name }}"
+                      data-file-select
+                      data-file-details-id="{{ $componentId }}-details-{{ $media->uuid }}">
+                      @if ($isPreviewable)
+                        <img
+                          src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}"
+                          alt=""
+                          class="file-image-thumbnail">
+                      @else
+                        <span class="file-image-placeholder text-muted">
+                          <i class="far fa-image fa-2x mb-1" aria-hidden="true"></i>
+                          <small>
+                            {{ $media->getCustomProperty('thumbnail_status') === 'pending' ? 'Processando prévia' : 'Prévia indisponível' }}
+                          </small>
+                        </span>
+                      @endif
+                    </button>
+                    <div class="file-image-caption">
+                      <button
+                        type="button"
+                        class="file-image-name text-truncate"
+                        title="{{ $media->display_name }}"
+                        data-file-select
+                        data-file-details-id="{{ $componentId }}-details-{{ $media->uuid }}">
+                        {{ $media->display_name }}
+                      </button>
+                      <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" :previewable="$isPreviewable" :details-id="$componentId.'-details-'.$media->uuid" />
                     </div>
-                    <form action="{{ route('files.destroy', ['uuid' => $media->uuid]) }}" method="post" onsubmit="return confirm('A exclusão é definitiva e referências existentes poderão deixar de funcionar.');">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
-                    </form>
-                  @endcan
+                  </div>
+                </article>
+              @endforeach
+            </div>
+          @endif
+        </div>
+
+        <div
+          id="{{ $componentId }}-files-panel"
+          class="file-tab-panel {{ $initialTab !== 'files' ? 'd-none' : '' }}"
+          role="tabpanel"
+          aria-labelledby="{{ $componentId }}-files-tab"
+          data-file-tab-panel="files">
+          @if ($otherFiles->isEmpty())
+            <p class="text-muted small m-3">Nenhum outro Arquivo disponível.</p>
+          @else
+            <div class="list-group list-group-flush file-compact-list">
+              @foreach ($otherFiles as $media)
+                @php
+                  $isShared = $sharedMediaIds->contains($media->id);
+                @endphp
+                <article
+                  id="file-{{ $media->uuid }}"
+                  class="list-group-item file-list-item"
+                  data-file-card
+                  data-file-uuid="{{ $media->uuid }}"
+                  @if ($isShared) data-file-shared-with-meeting @endif>
+                  <button
+                    type="button"
+                    class="file-list-select"
+                    aria-label="Abrir metadados e ações de {{ $media->display_name }}"
+                    data-file-select
+                    data-file-details-id="{{ $componentId }}-details-{{ $media->uuid }}">
+                    <i class="far fa-file text-secondary mr-2" aria-hidden="true"></i>
+                    <span class="file-list-name text-truncate" title="{{ $media->display_name }}">{{ $media->display_name }}</span>
+                    @if ($isShared)
+                      <span class="badge badge-light mr-2">Compartilhado</span>
+                    @endif
+                  </button>
+                  <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" :previewable="false" :details-id="$componentId.'-details-'.$media->uuid" />
+                </article>
+              @endforeach
+            </div>
+          @endif
+        </div>
+      </div>
+
+      <div class="file-details-region border-top bg-light" aria-live="polite">
+        <p class="text-muted small m-3" data-file-details-placeholder>
+          Selecione um item para ver a pré-visualização, os metadados e as ações disponíveis.
+        </p>
+
+        @foreach ($visibleFiles as $media)
+          @php
+            $isPreviewable = $media->getCustomProperty('thumbnail_status') === 'ready';
+            $isShared = $sharedMediaIds->contains($media->id);
+            $thumbnailLabel = match ($media->getCustomProperty('thumbnail_status')) {
+              'ready' => 'Disponível',
+              'pending', null => 'Em processamento',
+              'failed' => 'Falha no processamento',
+              'not_supported' => 'Não disponível',
+              default => 'Não disponível',
+            };
+          @endphp
+          <article
+            id="{{ $componentId }}-details-{{ $media->uuid }}"
+            class="file-details p-3"
+            tabindex="-1"
+            data-file-details
+            hidden>
+            <div class="d-flex align-items-start">
+              @if ($isPreviewable)
+                <a
+                  href="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}"
+                  target="_blank"
+                  rel="noopener"
+                  class="file-details-preview mr-3"
+                  aria-label="Abrir pré-visualização de {{ $media->display_name }}">
+                  <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt="Pré-visualização de {{ $media->display_name }}">
+                </a>
+              @else
+                <div class="file-details-icon mr-3" aria-hidden="true">
+                  <i class="far fa-file fa-2x text-secondary"></i>
                 </div>
+              @endif
+
+              <div class="min-width-0 flex-grow-1">
+                <div class="d-flex align-items-start justify-content-between">
+                  <h3 class="h6 text-truncate mb-1" title="{{ $media->display_name }}">{{ $media->display_name }}</h3>
+                  <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" :previewable="$isPreviewable" :details-id="$componentId.'-details-'.$media->uuid" suffix="details" />
+                </div>
+                <dl class="file-metadata small text-muted mb-0">
+                  <div><dt>Tipo</dt><dd>{{ strtoupper(pathinfo($media->file_name, PATHINFO_EXTENSION)) ?: 'Sem extensão' }}</dd></div>
+                  <div><dt>Tamanho</dt><dd>{{ number_format($media->size / 1024, 1, ',', '.') }} KB</dd></div>
+                  <div><dt>MIME</dt><dd class="text-break">{{ $media->mime_type ?: 'Não identificado' }}</dd></div>
+                  <div><dt>Miniatura</dt><dd>{{ $thumbnailLabel }}</dd></div>
+                  <div><dt>Enviado por</dt><dd>{{ $media->uploader?->name ?? 'Usuário removido' }}</dd></div>
+                  <div><dt>Data</dt><dd>{{ optional($media->created_at)->format('d/m/Y H:i') }}</dd></div>
+                  @can('viewOriginal', $media)
+                    <div class="file-metadata-wide"><dt>Nome original</dt><dd class="text-break">{{ $media->original_name }}</dd></div>
+                  @endcan
+                  @if ($isShared)
+                    <div class="file-metadata-wide"><dt>Acesso</dt><dd>Compartilhado com a reunião</dd></div>
+                  @endif
+                </dl>
               </div>
-            </article>
-          @endcan
+            </div>
+          </article>
         @endforeach
       </div>
 
-      @if ($sharedFiles?->isNotEmpty())
-        <h3 class="h6 mt-3">Compartilhados com a reunião</h3>
-        <div class="row">
-          @foreach ($sharedFiles as $media)
-            @can('view', $media)
-              <article id="file-{{ $media->uuid }}" class="col-12 mb-2" data-file-card data-file-uuid="{{ $media->uuid }}" data-file-shared-with-meeting>
-                <div class="border rounded p-2 d-flex flex-wrap align-items-center gap-2">
-                  <div class="text-center" style="width: 64px">
-                    @if ($media->getCustomProperty('thumbnail_status') === 'ready')
-                      <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt="Miniatura de {{ $media->display_name }}" class="img-fluid rounded" style="max-height: 56px">
-                    @else
-                      <i class="far fa-file fa-2x text-secondary" aria-hidden="true"></i>
-                    @endif
-                  </div>
-                  <div class="flex-grow-1 min-width-0">
-                    <a href="{{ route('files.download', ['uuid' => $media->uuid]) }}" class="font-weight-bold">{{ $media->display_name }}</a>
-                    <div class="small text-muted">Arquivo compartilhado com a reunião · {{ $media->uploader?->name ?? 'Usuário removido' }}</div>
-                  </div>
-                  <div class="d-flex flex-wrap gap-2">
-                    @can('manageFileShares', $owner)
-                      <form action="{{ route('meetings.file-shares.destroy', [$owner, $media->uuid]) }}" method="post">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Remover da reunião</button>
-                      </form>
-                    @endcan
-                  </div>
-                </div>
-              </article>
-            @endcan
-          @endforeach
-        </div>
-      @endif
-
-      <div class="mt-2">{{ $files->links() }}</div>
+      <div class="px-3 pt-2">{{ $files->links() }}</div>
     @endif
   </div>
 </section>

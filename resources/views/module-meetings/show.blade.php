@@ -24,12 +24,12 @@
         @include('module-meetings.partials.meeting-notes')
         @include('module-meetings.partials.meeting-actions')
         @include('module-meetings.partials.meeting-records')
-        <x-files.list :owner="$meeting" :files="$files" :shared-files="$sharedFiles" />
         @include('comments.partials.thread', ['commentable' => $meeting])
       </div>
 
       <div class="col-lg-4">
         @include('module-meetings.partials.overview')
+        <x-files.list :owner="$meeting" :files="$files" :shared-files="$sharedFiles" />
       </div>
     </div>
   </div>
