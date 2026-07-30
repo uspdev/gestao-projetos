@@ -2,6 +2,8 @@
 
 **Status:** aceito
 
+> **Revisão posterior:** o ADR 0005 substitui o termo Referência de arquivo por Menção a arquivo e adota para ela a sintaxe estruturada de Menção. Identidade por UUID, propriedade, autorização, segurança e Compartilhamento de arquivo com reunião permanecem regidos por este ADR.
+
 Esta decisão reúne identidade, propriedade, ciclo de vida, segurança e compartilhamento de **Arquivos**. Cada Arquivo terá um único Proprietário imutável e conteúdo binário imutável; referências usarão UUID, não concederão acesso por si mesmas e somente o Compartilhamento de arquivo com reunião criará uma exceção explícita de acesso.
 
 ## Contexto

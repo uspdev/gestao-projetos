@@ -2,6 +2,8 @@
 
 **Status:** aceito
 
+> **Revisão posterior:** o ADR 0005 substitui a exclusividade de usuários e generaliza Menções para outros tipos de entidade. As demais decisões deste ADR permanecem válidas.
+
 Esta decisão reúne a semântica dos campos Markdown e o modelo de Menções estruturadas. As **Anotações prévias da reunião** e as **Anotações prévias do item** serão interpretadas como Markdown, enquanto Menções a usuários terão identidade estável no texto e um índice derivado reconstruível, sem deixar de tratar o Markdown bruto como fonte editorial da verdade.
 
 ## Contexto
