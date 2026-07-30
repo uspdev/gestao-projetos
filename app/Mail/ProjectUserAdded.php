@@ -22,6 +22,9 @@ class ProjectUserAdded extends Mailable implements ShouldQueue
     public function build(): self
     {
         return $this->subject(sprintf('[%s - %s] colaborador adicionado ao projeto', config('app.name'), $this->project->name))
+            ->with([
+                'projectRole' => $this->project->userRole($this->recipient)?->label(),
+            ])
             ->view('emails.project.added-to-project');
     }
 }

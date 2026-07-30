@@ -8,9 +8,11 @@
 
 <body>
   <p>
-    Mensagem enviada para: {{ $recipient->name ?? 'usuario' }}<br>
-    Seu papel neste projeto: <br>
-    Este é um email automático - não responda.
+    Mensagem enviada para: {{ $recipient->name ?? 'usuário' }}<br>
+    @isset($projectRole)
+      Sua função neste projeto: {{ $projectRole }}<br>
+    @endisset
+    Este é um e-mail automático — não responda.
   </p>
 
   @yield('content')

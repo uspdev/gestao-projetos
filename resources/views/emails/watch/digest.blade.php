@@ -3,7 +3,7 @@
 @section('content')
   <p>Olá, {{ $recipient->name }}.</p>
 
-  <p>Estas atividades ocorreram em itens que você observa:</p>
+  <p>Estas atividades ocorreram em itens para os quais você tem notificações ativas:</p>
 
   <ul>
     @foreach ($notifications as $notification)
