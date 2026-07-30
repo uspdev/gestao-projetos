@@ -31,20 +31,20 @@
 @endphp
 
 <section class="card my-4 file-browser" aria-labelledby="{{ $componentId }}-heading" data-file-browser>
-  <div class="card-header d-flex align-items-start py-2">
-    <h2 id="{{ $componentId }}-heading" class="h6 m-0 mt-1 mr-3 text-muted text-nowrap">
+  <div class="card-header d-flex flex-column flex-sm-row align-items-start py-2">
+    <h2 id="{{ $componentId }}-heading" class="h6 mt-1 mr-sm-3 mb-2 mb-sm-0 text-muted text-nowrap">
       <i class="fas fa-paperclip mr-1" aria-hidden="true"></i> Arquivos
     </h2>
 
     @can('create', [\App\Models\Media::class, $owner])
-      <form action="{{ $uploadRoute }}" method="post" enctype="multipart/form-data" class="d-flex flex-column flex-grow-1 mb-0 file-upload-form" data-file-upload-form data-disable-client-validation>
+      <form action="{{ $uploadRoute }}" method="post" enctype="multipart/form-data" class="d-flex flex-column flex-grow-1 w-100 mb-0 min-width-0" data-file-upload-form data-disable-client-validation>
         @csrf
         <div class="d-flex align-items-center">
           <input id="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}" type="file" name="file" required class="sr-only" data-file-upload-input>
           <label class="btn btn-sm btn-outline-secondary mb-0 mr-2" for="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}">Procurar</label>
           <button class="btn btn-sm btn-primary" type="submit" data-file-upload-submit disabled aria-disabled="true">Enviar Arquivo</button>
         </div>
-        <span class="d-none mt-1 small text-success text-truncate file-upload-feedback" data-file-upload-feedback aria-live="polite">
+        <span class="d-none mt-1 small text-success text-truncate min-width-0" data-file-upload-feedback aria-live="polite">
           <button class="btn btn-sm btn-link p-0 mr-1 text-danger" type="button" data-file-upload-clear aria-label="Remover arquivo selecionado">
             <i class="fas fa-times" aria-hidden="true"></i>
           </button>
@@ -58,7 +58,7 @@
     @if ($visibleFiles->isEmpty())
       <p class="text-muted m-3">Nenhum Arquivo disponível.</p>
     @else
-      <ul class="nav nav-tabs file-tabs px-3 pt-2" role="tablist" aria-label="Visualização dos Arquivos">
+      <ul class="nav nav-tabs bg-white px-3 pt-2 small" role="tablist" aria-label="Visualização dos Arquivos">
         <li class="nav-item">
           <button
             id="{{ $componentId }}-images-tab"
@@ -111,10 +111,10 @@
                   data-file-card
                   data-file-uuid="{{ $media->uuid }}"
                   @if ($isShared) data-file-shared-with-meeting @endif>
-                  <div class="file-image-card border rounded h-100 bg-white">
+                  <div class="file-image-card min-width-0 border rounded h-100 bg-white">
                     <button
                       type="button"
-                      class="file-image-select"
+                      class="file-image-select btn btn-light d-flex align-items-center justify-content-center w-100 p-0 overflow-hidden text-body border-0"
                       aria-label="Abrir pré-visualização e metadados de {{ $media->display_name }}"
                       data-file-select
                       data-file-details-id="{{ $componentId }}-details-{{ $media->uuid }}">
@@ -122,9 +122,9 @@
                         <img
                           src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}"
                           alt=""
-                          class="file-image-thumbnail">
+                          class="file-image-thumbnail d-block w-100 h-100">
                       @else
-                        <span class="file-image-placeholder text-muted">
+                        <span class="d-flex flex-column align-items-center justify-content-center p-2 text-center text-muted">
                           <i class="far fa-image fa-2x mb-1" aria-hidden="true"></i>
                           <small>
                             {{ $media->getCustomProperty('thumbnail_status') === 'pending' ? 'Processando prévia' : 'Prévia indisponível' }}
@@ -132,10 +132,10 @@
                         </span>
                       @endif
                     </button>
-                    <div class="file-image-caption">
+                    <div class="file-image-caption d-flex align-items-center min-width-0 pl-2">
                       <button
                         type="button"
-                        class="file-image-name text-truncate"
+                        class="file-image-name btn btn-link btn-sm min-width-0 flex-grow-1 p-0 text-left text-truncate font-weight-bold"
                         title="{{ $media->display_name }}"
                         data-file-select
                         data-file-details-id="{{ $componentId }}-details-{{ $media->uuid }}">
@@ -166,18 +166,18 @@
                 @endphp
                 <article
                   id="file-{{ $media->uuid }}"
-                  class="list-group-item file-list-item"
+                  class="list-group-item list-group-item-action file-list-item d-flex align-items-center py-2 pl-3 pr-2"
                   data-file-card
                   data-file-uuid="{{ $media->uuid }}"
                   @if ($isShared) data-file-shared-with-meeting @endif>
                   <button
                     type="button"
-                    class="file-list-select"
+                    class="file-list-select btn btn-link d-flex align-items-center min-width-0 flex-grow-1 p-0 text-left"
                     aria-label="Abrir metadados e ações de {{ $media->display_name }}"
                     data-file-select
                     data-file-details-id="{{ $componentId }}-details-{{ $media->uuid }}">
                     <i class="far fa-file text-secondary mr-2" aria-hidden="true"></i>
-                    <span class="file-list-name text-truncate" title="{{ $media->display_name }}">{{ $media->display_name }}</span>
+                    <span class="file-list-name small min-width-0 flex-grow-1 font-weight-bold text-truncate" title="{{ $media->display_name }}">{{ $media->display_name }}</span>
                     @if ($isShared)
                       <span class="badge badge-light mr-2">Compartilhado</span>
                     @endif
@@ -188,6 +188,13 @@
             </div>
           @endif
         </div>
+      </div>
+
+      <div
+        class="file-rename-region border-top bg-light p-3"
+        data-file-rename-region
+        aria-label="Editar nome do Arquivo"
+        hidden>
       </div>
 
       <div class="file-details-region border-top bg-light" aria-live="polite">
@@ -213,18 +220,18 @@
             tabindex="-1"
             data-file-details
             hidden>
-            <div class="d-flex align-items-start">
+            <div class="d-block d-sm-flex align-items-start">
               @if ($isPreviewable)
                 <a
                   href="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}"
                   target="_blank"
                   rel="noopener"
-                  class="file-details-preview mr-3"
+                  class="file-details-preview d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden bg-white border rounded mr-sm-3 mb-3 mb-sm-0"
                   aria-label="Abrir pré-visualização de {{ $media->display_name }}">
-                  <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt="Pré-visualização de {{ $media->display_name }}">
+                  <img class="d-block w-100 h-100" src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt="Pré-visualização de {{ $media->display_name }}">
                 </a>
               @else
-                <div class="file-details-icon mr-3" aria-hidden="true">
+                <div class="file-details-icon d-flex align-items-center justify-content-center flex-shrink-0 overflow-hidden bg-white border rounded mr-sm-3 mb-3 mb-sm-0" aria-hidden="true">
                   <i class="far fa-file fa-2x text-secondary"></i>
                 </div>
               @endif
@@ -234,18 +241,18 @@
                   <h3 class="h6 text-truncate mb-1" title="{{ $media->display_name }}">{{ $media->display_name }}</h3>
                   <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" :previewable="$isPreviewable" :details-id="$componentId.'-details-'.$media->uuid" suffix="details" />
                 </div>
-                <dl class="file-metadata small text-muted mb-0">
-                  <div><dt>Tipo</dt><dd>{{ strtoupper(pathinfo($media->file_name, PATHINFO_EXTENSION)) ?: 'Sem extensão' }}</dd></div>
-                  <div><dt>Tamanho</dt><dd>{{ number_format($media->size / 1024, 1, ',', '.') }} KB</dd></div>
-                  <div><dt>MIME</dt><dd class="text-break">{{ $media->mime_type ?: 'Não identificado' }}</dd></div>
-                  <div><dt>Miniatura</dt><dd>{{ $thumbnailLabel }}</dd></div>
-                  <div><dt>Enviado por</dt><dd>{{ $media->uploader?->name ?? 'Usuário removido' }}</dd></div>
-                  <div><dt>Data</dt><dd>{{ optional($media->created_at)->format('d/m/Y H:i') }}</dd></div>
+                <dl class="row mx-n2 small text-muted mb-0">
+                  <div class="col-12 col-sm-6 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Tipo</dt><dd class="min-width-0 mb-0">{{ strtoupper(pathinfo($media->file_name, PATHINFO_EXTENSION)) ?: 'Sem extensão' }}</dd></div>
+                  <div class="col-12 col-sm-6 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Tamanho</dt><dd class="min-width-0 mb-0">{{ number_format($media->size / 1024, 1, ',', '.') }} KB</dd></div>
+                  <div class="col-12 col-sm-6 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">MIME</dt><dd class="min-width-0 mb-0 text-break">{{ $media->mime_type ?: 'Não identificado' }}</dd></div>
+                  <div class="col-12 col-sm-6 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Miniatura</dt><dd class="min-width-0 mb-0">{{ $thumbnailLabel }}</dd></div>
+                  <div class="col-12 col-sm-6 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Enviado por</dt><dd class="min-width-0 mb-0">{{ $media->uploader?->name ?? 'Usuário removido' }}</dd></div>
+                  <div class="col-12 col-sm-6 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Data</dt><dd class="min-width-0 mb-0">{{ optional($media->created_at)->format('d/m/Y H:i') }}</dd></div>
                   @can('viewOriginal', $media)
-                    <div class="file-metadata-wide"><dt>Nome original</dt><dd class="text-break">{{ $media->original_name }}</dd></div>
+                    <div class="col-12 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Nome original</dt><dd class="min-width-0 mb-0 text-break">{{ $media->original_name }}</dd></div>
                   @endcan
                   @if ($isShared)
-                    <div class="file-metadata-wide"><dt>Acesso</dt><dd>Compartilhado com a reunião</dd></div>
+                    <div class="col-12 d-flex min-width-0 px-2"><dt class="mr-1 text-secondary">Acesso</dt><dd class="min-width-0 mb-0">Compartilhado com a reunião</dd></div>
                   @endif
                 </dl>
               </div>

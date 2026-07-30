@@ -10,8 +10,6 @@
         "production": "mix --production"
     },
     "devDependencies": {
-        "laravel-mix": "^6.0.6",
-        "postcss": "^8.1.14",
-        "webpack": "5.100.2"
+        "laravel-mix": "^6.0.6"
     }
 }

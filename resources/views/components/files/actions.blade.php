@@ -12,9 +12,9 @@
   $renameId = "file-rename-{$media->uuid}-{$suffix}";
 @endphp
 
-<div class="dropdown file-actions" data-file-action>
+<div class="dropdown flex-shrink-0" data-file-action>
   <button
-    class="btn btn-sm btn-light text-secondary border-0 file-actions-toggle"
+    class="btn btn-sm btn-light text-secondary border-0 py-1 px-2"
     type="button"
     id="{{ $menuId }}"
     data-toggle="dropdown"
@@ -23,7 +23,7 @@
     aria-label="Ações de {{ $media->display_name }}">
     <i class="fas fa-ellipsis-h" aria-hidden="true"></i>
   </button>
-  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="{{ $menuId }}">
+  <div class="dropdown-menu dropdown-menu-right small" aria-labelledby="{{ $menuId }}">
     @can('update', $media)
       <button
         type="button"
@@ -83,7 +83,7 @@
       id="{{ $renameId }}"
       action="{{ route('files.update', ['uuid' => $media->uuid]) }}"
       method="post"
-      class="file-rename-popover"
+      class="w-100 mb-0"
       data-file-rename-form
       data-disable-client-validation
       hidden>
@@ -93,7 +93,8 @@
       <div class="input-group input-group-sm">
         <input id="{{ $renameId }}-name" name="name" value="{{ $media->display_name }}" class="form-control form-control-sm" required maxlength="255" data-file-rename-input>
         <div class="input-group-append">
-          <button type="submit" class="btn btn-outline-primary" aria-label="Confirmar novo nome">OK</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-outline-secondary" data-file-rename-cancel>Cancelar</button>
         </div>
       </div>
     </form>

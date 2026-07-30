@@ -163,6 +163,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!form) return;
 
         var input = form.querySelector("[data-file-rename-input]");
+        var cancel = form.querySelector("[data-file-rename-cancel]");
+        var browser = toggle.closest("[data-file-browser]");
+        var region = browser && browser.querySelector("[data-file-rename-region]");
+
+        if (!region) return;
 
         function setRenameVisibility(isVisible) {
             if (isVisible) {
@@ -172,6 +177,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.querySelectorAll("[data-file-rename-toggle]").forEach(function (otherToggle) {
                     if (otherToggle !== toggle) otherToggle.setAttribute("aria-expanded", "false");
                 });
+                document.querySelectorAll("[data-file-rename-region]").forEach(function (otherRegion) {
+                    otherRegion.hidden = otherRegion !== region;
+                });
+
+                region.appendChild(form);
+                region.hidden = false;
             }
 
             form.hidden = !isVisible;
@@ -180,6 +191,11 @@ document.addEventListener("DOMContentLoaded", function () {
             if (isVisible && input) {
                 input.focus();
                 input.select();
+            }
+
+            if (!isVisible) {
+                if (input) input.value = input.defaultValue;
+                region.hidden = true;
             }
         }
 
@@ -194,6 +210,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 toggle.focus();
             }
         });
+
+        if (cancel) {
+            cancel.addEventListener("click", function () {
+                setRenameVisibility(false);
+                toggle.focus();
+            });
+        }
     });
 
     highlightFileCard(window.location.hash);
