@@ -10,15 +10,25 @@ as etapas na ordem apresentada e interrompa o deploy se alguma validação falha
 
 ### Ativos do editor
 
-Execute npm ci e npm run production. A compilação grava os ativos diretamente em public/; esses arquivos não são trazidos pelo Git e nenhuma cópia adicional é necessária.
+EasyMDE e `highlight.js` são carregados pelo navegador a partir do jsDelivr,
+com versões fixas e SRI. O host `cdn.jsdelivr.net` precisa estar acessível aos
+navegadores; não há cópia local nem fallback por outro CDN.
+
+npm permanece apenas na construção dos JavaScripts e estilos próprios mantidos
+em `resources/`. Execute `npm ci` e `npm run production`. A compilação grava
+esses ativos em `public/`; os arquivos gerados não são trazidos pelo Git e
+nenhuma cópia adicional é necessária.
 
 ```sh
-# Instala as dependências registradas em package-lock.json.
+# Instala as ferramentas de construção registradas em package-lock.json.
 npm ci
 
-# Gera os ativos otimizados em public/.
+# Gera somente os ativos próprios otimizados em public/.
 npm run production
 ```
+
+As bibliotecas Markdown não devem aparecer como dependências em `package.json`.
+Não use npm para instalar EasyMDE ou `highlight.js`.
 
 ### Armazenamento privado
 
@@ -112,10 +122,10 @@ nos arquivos de lock e compile os ativos:
 # Instala as dependências PHP de produção conforme composer.lock.
 composer install --no-dev --prefer-dist --optimize-autoloader
 
-# Instala as dependências registradas em package-lock.json.
+# Instala somente as ferramentas de construção registradas em package-lock.json.
 npm ci
 
-# Gera os ativos otimizados em public/.
+# Gera os ativos próprios otimizados em public/.
 npm run production
 ```
 
@@ -206,16 +216,24 @@ Registre o usuário, horário, recurso testado e resultado de cada verificação
 Valide descrição de Projeto, descrição de Tarefa, Comentário, Anotações prévias
 de Reunião e Anotações prévias do item:
 
-1. abra o editor;
-2. edite conteúdo com ênfase, link, código e HTML bruto;
-3. confira a pré-visualização;
-4. salve e recarregue a página;
-5. confirme a formatação e o escape do HTML;
-6. confirme que `javascript:` não gera link e que imagens Markdown não são
+1. confirme no navegador que EasyMDE e `highlight.js` foram carregados de
+   `cdn.jsdelivr.net` sem erro de integridade;
+2. abra o editor;
+3. edite conteúdo com ênfase, link, código PHP e HTML bruto;
+4. confira a pré-visualização e o realce do bloco PHP;
+5. salve e recarregue a página;
+6. confirme a formatação e o escape do HTML;
+7. confirme que `javascript:` não gera link e que imagens Markdown não são
    incorporadas.
 
 Confirme também que Ata e Transcrição continuam como texto simples e que a
 descrição do Tipo de projeto é exibida corretamente.
+
+Em uma sessão de homologação separada, bloqueie temporariamente
+`cdn.jsdelivr.net` no navegador e recarregue um formulário Markdown. Confirme
+que o `textarea` permanece editável, que o formulário pode ser salvo e que
+conteúdo já renderizado continua legível sem realce. Reative o acesso ao CDN
+antes de prosseguir.
 
 ### Arquivos
 
@@ -284,8 +302,10 @@ php artisan test
 php artisan dusk
 ```
 
-Os testes Dusk exigem navegador, ChromeDriver compatível, banco isolado e
-servidor da aplicação. Não publique a release se algum teste falhar.
+Os testes Dusk exigem navegador, ChromeDriver compatível, banco isolado,
+servidor da aplicação e acesso à internet para carregar os ativos reais de
+`cdn.jsdelivr.net`. Não há cópias locais específicas para testes. Não publique
+a release se algum teste falhar.
 
 ## Recuperação
 
@@ -313,6 +333,8 @@ Considere estes riscos no monitoramento e no dimensionamento do ambiente:
 - não há cotas por usuário nem por Proprietário do arquivo;
 - Referências de arquivo podem quebrar após exclusão ou revogação de acesso;
 - fila indisponível mantém miniaturas pendentes;
+- indisponibilidade do jsDelivr remove temporariamente o editor enriquecido e o
+  realce, mas os formulários degradam para `textarea` e continuam salvando;
 - uploads de 100 MiB consomem rede, disco e espaço temporário;
 - imagens consomem CPU e memória durante a geração da miniatura;
 - banco e `storage/app/files` precisam de cópias de segurança consistentes.

@@ -10,7 +10,7 @@ Por fim, textos não possuem Menções estruturadas. Digitar um nome não cria i
 
 ## Solução
 
-Criar um serviço único e injetável de renderização segura com `league/commonmark`, acompanhado de dois perfis locais do EasyMDE e uma pré-visualização produzida pelo servidor. Aplicar a mesma política a todos os campos Markdown da primeira versão, incluindo Anotações prévias da reunião e do item, mantendo Ata e Transcrição como texto simples.
+Criar um serviço único e injetável de renderização segura com `league/commonmark`, acompanhado de dois perfis do EasyMDE carregado por CDN e uma pré-visualização produzida pelo servidor. Aplicar a mesma política a todos os campos Markdown da primeira versão, incluindo Anotações prévias da reunião e do item, mantendo Ata e Transcrição como texto simples.
 
 Introduzir um módulo de Arquivos privados baseado em `spatie/laravel-medialibrary`, com Projeto, Tarefa ou Reunião como Proprietário único e imutável. Cada Arquivo terá UUID público estável, nome original imutável, nome exibido editável, conteúdo imutável, autor do envio e nome físico opaco. Downloads sempre passarão por autorização da aplicação. Imagens raster válidas poderão gerar miniaturas privadas assíncronas; outros formatos serão entregues somente como download.
 
@@ -23,7 +23,7 @@ Adicionar Menções de usuários com autocomplete e sintaxe `@[Nome](mention:use
 A entrega seguirá uma sequência deliberadamente linear para estabilizar primeiro a fronteira de renderização e só então adicionar recursos que dependem dela:
 
 1. [Centralizar a renderização Markdown segura](issues/01-centralizar-renderizacao-markdown-segura.md): serviço oficial, política de segurança, CSS, campos consumidores e conversão legada.
-2. [Integrar editor e pré-visualização oficial](issues/02-integrar-editor-e-preview-oficial.md): ativos locais, dois perfis do EasyMDE e endpoint de pré-visualização.
+2. [Integrar editor e pré-visualização oficial](issues/02-integrar-editor-e-preview-oficial.md): bibliotecas externas por CDN, ativos próprios locais, dois perfis do EasyMDE e endpoint de pré-visualização.
 3. [Criar persistência e processamento de Arquivos](issues/03-criar-persistencia-e-processamento-de-arquivos.md): Media Library, disk privado, metadados, ciclo de vida e miniaturas.
 4. [Expor Arquivos com autorização, cards e auditoria](issues/04-expor-arquivos-com-autorizacao-e-auditoria.md): política de autorização, rotas, operações e interface reutilizável.
 5. [Integrar Referências de arquivo e compartilhamento com Reuniões](issues/05-integrar-referencias-e-compartilhamento-com-reunioes.md): seletores, links por UUID e audiência conjunta persistida.
@@ -94,12 +94,16 @@ Descrições de Tipo de projeto serão renderizadas pela mesma política segura 
 - Links internos ou externos para outro destino receberão `target="_blank"` e `rel="noopener noreferrer"`. Âncoras `#...` e Referências de arquivo resolvidas para a tela contextual atual navegarão na mesma aba. Quando o Arquivo pertencer a outra tela — inclusive um Arquivo do Projeto referenciado na Tarefa — a nova aba será mantida.
 - Não incorporar imagens declaradas no Markdown na primeira versão. A sintaxe de imagem será degradada para um link seguro; miniaturas aparecerão apenas nos cards de Arquivo. Isso inclui imagens externas.
 - Resolver Menções e aplicar regras de links na árvore de sintaxe abstrata, antes da emissão do HTML; não reescrever HTML final com expressões regulares.
-- Emitir classes de linguagem nos blocos de código. O realce será feito no navegador por `highlight.js`, empacotado localmente, sem HTML de realce produzido pelo servidor.
+- Emitir classes de linguagem nos blocos de código. O realce será feito no navegador pelo bundle comum do `highlight.js` carregado do jsDelivr, sem HTML de realce produzido pelo servidor. Linguagens fora do bundle continuarão legíveis sem realce.
 - Centralizar o CSS do conteúdo renderizado nos ativos da aplicação; não injetar folhas de estilo dentro de cada conteúdo.
 
 ## Editor e pré-visualização
 
-- Empacotar EasyMDE e `highlight.js` localmente por Laravel Mix, com versões registradas em `package-lock.json`; não usar CDN.
+- Carregar globalmente pelo layout principal o EasyMDE 2.20.0 e o bundle comum do `highlight.js` 11.11.1 a partir do jsDelivr, com versões exatas nas URLs, SRI SHA-384 e `crossorigin="anonymous"`, antes dos ativos próprios.
+- Usar os arquivos `easymde.min.css` e `easymde.min.js` do pacote do EasyMDE publicado pelo jsDelivr e `styles/github.min.css` e `highlight.min.js` da distribuição oficial para navegador do `highlight.js`, com URLs e hashes registrados no [ADR de bibliotecas de front-end por CDN](../../docs/adr/0004-bibliotecas-frontend-por-cdn.md).
+- Manter JavaScript e CSS próprios em `resources/` e compilá-los para `public/` pelo pipeline existente. npm, Laravel Mix, Webpack e PostCSS serão apenas ferramentas de construção e não fornecerão bibliotecas Markdown.
+- Remover EasyMDE, `highlight.js` e Lodash das dependências npm. Lodash não será migrado para o CDN porque não possui consumidor na aplicação.
+- Se o CDN falhar, preservar o `textarea`, o salvamento e as funções locais; omitir somente o editor enriquecido e o realce. Não usar fallback por npm, cópia local ou outro CDN.
 - Habilitar o corretor ortográfico do navegador e desabilitar o autosave do EasyMDE.
 - O perfil completo terá negrito, itálico, títulos, citação, listas ordenada, não ordenada e de tarefas, link, código inline e em bloco, tabela, Menção, Referência de arquivo, pré-visualização e ajuda curta.
 - O perfil compacto terá negrito, itálico, citação, listas ordenada e não ordenada, link, código inline e em bloco, Menção, Referência de arquivo e pré-visualização.
@@ -262,14 +266,16 @@ Usuários com acesso apenas herdado não serão elegíveis. O próprio autor pod
 - Cobrir seletores e referências para todos os contextos, ausência de herança e resposta indistinguível de não encontrado.
 - Cobrir criação, persistência, revogação e estabilidade histórica de Compartilhamentos de arquivo com reunião, inclusive reuniões multiprojeto.
 - Cobrir autocomplete, navegação por teclado, sintaxe, validação de novas Menções, preservação histórica, usuário indisponível, sincronização e reconstrução do índice.
-- Criar fluxos Dusk para o editor/pré-visualização, upload/card/download, compartilhamento em reunião e autocomplete de Menções. Evitar depender de serviços externos.
+- Criar fluxos Dusk para o editor/pré-visualização, upload/card/download, compartilhamento em reunião e autocomplete de Menções. A suíte de navegador usará o jsDelivr real e exigirá acesso à internet; não manter cópias ou substitutos locais das bibliotecas.
+- Verificar por testes HTTP as URLs e versões fixas, os hashes SRI, `crossorigin` e a ordem anterior aos ativos próprios.
+- Cobrir em teste de navegador a degradação quando os objetos globais não estiverem disponíveis.
 
 ## Implantação e operação
 
 - Publicar migrações e configuração antes de habilitar as interfaces que dependem delas.
 - Documentar `FILESYSTEM`/disk privado, limite de 100 MB, extensões GD necessárias e conexão de fila. O processador da fila precisa estar ativo quando a conexão não for `sync`.
 - Validar limites de PHP e servidor web/proxy com um Arquivo próximo de 100 MB no ambiente de homologação.
-- Compilar e publicar os ativos locais do EasyMDE e `highlight.js`.
+- Compilar e publicar somente os ativos próprios e validar o carregamento das bibliotecas Markdown pelo jsDelivr.
 - Executar a conversão do conteúdo legado de Tipo de projeto com verificação antes/depois.
 - Não executar implantação, alterar infraestrutura nem criar storage público como parte dos tickets de código.
 

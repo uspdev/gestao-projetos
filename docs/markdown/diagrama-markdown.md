@@ -17,6 +17,11 @@ flowchart TD
         display["HTML seguro é exibido; highlight.js realça blocos de código"]
     end
 
+    subgraph external["Bibliotecas externas — jsDelivr"]
+        easyMdeCdn["EasyMDE 2.20.0"]
+        highlightCdn["Bundle comum do highlight.js 11.11.1"]
+    end
+
     subgraph application["Aplicação — Laravel"]
         validation["FormRequest autoriza e valida o limite do campo"]
         controller["Controller salva o conteúdo em uma transação"]
@@ -32,6 +37,8 @@ flowchart TD
     end
 
     textarea --> editor --> author
+    easyMdeCdn -. "SRI aprovado" .-> editor
+    highlightCdn -. "SRI aprovado" .-> display
     author -. "pré-visualizar" .-> preview --> previewController --> renderer --> display
     author -- "enviar formulário" --> validation --> controller
     controller --> database
@@ -44,8 +51,10 @@ flowchart TD
 ## Responsabilidade de cada camada
 
 - **Blade:** disponibiliza o `textarea` e solicita a renderização do conteúdo salvo.
-- **Navegador:** o EasyMDE melhora a edição; a pré-visualização envia Markdown e o
-  `highlight.js` atua apenas no realce de código já convertido em HTML.
+- **Navegador:** carrega EasyMDE e `highlight.js` globalmente pelo jsDelivr; o
+  EasyMDE melhora a edição, a pré-visualização envia Markdown e o
+  `highlight.js` atua apenas no realce de código já convertido em HTML. Se o
+  CDN falhar, o `textarea` e o conteúdo sem realce permanecem utilizáveis.
 - **Laravel:** valida a entrada, grava o Markdown original, atualiza o índice de
   menções e usa o `MarkdownRenderer` na pré-visualização e na exibição final.
 - **Persistência:** o campo da entidade guarda o Markdown; menções são um índice
@@ -54,4 +63,3 @@ flowchart TD
 O `MarkdownRenderer` escapa HTML escrito pelo usuário, aceita links relativos e
 links `http` ou `https`, abre links em nova aba e impede protocolos inseguros.
 Imagens em Markdown são convertidas em links seguros, não incorporadas à página.
-

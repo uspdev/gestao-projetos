@@ -38,6 +38,11 @@ Os campos **Ata** e **Transcrição** de reunião continuam sendo texto simples.
 A pré-visualização não salva o conteúdo. As alterações só são persistidas quando
 o formulário principal é salvo.
 
+O editor enriquecido e o realce de blocos de código são carregados pelo
+jsDelivr. Se o CDN estiver temporariamente indisponível, o campo permanece como
+uma área de texto simples e pode ser salvo normalmente; conteúdos já renderizados
+continuam legíveis, apenas sem realce de sintaxe.
+
 ## Menções
 
 Digite `@` e parte do nome da pessoa, depois selecione uma das opções exibidas.
