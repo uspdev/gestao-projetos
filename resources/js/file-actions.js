@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
+    if (window.fileActionsInitialized) return;
+
+    window.fileActionsInitialized = true;
+
     var fileReferenceHighlightTimeout = null;
     var highlightedFileCard = null;
 

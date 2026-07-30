@@ -265,3 +265,7 @@
     @endif
   </div>
 </section>
+
+@once
+  @include('components.files.inline-actions')
+@endonce
