@@ -4,11 +4,91 @@ namespace Tests\Browser;
 
 use App\Enums\Project\ProjectStatus;
 use App\Models\Project;
+use Facebook\WebDriver\Chrome\ChromeDevToolsDriver;
+use Illuminate\Support\Str;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
 class MarkdownEditorTest extends DuskTestCase
 {
+    public function test_markdown_field_can_be_saved_when_easymde_is_unavailable(): void
+    {
+        $suffix = Str::lower(Str::random(8));
+        $projectName = 'Projeto sem CDN '.$suffix;
+        $slug = 'dusk-cdn-indisponivel-'.$suffix;
+
+        $this->browse(function (Browser $browser) use ($projectName, $slug): void {
+            $devTools = $this->blockCdnAsset(
+                $browser,
+                '*easymde@2.20.0/dist/easymde.min.js*'
+            );
+
+            try {
+                $textarea = 'textarea[data-markdown-profile="full"]';
+
+                $browser->loginAs(self::getUser('admin'))
+                    ->visit('/projects/create?project_type=organizacional')
+                    ->waitFor($textarea)
+                    ->assertVisible($textarea)
+                    ->assertMissing($textarea.' + .EasyMDEContainer')
+                    ->type($textarea, 'Markdown editável sem CDN')
+                    ->assertInputValue($textarea, 'Markdown editável sem CDN')
+                    ->type('name', $projectName)
+                    ->type('slug', $slug)
+                    ->select('status', ProjectStatus::ACTIVE->value)
+                    ->assertScript(
+                        "window.MarkdownEditors.get(document.querySelector('{$textarea}')) === undefined",
+                        true
+                    );
+
+                $browser->waitForReload(fn (Browser $browser) => $browser->press('Salvar Projeto'))
+                    ->assertSee('Markdown editável sem CDN')
+                    ->assertSee($projectName);
+            } finally {
+                $this->restoreCdnAccess($devTools);
+            }
+        });
+
+        $this->assertSame(
+            'Markdown editável sem CDN',
+            Project::query()->where('name', $projectName)->value('description')
+        );
+    }
+
+    public function test_editor_remains_usable_when_highlight_js_is_unavailable(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $devTools = $this->blockCdnAsset(
+                $browser,
+                '*highlightjs/cdn-release@11.11.1/build/highlight.min.js*'
+            );
+
+            try {
+                $browser->loginAs(self::getUser('admin'))
+                    ->visit('/projects/create?project_type=organizacional')
+                    ->waitFor('.EasyMDEContainer')
+                    ->assertScript("typeof window.EasyMDE === 'function'", true)
+                    ->assertScript('window.hljs === undefined', true);
+
+                $browser->script(<<<'JS'
+                    const content = document.createElement('div');
+                    content.id = 'markdown-without-highlight';
+                    content.className = 'markdown-content';
+                    content.innerHTML = '<pre><code>echo 1;</code></pre>';
+                    document.body.appendChild(content);
+                JS);
+
+                $browser->waitForText('echo 1;')
+                    ->assertScript(
+                        "document.querySelector('#markdown-without-highlight code').classList.contains('hljs')",
+                        false
+                    );
+            } finally {
+                $this->restoreCdnAccess($devTools);
+            }
+        });
+    }
+
     public function test_project_description_uses_the_real_preview_save_and_safe_display_flow(): void
     {
         $administrator = self::getUser('admin');
@@ -612,6 +692,23 @@ class MarkdownEditorTest extends DuskTestCase
                 return Boolean(entry && entry.editor.toolbarElements['{$button}']);
             })()
         JS;
+    }
+
+    private function blockCdnAsset(Browser $browser, string $urlPattern): ChromeDevToolsDriver
+    {
+        $devTools = new ChromeDevToolsDriver($browser->driver);
+        $devTools->execute('Network.enable');
+        $devTools->execute('Network.setCacheDisabled', ['cacheDisabled' => true]);
+        $devTools->execute('Network.clearBrowserCache');
+        $devTools->execute('Network.setBlockedURLs', ['urls' => [$urlPattern]]);
+
+        return $devTools;
+    }
+
+    private function restoreCdnAccess(ChromeDevToolsDriver $devTools): void
+    {
+        $devTools->execute('Network.setBlockedURLs', ['urls' => []]);
+        $devTools->execute('Network.setCacheDisabled', ['cacheDisabled' => false]);
     }
 
     private function toolbarHasFor(string $selector, string $button): string

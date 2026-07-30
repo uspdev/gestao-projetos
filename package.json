@@ -10,10 +10,7 @@
         "production": "mix --production"
     },
     "devDependencies": {
-        "easymde": "^2.20.0",
-        "highlight.js": "^11.11.1",
         "laravel-mix": "^6.0.6",
-        "lodash": "^4.17.19",
         "postcss": "^8.1.14",
         "webpack": "5.100.2"
     }

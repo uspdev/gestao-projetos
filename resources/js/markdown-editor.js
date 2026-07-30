@@ -1,9 +1,3 @@
-const EasyMDE = require("easymde");
-const hljs = require("highlight.js");
-
-require("easymde/dist/easymde.min.css");
-require("highlight.js/styles/github.css");
-
 // -----------------------------------------------------------------------------
 // Estado e configurações globais
 // -----------------------------------------------------------------------------
@@ -802,9 +796,7 @@ class OfficialPreview {
             }
 
             preview.innerHTML = this.lastValidHtml;
-            preview
-                .querySelectorAll("pre code")
-                .forEach((block) => hljs.highlightElement(block));
+            highlightCodeBlocks(preview);
         } catch (error) {
             // A última resposta válida permanece visível em falhas de rede ou validação.
         } finally {
@@ -843,15 +835,23 @@ function preventFileInsertion(editor) {
 /**
  * Aplica highlight.js aos blocos de código já renderizados no DOM.
  */
+function highlightCodeBlocks(root) {
+    if (!window.hljs || typeof window.hljs.highlightElement !== "function") {
+        return;
+    }
+
+    root.querySelectorAll("pre code").forEach((block) => {
+        window.hljs.highlightElement(block);
+    });
+}
+
 function highlightMarkdown(root = document) {
     const markdownContents = root.matches && root.matches('.markdown-content')
         ? [root]
         : root.querySelectorAll('.markdown-content');
 
     markdownContents.forEach((content) => {
-        content.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
-        });
+        highlightCodeBlocks(content);
 
         content.querySelectorAll('a[href]').forEach((link) => {
             const href = link.getAttribute('href');
@@ -884,6 +884,12 @@ function highlightMarkdown(root = document) {
 function initializeEditor(textarea) {
     if (editors.has(textarea)) {
         return editors.get(textarea).editor;
+    }
+
+    const EasyMDE = window.EasyMDE;
+
+    if (typeof EasyMDE !== "function") {
+        return null;
     }
 
     let preview;

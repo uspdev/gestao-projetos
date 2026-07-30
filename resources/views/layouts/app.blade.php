@@ -19,6 +19,14 @@
 
 @section('styles')
   @parent
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.css"
+    integrity="sha384-3AvV7152TgYAMYdGZPqG9BpmSH2ZW6ewTDL0QV5PyNkl19KMI+yLMdJz183N8A2d"
+    crossorigin="anonymous">
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/github.min.css"
+    integrity="sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L"
+    crossorigin="anonymous">
   @stack('styles')
   <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   <style>
@@ -88,6 +96,14 @@
   @endphp
   @stack('modals')
   @parent
+  <script
+    src="https://cdn.jsdelivr.net/npm/easymde@2.20.0/dist/easymde.min.js"
+    integrity="sha384-YDXeUfPZ4SP6vJpnF+ZMmf4B1bax6yd4Q/aNbkvLidRD843hPG5RE67M0IYT4LOq"
+    crossorigin="anonymous"></script>
+  <script
+    src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js"
+    integrity="sha384-RH2xi4eIQ/gjtbs9fUXM68sLSi99C7ZWBRX1vDrVv6GQXRibxXLbwO2NGZB74MbU"
+    crossorigin="anonymous"></script>
   @stack('scripts')
   <script>
     window.fileDownloadUrlTemplate = @json($fileDownloadUrlTemplate);
