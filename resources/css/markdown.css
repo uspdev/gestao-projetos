@@ -39,28 +39,10 @@
     overscroll-behavior-y: contain;
 }
 
-.markdown-content {
-    max-height: min(60vh, 36rem);
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    padding-right: 0.5rem;
-    scrollbar-color: #adb5bd transparent;
-    scrollbar-width: thin;
-}
-
 .markdown-content:focus-visible {
     border-radius: 0.25rem;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     outline: 0;
-}
-
-.markdown-content::-webkit-scrollbar {
-    width: 0.5rem;
-}
-
-.markdown-content::-webkit-scrollbar-thumb {
-    background-color: #adb5bd;
-    border-radius: 999px;
 }
 
 .markdown-content > :last-child {
