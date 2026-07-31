@@ -150,6 +150,9 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
 
         $this->assertSame(3, substr_count($response->getContent(), '<strong>Seguro</strong>'));
         $this->assertSame(3, substr_count($response->getContent(), 'href="https://example.test" target="_blank" rel="noopener noreferrer"'));
+        $this->assertSame(3, substr_count($response->getContent(), 'class="markdown-content"'));
+        $this->assertSame(3, substr_count($response->getContent(), 'aria-label="Conteúdo em Markdown"'));
+        $this->assertSame(3, substr_count($response->getContent(), 'role="region" tabindex="0"'));
         $response
             ->assertDontSee('<script>alert(1)</script>', false)
             ->assertSee('**Ata literal** &lt;script&gt;alert(2)&lt;/script&gt;', false)
