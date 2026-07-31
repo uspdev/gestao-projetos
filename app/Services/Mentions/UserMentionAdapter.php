@@ -26,7 +26,7 @@ final class UserMentionAdapter
             && User::query()->whereKey($key)->exists();
     }
 
-    public function isEligible(Model $source, string $key): bool
+    public function isEligible(Model $source, string $key, ?User $reader = null): bool
     {
         return $this->exists($key)
             && $this->eligibleIds($source)->contains((int) $key);
@@ -58,16 +58,22 @@ final class UserMentionAdapter
     }
 
     /**
-     * @return Collection<int, array{id: int, name: string}>
+     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string}>
      */
-    public function search(Model $source, string $term = ''): Collection
+    public function search(Model $source, string $term = '', ?User $reader = null): Collection
     {
         return User::query()
             ->whereIn('id', $this->eligibleIds($source))
             ->when(trim($term) !== '', fn ($query) => $query->where('name', 'like', '%' . trim($term) . '%'))
             ->orderBy('name')
             ->get(['id', 'name'])
-            ->map(fn (User $user): array => $user->only(['id', 'name']))
+            ->map(fn (User $user): array => [
+                'id' => (int) $user->id,
+                'name' => $user->name,
+                'type' => self::ALIAS,
+                'type_label' => 'Pessoa',
+                'group' => 'people',
+            ])
             ->values();
     }
 

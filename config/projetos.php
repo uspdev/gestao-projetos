@@ -49,7 +49,8 @@ return [
                 'comment'      => App\Models\Comment::class,
             ],
             'target' => [
-                'user' => App\Models\User::class,
+                'user'    => App\Models\User::class,
+                'project' => App\Models\Project::class,
             ],
         ],
     ],

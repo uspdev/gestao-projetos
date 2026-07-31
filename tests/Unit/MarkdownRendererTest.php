@@ -186,6 +186,22 @@ class MarkdownRendererTest extends TestCase
         );
     }
 
+    public function test_it_renders_an_available_project_with_its_current_name_and_type_metadata(): void
+    {
+        $renderer = new MarkdownRenderer(fn (string $type, string $key): array => [
+            'status' => 'available',
+            'type' => 'projeto',
+            'label' => 'Projeto atual',
+            'url' => '/projects/projeto-atual',
+            'accessible_name' => 'projeto: Projeto atual',
+        ]);
+
+        $this->assertSame(
+            '<p>@<a href="/projects/projeto-atual" target="_blank" rel="noopener noreferrer" class="markdown-mention" aria-label="projeto: Projeto atual" title="projeto: Projeto atual">Projeto atual</a></p>' . "\n",
+            $renderer->render('@[Rótulo histórico](mention:project:42)')
+        );
+    }
+
     public function test_it_renders_the_missing_message_without_a_link(): void
     {
         $renderer = new MarkdownRenderer(fn (string $type, string $key): array => [

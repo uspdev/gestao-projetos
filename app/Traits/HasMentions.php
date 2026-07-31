@@ -22,6 +22,10 @@ trait HasMentions
 
             $source->outgoingMentions()->delete();
 
+            if (method_exists($source, 'isForceDeleting') && $source->isForceDeleting()) {
+                $source->incomingMentions()->delete();
+            }
+
             if ($source instanceof Meeting && Schema::hasTable('meeting_items')) {
                 MeetingItem::query()
                     ->where('meeting_id', $source->getKey())
@@ -64,5 +68,10 @@ trait HasMentions
     public function outgoingMentions(): MorphMany
     {
         return $this->morphMany(Mention::class, 'source');
+    }
+
+    public function incomingMentions(): MorphMany
+    {
+        return $this->morphMany(Mention::class, 'target');
     }
 }

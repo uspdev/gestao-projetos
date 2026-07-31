@@ -26,6 +26,7 @@ class MentionMap extends BaseMorphMap
     {
         return static::configuredOptions('target', [
             'user' => \App\Models\User::class,
+            'project' => \App\Models\Project::class,
         ]);
     }
 

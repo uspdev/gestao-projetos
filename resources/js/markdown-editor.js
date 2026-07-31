@@ -67,7 +67,7 @@ const mentionButton = {
     name: "mention",
     action: extensionAction("markdown-editor:mention"),
     className: "fa fa-at",
-    title: "Mencionar usuário",
+    title: "Mencionar",
 };
 
 const fileReferenceButton = {
@@ -200,16 +200,37 @@ function mentionRange(editor) {
     };
 }
 
-function insertMention(editor, range, user) {
-    editor.codemirror.replaceRange(`@[${user.name}](mention:user:${user.id})`, range.from, range.to);
+function mentionType(target) {
+    return target.type || "user";
+}
+
+function mentionTypeLabel(target) {
+    return target.type_label || (mentionType(target) === "project" ? "Projeto" : "Pessoa");
+}
+
+function mentionLabel(target) {
+    return target.name || target.label || "";
+}
+
+function mentionMarkdownLabel(target) {
+    return mentionLabel(target)
+        .replace(/\\/g, "\\\\")
+        .replace(/\[/g, "\\[")
+        .replace(/\]/g, "\\]");
+}
+
+function insertMention(editor, range, target) {
+    const type = mentionType(target);
+    const label = mentionMarkdownLabel(target);
+    editor.codemirror.replaceRange(`@[${label}](mention:${type}:${target.id})`, range.from, range.to);
     editor.codemirror.focus();
     closeMentionSelector();
 }
 
-function renderMentionSelector(editor, range, users) {
+function renderMentionSelector(editor, range, targets) {
     closeMentionSelector();
 
-    if (users.length === 0) {
+    if (targets.length === 0) {
         return;
     }
 
@@ -222,31 +243,105 @@ function renderMentionSelector(editor, range, users) {
     selector.style.left = `${position.left}px`;
     selector.style.top = `${position.bottom + 4}px`;
 
-    users.forEach((user, index) => {
-        const option = document.createElement('button');
-        option.type = 'button';
-        option.className = `list-group-item list-group-item-action${index === 0 ? ' active' : ''}`;
-        option.dataset.mentionUserId = user.id;
-        option.textContent = user.name;
-        option.addEventListener('click', () => {
-            insertMention(editor, range, user);
+    const filters = document.createElement('div');
+    filters.className = 'btn-group btn-group-sm w-100 mb-2';
+    const filterOptions = [
+        ['all', 'Todos'],
+        ['user', 'Pessoas'],
+        ['project', 'Projetos'],
+    ];
+    const results = document.createElement('div');
+    results.className = 'list-group';
+
+    const renderResults = (filter) => {
+        results.replaceChildren();
+        const filteredTargets = filter === 'all'
+            ? targets
+            : targets.filter((target) => mentionType(target) === filter);
+        const groups = [];
+
+        filteredTargets.forEach((target) => {
+            const type = mentionType(target);
+            let group = groups.find((candidate) => candidate.type === type);
+
+            if (!group) {
+                group = { type, targets: [] };
+                groups.push(group);
+            }
+
+            group.targets.push(target);
         });
-        selector.appendChild(option);
+
+        activeMentionSelector.activeTargets = filteredTargets;
+        activeMentionSelector.activeIndex = 0;
+
+        groups.forEach((group, groupIndex) => {
+            const heading = document.createElement('div');
+            heading.className = `small text-muted font-weight-bold${groupIndex > 0 ? ' mt-2' : ''}`;
+            heading.textContent = mentionTypeLabel(group.targets[0]);
+            results.appendChild(heading);
+
+            group.targets.forEach((target) => {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = `list-group-item list-group-item-action${
+                    filteredTargets.indexOf(target) === 0 ? ' active' : ''
+                }`;
+                option.dataset.mentionTargetType = mentionType(target);
+                option.dataset.mentionTargetId = target.id;
+                if (mentionType(target) === 'user') {
+                    option.dataset.mentionUserId = target.id;
+                }
+                if (mentionType(target) === 'project') {
+                    option.dataset.mentionProjectId = target.id;
+                }
+                option.textContent = `${mentionTypeLabel(target)}: ${mentionLabel(target)}`;
+                option.addEventListener('click', () => {
+                    insertMention(editor, range, target);
+                });
+                results.appendChild(option);
+            });
+        });
+    };
+
+    filterOptions.forEach(([value, label], index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `btn btn-outline-secondary${index === 0 ? ' active' : ''}`;
+        button.dataset.mentionFilter = value;
+        button.textContent = label;
+        button.addEventListener('click', () => {
+            filters.querySelectorAll('[data-mention-filter]').forEach((filterButton) => {
+                filterButton.classList.toggle('active', filterButton === button);
+            });
+            renderResults(value);
+        });
+        filters.appendChild(button);
     });
 
     document.body.appendChild(selector);
-    activeMentionSelector = { element: selector, editor, range, users, activeIndex: 0 };
+    selector.append(filters, results);
+    activeMentionSelector = {
+        element: selector,
+        editor,
+        range,
+        targets,
+        activeTargets: targets,
+        activeIndex: 0,
+        results,
+    };
+    renderResults('all');
 }
 
 function selectActiveMention() {
-    if (!activeMentionSelector) {
+    if (!activeMentionSelector || activeMentionSelector.activeTargets.length === 0) {
         return false;
     }
 
     insertMention(
         activeMentionSelector.editor,
         activeMentionSelector.range,
-        activeMentionSelector.users[activeMentionSelector.activeIndex],
+        activeMentionSelector.activeTargets[activeMentionSelector.activeIndex],
     );
 
     return true;
@@ -257,10 +352,19 @@ function moveActiveMention(step) {
         return false;
     }
 
-    const { users, element } = activeMentionSelector;
-    activeMentionSelector.activeIndex = (activeMentionSelector.activeIndex + step + users.length) % users.length;
-    element.querySelectorAll('[data-mention-user-id]').forEach((option, index) => {
-        option.classList.toggle('active', index === activeMentionSelector.activeIndex);
+    const { activeTargets, element } = activeMentionSelector;
+
+    if (activeTargets.length === 0) {
+        return false;
+    }
+
+    activeMentionSelector.activeIndex = (activeMentionSelector.activeIndex + step + activeTargets.length) % activeTargets.length;
+    element.querySelectorAll('[data-mention-target-type]').forEach((option) => {
+        const optionIndex = activeTargets.findIndex((target) =>
+            mentionType(target) === option.dataset.mentionTargetType
+            && String(target.id) === String(option.dataset.mentionTargetId)
+        );
+        option.classList.toggle('active', optionIndex === activeMentionSelector.activeIndex);
     });
 
     return true;

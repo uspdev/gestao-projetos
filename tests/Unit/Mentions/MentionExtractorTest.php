@@ -30,4 +30,14 @@ class MentionExtractorTest extends TestCase
             )
         );
     }
+
+    public function test_it_accepts_markdown_escaped_project_labels(): void
+    {
+        $extractor = new MentionExtractor();
+
+        $references = $extractor->references('@[Projeto \\] atual](mention:project:42)');
+
+        $this->assertCount(1, $references);
+        $this->assertSame('project:42', $references[0]->identity());
+    }
 }
