@@ -1028,7 +1028,15 @@ function initializeEditor(textarea) {
 
     preview = new OfficialPreview(editor, textarea);
     editor.codemirror.getInputField().setAttribute("spellcheck", "true");
-    editor.codemirror.on("change", () => preview.schedule());
+    editor.codemirror.on("change", () => {
+        // O validador de formulários consulta o textarea original antes do
+        // listener de submit do EasyMDE. Mantenha-o sincronizado durante a
+        // edição para que campos obrigatórios não sejam considerados vazios
+        // no primeiro envio.
+        editor.codemirror.save();
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        preview.schedule();
+    });
     editor.codemirror.on('inputRead', () => loadMentionSelector(textarea, editor));
     editor.codemirror.getWrapperElement().addEventListener('keydown', (event) => {
         if (!activeMentionSelector || activeMentionSelector.editor !== editor) {
