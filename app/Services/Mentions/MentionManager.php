@@ -27,13 +27,16 @@ class MentionManager
         private MentionExtractor $extractor,
         ?UserMentionAdapter $userAdapter = null,
         ?ProjectMentionAdapter $projectAdapter = null,
+        ?TaskMentionAdapter $taskAdapter = null,
     ) {
         $this->userAdapter = $userAdapter ?? new UserMentionAdapter();
         $this->projectAdapter = $projectAdapter ?? new ProjectMentionAdapter();
+        $this->taskAdapter = $taskAdapter ?? new TaskMentionAdapter();
     }
 
     private UserMentionAdapter $userAdapter;
     private ProjectMentionAdapter $projectAdapter;
+    private TaskMentionAdapter $taskAdapter;
 
     public function synchronize(
         Model $source,
@@ -350,6 +353,7 @@ class MentionManager
         return [
             UserMentionAdapter::ALIAS => $this->userAdapter,
             ProjectMentionAdapter::ALIAS => $this->projectAdapter,
+            TaskMentionAdapter::ALIAS => $this->taskAdapter,
         ];
     }
 
@@ -362,6 +366,7 @@ class MentionManager
             '', 'all', 'todos' => array_keys($this->adapters()),
             'user', 'users', 'people', 'pessoas' => [UserMentionAdapter::ALIAS],
             'project', 'projects', 'projeto', 'projetos' => [ProjectMentionAdapter::ALIAS],
+            'task', 'tasks', 'tarefa', 'tarefas' => [TaskMentionAdapter::ALIAS],
             default => [],
         };
     }

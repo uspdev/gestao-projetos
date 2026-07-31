@@ -205,11 +205,17 @@ function mentionType(target) {
 }
 
 function mentionTypeLabel(target) {
-    return target.type_label || (mentionType(target) === "project" ? "Projeto" : "Pessoa");
+    const labels = {
+        user: "Pessoa",
+        project: "Projeto",
+        task: "Tarefa",
+    };
+
+    return target.type_label || labels[mentionType(target)] || "Destino";
 }
 
 function mentionLabel(target) {
-    return target.name || target.label || "";
+    return target.name || target.title || target.label || "";
 }
 
 function mentionMarkdownLabel(target) {
@@ -249,6 +255,7 @@ function renderMentionSelector(editor, range, targets) {
         ['all', 'Todos'],
         ['user', 'Pessoas'],
         ['project', 'Projetos'],
+        ['task', 'Tarefas'],
     ];
     const results = document.createElement('div');
     results.className = 'list-group';
@@ -294,6 +301,9 @@ function renderMentionSelector(editor, range, targets) {
                 }
                 if (mentionType(target) === 'project') {
                     option.dataset.mentionProjectId = target.id;
+                }
+                if (mentionType(target) === 'task') {
+                    option.dataset.mentionTaskId = target.id;
                 }
                 option.textContent = `${mentionTypeLabel(target)}: ${mentionLabel(target)}`;
                 option.addEventListener('click', () => {
@@ -389,7 +399,7 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
     })
         .then((response) => {
             if (!response.ok) {
-                throw new Error(`Falha ao consultar usuários: HTTP ${response.status}`);
+                throw new Error(`Falha ao consultar Menções: HTTP ${response.status}`);
             }
 
             return response.json();

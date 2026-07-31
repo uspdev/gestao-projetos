@@ -44,6 +44,7 @@ class MentionController extends Controller
                 ['value' => 'all', 'label' => 'Todos'],
                 ['value' => 'user', 'label' => 'Pessoas'],
                 ['value' => 'project', 'label' => 'Projetos'],
+                ['value' => 'task', 'label' => 'Tarefas'],
             ],
         ]);
     }

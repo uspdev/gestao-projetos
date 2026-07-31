@@ -5,8 +5,10 @@ namespace Tests\Feature\Mentions;
 use App\Models\Comment;
 use App\Models\Mention;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use App\Services\Mentions\MentionManager;
+use App\Services\MarkdownRenderer;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -51,11 +53,35 @@ class MentionManagerTest extends TestCase
             $table->boolean('pinned')->default(false);
             $table->timestamps();
         });
+        Schema::create('modules', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('project_modules', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('project_id');
+            $table->foreignId('module_id');
+            $table->boolean('enabled')->default(true);
+            $table->timestamps();
+        });
+        DB::table('modules')->insert([
+            'name' => 'Tarefas',
+            'slug' => 'tasks',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
         Schema::create('tasks', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('project_id');
             $table->string('title');
+            $table->text('description')->nullable();
             $table->string('status');
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
             $table->boolean('deleted_via_project')->default(false);
             $table->timestamps();
             $table->softDeletes();
@@ -399,6 +425,466 @@ class MentionManagerTest extends TestCase
         $this->assertSame((string) $target->id, (string) $mention->target_id);
         $this->assertTrue($mention->target->is($target));
         $this->assertTrue($target->incomingMentions()->whereKey($mention->id)->exists());
+    }
+
+    public function test_it_indexes_a_task_mention_with_its_stable_id_and_incoming_relationship(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto da tarefa mencionada',
+            'slug' => 'projeto-da-tarefa-mencionada',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa mencionada',
+            'status' => 'NEW',
+        ]);
+
+        $this->actingAs($author);
+
+        app(MentionManager::class)->synchronize(
+            $project,
+            'description',
+            '@[Rótulo histórico](mention:task:' . $task->id . ')'
+        );
+
+        $mention = Mention::query()->firstOrFail();
+
+        $this->assertSame('task', $mention->target_type);
+        $this->assertSame((string) $task->id, (string) $mention->target_id);
+        $this->assertTrue($mention->target->is($task));
+        $this->assertTrue($task->incomingMentions()->whereKey($mention->id)->exists());
+    }
+
+    public function test_it_searches_contextual_and_other_visible_tasks_by_title(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $contextProject = Project::query()->create([
+            'name' => 'Projeto contextual de tarefas',
+            'slug' => 'projeto-contextual-de-tarefas',
+            'status' => 'ACTIVE',
+        ]);
+        $otherProject = Project::query()->create([
+            'name' => 'Outro projeto visível',
+            'slug' => 'outro-projeto-visivel',
+            'status' => 'ACTIVE',
+        ]);
+        $hiddenProject = Project::query()->create([
+            'name' => 'Projeto oculto',
+            'slug' => 'projeto-oculto',
+            'status' => 'ACTIVE',
+        ]);
+        $contextProject->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $otherProject->users()->attach($author, ['role' => 'VIEWER']);
+        $contextTask = Task::query()->create([
+            'project_id' => $contextProject->id,
+            'title' => 'Tarefa contextual Z',
+            'status' => 'NEW',
+        ]);
+        $globalTask = Task::query()->create([
+            'project_id' => $otherProject->id,
+            'title' => 'Tarefa global A',
+            'status' => 'NEW',
+        ]);
+        $hiddenTask = Task::query()->create([
+            'project_id' => $hiddenProject->id,
+            'title' => 'Tarefa oculta',
+            'status' => 'NEW',
+        ]);
+
+        $results = app(MentionManager::class)->search(
+            $contextProject,
+            '',
+            $author,
+            'task'
+        );
+
+        $this->assertSame([$contextTask->id, $globalTask->id], $results->pluck('id')->all());
+        $this->assertSame(['Tarefa contextual Z', 'Tarefa global A'], $results->pluck('name')->all());
+        $this->assertSame(['task', 'task'], $results->pluck('type')->all());
+        $this->assertSame(['Tarefa', 'Tarefa'], $results->pluck('type_label')->all());
+        $this->assertFalse($results->contains('id', $hiddenTask->id));
+    }
+
+    public function test_task_search_in_a_comment_inherits_the_commented_project_context(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $contextProject = Project::query()->create([
+            'name' => 'Projeto do comentário',
+            'slug' => 'projeto-do-comentario-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $otherProject = Project::query()->create([
+            'name' => 'Projeto fora do comentário',
+            'slug' => 'projeto-fora-do-comentario-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $contextProject->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $otherProject->users()->attach($author, ['role' => 'VIEWER']);
+        $contextTask = Task::query()->create([
+            'project_id' => $contextProject->id,
+            'title' => 'Tarefa do contexto do comentário',
+            'status' => 'NEW',
+        ]);
+        $otherTask = Task::query()->create([
+            'project_id' => $otherProject->id,
+            'title' => 'Tarefa fora do contexto',
+            'status' => 'NEW',
+        ]);
+        $comment = Comment::query()->create([
+            'user_id' => $author->id,
+            'commentable_type' => 'project',
+            'commentable_id' => $contextProject->id,
+            'text' => 'Comentário',
+            'is_active' => true,
+        ]);
+
+        $results = app(MentionManager::class)->search($comment, '', $author, 'task');
+
+        $this->assertSame([$contextTask->id, $otherTask->id], $results->pluck('id')->all());
+    }
+
+    public function test_the_autocomplete_route_returns_task_results_and_its_filter(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto do autocomplete de tarefas',
+            'slug' => 'projeto-do-autocomplete-de-tarefas',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'ADMIN']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa no autocomplete',
+            'status' => 'NEW',
+        ]);
+
+        $this->actingAs($author)
+            ->getJson(route('mentions.selectable', [
+                'context_type' => 'project',
+                'context_id' => $project->id,
+                'filter' => 'task',
+            ]))
+            ->assertOk()
+            ->assertJsonPath('results.0.id', $task->id)
+            ->assertJsonPath('results.0.type', 'task')
+            ->assertJsonPath('results.0.type_label', 'Tarefa')
+            ->assertJsonFragment(['value' => 'task', 'label' => 'Tarefas']);
+    }
+
+    public function test_it_rejects_a_task_mention_to_the_task_source_itself(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto da tarefa autorreferente',
+            'slug' => 'projeto-da-tarefa-autorreferente',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa autorreferente',
+            'status' => 'NEW',
+        ]);
+
+        $this->actingAs($author);
+
+        $this->expectExceptionObject(ValidationException::withMessages([
+            'description' => 'Uma ou mais Menções não existem ou não são permitidas neste contexto.',
+        ]));
+
+        app(MentionManager::class)->validateAllMentions(
+            $task,
+            'description',
+            '@[Tarefa autorreferente](mention:task:' . $task->id . ')'
+        );
+    }
+
+    public function test_task_source_prioritizes_tasks_from_its_project_and_omits_itself(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto da tarefa fonte',
+            'slug' => 'projeto-da-tarefa-fonte',
+            'status' => 'ACTIVE',
+        ]);
+        $otherProject = Project::query()->create([
+            'name' => 'Outro projeto da tarefa fonte',
+            'slug' => 'outro-projeto-da-tarefa-fonte',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $otherProject->users()->attach($author, ['role' => 'VIEWER']);
+        $sourceTask = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa fonte',
+            'status' => 'NEW',
+        ]);
+        $contextTask = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa relacionada',
+            'status' => 'NEW',
+        ]);
+        $otherTask = Task::query()->create([
+            'project_id' => $otherProject->id,
+            'title' => 'Tarefa distante',
+            'status' => 'NEW',
+        ]);
+
+        $results = app(MentionManager::class)->search($sourceTask, '', $author, 'task');
+
+        $this->assertSame([$contextTask->id, $otherTask->id], $results->pluck('id')->all());
+    }
+
+    public function test_it_presents_a_task_with_its_current_title_and_route_without_rewriting_markdown(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto da apresentação de tarefa',
+            'slug' => 'projeto-da-apresentacao-de-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Título antigo',
+            'status' => 'NEW',
+        ]);
+        $markdown = '@[Rótulo histórico](mention:task:' . $task->id . ')';
+        $project->update(['description' => $markdown]);
+
+        $this->actingAs($author);
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+        $task->update(['title' => 'Título atual']);
+
+        $presentation = app(MentionManager::class)->present('task', (string) $task->id, $author);
+
+        $this->assertSame('available', $presentation['status']);
+        $this->assertSame('Título atual', $presentation['label']);
+        $this->assertSame(route('tasks.show', $task->fresh()), $presentation['url']);
+        $this->assertSame('tarefa: Título atual', $presentation['accessible_name']);
+        $this->assertSame($markdown, $project->fresh()->description);
+    }
+
+    public function test_it_hides_tasks_without_view_access_or_an_enabled_tasks_module(): void
+    {
+        $owner = User::query()->create(['name' => 'Pessoa proprietária']);
+        $reader = User::query()->create(['name' => 'Pessoa leitora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto de tarefa restrita',
+            'slug' => 'projeto-de-tarefa-restrita',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($owner, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa restrita',
+            'status' => 'NEW',
+        ]);
+        $manager = app(MentionManager::class);
+
+        $forbidden = $manager->present('task', (string) $task->id, $reader);
+
+        $project->users()->attach($reader, ['role' => 'VIEWER']);
+        DB::table('project_modules')
+            ->where('project_id', $project->id)
+            ->where('module_id', DB::table('modules')->where('slug', 'tasks')->value('id'))
+            ->update(['enabled' => false]);
+        $disabled = $manager->present('task', (string) $task->id, $reader);
+        $missing = $manager->present('task', '99999', $reader);
+
+        $this->assertSame([
+            'status' => 'forbidden',
+            'type' => 'tarefa',
+            'message' => 'Menção a tarefa: você não tem permissão para visualizar',
+        ], $forbidden);
+        $this->assertSame($forbidden, $disabled);
+        $this->assertSame([
+            'status' => 'missing',
+            'type' => 'tarefa',
+            'message' => 'Menção a tarefa: destino não encontrado',
+        ], $missing);
+    }
+
+    public function test_it_preserves_task_mentions_through_soft_deletion_and_removes_them_after_force_deletion(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto de tarefa restaurável',
+            'slug' => 'projeto-de-tarefa-restauravel',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa restaurável',
+            'status' => 'NEW',
+        ]);
+        $markdown = '@[Tarefa restaurável](mention:task:' . $task->id . ')';
+        $project->update(['description' => $markdown]);
+        $this->actingAs($author);
+        $manager = app(MentionManager::class);
+        $manager->synchronize($project, 'description', $markdown);
+
+        $task->delete();
+
+        $this->assertDatabaseCount('mentions', 1);
+        $this->assertSame('missing', $manager->present('task', (string) $task->id, $author)['status']);
+
+        $task->restore();
+
+        $this->assertSame('available', $manager->present('task', (string) $task->id, $author)['status']);
+        $task->forceDelete();
+
+        $this->assertDatabaseCount('mentions', 0);
+        $this->assertSame($markdown, $project->fresh()->description);
+    }
+
+    public function test_it_preserves_historical_task_mentions_but_rejects_their_later_reinsertion_without_access(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $sourceProject = Project::query()->create([
+            'name' => 'Projeto fonte histórica de tarefa',
+            'slug' => 'projeto-fonte-historica-de-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $targetProject = Project::query()->create([
+            'name' => 'Projeto destino histórico de tarefa',
+            'slug' => 'projeto-destino-historico-de-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $sourceProject->users()->attach($author, ['role' => 'ADMIN']);
+        $targetProject->users()->attach($author, ['role' => 'VIEWER']);
+        $task = Task::query()->create([
+            'project_id' => $targetProject->id,
+            'title' => 'Tarefa histórica',
+            'status' => 'NEW',
+        ]);
+        $markdown = '@[Tarefa histórica](mention:task:' . $task->id . ')';
+        $sourceProject->update(['description' => $markdown]);
+        $this->actingAs($author);
+        $manager = app(MentionManager::class);
+        $manager->synchronize($sourceProject, 'description', $markdown);
+
+        $targetProject->users()->detach($author);
+
+        $manager->validateNewMentions($sourceProject, 'description', $markdown . ' texto');
+        $manager->synchronize($sourceProject, 'description', $markdown . ' texto');
+        $this->assertDatabaseCount('mentions', 1);
+
+        $sourceProject->update(['description' => null]);
+        $manager->synchronize($sourceProject, 'description', null);
+
+        $this->expectException(ValidationException::class);
+        $manager->synchronize($sourceProject, 'description', $markdown);
+    }
+
+    public function test_the_task_description_route_synchronizes_a_task_mention(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto da rota de tarefa',
+            'slug' => 'projeto-da-rota-de-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'ADMIN']);
+        $sourceTask = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa fonte web',
+            'status' => 'NEW',
+        ]);
+        $targetTask = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa destino web',
+            'status' => 'NEW',
+        ]);
+        $markdown = '@[Tarefa destino](mention:task:' . $targetTask->id . ')';
+
+        $this->actingAs($author)
+            ->patch(route('tasks.updateDescription', $sourceTask), ['description' => $markdown])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('mentions', [
+            'source_type' => 'task',
+            'source_id' => $sourceTask->id,
+            'source_field' => 'description',
+            'target_type' => 'task',
+            'target_id' => $targetTask->id,
+        ]);
+    }
+
+    public function test_markdown_renders_an_authorized_task_mention_with_current_title_and_accessibility_data(): void
+    {
+        $reader = User::query()->create(['name' => 'Pessoa leitora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto da renderização de tarefa',
+            'slug' => 'projeto-da-renderizacao-de-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($reader, ['role' => 'VIEWER']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa renderizada',
+            'status' => 'NEW',
+        ]);
+        $markdown = '@[Rótulo histórico](mention:task:' . $task->id . ')';
+
+        $this->actingAs($reader);
+        $html = app(MarkdownRenderer::class)->render($markdown);
+
+        $this->assertStringContainsString('@<a', $html);
+        $this->assertStringContainsString(route('tasks.show', $task), $html);
+        $this->assertStringContainsString('aria-label="tarefa: Tarefa renderizada"', $html);
+        $this->assertStringContainsString('>Tarefa renderizada</a>', $html);
+    }
+
+    public function test_authorized_incoming_task_queries_do_not_reveal_mentions_from_hidden_sources(): void
+    {
+        $writer = User::query()->create(['name' => 'Pessoa autora']);
+        $reader = User::query()->create(['name' => 'Pessoa leitora']);
+        $targetProject = Project::query()->create([
+            'name' => 'Projeto destino da tarefa',
+            'slug' => 'projeto-destino-da-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $visibleSource = Project::query()->create([
+            'name' => 'Fonte visível da tarefa',
+            'slug' => 'fonte-visivel-da-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $hiddenSource = Project::query()->create([
+            'name' => 'Fonte oculta da tarefa',
+            'slug' => 'fonte-oculta-da-tarefa',
+            'status' => 'ACTIVE',
+        ]);
+        $targetProject->users()->attach([
+            $writer->id => ['role' => 'VIEWER'],
+            $reader->id => ['role' => 'VIEWER'],
+        ]);
+        $visibleSource->users()->attach([
+            $writer->id => ['role' => 'CONTRIBUTOR'],
+            $reader->id => ['role' => 'VIEWER'],
+        ]);
+        $hiddenSource->users()->attach($writer, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $targetProject->id,
+            'title' => 'Tarefa com fontes de entrada',
+            'status' => 'NEW',
+        ]);
+        $markdown = '@[Tarefa destino](mention:task:' . $task->id . ')';
+        $visibleSource->update(['description' => $markdown]);
+        $hiddenSource->update(['description' => $markdown]);
+
+        $this->actingAs($writer);
+        $manager = app(MentionManager::class);
+        $manager->synchronize($visibleSource, 'description', $markdown);
+        $manager->synchronize($hiddenSource, 'description', $markdown);
+
+        $incoming = $manager->incomingMentions($task, $reader);
+
+        $this->assertSame([$visibleSource->id], $incoming->pluck('source_id')->all());
     }
 
     public function test_it_searches_contextual_and_other_visible_projects_with_an_explicit_project_filter(): void
