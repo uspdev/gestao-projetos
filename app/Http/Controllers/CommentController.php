@@ -8,19 +8,19 @@ use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Models\Comment;
 use App\Models\PendingWatchNotification;
-use App\Services\MentionIndexer;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
 {
-    public function store(StoreCommentRequest $request, MentionIndexer $mentionIndexer)
+    public function store(StoreCommentRequest $request, MentionManager $mentionManager)
     {
         $commentable = $request->commentable();
         abort_unless($commentable, 404);
 
-        $comment = DB::transaction(function () use ($request, $commentable, $mentionIndexer) {
+        $comment = DB::transaction(function () use ($request, $commentable, $mentionManager) {
             $data = $request->validated();
 
             $comment = Comment::create([
@@ -31,8 +31,8 @@ class CommentController extends Controller
                 'text' => $data['text'],
             ]);
 
-            $mentionIndexer->validateAllMentions($comment, 'text', $data['text']);
-            $mentionIndexer->synchronize($comment, 'text', $data['text'], Auth::id());
+            $mentionManager->validateAllMentions($comment, 'text', $data['text']);
+            $mentionManager->synchronize($comment, 'text', $data['text']);
 
             return $comment;
         });
@@ -54,32 +54,32 @@ class CommentController extends Controller
             ->with('alert-success', 'Comentario adicionado com sucesso!');
     }
 
-    public function destroy(Comment $comment, MentionIndexer $mentionIndexer)
+    public function destroy(Comment $comment, MentionManager $mentionManager)
     {
         Gate::authorize('delete', $comment);
 
-        DB::transaction(function () use ($comment, $mentionIndexer) {
+        DB::transaction(function () use ($comment, $mentionManager) {
             $comment->update([
                 'is_active' => false,
             ]);
-            $mentionIndexer->clear($comment);
+            $mentionManager->clear($comment);
         });
 
         return redirect()->back()
             ->with('alert-success', 'Comentario removido com sucesso!');
     }
 
-    public function update(UpdateCommentRequest $request, Comment $comment, MentionIndexer $mentionIndexer)
+    public function update(UpdateCommentRequest $request, Comment $comment, MentionManager $mentionManager)
     {
         Gate::authorize('update', $comment);
 
-        DB::transaction(function () use ($request, $comment, $mentionIndexer) {
+        DB::transaction(function () use ($request, $comment, $mentionManager) {
             $data = $request->validated();
-            $mentionIndexer->validateNewMentions($comment, 'text', $data['text']);
+            $mentionManager->validateNewMentions($comment, 'text', $data['text']);
             $comment->update([
                 'text' => $data['text'],
             ]);
-            $mentionIndexer->synchronize($comment, 'text', $data['text'], Auth::id());
+            $mentionManager->synchronize($comment, 'text', $data['text']);
         });
 
         return redirect()->back()

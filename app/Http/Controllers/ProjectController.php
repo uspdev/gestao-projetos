@@ -20,7 +20,7 @@ use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Models\ProjectType;
-use App\Services\MentionIndexer;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -198,9 +198,9 @@ class ProjectController extends Controller
                 : 'Projeto fixado com sucesso!');
     }
 
-    public function store(StoreProjectRequest $request, MentionIndexer $mentionIndexer)
+    public function store(StoreProjectRequest $request, MentionManager $mentionManager)
     {
-        $project = DB::transaction(function () use ($request, $mentionIndexer) {
+        $project = DB::transaction(function () use ($request, $mentionManager) {
             $data = $request->validated();
             $data['created_by'] = Auth::id();
             $data['status'] = $data['status'] ?? ProjectStatus::DRAFT->value;
@@ -208,8 +208,8 @@ class ProjectController extends Controller
             $project = Project::create($data);
             $project->users()->attach(Auth::id(), ['role' => ProjectUserRole::ADMIN->value]);
 
-            $mentionIndexer->validateAllMentions($project, 'description', $data['description'] ?? null);
-            $mentionIndexer->synchronize($project, 'description', $data['description'] ?? null, Auth::id());
+            $mentionManager->validateAllMentions($project, 'description', $data['description'] ?? null);
+            $mentionManager->synchronize($project, 'description', $data['description'] ?? null);
 
             $project->syncTagsByIds($request->tags ?? null);
 
@@ -489,21 +489,21 @@ class ProjectController extends Controller
      * @param  \App\Models\Project $project
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateDescription(UpdateProjectDescriptionRequest $request, Project $project, MentionIndexer $mentionIndexer)
+    public function updateDescription(UpdateProjectDescriptionRequest $request, Project $project, MentionManager $mentionManager)
     {
-        DB::transaction(function () use ($request, $project, $mentionIndexer): void {
+        DB::transaction(function () use ($request, $project, $mentionManager): void {
             $description = html_entity_decode(
                 $request->validated('description'),
                 ENT_QUOTES | ENT_HTML5,
                 'UTF-8'
             );
 
-            $mentionIndexer->validateNewMentions($project, 'description', $description);
+            $mentionManager->validateNewMentions($project, 'description', $description);
             $project->update([
                 'description' => $description,
                 'updated_by'  => Auth::id(),
             ]);
-            $mentionIndexer->synchronize($project, 'description', $description, Auth::id());
+            $mentionManager->synchronize($project, 'description', $description);
         });
 
         return redirect()->back()

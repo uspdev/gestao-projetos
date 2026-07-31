@@ -39,6 +39,19 @@ return [
             'task'    => App\Models\Task::class,
             'meeting' => App\Models\Meeting::class,
         ],
+
+        'mention' => [
+            'source' => [
+                'project'      => App\Models\Project::class,
+                'task'         => App\Models\Task::class,
+                'meeting'      => App\Models\Meeting::class,
+                'meeting_item' => App\Models\MeetingItem::class,
+                'comment'      => App\Models\Comment::class,
+            ],
+            'target' => [
+                'user' => App\Models\User::class,
+            ],
+        ],
     ],
 
     'watching' => [

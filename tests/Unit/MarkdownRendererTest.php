@@ -142,23 +142,60 @@ class MarkdownRendererTest extends TestCase
 
     public function test_it_hides_an_unavailable_mentioned_user_without_a_link(): void
     {
-        $renderer = new MarkdownRenderer(fn (): null => null);
+        $renderer = new MarkdownRenderer(fn (string $type, string $key): array => [
+            'status' => 'missing',
+            'type' => 'usuário',
+            'message' => 'Menção a usuário: destino não encontrado',
+        ]);
 
         $this->assertSame(
-            "<p>@Usuário indisponível</p>\n",
+            "<p>Menção a usuário: destino não encontrado</p>\n",
             $renderer->render('@[Nome histórico](mention:user:42)')
         );
     }
 
     public function test_it_uses_the_current_name_and_profile_link_for_an_available_mentioned_user(): void
     {
-        $renderer = new MarkdownRenderer(fn (): array => [
-            'name' => 'Nome atual',
+        $renderer = new MarkdownRenderer(fn (string $type, string $key): array => [
+            'status' => 'available',
+            'type' => 'usuário',
+            'label' => 'Nome atual',
             'url' => '/users/42',
+            'accessible_name' => 'usuário: Nome atual',
         ]);
 
         $this->assertSame(
-            "<p>@<a href=\"/users/42\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"markdown-mention\">Nome atual</a></p>\n",
+            "<p>@<a href=\"/users/42\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"markdown-mention\" aria-label=\"usuário: Nome atual\" title=\"usuário: Nome atual\">Nome atual</a></p>\n",
+            $renderer->render('@[Nome histórico](mention:user:42)')
+        );
+    }
+
+    public function test_it_exposes_the_current_user_type_in_the_accessible_name_and_tooltip(): void
+    {
+        $renderer = new MarkdownRenderer(fn (string $type, string $key): array => [
+            'status' => 'available',
+            'type' => 'usuário',
+            'label' => 'Nome atual',
+            'url' => '/users/42',
+            'accessible_name' => 'usuário: Nome atual',
+        ]);
+
+        $this->assertSame(
+            '<p>@<a href="/users/42" target="_blank" rel="noopener noreferrer" class="markdown-mention" aria-label="usuário: Nome atual" title="usuário: Nome atual">Nome atual</a></p>' . "\n",
+            $renderer->render('@[Nome histórico](mention:user:42)')
+        );
+    }
+
+    public function test_it_renders_the_missing_message_without_a_link(): void
+    {
+        $renderer = new MarkdownRenderer(fn (string $type, string $key): array => [
+            'status' => 'missing',
+            'type' => 'usuário',
+            'message' => 'Menção a usuário: destino não encontrado',
+        ]);
+
+        $this->assertSame(
+            "<p>Menção a usuário: destino não encontrado</p>\n",
             $renderer->render('@[Nome histórico](mention:user:42)')
         );
     }

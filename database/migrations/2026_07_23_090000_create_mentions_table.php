@@ -10,17 +10,23 @@ return new class extends Migration
     {
         Schema::create('mentions', function (Blueprint $table): void {
             $table->id();
-            $table->morphs('mentionable');
-            $table->string('field');
-            $table->foreignId('mentioned_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
+            $table->string('source_type', 50);
+            $table->unsignedBigInteger('source_id');
+            $table->string('source_field', 100);
+            $table->string('target_type', 50);
+            $table->string('target_id', 191);
+
+            $table->index(['source_type', 'source_id'], 'mentions_source_index');
 
             $table->unique(
-                ['mentionable_type', 'mentionable_id', 'field', 'mentioned_user_id'],
-                'mentions_source_field_user_unique'
+                ['source_type', 'source_id', 'source_field', 'target_type', 'target_id'],
+                'mentions_source_field_target_unique'
             );
-            $table->index(['mentioned_user_id', 'mentionable_type', 'mentionable_id'], 'mentions_user_source_index');
+            $table->index(
+                ['source_type', 'source_id', 'source_field'],
+                'mentions_source_field_index'
+            );
+            $table->index(['target_type', 'target_id'], 'mentions_target_index');
         });
     }
 

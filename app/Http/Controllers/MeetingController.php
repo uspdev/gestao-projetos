@@ -17,7 +17,7 @@ use App\Models\Meeting;
 use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\MeetingItem;
-use App\Services\MentionIndexer;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -71,9 +71,9 @@ class MeetingController extends Controller
         return view('module-meetings.create', compact('project', 'availableProjects', 'selectedProjects'));
     }
 
-    public function store(StoreMeetingRequest $request, Project $project, MentionIndexer $mentionIndexer)
+    public function store(StoreMeetingRequest $request, Project $project, MentionManager $mentionManager)
     {
-        $meeting = DB::transaction(function () use ($request, $mentionIndexer) {
+        $meeting = DB::transaction(function () use ($request, $mentionManager) {
             $data = $request->validated();
             $projects = $data['projects'] ?? [];
             unset($data['projects']);
@@ -84,8 +84,8 @@ class MeetingController extends Controller
 
             $meeting = Meeting::create($data);
             $meeting->projects()->sync($projects);
-            $mentionIndexer->validateAllMentions($meeting, 'notes', $data['notes'] ?? null);
-            $mentionIndexer->synchronize($meeting, 'notes', $data['notes'] ?? null, Auth::id());
+            $mentionManager->validateAllMentions($meeting, 'notes', $data['notes'] ?? null);
+            $mentionManager->synchronize($meeting, 'notes', $data['notes'] ?? null);
 
             return $meeting;
         });
@@ -214,20 +214,20 @@ class MeetingController extends Controller
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
     }
 
-    public function updateMeetingNotes(UpdateMeetingNotesRequest $request, Project $project, Meeting $meeting, MentionIndexer $mentionIndexer)
+    public function updateMeetingNotes(UpdateMeetingNotesRequest $request, Project $project, Meeting $meeting, MentionManager $mentionManager)
     {
         Gate::authorize('update', [$meeting, $project]);
 
-        DB::transaction(function () use ($request, $meeting, $mentionIndexer) {
+        DB::transaction(function () use ($request, $meeting, $mentionManager) {
             $notes = $request->validated('meeting_notes');
             $notes = is_string($notes) ? trim($notes) : $notes;
 
-            $mentionIndexer->validateNewMentions($meeting, 'notes', $notes);
+            $mentionManager->validateNewMentions($meeting, 'notes', $notes);
             $meeting->update([
                 'notes' => $notes === '' ? null : $notes,
                 'updated_by' => Auth::id(),
             ]);
-            $mentionIndexer->synchronize($meeting, 'notes', $notes, Auth::id());
+            $mentionManager->synchronize($meeting, 'notes', $notes);
         });
 
         return redirect()->back()
@@ -345,20 +345,20 @@ class MeetingController extends Controller
             ->with('alert-success', 'Item de pauta removido com sucesso!');
     }
 
-    public function updateNotes(UpdateMeetingItemNotesRequest $request, Project $project, Meeting $meeting, MeetingItem $meetingItem, MentionIndexer $mentionIndexer)
+    public function updateNotes(UpdateMeetingItemNotesRequest $request, Project $project, Meeting $meeting, MeetingItem $meetingItem, MentionManager $mentionManager)
     {
         if ($meetingItem->meeting_id !== $meeting->id) {
             abort(404);
         }
 
-        DB::transaction(function () use ($request, $meetingItem, $mentionIndexer): void {
+        DB::transaction(function () use ($request, $meetingItem, $mentionManager): void {
             $notes = $request->validated('notes');
             $notes = is_string($notes) ? trim($notes) : $notes;
 
-            $mentionIndexer->validateNewMentions($meetingItem, 'notes', $notes);
+            $mentionManager->validateNewMentions($meetingItem, 'notes', $notes);
             $meetingItem->notes = $notes === '' ? null : $notes;
             $meetingItem->save();
-            $mentionIndexer->synchronize($meetingItem, 'notes', $notes, Auth::id());
+            $mentionManager->synchronize($meetingItem, 'notes', $notes);
         });
 
         return redirect()->back()

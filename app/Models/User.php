@@ -12,7 +12,9 @@ use App\Models\Task;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -22,6 +24,22 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
     use \Spatie\Permission\Traits\HasRoles;
     use \Uspdev\SenhaunicaSocialite\Traits\HasSenhaunica;
+
+    protected static function booted(): void
+    {
+        static::deleted(function (User $user): void {
+            if (Schema::hasTable('mentions')) {
+                $user->incomingMentions()->delete();
+            }
+        });
+    }
+
+    // O alias user é usado somente pelas relações de Menções; permissões existentes
+    // continuam persistindo o FQCN do Usuário em seus próprios relacionamentos.
+    public function getMorphClass(): string
+    {
+        return static::class;
+    }
 
     protected $fillable = [
         'name',
@@ -113,6 +131,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Task::class)
             ->using(TaskUser::class)
             ->withTimestamps();
+    }
+
+    public function incomingMentions(): HasMany
+    {
+        return $this->hasMany(Mention::class, 'target_id')
+            ->where('target_type', 'user');
     }
 
     public function scopeSelectableToProject(Builder $query, int $projectId): Builder

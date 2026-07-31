@@ -16,7 +16,7 @@ use App\Models\Tag;
 use App\Models\Module;
 use App\Models\Task;
 use App\Models\User;
-use App\Services\MentionIndexer;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -92,11 +92,11 @@ class TaskController extends Controller
     }
 
 
-    public function store(StoreTaskRequest $request, Project $project, MentionIndexer $mentionIndexer)
+    public function store(StoreTaskRequest $request, Project $project, MentionManager $mentionManager)
     {
         $this->ensureTasksModuleEnabled($project);
 
-        $task = DB::transaction(function () use ($project, $request, $mentionIndexer) {
+        $task = DB::transaction(function () use ($project, $request, $mentionManager) {
             $data = $request->validated();
             $data['project_id'] = $project->id;
             $data['created_by'] = Auth::id();
@@ -104,8 +104,8 @@ class TaskController extends Controller
 
             $task = Task::create($data);
 
-            $mentionIndexer->validateAllMentions($task, 'description', $data['description'] ?? null);
-            $mentionIndexer->synchronize($task, 'description', $data['description'] ?? null, Auth::id());
+            $mentionManager->validateAllMentions($task, 'description', $data['description'] ?? null);
+            $mentionManager->synchronize($task, 'description', $data['description'] ?? null);
 
             if ($request->has('tags')) {
                 $tagsToSync = Tag::withType(Tag::TYPE_TASK)
@@ -151,22 +151,22 @@ class TaskController extends Controller
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateDescription(UpdateTaskDescriptionRequest $request, Task $task, MentionIndexer $mentionIndexer)
+    public function updateDescription(UpdateTaskDescriptionRequest $request, Task $task, MentionManager $mentionManager)
     {
         $this->ensureTasksModuleEnabled($task->project);
 
-        DB::transaction(function () use ($task, $request, $mentionIndexer) {
+        DB::transaction(function () use ($task, $request, $mentionManager) {
             $description = $request->input('description', '');
             if (is_string($description)) {
                 $description = html_entity_decode($description, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             }
 
-            $mentionIndexer->validateNewMentions($task, 'description', $description);
+            $mentionManager->validateNewMentions($task, 'description', $description);
             $task->update([
                 'description' => $description,
                 'updated_by' => Auth::id(),
             ]);
-            $mentionIndexer->synchronize($task, 'description', $description, Auth::id());
+            $mentionManager->synchronize($task, 'description', $description);
         });
 
         if ($request->has('action')) {

@@ -1,18 +1,18 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Mentions;
 
 use App\Models\Project;
 use App\Models\User;
-use App\Services\MentionExtractor;
-use App\Services\MentionIndexer;
+use App\Services\Mentions\MentionExtractor;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
-class MentionIndexerTest extends TestCase
+class MentionManagerIntegrationTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -102,27 +102,46 @@ class MentionIndexerTest extends TestCase
         $historicalUser = User::query()->create(['name' => 'Pessoa histórica']);
         $newAuthor = User::query()->create(['name' => 'Outra pessoa autora']);
         $project = $this->project($creator, $historicalUser);
-        $indexer = new MentionIndexer(new MentionExtractor());
+        $manager = new MentionManager(new MentionExtractor());
         $markdown = '@[Pessoa histórica](mention:user:' . $historicalUser->id . ')';
 
-        $indexer->synchronize($project, 'description', $markdown, $creator->id);
-        $mention = $project->mentions()->firstOrFail();
+        $manager->synchronize($project, 'description', $markdown);
+        $mention = $project->outgoingMentions()->firstOrFail();
         $project->update(['description' => $markdown]);
         $project->users()->detach($historicalUser);
 
-        $indexer->validateNewMentions($project, 'description', $markdown);
-        $indexer->synchronize($project, 'description', $markdown, $newAuthor->id);
+        $manager->validateNewMentions($project, 'description', $markdown);
+        $manager->synchronize($project, 'description', $markdown);
 
-        $this->assertSame($mention->id, $project->mentions()->firstOrFail()->id);
-        $this->assertSame($creator->id, $project->mentions()->firstOrFail()->created_by);
+        $this->assertSame($mention->id, $project->outgoingMentions()->firstOrFail()->id);
 
         $this->expectException(ValidationException::class);
 
-        $indexer->validateNewMentions(
+        $manager->validateNewMentions(
             $project,
             'description',
             $markdown . ' @[Outra pessoa](mention:user:' . $newAuthor->id . ')'
         );
+    }
+
+    public function test_synchronize_rejects_a_missing_new_target_before_writing_the_index(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = $this->project($author);
+        $manager = new MentionManager(new MentionExtractor());
+
+        try {
+            $manager->synchronize(
+                $project,
+                'description',
+                '@[Destino inexistente](mention:user:999999)'
+            );
+            $this->fail('A sincronização deveria rejeitar o destino inexistente.');
+        } catch (ValidationException) {
+            // A exceção é o resultado esperado; o índice deve continuar vazio.
+        }
+
+        $this->assertDatabaseCount('mentions', 0);
     }
 
     public function test_it_removes_missing_mentions_and_creates_a_new_relation_when_they_return(): void
@@ -131,24 +150,25 @@ class MentionIndexerTest extends TestCase
         $secondAuthor = User::query()->create(['name' => 'Pessoa revisora']);
         $mentioned = User::query()->create(['name' => 'Pessoa mencionada']);
         $project = $this->project($firstAuthor, $mentioned);
-        $indexer = new MentionIndexer(new MentionExtractor());
+        $manager = new MentionManager(new MentionExtractor());
         $markdown = '@[Pessoa mencionada](mention:user:' . $mentioned->id . ')';
 
-        $indexer->synchronize($project, 'description', $markdown, $firstAuthor->id);
-        $firstMentionId = $project->mentions()->value('id');
+        $manager->synchronize($project, 'description', $markdown);
+        $firstMentionId = $project->outgoingMentions()->value('id');
 
-        $indexer->synchronize($project, 'description', null, $secondAuthor->id);
+        $manager->synchronize($project, 'description', null);
         $this->assertDatabaseMissing('mentions', ['id' => $firstMentionId]);
 
-        $indexer->synchronize($project, 'description', $markdown, $secondAuthor->id);
+        $manager->synchronize($project, 'description', $markdown);
 
         $this->assertDatabaseHas('mentions', [
-            'mentionable_id' => $project->id,
-            'field' => 'description',
-            'mentioned_user_id' => $mentioned->id,
-            'created_by' => $secondAuthor->id,
+            'source_type' => 'project',
+            'source_id' => $project->id,
+            'source_field' => 'description',
+            'target_type' => 'user',
+            'target_id' => $mentioned->id,
         ]);
-        $this->assertNotSame($firstMentionId, $project->mentions()->value('id'));
+        $this->assertNotSame($firstMentionId, $project->outgoingMentions()->value('id'));
     }
 
     public function test_rebuild_command_is_idempotent_and_reports_its_counts(): void
@@ -163,13 +183,13 @@ class MentionIndexerTest extends TestCase
         $this->artisan('mentions:rebuild')
             ->expectsOutput('Reconstrução concluída: 1 fontes, 1 relações e 0 erros.')
             ->assertSuccessful();
-        $mentionId = $project->mentions()->value('id');
+        $mentionId = $project->outgoingMentions()->value('id');
 
         $this->artisan('mentions:rebuild')
             ->expectsOutput('Reconstrução concluída: 1 fontes, 1 relações e 0 erros.')
             ->assertSuccessful();
 
-        $this->assertSame($mentionId, $project->mentions()->value('id'));
+        $this->assertSame($mentionId, $project->outgoingMentions()->value('id'));
         $this->assertDatabaseCount('mentions', 1);
     }
 
@@ -186,7 +206,7 @@ class MentionIndexerTest extends TestCase
             'created_by' => $author->id,
         ]);
         $meeting->projects()->attach($project);
-        (new MentionIndexer(new MentionExtractor()))->synchronize($meeting, 'notes', $markdown, $author->id);
+        (new MentionManager(new MentionExtractor()))->synchronize($meeting, 'notes', $markdown);
 
         $meeting->delete();
         $this->assertDatabaseCount('mentions', 0);
@@ -194,10 +214,27 @@ class MentionIndexerTest extends TestCase
         $meeting->restore();
 
         $this->assertDatabaseHas('mentions', [
-            'mentionable_id' => $meeting->id,
-            'field' => 'notes',
-            'mentioned_user_id' => $mentioned->id,
+            'source_type' => 'meeting',
+            'source_id' => $meeting->id,
+            'source_field' => 'notes',
+            'target_type' => 'user',
+            'target_id' => $mentioned->id,
         ]);
+    }
+
+    public function test_rebuild_ignores_unresolvable_mention_syntaxes(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = $this->project($author);
+        $project->update([
+            'description' => '@[Destino futuro](mention:project:42)',
+        ]);
+
+        $this->artisan('mentions:rebuild')
+            ->expectsOutput('Reconstrução concluída: 1 fontes, 0 relações e 0 erros.')
+            ->assertSuccessful();
+
+        $this->assertDatabaseCount('mentions', 0);
     }
 
     private function project(User ...$users): Project

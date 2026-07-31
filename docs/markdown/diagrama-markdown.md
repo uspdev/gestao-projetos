@@ -27,7 +27,7 @@ flowchart TD
         controller["Controller salva o conteúdo em uma transação"]
         previewController["Endpoint de pré-visualização recebe o Markdown"]
         renderer["MarkdownRenderer converte CommonMark e GFM em HTML seguro"]
-        mentions["MentionIndexer valida as menções e atualiza o índice derivado"]
+        mentions["MentionManager valida as menções e atualiza o índice derivado"]
     end
 
     subgraph persistence["Persistência — banco de dados e arquivos"]

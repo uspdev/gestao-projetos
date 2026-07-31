@@ -345,10 +345,11 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseHas('mentions', [
-            'mentionable_id' => $project->id,
-            'field' => 'description',
-            'mentioned_user_id' => $directMember->id,
-            'created_by' => $editor->id,
+            'source_type' => 'project',
+            'source_id' => $project->id,
+            'source_field' => 'description',
+            'target_type' => 'user',
+            'target_id' => $directMember->id,
         ]);
 
         $this->patch(route('projects.updateDescription', $project), [

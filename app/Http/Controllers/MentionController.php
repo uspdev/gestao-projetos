@@ -6,7 +6,7 @@ use App\Models\Meeting;
 use App\Models\MeetingItem;
 use App\Models\Project;
 use App\Models\Task;
-use App\Services\MentionIndexer;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,30 +14,14 @@ use Illuminate\Support\Facades\Gate;
 
 class MentionController extends Controller
 {
-    public function selectable(Request $request, MentionIndexer $mentionIndexer): JsonResponse
+    public function selectable(Request $request, MentionManager $mentionManager): JsonResponse
     {
         $source = $this->sourceFromRequest($request);
         abort_unless($source, 404);
 
         $this->authorizeMentioning($request, $source);
 
-        $term = trim((string) $request->query('term', ''));
-        $users = $mentionIndexer->eligibleUserIds($source)
-            ->when($term !== '', function ($userIds) use ($term) {
-                return \App\Models\User::query()
-                    ->whereIn('id', $userIds)
-                    ->where('name', 'like', '%' . $term . '%')
-                    ->orderBy('name')
-                    ->get(['id', 'name'])
-                    ->map(fn ($user) => $user->only(['id', 'name']));
-            }, function ($userIds) {
-                return \App\Models\User::query()
-                    ->whereIn('id', $userIds)
-                    ->orderBy('name')
-                    ->get(['id', 'name'])
-                    ->map(fn ($user) => $user->only(['id', 'name']));
-            })
-            ->values();
+        $users = $mentionManager->search($source, (string) $request->query('term', ''));
 
         return response()->json(['results' => $users]);
     }

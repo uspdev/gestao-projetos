@@ -4,31 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Mention extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
-        'field',
-        'mentioned_user_id',
-        'created_by',
+        'source_field',
+        'target_type',
+        'target_id',
     ];
 
-    public function mentionable(): MorphTo
+    public function source(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo('source');
     }
 
-    public function mentionedUser(): BelongsTo
+    public function target(): MorphTo
     {
-        return $this->belongsTo(User::class, 'mentioned_user_id');
-    }
-
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->morphTo('target');
     }
 }

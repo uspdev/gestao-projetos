@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Mentions;
 
-use App\Services\MentionExtractor;
+use App\Services\Mentions\MentionExtractor;
 use PHPUnit\Framework\TestCase;
 
 class MentionExtractorTest extends TestCase
