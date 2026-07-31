@@ -224,11 +224,11 @@
         </x-card.preview>
 
         <x-card.preview class="h-100 shadow-sm border">
-          <div class="preview-card__feature-icon"><i class="fas fa-comments"></i></div>
-          <h3 class="preview-card__title preview-card__title--feature mb-2">Comentários</h3>
+          <div class="preview-card__feature-icon"><i class="fas fa-code"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Conteúdo e Comentários</h3>
           <p class="preview-card__feature-desc">
-            Comente em tarefas, reuniões e outros registros para manter a discussão organizada, rápida e
-            acessível para toda a equipe.
+            Escreva descrições, anotações prévias e comentários em Markdown, com pré-visualização segura.
+            Mencione participantes e insira referências de arquivos para manter o contexto conectado.
           </p>
         </x-card.preview>
 
@@ -236,26 +236,35 @@
           <div class="preview-card__feature-icon"><i class="fas fa-calendar-check"></i></div>
           <h3 class="preview-card__title preview-card__title--feature mb-2">Reuniões</h3>
           <p class="preview-card__feature-desc">
-            Registre pautas, itens e encaminhamentos das reuniões, mantendo histórico e responsáveis em um
-            único lugar.
+            Prepare pautas com projetos, tarefas ou itens independentes e registre anotações prévias, Ata e
+            Transcrição. Acompanhe o status da reunião e exporte seu registro quando necessário.
           </p>
         </x-card.preview>
 
         <x-card.preview class="h-100 shadow-sm border">
-          <div class="preview-card__feature-icon"><i class="fas fa-puzzle-piece"></i></div>
-          <h3 class="preview-card__title preview-card__title--feature mb-2">Módulos</h3>
+          <div class="preview-card__feature-icon"><i class="fas fa-file-alt"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Arquivos</h3>
           <p class="preview-card__feature-desc">
-            Ative ou desative módulos por projeto para manter o sistema leve. Novos módulos podem ser
-            desenvolvidos por terceiros e integrados facilmente seguindo regras básicas.
+            Armazene arquivos em projetos, tarefas e reuniões com acesso controlado. Renomeie, localize referências
+            e compartilhe com uma reunião somente os arquivos necessários para a discussão.
+          </p>
+        </x-card.preview>
+
+        <x-card.preview class="h-100 shadow-sm border">
+          <div class="preview-card__feature-icon"><i class="fas fa-copy"></i></div>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Duplicação de Conteúdo</h3>
+          <p class="preview-card__feature-desc">
+            Reaproveite estruturas existentes ao duplicar projetos, tarefas e reuniões. Escolha o que será levado
+            para a nova cópia sem misturar comentários, histórico ou registros da origem.
           </p>
         </x-card.preview>
 
         <x-card.preview class="h-100 shadow-sm border">
           <div class="preview-card__feature-icon"><i class="fas fa-bell"></i></div>
-          <h3 class="preview-card__title preview-card__title--feature mb-2">Notificações</h3>
+          <h3 class="preview-card__title preview-card__title--feature mb-2">Acompanhamento por E-mail</h3>
           <p class="preview-card__feature-desc">
-            Receba avisos por e-mail sobre eventos importantes, mantendo o time alinhado com mudanças e
-            entregas.
+            Acompanhe projetos, tarefas e reuniões de seu interesse. As atividades relevantes são agrupadas em
+            resumos por e-mail para manter você informado sem perder o contexto.
           </p>
         </x-card.preview>
 
@@ -291,10 +300,9 @@
       <div class="roadmap-callout">
         <h3>O sistema está em evolução contínua</h3>
         <p>
-          Esta é apenas uma primeira versão (MVP). Novas funcionalidades já estão planejadas, como:
-          integração com o GitHub, dashboards gerenciais e muito mais, tudo pensado para
-          otimizar ainda mais o seu dia a dia. <strong>Tem alguma ideia? Sugestões para o nosso roadmap são muito
-            bem-vindas!</strong>
+          Novas funcionalidades estão planejadas, como integração com o GitHub, dashboards gerenciais,
+          calendários e resumos inteligentes, tudo pensado para otimizar ainda mais o seu dia a dia.
+          <strong>Tem alguma ideia? Sugestões para o nosso roadmap são muito bem-vindas!</strong>
         </p>
         <a href="https://github.com/uspdev/gestao-projetos/blob/main/docs/roadmap.md" target="_blank" class="roadmap-btn">
           <i class="fab fa-github me-2"></i> Ver Roadmap Completo
