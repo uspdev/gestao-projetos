@@ -16,6 +16,7 @@
         <th>Status</th>
         <th>Início</th>
         <th>Prazo</th>
+        <th>Conclusão</th>
         <th>Título</th>
         <th>Responsável</th>
         <th>Tags</th>
@@ -42,6 +43,9 @@
           </td>
           <td data-order="{{ $task->due_date?->format('Y-m-d H:i:s') }}">
             <x-local-date :date="$task->due_date" :overdue="$task->isOverdue()" empty="-" />
+          </td>
+          <td data-order="{{ $task->completed_at?->format('Y-m-d H:i:s') }}">
+            <x-local-date :date="$task->completed_at" empty="-" />
           </td>
           <td>
             <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">
