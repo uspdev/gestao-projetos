@@ -33,6 +33,10 @@
     .kanban-task .dropdown-menu {
       z-index: 20;
     }
+
+    .kanban-task-actions > button + span {
+      margin-left: 1rem;
+    }
   </style>
 @endPushOnce
 
@@ -42,7 +46,7 @@
 
     <div class="d-flex align-items-start justify-content-between gap-2 px-1">
       <span>{{ $task->title }}</span>
-      <div class="d-flex align-items-center flex-shrink-0 position-relative" style="z-index: 10;">
+      <div class="d-flex align-items-center flex-shrink-0 position-relative kanban-task-actions" style="z-index: 10;">
         @if ($showDuplicate ?? true)
           @include('module-tasks.partials.buttons.duplicate-btn')
         @endif
