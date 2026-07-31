@@ -41,8 +41,6 @@
     </script>
   @endPushOnce
 @else
-  <span class="badge badge-{{ $task->status->color() }} text-nowrap flex-shrink-0"
-    style="font-size: 0.75rem; line-height: 1;">
-    {{ $task->status->label() }}
-  </span>
+  <span class="d-inline-block bg-{{ $task->status->color() }}" style="width:15px;height:15px;border-radius:50%;"
+    aria-label="Status: {{ $task->status->label() }}"></span>
 @endcanAny
