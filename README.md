@@ -7,7 +7,8 @@ Sistema interno construído em Laravel que organiza e centraliza projetos e tare
 ## Documentação
 
 - [MVP](docs/MVP.md) — Escopo e decisões que orientaram o produto mínimo viável do sistema.
-- [Roadmap](docs/roadmap.md) — Funcionalidades planejadas, prioridades futuras e entregas já implementadas.
+- [Roadmap](docs/roadmap.md) — Funcionalidades ainda não implementadas e prioridades futuras.
+- [Roadmap concluído](docs/roadmap-concluded.md) — Registro factual das funcionalidades já entregues e seus limites atuais.
 - [Permissões](docs/permissoes.md) — Regras de acesso, papéis, policies, subprojetos e herança de permissões.
 - [Markdown](docs/markdown/README.md) — Guia de uso, [exemplo completo](docs/markdown/exemplo-markdown.md) e [diagrama do fluxo](docs/markdown/diagrama-markdown.md), incluindo menções, referências de arquivos e links internos.
 - [Implantação dos registros de reunião](docs/implantacao-registros-de-reuniao.md) — Ordem de migração, validação da estrutura e publicação do código.
@@ -29,7 +30,7 @@ Sistema interno construído em Laravel que organiza e centraliza projetos e tare
 - Gestão de membros integrada ao Replicado por número USP (`codpes`).
 - Autenticação institucional pela Senha Única.
 - Controle de acesso com roles, policies, visibilidade e herança de permissões.
-- Notificações assíncronas por e-mail para eventos relevantes do sistema.
+- Acompanhamento opcional de entidades e resumos agrupados por e-mail.
 - Auditoria backend de alterações em entidades e relacionamentos, ainda sem interface de consulta.
 - Navegação contextual entre projetos, subprojetos, tarefas e módulos.
 
