@@ -76,8 +76,6 @@ ambiente. Testes HTTP e unitários usam o ambiente `testing` configurado em
 - [CONTEXT.md](../../CONTEXT.md) — linguagem e modelo de domínio canônicos.
 - [AGENTS.md](../../AGENTS.md) — regras de colaboração e manutenção do
   repositório.
-- [Documentação de domínio](agents/domain.md) — quando consultar o contexto
-  e os ADRs antes de alterar o domínio.
 - [Rastreador de trabalho](agents/issue-tracker.md) — especificações e
   tickets em `.scratch/`.
 - [Glossário de tradução](agents/glossario-traducao.md) — equivalências

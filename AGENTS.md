@@ -32,7 +32,15 @@ Use os rótulos padrão de triagem, incluindo `ready-for-agent` para trabalhos t
 
 ### Documentação de domínio
 
-Este é um repositório de contexto único. Leia `CONTEXT.md` e os ADRs relevantes em `docs/dev-friendly/adr/` antes de alterar o domínio. Consulte `docs/dev-friendly/agents/domain.md`.
+Este é um repositório de contexto único. Antes de explorar ou alterar o domínio:
+
+- leia `CONTEXT.md` na raiz do repositório;
+- leia as decisões relevantes em `docs/dev-friendly/adr/`;
+- use os termos canônicos do glossário;
+- sinalize conflitos com um ADR existente em vez de substituí-lo silenciosamente.
+
+O `CONTEXT.md` da raiz é um glossário de domínio, não uma especificação de
+implementação.
 
 ### Glossário de tradução
 
