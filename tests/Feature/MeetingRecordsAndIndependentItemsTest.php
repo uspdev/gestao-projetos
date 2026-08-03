@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\ActivityLog;
 use App\Models\Mention;
 use App\Models\Meeting;
+use App\Models\MeetingItem;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\Mentions\MentionManager;
@@ -242,6 +244,168 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->where('target_id', 2)
             ->exists());
         $this->assertSame(2, Mention::query()->count());
+    }
+
+    public function test_meeting_duplication_preserves_item_markdown_and_rebuilds_item_mentions(): void
+    {
+        $markdown = '@[Visualizador](mention:user:2)';
+        $sourceItem = MeetingItem::query()->create([
+            'meeting_id' => 1,
+            'title' => 'Item independente',
+            'order' => 1,
+            'notes' => $markdown,
+        ]);
+
+        app(MentionManager::class)->synchronize($sourceItem, 'notes', $markdown);
+
+        $copy = Meeting::query()->findOrFail(1)->duplicate([
+            'scheduled_at' => now()->addDay(),
+        ]);
+        $copyItem = $copy->meetingItems()->firstOrFail();
+
+        $this->assertSame($markdown, $copyItem->notes);
+        $this->assertTrue($sourceItem->outgoingMentions()
+            ->where('source_field', 'notes')
+            ->where('target_type', 'user')
+            ->where('target_id', 2)
+            ->exists());
+        $this->assertTrue($copyItem->outgoingMentions()
+            ->where('source_field', 'notes')
+            ->where('target_type', 'user')
+            ->where('target_id', 2)
+            ->exists());
+        $this->assertSame(2, Mention::query()->count());
+    }
+
+    public function test_project_duplication_preserves_historical_mentions_without_copying_members_or_remapping_targets(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+        DB::table('meetings')->where('id', 1)->update([
+            'scheduled_at' => now()->addDay(),
+        ]);
+
+        $targetTask = Task::query()->create([
+            'project_id' => 1,
+            'title' => 'Tarefa original',
+            'description' => 'Descrição original',
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+        ]);
+        $source = Project::query()->findOrFail(1);
+        $markdown = implode(' ', [
+            '@[Tarefa original](mention:task:' . $targetTask->id . ')',
+            '@[Reunião original](mention:meeting:1)',
+        ]);
+
+        DB::table('projects')->where('id', $source->id)->update(['description' => $markdown]);
+        $source->refresh();
+        app(MentionManager::class)->synchronize($source, 'description', $markdown);
+
+        $copy = $source->duplicate([
+            'name' => 'Projeto copiado com entidades',
+            'copy_members' => false,
+            'copy_tasks' => true,
+            'copy_meetings' => true,
+        ]);
+        $copyTask = Task::query()
+            ->where('project_id', $copy->id)
+            ->where('title', 'Tarefa original')
+            ->firstOrFail();
+        $copyMeetingId = DB::table('meeting_projects')
+            ->where('project_id', $copy->id)
+            ->value('meeting_id');
+
+        $this->assertNotNull($copyMeetingId);
+        $this->assertNotSame(1, (int) $copyMeetingId);
+        $this->assertSame($markdown, $copy->description);
+        $this->assertSame([1], $copy->users()->pluck('users.id')->sort()->values()->all());
+
+        foreach ([
+            ['target_type' => 'task', 'target_id' => $targetTask->id],
+            ['target_type' => 'meeting', 'target_id' => 1],
+        ] as $target) {
+            $this->assertDatabaseHas('mentions', [
+                'source_type' => 'project',
+                'source_id' => $source->id,
+                ...$target,
+            ]);
+            $this->assertDatabaseHas('mentions', [
+                'source_type' => 'project',
+                'source_id' => $copy->id,
+                ...$target,
+            ]);
+        }
+
+        $this->assertDatabaseMissing('mentions', [
+            'source_type' => 'project',
+            'source_id' => $copy->id,
+            'target_type' => 'task',
+            'target_id' => $copyTask->id,
+        ]);
+        $this->assertDatabaseMissing('mentions', [
+            'source_type' => 'project',
+            'source_id' => $copy->id,
+            'target_type' => 'meeting',
+            'target_id' => $copyMeetingId,
+        ]);
+        $this->assertSame(4, Mention::query()->count());
+    }
+
+    public function test_project_duplication_with_members_does_not_add_users_from_copied_mentions(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+        $source = Project::query()->findOrFail(1);
+        $markdown = '@[Visualizador](mention:user:2)';
+
+        DB::table('projects')->where('id', $source->id)->update(['description' => $markdown]);
+        $source->refresh();
+        app(MentionManager::class)->synchronize($source, 'description', $markdown);
+
+        $copy = $source->duplicate([
+            'name' => 'Projeto copiado com membros',
+            'copy_members' => true,
+            'copy_tasks' => false,
+            'copy_meetings' => false,
+        ]);
+
+        $this->assertSame([1, 2], $copy->users()->pluck('users.id')->sort()->values()->all());
+        $this->assertDatabaseHas('mentions', [
+            'source_type' => 'project',
+            'source_id' => $copy->id,
+            'source_field' => 'description',
+            'target_type' => 'user',
+            'target_id' => 2,
+        ]);
+        $this->assertSame(2, Mention::query()->count());
+    }
+
+    public function test_duplication_rolls_back_when_mention_rebuild_fails(): void
+    {
+        $source = Task::query()->create([
+            'project_id' => 1,
+            'title' => 'Tarefa com falha de índice',
+            'description' => 'Descrição',
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+        ]);
+
+        app()->instance(MentionManager::class, new class
+        {
+            public function rebuildSource(\Illuminate\Database\Eloquent\Model $source): int
+            {
+                throw new \RuntimeException('Falha ao sincronizar Menções.');
+            }
+        });
+
+        try {
+            $source->duplicate();
+            $this->fail('A duplicação deveria falhar.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Falha ao sincronizar Menções.', $exception->getMessage());
+        }
+
+        $this->assertSame(1, Task::query()->count());
+        $this->assertSame(0, Mention::query()->count());
     }
 
     public function test_markdown_fields_expose_their_editor_profiles_without_enabling_plain_text_records(): void
@@ -679,8 +843,13 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             $table->string('status');
             $table->text('description')->nullable();
             $table->foreignId('parent_id')->nullable();
+            $table->string('visibility')->nullable();
             $table->string('permission_inheritance')->nullable();
             $table->foreignId('project_type_id')->nullable();
+            $table->foreignId('phase_id')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use App\Morphs\DiscussableMap;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
@@ -301,6 +302,13 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
      */
     public function duplicate(array $options = []): Model
     {
+        return DB::transaction(
+            fn (): Model => $this->duplicateWithinTransaction($options)
+        );
+    }
+
+    private function duplicateWithinTransaction(array $options): Model
+    {
         $scheduledAt = $options['scheduled_at'] ?? null;
 
         if (blank($scheduledAt)) {
@@ -328,14 +336,16 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
         $copy->projects()->sync($projectIds);
 
         foreach ($this->meetingItems->sortBy('order') as $item) {
-            MeetingItem::create([
+            $copyItem = MeetingItem::create([
                 'meeting_id' => $copy->id,
                 'discussable_type' => $item->discussable_type,
                 'discussable_id' => $item->discussable_id,
                 'title' => $item->title,
                 'order' => $item->order,
-                'notes' => null,
+                'notes' => $item->notes,
             ]);
+
+            app(MentionManager::class)->rebuildSource($copyItem);
         }
 
         app(MentionManager::class)->rebuildSource($copy);

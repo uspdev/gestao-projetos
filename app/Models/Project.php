@@ -587,6 +587,13 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
      */
     public function duplicate(array $options = []): Model
     {
+        return DB::transaction(
+            fn (): Model => $this->duplicateWithinTransaction($options)
+        );
+    }
+
+    private function duplicateWithinTransaction(array $options): Model
+    {
         $this->loadMissing([
             'tags',
             'users',

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Spatie\Tags\HasTags;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
@@ -187,6 +188,13 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
      * @return Model A nova tarefa criada.
      */
     public function duplicate(array $options = []): Model
+    {
+        return DB::transaction(
+            fn (): Model => $this->duplicateWithinTransaction($options)
+        );
+    }
+
+    private function duplicateWithinTransaction(array $options): Model
     {
         $this->loadMissing(['tags', 'users']);
 
