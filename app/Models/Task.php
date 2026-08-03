@@ -11,6 +11,7 @@ use App\Models\Tag;
 use App\Traits\Auditable;
 use App\Traits\InteractsWithFiles;
 use App\Traits\HasMentions;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -216,6 +217,7 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
             Tag::TYPE_TASK
         );
         $copy->users()->sync($assigneeIds);
+        app(MentionManager::class)->rebuildSource($copy);
 
         return $copy;
     }

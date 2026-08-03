@@ -11,6 +11,7 @@ use App\Models\Task as TaskModel;
 use App\Traits\Auditable;
 use App\Traits\InteractsWithFiles;
 use App\Traits\HasMentions;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -336,6 +337,8 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
                 'notes' => null,
             ]);
         }
+
+        app(MentionManager::class)->rebuildSource($copy);
 
         return $copy;
     }

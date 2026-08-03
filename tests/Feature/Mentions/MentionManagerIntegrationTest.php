@@ -237,6 +237,31 @@ class MentionManagerIntegrationTest extends TestCase
         $this->assertDatabaseCount('mentions', 0);
     }
 
+    public function test_rebuild_removes_relations_from_fields_that_are_no_longer_markdown(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $mentioned = User::query()->create(['name' => 'Pessoa mencionada']);
+        $project = $this->project($author, $mentioned);
+
+        DB::table('mentions')->insert([
+            'source_type' => 'project',
+            'source_id' => $project->id,
+            'source_field' => 'legacy_notes',
+            'target_type' => 'user',
+            'target_id' => $mentioned->id,
+        ]);
+
+        $this->artisan('mentions:rebuild')
+            ->expectsOutput('Reconstrução concluída: 1 fontes, 0 relações e 0 erros.')
+            ->assertSuccessful();
+
+        $this->assertDatabaseMissing('mentions', [
+            'source_type' => 'project',
+            'source_id' => $project->id,
+            'source_field' => 'legacy_notes',
+        ]);
+    }
+
     private function project(User ...$users): Project
     {
         $project = Project::query()->create([

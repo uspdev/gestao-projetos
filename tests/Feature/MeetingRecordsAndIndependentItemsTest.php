@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\ActivityLog;
+use App\Models\Mention;
 use App\Models\Meeting;
+use App\Models\Task;
 use App\Models\User;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -198,6 +201,47 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('<strong>Tarefa segura</strong>', false)
             ->assertSee('&lt;img src=x onerror=alert(1)&gt;', false)
             ->assertDontSee('<img src=x onerror=alert(1)>', false);
+    }
+
+    public function test_task_duplication_rebuilds_mentions_for_the_copy_after_persisting_its_links(): void
+    {
+        $markdown = '@[Visualizador](mention:user:2)';
+        $source = Task::query()->create([
+            'project_id' => 1,
+            'title' => 'Tarefa com Menção',
+            'description' => $markdown,
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+        ]);
+
+        app(MentionManager::class)->synchronize($source, 'description', $markdown);
+
+        $copy = $source->duplicate();
+
+        $this->assertTrue($copy->outgoingMentions()
+            ->where('source_field', 'description')
+            ->where('target_type', 'user')
+            ->where('target_id', 2)
+            ->exists());
+        $this->assertSame(2, Mention::query()->count());
+    }
+
+    public function test_meeting_duplication_rebuilds_mentions_for_the_copy_after_persisting_its_projects(): void
+    {
+        $markdown = '@[Visualizador](mention:user:2)';
+        DB::table('meetings')->where('id', 1)->update(['notes' => $markdown]);
+        $source = Meeting::query()->findOrFail(1);
+
+        app(MentionManager::class)->synchronize($source, 'notes', $markdown);
+
+        $copy = $source->duplicate(['scheduled_at' => now()->addDay()]);
+
+        $this->assertTrue($copy->outgoingMentions()
+            ->where('source_field', 'notes')
+            ->where('target_type', 'user')
+            ->where('target_id', 2)
+            ->exists());
+        $this->assertSame(2, Mention::query()->count());
     }
 
     public function test_markdown_fields_expose_their_editor_profiles_without_enabling_plain_text_records(): void

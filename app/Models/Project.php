@@ -16,6 +16,7 @@ use App\Traits\HasMeeting;
 use App\Traits\InteractsWithFiles;
 use App\Traits\HasSlug;
 use App\Traits\HasMentions;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -675,6 +676,8 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
                 ]);
             }
         }
+
+        app(MentionManager::class)->rebuildSource($copy);
 
         return $copy;
     }

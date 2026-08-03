@@ -152,6 +152,10 @@ class MentionManager
 
     public function rebuildSource(Model $source): int
     {
+        if (! Schema::hasTable('mentions')) {
+            return 0;
+        }
+
         if ($this->sourceIsUnavailable($source)) {
             $this->clear($source);
 
@@ -159,6 +163,16 @@ class MentionManager
         }
 
         $fields = $this->markdownFields($source);
+
+        if ($fields === []) {
+            $source->outgoingMentions()->delete();
+
+            return 0;
+        }
+
+        $source->outgoingMentions()
+            ->whereNotIn('source_field', $fields)
+            ->delete();
 
         foreach ($fields as $field) {
             $this->synchronize($source, $field, $source->{$field}, false);

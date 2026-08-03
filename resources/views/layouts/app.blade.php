@@ -28,7 +28,7 @@
     integrity="sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L"
     crossorigin="anonymous">
   @stack('styles')
-  <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
   <style>
     html {
       scroll-behavior: smooth;
