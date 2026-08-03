@@ -36,7 +36,7 @@
 
 * **Visualizar:** requer ser visualizador do projeto, incluindo herança para subprojetos quando configurada.
 * **Criar:** permitido apenas para usuários em `senhaunica.estagiario`, `senhaunica.docente` ou `senhaunica.servidor`.
-* **Editar configurações:** qualquer `CONTRIBUTOR` (ou `ADMIN`) pode atualizar nome, slug, descrição, status, tags, visibilidade.
+* **Editar configurações:** somente `ADMIN` do projeto pode atualizar nome, slug, descrição, status, tags, visibilidade, herança de permissões e módulos.
 * **Excluir:** somente `ADMIN` do projeto pode deletar projetos.
 
 ---

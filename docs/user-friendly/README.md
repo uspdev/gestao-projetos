@@ -15,6 +15,10 @@ Nomes de classes, comandos, migrações e decisões internas ficam na
 
 ## Guias de uso
 
+- [Reuniões](reunioes.md) — criação, Pauta, registros, bloqueios, Arquivos e
+  exportação.
+- [Arquivos](arquivos.md) — propriedade, acesso, segurança, Menções e
+  compartilhamento com Reuniões.
 - [Guia de Markdown](markdown/README.md) — formatação, Menções, Menções a
   arquivo, links e pré-visualização.
 - [Exemplo completo de Markdown](markdown/exemplo-markdown.md) — exemplo de
