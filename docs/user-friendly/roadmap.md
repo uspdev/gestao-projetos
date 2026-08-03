@@ -135,12 +135,10 @@ informação para consulta pelos usuários autorizados.
 > **Problema:** Reuniões e projetos acumulam informações que demandam leitura
 > manual para a identificação de decisões, pendências e próximos passos.
 >
-> **Solução:** Usar uma API de LLM para gerar resumos de reuniões e projetos,
-> com processamento em segundo plano e opção de execução manual pelo usuário.
+> **Solução:** Uso do package API-KEYS para gerenciar chaves de acesso para consultas de
+LLMs externas, permitindo gerar resumos de reuniões, projetos e tarefas, de forma que os usuários possam rapidamente compreender o histórico e o andamento.
 
-* **Implementação:** Criar jobs enfileirados para geração dos resumos, permitir
-  execução sob demanda e oferecer configuração do prompt utilizado em cada
-  contexto.
+* **Implementação:** Implementar integração com LLMs externas, utilizando a API-KEYS para gerenciar chaves de acesso. Criar endpoints para enviar dados de reuniões e projetos para a LLM, receber os resumos gerados e armazená-los de forma segura no sistema. Garantir que apenas usuários autorizados possam acessar os resumos gerados.
 * **Prós:** Reduz o tempo necessário para compreender o histórico e facilita a
   comunicação de decisões e andamento.
 * **Contras:** Introduz custo de API, tratamento de falhas externas e cuidados
