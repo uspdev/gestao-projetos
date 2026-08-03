@@ -3,7 +3,7 @@
 ## Arquivos relacionados
 
 - [Exemplo completo de descrição de projeto](exemplo-markdown.md): texto digitado e pré-visualização esperada.
-- [Diagrama do fluxo](diagrama-markdown.md): camadas do navegador, Blade, Laravel e persistência.
+- [Diagrama do fluxo](../../dev-friendly/markdown/diagrama-markdown.md): camadas do navegador, Blade, Laravel e persistência.
 
 ## Markdown no sistema
 

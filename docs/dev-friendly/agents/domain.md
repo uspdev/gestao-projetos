@@ -5,7 +5,7 @@ Este é um repositório de contexto único.
 Antes de explorar ou alterar o domínio:
 
 - leia `CONTEXT.md` na raiz do repositório;
-- leia as decisões relevantes em `docs/adr/`;
+- leia as decisões relevantes em `docs/dev-friendly/adr/`;
 - use os termos canônicos do glossário;
 - sinalize conflitos com um ADR existente em vez de substituí-lo silenciosamente.
 

@@ -24,16 +24,16 @@ Todo agente que trabalhar neste projeto deve respeitar estas regras:
 
 ### Rastreador de trabalho
 
-As especificações e os tickets deste repositório usam Markdown local em `.scratch/`. Consulte `docs/agents/issue-tracker.md`.
+As especificações e os tickets deste repositório usam Markdown local em `.scratch/`. Consulte `docs/dev-friendly/agents/issue-tracker.md`.
 
 ### Rótulos de triagem
 
-Use os rótulos padrão de triagem, incluindo `ready-for-agent` para trabalhos totalmente especificados. Consulte `docs/agents/triage-labels.md`.
+Use os rótulos padrão de triagem, incluindo `ready-for-agent` para trabalhos totalmente especificados. Consulte `docs/dev-friendly/agents/triage-labels.md`.
 
 ### Documentação de domínio
 
-Este é um repositório de contexto único. Leia `CONTEXT.md` e os ADRs relevantes em `docs/adr/` antes de alterar o domínio. Consulte `docs/agents/domain.md`.
+Este é um repositório de contexto único. Leia `CONTEXT.md` e os ADRs relevantes em `docs/dev-friendly/adr/` antes de alterar o domínio. Consulte `docs/dev-friendly/agents/domain.md`.
 
 ### Glossário de tradução
 
-Quando uma skill usar termos em inglês, consulte `docs/agents/glossario-traducao.md` e use as equivalências em português nos documentos do projeto.
+Quando uma skill usar termos em inglês, consulte `docs/dev-friendly/agents/glossario-traducao.md` e use as equivalências em português nos documentos do projeto.

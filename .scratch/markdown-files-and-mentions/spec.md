@@ -100,7 +100,7 @@ Descrições de Tipo de projeto serão renderizadas pela mesma política segura 
 ## Editor e pré-visualização
 
 - Carregar globalmente pelo layout principal o EasyMDE 2.20.0 e o bundle comum do `highlight.js` 11.11.1 a partir do jsDelivr, com versões exatas nas URLs, SRI SHA-384 e `crossorigin="anonymous"`, antes dos ativos próprios.
-- Usar os arquivos `easymde.min.css` e `easymde.min.js` do pacote do EasyMDE publicado pelo jsDelivr e `styles/github.min.css` e `highlight.min.js` da distribuição oficial para navegador do `highlight.js`, com URLs e hashes registrados no [ADR de bibliotecas de front-end por CDN](../../docs/adr/0004-bibliotecas-frontend-por-cdn.md).
+- Usar os arquivos `easymde.min.css` e `easymde.min.js` do pacote do EasyMDE publicado pelo jsDelivr e `styles/github.min.css` e `highlight.min.js` da distribuição oficial para navegador do `highlight.js`, com URLs e hashes registrados no [ADR de bibliotecas de front-end por CDN](../../docs/dev-friendly/adr/0004-bibliotecas-frontend-por-cdn.md).
 - Manter JavaScript e CSS próprios em `resources/` e compilá-los para `public/` pelo pipeline existente. npm, Laravel Mix, Webpack e PostCSS serão apenas ferramentas de construção e não fornecerão bibliotecas Markdown.
 - Remover EasyMDE, `highlight.js` e Lodash das dependências npm. Lodash não será migrado para o CDN porque não possui consumidor na aplicação.
 - Se o CDN falhar, preservar o `textarea`, o salvamento e as funções locais; omitir somente o editor enriquecido e o realce. Não usar fallback por npm, cópia local ou outro CDN.

@@ -7,4 +7,3 @@
 | `ready-for-agent` | `ready-for-agent` | Totalmente especificado e pronto para um agente |
 | `ready-for-human` | `ready-for-human` | Requer implementação humana |
 | `wontfix` | `wontfix` | Não será realizado |
-

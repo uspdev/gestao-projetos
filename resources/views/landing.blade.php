@@ -304,7 +304,7 @@
           calendários e resumos inteligentes, tudo pensado para otimizar ainda mais o seu dia a dia.
           <strong>Tem alguma ideia? Sugestões para o nosso roadmap são muito bem-vindas!</strong>
         </p>
-        <a href="https://github.com/uspdev/gestao-projetos/blob/main/docs/roadmap.md" target="_blank" class="roadmap-btn">
+        <a href="https://github.com/uspdev/gestao-projetos/blob/main/docs/user-friendly/roadmap.md" target="_blank" class="roadmap-btn">
           <i class="fab fa-github me-2"></i> Ver Roadmap Completo
         </a>
       </div>

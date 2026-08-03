@@ -109,7 +109,7 @@ Para exibir asteriscos sem formatação, use escape: \*este texto não é itáli
 2. Criar a tarefa de validação.
 3. Registrar a decisão na próxima reunião.
 
-[manual]: /docs/implantacao-markdown-arquivos-mencoes.md "Guia de implantação"
+[manual]: /docs/dev-friendly/implantacao-markdown-arquivos-mencoes.md "Guia de implantação"
 ````
 
 ## Pré-visualização esperada
@@ -167,7 +167,7 @@ O requisito de segurança está **aprovado** e a alternativa ~~descartada~~ não
 será implantada. O identificador `MarkdownRenderer` é usado na pré-visualização
 e na exibição final.
 
-Consulte o [manual de implantação](/docs/implantacao-markdown-arquivos-mencoes.md),
+Consulte o [manual de implantação](/docs/dev-friendly/implantacao-markdown-arquivos-mencoes.md),
 veja a [documentação institucional](https://www5.usp.br/) ou acesse diretamente
 <https://github.com/uspdev>.
 

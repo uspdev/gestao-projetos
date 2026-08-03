@@ -151,7 +151,8 @@ implementou incorporação direta de mídias, arrastar ou colar Arquivos no edit
 Essa diferença permanece registrada como pendência no roadmap atual.
 
 Consulte o [guia de Markdown](markdown/README.md) e o
-[fluxo de renderização](markdown/diagrama-markdown.md) para o uso detalhado.
+[fluxo de renderização](../dev-friendly/markdown/diagrama-markdown.md) para o
+uso detalhado.
 
 ---
 
@@ -179,7 +180,7 @@ compartilhamento controlado; a incorporação direta de mídias continua fora do
 escopo concluído.
 
 As decisões de segurança e propriedade estão no
-[ADR de Arquivos](adr/0003-modelo-seguranca-e-compartilhamento-de-arquivos.md).
+[ADR de Arquivos](../dev-friendly/adr/0003-modelo-seguranca-e-compartilhamento-de-arquivos.md).
 
 ---
 
@@ -203,7 +204,7 @@ Markdown original.
 Notificações causadas por Menções, caixa de entrada, backlinks e consultas
 dedicadas de Menções não fazem parte desta entrega.
 
-Consulte o [ADR de Menções](adr/0005-generalizar-mencoes-para-entidades.md).
+Consulte o [ADR de Menções](../dev-friendly/adr/0005-generalizar-mencoes-para-entidades.md).
 
 ---
 
