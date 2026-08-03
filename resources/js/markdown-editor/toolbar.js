@@ -50,7 +50,7 @@ const fileReferenceButton = {
     name: "file-reference",
     action: extensionAction("markdown-editor:file-reference"),
     className: "fa fa-paperclip",
-    title: "Referenciar Arquivo",
+    title: "Mencionar Arquivo",
 };
 
 const inlineCodeButton = {

@@ -1,4 +1,3 @@
-const { fileDownloadUrl } = require("./file-reference-navigation");
 const { csrfHeaders } = require("./http");
 
 /**
@@ -14,13 +13,20 @@ function closeFileReferenceSelector(selector) {
 }
 
 /**
- * Insere no editor o link Markdown correspondente ao arquivo selecionado.
+ * Insere no editor a Menção Markdown correspondente ao Arquivo selecionado.
  */
 function insertFileReference(editor, file) {
     editor.codemirror.replaceSelection(
-        `[${file.name}](${fileDownloadUrl(file.uuid)})`,
+        `@[${mentionMarkdownLabel(file.name)}](mention:file:${file.uuid})`,
     );
     editor.codemirror.focus();
+}
+
+function mentionMarkdownLabel(label) {
+    return String(label)
+        .replace(/\\/g, "\\\\")
+        .replace(/\[/g, "\\[")
+        .replace(/\]/g, "\\]");
 }
 
 function createSelectorButton(file, label, action) {
@@ -64,8 +70,8 @@ function appendSelectorGroupHeading(body, group, tagName, className) {
 /**
  * Busca os arquivos disponíveis e monta dinamicamente o modal de seleção.
  *
- * Também permite compartilhar um arquivo com a reunião antes de inserir
- * o Markdown retornado pelo backend.
+ * Também permite compartilhar um Arquivo com a reunião antes de inserir
+ * a Menção Markdown retornada pelo backend.
  */
 function openFileReferenceSelector(textarea, editor) {
     const url = textarea.dataset.fileReferenceUrl;
@@ -183,7 +189,7 @@ function openFileReferenceSelector(textarea, editor) {
                         body.appendChild(
                             createSelectorButton(
                                 file,
-                                `Compartilhar com a reunião e inserir: ${file.name}`,
+                                `Compartilhar com a reunião e mencionar: ${file.name}`,
                                 (button) => {
                                     button.dataset.fileShareUuid = file.uuid;
                                     button.addEventListener("click", () => {

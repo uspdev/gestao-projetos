@@ -36,6 +36,7 @@ function mentionTypeLabel(target) {
         project: "Projeto",
         task: "Tarefa",
         meeting: "Reunião",
+        file: "Arquivo",
     };
 
     return target.type_label || labels[mentionType(target)] || "Destino";
@@ -88,6 +89,7 @@ function renderMentionSelector(editor, range, targets) {
         ["project", "Projetos"],
         ["task", "Tarefas"],
         ["meeting", "Reuniões"],
+        ["file", "Arquivos"],
     ];
     const results = document.createElement("div");
     results.className = "list-group";
@@ -138,6 +140,9 @@ function renderMentionSelector(editor, range, targets) {
                 }
                 if (mentionType(target) === "task") {
                     option.dataset.mentionTaskId = target.id;
+                }
+                if (mentionType(target) === "file") {
+                    option.dataset.mentionFileId = target.id;
                 }
                 option.textContent = `${mentionTypeLabel(target)}: ${mentionLabel(target)}`;
                 option.addEventListener("click", () => {

@@ -29,17 +29,20 @@ class MentionManager
         ?ProjectMentionAdapter $projectAdapter = null,
         ?TaskMentionAdapter $taskAdapter = null,
         ?MeetingMentionAdapter $meetingAdapter = null,
+        ?FileMentionAdapter $fileAdapter = null,
     ) {
         $this->userAdapter = $userAdapter ?? new UserMentionAdapter();
         $this->projectAdapter = $projectAdapter ?? new ProjectMentionAdapter();
         $this->taskAdapter = $taskAdapter ?? new TaskMentionAdapter();
         $this->meetingAdapter = $meetingAdapter ?? new MeetingMentionAdapter();
+        $this->fileAdapter = $fileAdapter ?? new FileMentionAdapter();
     }
 
     private UserMentionAdapter $userAdapter;
     private ProjectMentionAdapter $projectAdapter;
     private TaskMentionAdapter $taskAdapter;
     private MeetingMentionAdapter $meetingAdapter;
+    private FileMentionAdapter $fileAdapter;
 
     public function synchronize(
         Model $source,
@@ -77,7 +80,11 @@ class MentionManager
 
             $references = $references
                 ->filter(fn (MentionReference $reference): bool => $this->targetExists($reference, true))
-                ->keyBy(fn (MentionReference $reference): string => $reference->identity());
+                ->mapWithKeys(function (MentionReference $reference): array {
+                    $identity = $this->relationIdentity($reference);
+
+                    return $identity === null ? [] : [$identity => $reference];
+                });
             $mentions = $source->outgoingMentions()
                 ->where('source_field', $field)
                 ->get()
@@ -88,11 +95,11 @@ class MentionManager
                 ->each->delete();
 
             $references
-                ->reject(fn (MentionReference $reference): bool => $mentions->has($reference->identity()))
+                ->reject(fn (MentionReference $reference): bool => $mentions->has($this->relationIdentity($reference)))
                 ->each(fn (MentionReference $reference) => $source->outgoingMentions()->create([
                     'source_field' => $field,
                     'target_type' => $reference->type,
-                    'target_id' => $reference->key,
+                    'target_id' => $this->relationTargetId($reference),
                 ]));
         });
     }
@@ -229,7 +236,7 @@ class MentionManager
     }
 
     /**
-     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string}>
+     * @return Collection<int, array{id: int|string, name: string, type: string, type_label: string, group: string}>
      */
     public function search(
         Model $source,
@@ -259,7 +266,7 @@ class MentionManager
         $adapter = $alias ? $this->adapterFor($alias) : null;
 
         if (! $reader || ! $alias || ! $adapter
-            || $adapter->present((string) $target->getKey(), $reader)['status'] !== 'available'
+            || $adapter->present($this->publicTargetKey($adapter, $target), $reader)['status'] !== 'available'
             || ! method_exists($target, 'incomingMentions')) {
             return collect();
         }
@@ -358,6 +365,7 @@ class MentionManager
             ProjectMentionAdapter::ALIAS => $this->projectAdapter,
             TaskMentionAdapter::ALIAS => $this->taskAdapter,
             MeetingMentionAdapter::ALIAS => $this->meetingAdapter,
+            FileMentionAdapter::ALIAS => $this->fileAdapter,
         ];
     }
 
@@ -372,8 +380,36 @@ class MentionManager
             'project', 'projects', 'projeto', 'projetos' => [ProjectMentionAdapter::ALIAS],
             'task', 'tasks', 'tarefa', 'tarefas' => [TaskMentionAdapter::ALIAS],
             'meeting', 'meetings', 'reuniao', 'reunioes', 'reunião', 'reuniões' => [MeetingMentionAdapter::ALIAS],
+            'file', 'files', 'arquivo', 'arquivos' => [FileMentionAdapter::ALIAS],
             default => [],
         };
+    }
+
+    private function relationTargetId(MentionReference $reference): ?string
+    {
+        $adapter = $this->adapterFor($reference->type);
+
+        if (! $adapter) {
+            return null;
+        }
+
+        return method_exists($adapter, 'relationKey')
+            ? $adapter->relationKey($reference->key)
+            : $reference->key;
+    }
+
+    private function relationIdentity(MentionReference $reference): ?string
+    {
+        $targetId = $this->relationTargetId($reference);
+
+        return $targetId === null ? null : $reference->type . ':' . $targetId;
+    }
+
+    private function publicTargetKey(object $adapter, Model $target): string
+    {
+        return method_exists($adapter, 'publicKey')
+            ? $adapter->publicKey($target)
+            : (string) $target->getKey();
     }
 
     private function sourceIsUnavailable(Model $source): bool

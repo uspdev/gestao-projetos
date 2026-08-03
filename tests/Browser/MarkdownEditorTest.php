@@ -294,7 +294,7 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
-    public function test_file_reference_selector_inserts_the_historical_markdown_link_after_selection(): void
+    public function test_file_reference_selector_inserts_the_file_mention_after_selection(): void
     {
         $this->browse(function (Browser $browser): void {
             $browser->loginAs(self::getUser('admin'))
@@ -338,9 +338,8 @@ class MarkdownEditorTest extends DuskTestCase
                 ->assertScript(
                     <<<'JS'
                         (() => {
-                            const appBase = window.location.pathname.split('/projects/')[0];
                             const value = window.MarkdownEditors.get(document.querySelector('#file-reference-editor')).editor.value();
-                            return value === `[Decisão registrada](${appBase}/files/11111111-1111-4111-8111-111111111111)`;
+                            return value === '@[Decisão registrada](mention:file:11111111-1111-4111-8111-111111111111)';
                         })()
                     JS,
                     true
@@ -532,7 +531,7 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
-    public function test_file_reference_selector_shares_with_the_meeting_before_inserting_the_link(): void
+    public function test_file_reference_selector_shares_with_the_meeting_before_inserting_the_mention(): void
     {
         $this->browse(function (Browser $browser): void {
             $browser->loginAs(self::getUser('admin'))
@@ -548,7 +547,7 @@ class MarkdownEditorTest extends DuskTestCase
                             ok: true,
                             json: function () {
                                 return Promise.resolve({
-                                    markdown: '[Arquivo da pauta](/files/22222222-2222-4222-8222-222222222222)'
+                                    markdown: '@[Arquivo da pauta](mention:file:22222222-2222-4222-8222-222222222222)'
                                 });
                             }
                         });
@@ -599,7 +598,7 @@ class MarkdownEditorTest extends DuskTestCase
                 ->click('[data-file-share-uuid="22222222-2222-4222-8222-222222222222"]')
                 ->assertScript(
                     "window.MarkdownEditors.get(document.querySelector('#meeting-file-reference-editor')).editor.value()",
-                    '[Arquivo da pauta](/files/22222222-2222-4222-8222-222222222222)'
+                    '@[Arquivo da pauta](mention:file:22222222-2222-4222-8222-222222222222)'
                 )
                 ->assertScript('window.fileReferenceRequests.length', 2)
                 ->assertScript("window.fileReferenceRequests[1].url", '/meetings/1/file-shares')
@@ -724,6 +723,55 @@ class MarkdownEditorTest extends DuskTestCase
                 ->assertScript(
                     "window.MarkdownEditors.get(document.querySelector('#project-mention-editor')).editor.value()",
                     '@[Projeto \\] atual](mention:project:42)'
+                );
+        });
+    }
+
+    public function test_mention_selector_filters_files_and_inserts_the_file_uuid_alias(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [
+                                    {
+                                        id: '11111111-1111-4111-8111-111111111111',
+                                        name: 'Decisão final',
+                                        type: 'file',
+                                        type_label: 'Arquivo'
+                                    }
+                                ]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'file-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#file-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#file-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-filter="file"]')
+                ->assertSeeIn('#mention-selector', 'Arquivo: Decisão final')
+                ->click('[data-mention-file-id="11111111-1111-4111-8111-111111111111"]')
+                ->assertScript(
+                    "window.MarkdownEditors.get(document.querySelector('#file-mention-editor')).editor.value()",
+                    '@[Decisão final](mention:file:11111111-1111-4111-8111-111111111111)'
                 );
         });
     }

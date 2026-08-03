@@ -3,6 +3,7 @@
 namespace App\Services\Mentions;
 
 use App\Morphs\MentionMap;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -78,10 +79,14 @@ class MentionExtractor
 
             $parts = explode(':', $url, 3);
 
+            $validKey = count($parts) === 3 && ($parts[1] === 'file'
+                ? Str::isUuid($parts[2])
+                : preg_match('/^[1-9][0-9]*$/', $parts[2]) === 1);
+
             if (count($parts) !== 3
                 || $parts[0] !== 'mention'
                 || MentionMap::resolveTargetClass($parts[1]) === null
-                || preg_match('/^[1-9][0-9]*$/', $parts[2]) !== 1) {
+                || ! $validKey) {
                 if (! $strict) {
                     continue;
                 }

@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Models\Project;
 use App\Models\Meeting;
 use App\Models\MeetingItem;
+use App\Models\Mention;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\Mentions\MentionManager;
+use App\Services\MarkdownRenderer;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +17,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -361,6 +365,297 @@ class FileReferencesAndMeetingSharesTest extends TestCase
         $this->assertDatabaseCount('mentions', 1);
     }
 
+    public function test_it_indexes_a_file_mention_by_public_uuid_and_resolves_the_internal_target_relation(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Pessoa autora do Arquivo');
+        $project = $this->projectWithMember('Projeto do Arquivo mencionado', $author);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('decisao.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = '@[Rótulo histórico](mention:file:' . $media->uuid . ')';
+
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $mention = Mention::query()->firstOrFail();
+
+        $this->assertSame('file', $mention->target_type);
+        $this->assertSame((string) $media->id, (string) $mention->target_id);
+        $this->assertTrue($mention->target->is($media));
+        $this->assertTrue($media->incomingMentions()->whereKey($mention->id)->exists());
+        $this->assertTrue(
+            app(MentionManager::class)->incomingMentions($media, $author)->contains('id', $mention->id),
+        );
+    }
+
+    public function test_file_mentions_are_searchable_by_uuid_in_the_unified_autocomplete(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Pessoa que pesquisa Arquivos');
+        $project = $this->projectWithMember('Projeto contextual de Arquivos', $author);
+        $otherProject = $this->projectWithMember('Outro projeto de Arquivos', $author);
+
+        $this->actingAs($author);
+        $contextual = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('contexto.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $other = $otherProject
+            ->addMedia(UploadedFile::fake()->createWithContent('fora-do-contexto.pdf', 'conteudo'))
+            ->toMediaCollection();
+
+        $this->getJson(route('mentions.selectable', [
+            'context_type' => 'project',
+            'context_id' => $project->id,
+            'filter' => 'file',
+            'term' => 'contexto',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('results.0.id', $contextual->uuid)
+            ->assertJsonPath('results.0.name', 'contexto')
+            ->assertJsonPath('results.0.type', 'file')
+            ->assertJsonPath('results.0.type_label', 'Arquivo')
+            ->assertJsonMissing(['id' => $other->uuid])
+            ->assertJsonFragment(['value' => 'file', 'label' => 'Arquivos']);
+    }
+
+    public function test_file_mentions_render_the_current_name_and_authorized_uuid_route_without_rewriting_markdown(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $reader = $this->user('Pessoa que lê Arquivos');
+        $project = $this->projectWithMember('Projeto da apresentação do Arquivo', $reader);
+
+        $this->actingAs($reader);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('decisao.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = '@[Nome histórico](mention:file:' . $media->uuid . ')';
+        $project->update(['description' => $markdown]);
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $media->display_name = 'decisao final';
+        $media->save();
+
+        $presentation = app(MentionManager::class)->present('file', $media->uuid, $reader);
+
+        $this->assertSame('available', $presentation['status']);
+        $this->assertSame('decisao final', $presentation['label']);
+        $this->assertSame(
+            route('files.show', ['uuid' => $media->uuid]),
+            $presentation['url'],
+        );
+        $this->assertSame('arquivo: decisao final', $presentation['accessible_name']);
+        $html = app(MarkdownRenderer::class)->render($markdown);
+        $this->assertStringContainsString('decisao final', $html);
+        $this->assertStringContainsString('aria-label="arquivo: decisao final"', $html);
+        $this->assertStringContainsString('title="arquivo: decisao final"', $html);
+        $this->assertSame($markdown, $project->fresh()->description);
+    }
+
+    public function test_new_file_mentions_hide_missing_and_out_of_context_files_behind_one_validation_message(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Pessoa que valida Arquivos');
+        $project = $this->projectWithMember('Projeto do texto', $author);
+        $otherProject = $this->projectWithMember('Projeto fora do texto', $author);
+
+        $this->actingAs($author);
+        $otherMedia = $otherProject
+            ->addMedia(UploadedFile::fake()->createWithContent('fora.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $manager = app(MentionManager::class);
+        $messages = [];
+
+        foreach ([$otherMedia->uuid, '11111111-1111-4111-8111-111111111111'] as $uuid) {
+            try {
+                $manager->validateAllMentions(
+                    $project,
+                    'description',
+                    '@[Arquivo](mention:file:' . $uuid . ')',
+                );
+            } catch (ValidationException $exception) {
+                $messages[] = $exception->errors()['description'][0];
+            }
+        }
+
+        $this->assertSame([
+            'Uma ou mais Menções não existem ou não são permitidas neste contexto.',
+            'Uma ou mais Menções não existem ou não são permitidas neste contexto.',
+        ], $messages);
+    }
+
+    public function test_definitive_file_deletion_removes_the_incoming_relation_without_rewriting_markdown(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Pessoa que remove Arquivos');
+        $project = $this->projectWithMember('Projeto com Arquivo removível', $author);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('remover.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = '@[Arquivo removível](mention:file:' . $media->uuid . ')';
+        $project->update(['description' => $markdown]);
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $media->delete();
+
+        $this->assertDatabaseMissing('mentions', [
+            'target_type' => 'file',
+            'target_id' => $media->id,
+        ]);
+        $this->assertSame($markdown, $project->fresh()->description);
+    }
+
+    public function test_repeated_file_mentions_are_deduplicated_without_changing_the_markdown(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Pessoa que repete Arquivos');
+        $project = $this->projectWithMember('Projeto com Arquivo repetido', $author);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('repetido.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = implode(' ', [
+            '@[Arquivo](mention:file:' . $media->uuid . ')',
+            '@[Arquivo outra vez](mention:file:' . $media->uuid . ')',
+        ]);
+        $project->update(['description' => $markdown]);
+
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $this->assertDatabaseCount('mentions', 1);
+        $this->assertSame($markdown, $project->fresh()->description);
+    }
+
+    public function test_common_file_links_remain_links_and_stay_out_of_the_mentions_index(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Pessoa com link antigo');
+        $project = $this->projectWithMember('Projeto com link antigo', $author);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('legado.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = '[Arquivo legado](/files/' . $media->uuid . ')';
+        $project->update(['description' => $markdown]);
+
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $this->assertDatabaseCount('mentions', 0);
+        $this->assertStringContainsString('/files/' . $media->uuid, app(MarkdownRenderer::class)->render($markdown));
+    }
+
+    public function test_file_presentation_distinguishes_missing_owner_from_an_unauthorized_reader_without_exposing_history(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $owner = $this->user('Pessoa proprietária do Arquivo');
+        $reader = $this->user('Pessoa sem acesso ao Arquivo');
+        $project = $this->projectWithMember('Projeto do Arquivo restrito', $owner);
+
+        $this->actingAs($owner);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('restrito.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = '@[Nome secreto](mention:file:' . $media->uuid . ')';
+        $project->update(['description' => $markdown]);
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $this->actingAs($reader);
+        $this->assertSame([
+            'status' => 'forbidden',
+            'type' => 'arquivo',
+            'message' => 'Menção a arquivo: você não tem permissão para visualizar',
+        ], app(MentionManager::class)->present('file', $media->uuid, $reader));
+        $this->assertStringNotContainsString(
+            'Nome secreto',
+            app(MarkdownRenderer::class)->render($markdown),
+        );
+
+        $project->delete();
+
+        $this->assertSame('missing', app(MentionManager::class)->present('file', $media->uuid, $owner)['status']);
+    }
+
+    public function test_meeting_file_mentions_require_explicit_sharing_and_keep_that_share_after_text_removal(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $editor = $this->user('Pessoa que edita a Reunião');
+        $project = $this->projectWithMember('Projeto da Reunião do Arquivo', $editor, 'CONTRIBUTOR');
+        $this->enableModule($project, 'meetings');
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião com Arquivo',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach($project);
+
+        $this->actingAs($editor);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('pauta.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $markdown = '@[Pauta](mention:file:' . $media->uuid . ')';
+        $manager = app(MentionManager::class);
+
+        try {
+            $manager->validateAllMentions($meeting, 'notes', $markdown, $editor);
+            $this->fail('Um Arquivo não compartilhado não deveria ser elegível na Reunião.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Uma ou mais Menções não existem ou não são permitidas neste contexto.',
+                $exception->errors()['notes'][0],
+            );
+        }
+
+        $this->postJson(route('meetings.file-shares.store', $meeting), [
+            'media_uuid' => $media->uuid,
+        ])->assertCreated();
+
+        $meeting->notes = $markdown;
+        $manager->validateAllMentions($meeting, 'notes', $markdown, $editor);
+        $manager->synchronize($meeting, 'notes', $markdown, true, $editor);
+        $this->assertDatabaseHas('mentions', [
+            'source_type' => 'meeting',
+            'source_id' => $meeting->id,
+            'target_type' => 'file',
+            'target_id' => $media->id,
+        ]);
+
+        $meeting->notes = null;
+        $manager->synchronize($meeting, 'notes', null, true, $editor);
+
+        $this->assertDatabaseHas('meeting_file_shares', [
+            'meeting_id' => $meeting->id,
+            'media_id' => $media->id,
+        ]);
+        $this->assertDatabaseMissing('mentions', [
+            'source_type' => 'meeting',
+            'source_id' => $meeting->id,
+            'target_type' => 'file',
+            'target_id' => $media->id,
+        ]);
+    }
+
     public function test_task_file_selector_returns_its_own_files_and_files_from_its_project_without_inheriting_other_projects(): void
     {
         Storage::fake('files');
@@ -682,7 +977,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             'media_uuid' => $media->uuid,
         ])
             ->assertCreated()
-            ->assertJsonPath('markdown', "[historico](/files/{$media->uuid})");
+            ->assertJsonPath('markdown', "@[historico](mention:file:{$media->uuid})");
 
         $this->assertDatabaseHas('meeting_file_shares', [
             'meeting_id' => $meeting->id,
@@ -735,7 +1030,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             'media_uuid' => $media->uuid,
         ])
             ->assertCreated()
-            ->assertJsonPath('markdown', "[contexto-da-pauta](/gestao-projetos/public/files/{$media->uuid})");
+            ->assertJsonPath('markdown', "@[contexto-da-pauta](mention:file:{$media->uuid})");
 
         $this->assertDatabaseHas('meeting_file_shares', [
             'meeting_id' => $meeting->id,

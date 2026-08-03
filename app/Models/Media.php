@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use LogicException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as BaseMedia;
@@ -70,6 +72,12 @@ class Media extends BaseMedia
                 }
             }
         });
+
+        static::deleted(function (self $media): void {
+            if (Schema::hasTable('mentions')) {
+                $media->incomingMentions()->delete();
+            }
+        });
     }
 
     public function uploader(): BelongsTo
@@ -82,6 +90,12 @@ class Media extends BaseMedia
         return $this->belongsToMany(Meeting::class, 'meeting_file_shares')
             ->withPivot('shared_by')
             ->withTimestamps();
+    }
+
+    public function incomingMentions(): HasMany
+    {
+        return $this->hasMany(Mention::class, 'target_id')
+            ->where('target_type', 'file');
     }
 
     protected function displayName(): Attribute

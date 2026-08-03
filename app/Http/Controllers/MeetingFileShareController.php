@@ -27,8 +27,6 @@ class MeetingFileShareController extends Controller
 
         abort_unless($this->isAllowedSource($meeting, $media), 404);
 
-        $downloadUrl = parse_url(route('files.show', ['uuid' => $media->uuid]), PHP_URL_PATH);
-
         $share = DB::transaction(fn (): MeetingFileShare => MeetingFileShare::query()->firstOrCreate(
             ['meeting_id' => $meeting->id, 'media_id' => $media->id],
             ['shared_by' => $request->user()->id],
@@ -37,7 +35,8 @@ class MeetingFileShareController extends Controller
         return response()->json([
             'uuid' => $media->uuid,
             'name' => $media->display_name,
-            'markdown' => "[{$media->display_name}]({$downloadUrl})",
+            'markdown' => '@[' . $this->mentionMarkdownLabel((string) $media->display_name)
+                . '](mention:file:' . $media->uuid . ')',
         ], $share->wasRecentlyCreated ? 201 : 200);
     }
 
@@ -83,5 +82,10 @@ class MeetingFileShareController extends Controller
             ->where('discussable_type', $owner->getMorphClass())
             ->where('discussable_id', $owner->getKey())
             ->exists();
+    }
+
+    private function mentionMarkdownLabel(string $label): string
+    {
+        return str_replace(['\\', '[', ']'], ['\\\\', '\\[', '\\]'], $label);
     }
 }

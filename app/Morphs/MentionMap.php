@@ -29,6 +29,7 @@ class MentionMap extends BaseMorphMap
             'project' => \App\Models\Project::class,
             'task' => \App\Models\Task::class,
             'meeting' => \App\Models\Meeting::class,
+            'file' => \App\Models\Media::class,
         ]);
     }
 
