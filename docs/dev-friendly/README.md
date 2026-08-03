@@ -81,6 +81,8 @@ ambiente. Testes HTTP e unitários usam o ambiente `testing` configurado em
 - [Glossário de tradução](agents/glossario-traducao.md) — equivalências
   usadas na documentação técnica.
 - [Aware Prompt](aware_prompt.md) — contexto técnico para assistentes de IA.
+- [Regras de domínio e pontos de aplicação](regras-de-dominio.md) —
+  invariáveis, autorização, módulos, ciclos e efeitos assíncronos.
 
 ## ADRs
 
@@ -101,6 +103,8 @@ alterar o comportamento documentado:
   — checklist curto de publicação, verificação e recuperação.
 - [Implantação de acompanhamentos](email/implantacao-observacoes.md) —
   tabelas, eventos e processamento dos resumos por e-mail.
+- [Índice de Menções e auditoria](operacao/indice-de-mencoes-e-auditoria.md)
+  — reconstrução, limpeza, fila e observabilidade.
 - [Notificações por e-mail](../user-friendly/email/notificacoes.md) — contrato observável dos
   eventos e destinatários.
 
