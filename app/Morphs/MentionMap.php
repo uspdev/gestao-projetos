@@ -28,6 +28,7 @@ class MentionMap extends BaseMorphMap
             'user' => \App\Models\User::class,
             'project' => \App\Models\Project::class,
             'task' => \App\Models\Task::class,
+            'meeting' => \App\Models\Meeting::class,
         ]);
     }
 

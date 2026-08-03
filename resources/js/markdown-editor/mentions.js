@@ -35,6 +35,7 @@ function mentionTypeLabel(target) {
         user: "Pessoa",
         project: "Projeto",
         task: "Tarefa",
+        meeting: "Reunião",
     };
 
     return target.type_label || labels[mentionType(target)] || "Destino";
@@ -86,6 +87,7 @@ function renderMentionSelector(editor, range, targets) {
         ["user", "Pessoas"],
         ["project", "Projetos"],
         ["task", "Tarefas"],
+        ["meeting", "Reuniões"],
     ];
     const results = document.createElement("div");
     results.className = "list-group";

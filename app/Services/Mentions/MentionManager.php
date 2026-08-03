@@ -28,15 +28,18 @@ class MentionManager
         ?UserMentionAdapter $userAdapter = null,
         ?ProjectMentionAdapter $projectAdapter = null,
         ?TaskMentionAdapter $taskAdapter = null,
+        ?MeetingMentionAdapter $meetingAdapter = null,
     ) {
         $this->userAdapter = $userAdapter ?? new UserMentionAdapter();
         $this->projectAdapter = $projectAdapter ?? new ProjectMentionAdapter();
         $this->taskAdapter = $taskAdapter ?? new TaskMentionAdapter();
+        $this->meetingAdapter = $meetingAdapter ?? new MeetingMentionAdapter();
     }
 
     private UserMentionAdapter $userAdapter;
     private ProjectMentionAdapter $projectAdapter;
     private TaskMentionAdapter $taskAdapter;
+    private MeetingMentionAdapter $meetingAdapter;
 
     public function synchronize(
         Model $source,
@@ -354,6 +357,7 @@ class MentionManager
             UserMentionAdapter::ALIAS => $this->userAdapter,
             ProjectMentionAdapter::ALIAS => $this->projectAdapter,
             TaskMentionAdapter::ALIAS => $this->taskAdapter,
+            MeetingMentionAdapter::ALIAS => $this->meetingAdapter,
         ];
     }
 
@@ -367,6 +371,7 @@ class MentionManager
             'user', 'users', 'people', 'pessoas' => [UserMentionAdapter::ALIAS],
             'project', 'projects', 'projeto', 'projetos' => [ProjectMentionAdapter::ALIAS],
             'task', 'tasks', 'tarefa', 'tarefas' => [TaskMentionAdapter::ALIAS],
+            'meeting', 'meetings', 'reuniao', 'reunioes', 'reunião', 'reuniões' => [MeetingMentionAdapter::ALIAS],
             default => [],
         };
     }
