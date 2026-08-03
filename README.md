@@ -1,131 +1,24 @@
 # Sistema de Gestão de Projetos USP
 
-## Sobre
-
-Sistema interno construído em Laravel que organiza e centraliza projetos e tarefas, com base pronta para evoluir para reuniões e outras features do roadmap.
+Sistema interno para organizar projetos, tarefas, reuniões e o trabalho
+relacionado das equipes.
 
 ## Documentação
 
-- [MVP](docs/MVP.md) — Escopo e decisões que orientaram o produto mínimo viável do sistema.
-- [Roadmap](docs/roadmap.md) — Funcionalidades ainda não implementadas e prioridades futuras.
-- [Roadmap concluído](docs/roadmap-concluded.md) — Registro factual das funcionalidades já entregues e seus limites atuais.
-- [Permissões](docs/permissoes.md) — Regras de acesso, papéis, policies, subprojetos e herança de permissões.
-- [Markdown](docs/markdown/README.md) — Guia de uso, [exemplo completo](docs/markdown/exemplo-markdown.md) e [diagrama do fluxo](docs/markdown/diagrama-markdown.md), incluindo menções, referências de arquivos e links internos.
-- [Implantação dos registros de reunião](docs/implantacao-registros-de-reuniao.md) — Ordem de migração, validação da estrutura e publicação do código.
-- [Implantação de Markdown, Arquivos e Menções — rascunho](docs/implantacao-markdown-arquivos-mencoes.md) — Procedimento preliminar de publicação, homologação e recuperação, pendente de validação operacional.
-- [Aware Prompt](docs/aware_prompt.md) — Aware prompt de contexto para assistentes de IA externos; NÃO é um arquivo do tipo `AGENTS.md`.
+### User friendly
 
-## Características
+Documentação voltada a quem usa ou precisa entender o produto, seus recursos e
+suas regras de uso:
 
-- Gestão de projetos com descrição, status, fases, tags, membros e configurações próprias.
-- Tipos de projeto com ativação granular de módulos, como tarefas, reuniões e fases.
-- Projetos organizacionais e subprojetos, com vínculo controlado e herança configurável de acesso.
-- Gestão de tarefas com prioridade, status, datas, tags e múltiplos responsáveis.
-- Tarefas em tabela, cartões ou Kanban, com buscas e filtros por contexto.
-- Gestão de reuniões vinculadas a múltiplos projetos, com pauta, notas e ciclo de status.
-- Itens de pauta associados a projetos ou tarefas, com ordenação e registros individuais.
-- Comentários em projetos, tarefas, reuniões e itens de pauta.
-- Dashboard pessoal com projetos fixados, reuniões agendadas e tarefas atribuídas.
-- Buscas contextuais de projetos, subprojetos e tarefas.
-- Gestão de membros integrada ao Replicado por número USP (`codpes`).
-- Autenticação institucional pela Senha Única.
-- Controle de acesso com roles, policies, visibilidade e herança de permissões.
-- Acompanhamento opcional de entidades e resumos agrupados por e-mail.
-- Auditoria backend de alterações em entidades e relacionamentos, ainda sem interface de consulta.
-- Navegação contextual entre projetos, subprojetos, tarefas e módulos.
+- [Abrir a documentação user friendly](docs/user-friendly/README.md)
 
-## Funcionamento
+### Dev friendly
 
-Cada projeto possui membros locais com os papéis `ADMIN`, `CONTRIBUTOR` ou
-`VIEWER`. As policies combinam essas roles com a visibilidade, os módulos ativos
-e, nos subprojetos, a configuração de herança. Usuários elegíveis podem ingressar
-ativamente em um subprojeto.
+Documentação técnica e objetiva para desenvolvimento, execução local, testes,
+implantação, arquitetura e decisões do projeto:
 
-Tarefas pertencem a um projeto e podem ter vários responsáveis, enquanto
-reuniões podem abranger vários projetos e organizar uma pauta formada por
-projetos e tarefas. Projetos, tarefas, reuniões e itens de pauta aceitam
-comentários dentro das permissões do usuário. Alterações de status são realizadas
-no próprio recurso e refletidas nas visualizações em lista, cartões e Kanban.
+- [Abrir a documentação dev friendly](docs/dev-friendly/README.md)
 
-O dashboard pessoal consulta os vínculos diretos do usuário para apresentar
-projetos fixados, reuniões pendentes e tarefas atribuídas. Buscas e filtros atuam
-sobre cada contexto, e as preferências de visualização são mantidas na sessão.
-Ações relevantes disparam e-mails enfileirados, enquanto a auditoria registra no
-backend o autor, o evento e os valores alterados. As rotas de projeto usam
-slugs, e a inclusão de membros consulta o Replicado quando disponível.
-
-## Requisitos
-
-- Servidor Linux (Ubuntu ou Debian).
-- PHP 8.2+.
-- Composer.
-- Git.
-- Banco de dados compatível com Laravel (ex: MariaDB/MySQL ou SQLite).
-- Credenciais de Senha Única.
-- Acesso ao Replicado para busca de pessoas e cadastro de membros por codpes.
-
-## Instalação
-
-```sh
-git clone git@github.com:uspdev/gestao-projetos.git
-cd gestao-projetos
-composer install
-cp .env.example .env
-php artisan key:generate
-```
-
-Configure o `.env` (incluindo `SENHAUNICA_CALLBACK_ID`) e rode:
-
-```sh
-php artisan migrate
-```
-
-## Configuração em ambiente de produção
-
-- Aponte o servidor web para a pasta `public/`.
-- Defina `APP_ENV=production` e `APP_DEBUG=false`.
-- Garanta permissão de escrita em `storage/` e `bootstrap/cache/`.
-
-- Configurar email e supervisor para envio de fila de emails.
-
-## Configuração em ambiente de desenvolvimento
-
-```sh
-php artisan serve
-```
-
-## Histórico
-
-- Iniciado em 2026 com foco no MVP de projetos e tarefas.
-
-## Detalhamento técnico
-
-- PHP 8.2 e Laravel 12, com persistência e relacionamentos modelados pelo Eloquent ORM.
-- Controllers coordenam os casos de uso, utilizando transações de banco para operações com múltiplas alterações.
-- `FormRequest` concentra validação e autorização de entrada; Policies e Gates controlam o acesso aos recursos.
-- Models reúnem relacionamentos, regras de domínio reutilizáveis, query scopes, casts e eventos do Eloquent.
-- Enums tipados representam estados, prioridades, papéis, visibilidade, fases e configurações de herança.
-- Interface server-side com Blade, componentes reutilizáveis e integração com `uspdev/laravel-usp-theme`.
-- Projetos possuem tipos, fases e módulos configuráveis por relações pivot, com habilitação específica por projeto.
-- Comentários e itens de pauta usam relações polimórficas registradas por morph maps explícitos.
-- Autenticação pela Senha Única, permissões globais com `spatie/laravel-permission` e integração ao Replicado.
-- Tags polimórficas com `spatie/laravel-tags` e slugs tratados por uma trait reutilizável.
-- Auditoria com `spatie/laravel-activitylog`, incluindo alterações em models e relações pivot.
-- Exclusão lógica em projetos, tarefas e reuniões, com rastreamento do usuário responsável pelas alterações.
-- Notificações por e-mail implementadas com Mailables processados pelas filas do Laravel.
-- Assets front-end compilados com Laravel Mix; testes disponíveis com PHPUnit e Laravel Dusk.
-
-## Changelog
-
-01/06/2026
-
-- Release ciclo 2: sub-projetos, tipos de projetos, módulos ativaveis, módulo Fases
-
-30/04/2026
-
-- Release do MVP.
-
-03/2026
-
-- Setup inicial da arquitetura do MVP (Projetos, Tarefas e Usuários).
-- Configuração de validações dinâmicas com Form Requests e Action Pattern.
+Os documentos históricos continuam nos caminhos originais dentro de `docs/`.
+Os dois índices acima são a entrada oficial por público e evitam duplicar o
+conteúdo dos ADRs e dos guias já existentes.
