@@ -97,8 +97,8 @@ alterar o comportamento documentado:
 
 - [Implantação de registros de reunião](implantacao-registros-de-reuniao.md)
   — migrações, validação e reversão protegida.
-- [Implantação de Markdown, Arquivos e Menções](implantacao-markdown-arquivos-mencoes.md)
-  — build, migrações, fila, homologação e recuperação.
+- [Implantação de Markdown, Arquivos e Menções](../user-friendly/markdown/implantacao.md)
+  — checklist curto de publicação, verificação e recuperação.
 - [Implantação de acompanhamentos](email/implantacao-observacoes.md) —
   tabelas, eventos e processamento dos resumos por e-mail.
 - [Notificações por e-mail](../user-friendly/email/notificacoes.md) — contrato observável dos

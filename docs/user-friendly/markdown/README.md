@@ -1,47 +1,25 @@
-# Guia de Markdown no Gestão de Projetos
+# Markdown
 
-## Arquivos relacionados
+Markdown é usado para guardar textos estruturados em descrições, anotações e
+comentários. O texto original é preservado; a aplicação o converte em HTML
+seguro somente quando precisa exibi-lo ou pré-visualizá-lo.
 
-- [Exemplo completo de descrição de projeto](exemplo-markdown.md): texto digitado e pré-visualização esperada.
-- [Diagrama do fluxo](../../dev-friendly/markdown/diagrama-markdown.md): camadas do navegador, Blade, Laravel e persistência.
+## Campos e comportamentos
 
-## Markdown no sistema
-
-O Gestão de Projetos usa Markdown para guardar textos estruturados em descrições,
-anotações e comentários. Markdown é uma linguagem de marcação simples: o texto
-é salvo com seus marcadores e convertido em HTML seguro quando é exibido.
-
-Para aprender a sintaxe básica, consulte o [guia oficial do CommonMark](https://commonmark.org/help/).
-O projeto também aceita a extensão GitHub Flavored Markdown (GFM), cuja
-[especificação oficial](https://github.github.com/gfm/) documenta recursos como
-checklists e tabelas.
-
-## Onde o Markdown pode ser usado
-
-| Campo | Perfil do editor | Limite |
-| --- | --- | --- |
-| Descrição de projeto | Completo | 10.000 caracteres |
-| Descrição de tarefa | Completo | 10.000 caracteres |
-| Anotações prévias de reunião | Completo | 10.000 caracteres |
-| Anotações de item de pauta | Completo | 10.000 caracteres |
+| Campo | Perfil | Limite |
+| --- | --- | ---: |
+| Descrição de Projeto | Completo | 10.000 caracteres |
+| Descrição de Tarefa | Completo | 10.000 caracteres |
 | Comentário | Compacto | 10.000 caracteres |
+| Anotações prévias de Reunião | Completo | 10.000 caracteres |
+| Anotações prévias do item | Completo | 10.000 caracteres |
 
-Os campos **Ata** e **Transcrição** de reunião continuam sendo texto simples.
+Ata e Transcrição continuam sendo texto simples. A pré-visualização não salva o
+conteúdo: a alteração só é persistida quando o formulário é salvo.
 
-## Como editar um texto
-
-1. Abra a edição do projeto, tarefa, comentário, reunião ou item de pauta.
-2. Digite o texto ou use a barra do editor para inserir a formatação.
-3. Use a pré-visualização para conferir o resultado que será exibido.
-4. Salve o formulário.
-
-A pré-visualização não salva o conteúdo. As alterações só são persistidas quando
-o formulário principal é salvo.
-
-O editor enriquecido e o realce de blocos de código são carregados pelo
-jsDelivr. Se o CDN estiver temporariamente indisponível, o campo permanece como
-uma área de texto simples e pode ser salvo normalmente; conteúdos já renderizados
-continuam legíveis, apenas sem realce de sintaxe.
+O editor enriquecido é uma melhoria da área de texto. Se os ativos externos não
+carregarem, o campo continua editável e salvável, mas sem a interface enriquecida
+e sem o realce de código.
 
 ## Menções
 

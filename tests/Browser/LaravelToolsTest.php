@@ -5,14 +5,14 @@ namespace Tests\Browser;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
-class LaravelTools extends DuskTestCase
+class LaravelToolsTest extends DuskTestCase
 {
     public function testLaravelToolsNotAuth()
     {
         $this->browse(function (Browser $browser) {
             $browser
                 ->visitRoute('laravel-tools.app')
-                ->assertTitleContains('Forbidden');
+                ->assertSee('Faça login');
         });
     }
 
@@ -22,7 +22,7 @@ class LaravelTools extends DuskTestCase
             $browser
                 ->loginAs(SELF::getUser())
                 ->visitRoute('laravel-tools.app')
-                ->assertTitleContains('Forbidden');
+                ->assertSee('Acesso negado');
         });
     }
 

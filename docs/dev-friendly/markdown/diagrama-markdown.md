@@ -12,7 +12,7 @@ flowchart TD
 
     subgraph browser["Navegador — JavaScript"]
         editor["EasyMDE transforma o textarea em um editor de Markdown"]
-        author["Pessoa edita texto, menções e referências de arquivos"]
+        author["Pessoa edita texto, Menções e Menções a arquivo"]
         preview["Pré-visualização envia o Markdown ao servidor sem salvá-lo"]
         display["HTML seguro é exibido; highlight.js realça blocos de código"]
     end
@@ -45,7 +45,7 @@ flowchart TD
     controller --> mentions --> mentionIndex
     database -- "consultar página" --> content --> renderer
     renderer --> display
-    files -. "seletor insere somente a referência" .-> author
+    files -. "seletor insere somente a Menção a arquivo" .-> author
 ```
 
 ## Responsabilidade de cada camada

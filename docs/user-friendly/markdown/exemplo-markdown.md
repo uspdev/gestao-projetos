@@ -21,7 +21,7 @@ Visão geral do projeto
   - Descrições e decisões em Markdown.
   - Responsáveis, prazos, status e prioridades.
 - Organizar reuniões, pautas e itens de pauta.
-- Registrar comentários, menções e referências de arquivos.
+- Registrar comentários, Menções e Menções a arquivo.
 
 ## Plano de entrega
 
@@ -97,7 +97,7 @@ Uma imagem conceitual pode ser indicada com esta sintaxe:
 
 No Gestão de Projetos, imagens Markdown não são incorporadas: o renderer as
 converte em um link seguro com o texto alternativo. Para arquivos reais, envie o
-arquivo pela área de arquivos e use a referência inserida pelo seletor.
+arquivo pela área de arquivos e use a Menção a arquivo inserida pelo seletor.
 
 HTML livre também não é executado:
 
@@ -111,7 +111,7 @@ Para exibir asteriscos sem formatação, use escape: \*este texto não é itáli
 2. Criar a tarefa de validação.
 3. Registrar a decisão na próxima reunião.
 
-[manual]: /docs/dev-friendly/implantacao-markdown-arquivos-mencoes.md "Guia de implantação"
+[manual]: /docs/user-friendly/markdown/implantacao.md "Guia de implantação"
 ````
 
 ## Pré-visualização esperada
@@ -134,7 +134,7 @@ Visão geral do projeto
   - Descrições e decisões em Markdown.
   - Responsáveis, prazos, status e prioridades.
 - Organizar reuniões, pautas e itens de pauta.
-- Registrar comentários, menções e referências de arquivos.
+- Registrar comentários, Menções e Menções a arquivo.
 
 ## Plano de entrega
 
@@ -169,7 +169,7 @@ O requisito de segurança está **aprovado** e a alternativa ~~descartada~~ não
 será implantada. O identificador `MarkdownRenderer` é usado na pré-visualização
 e na exibição final.
 
-Consulte o [manual de implantação](/docs/dev-friendly/implantacao-markdown-arquivos-mencoes.md),
+Consulte o [manual de implantação](/docs/user-friendly/markdown/implantacao.md),
 veja a [documentação institucional](https://www5.usp.br/) ou acesse diretamente
 <https://github.com/uspdev>.
 

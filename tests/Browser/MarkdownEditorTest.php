@@ -2,8 +2,17 @@
 
 namespace Tests\Browser;
 
+use App\Enums\Meeting\MeetingStatus;
 use App\Enums\Project\ProjectStatus;
+use App\Enums\Project\ProjectUserRole;
+use App\Enums\Task\TaskPriority;
+use App\Enums\Task\TaskStatus;
+use App\Models\Comment;
+use App\Models\Meeting;
+use App\Models\MeetingItem;
+use App\Models\Module;
 use App\Models\Project;
+use App\Models\Task;
 use Facebook\WebDriver\Chrome\ChromeDevToolsDriver;
 use Illuminate\Support\Str;
 use Laravel\Dusk\Browser;
@@ -117,9 +126,28 @@ class MarkdownEditorTest extends DuskTestCase
             JS);
 
             $browser
-                ->waitFor($textarea.' + .EasyMDEContainer .editor-preview-active')
-                ->waitForTextIn($textarea.' + .EasyMDEContainer .editor-preview-active', 'Descrição validada')
-                ->assertSeeIn($textarea.' + .EasyMDEContainer .editor-preview-active', 'Descrição validada');
+                ->waitUntil(<<<JS
+                    (() => {
+                        const textarea = document.querySelector('{$textarea}');
+                        const entry = textarea && window.MarkdownEditors.get(textarea);
+                        const preview = entry && entry.preview.element();
+
+                        return Boolean(
+                            preview
+                            && preview.textContent.includes('Descrição validada')
+                            && !preview.querySelector('script')
+                        );
+                    })()
+                JS)
+                ->assertScript(<<<JS
+                    (() => {
+                        const textarea = document.querySelector('{$textarea}');
+                        const preview = window.MarkdownEditors.get(textarea).preview.element();
+
+                        return preview.textContent.includes('Descrição validada')
+                            && !preview.querySelector('script');
+                    })()
+                JS, true);
 
             $browser->script(<<<JS
                 window.MarkdownEditors.get(document.querySelector('{$textarea}')).editor.toolbarElements.preview.click();
@@ -135,6 +163,175 @@ class MarkdownEditorTest extends DuskTestCase
             '**Descrição validada** <script>alert(1)</script>',
             $project->fresh()->description
         );
+    }
+
+    public function test_all_markdown_fields_can_be_previewed_saved_reloaded_and_rendered(): void
+    {
+        $administrator = self::getUser('admin');
+        $suffix = Str::lower(Str::random(8));
+        $project = Project::query()->create([
+            'name' => 'Projeto Dusk cinco campos '.$suffix,
+            'slug' => 'dusk-cinco-campos-'.$suffix,
+            'status' => ProjectStatus::ACTIVE,
+        ]);
+        $project->users()->syncWithoutDetaching([
+            $administrator->id => ['role' => ProjectUserRole::ADMIN->value],
+        ]);
+        $meetingsModule = Module::query()->where('slug', 'meetings')->firstOrFail();
+        $project->modules()->syncWithoutDetaching([
+            $meetingsModule->id => ['enabled' => true],
+        ]);
+
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa Dusk cinco campos '.$suffix,
+            'priority' => TaskPriority::MEDIUM,
+            'status' => TaskStatus::NEW,
+        ]);
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião Dusk cinco campos '.$suffix,
+            'status' => MeetingStatus::DRAFT,
+        ]);
+        $meeting->projects()->attach($project);
+        $meetingItem = MeetingItem::query()->create([
+            'meeting_id' => $meeting->id,
+            'title' => 'Item Dusk cinco campos '.$suffix,
+            'order' => 1,
+        ]);
+
+        $projectMarkdown = '**Projeto cinco campos** <script>alert(1)</script>';
+        $taskMarkdown = '**Tarefa cinco campos** <script>alert(2)</script>';
+        $commentMarkdown = '**Comentário cinco campos** <script>alert(3)</script>';
+        $meetingMarkdown = '**Reunião cinco campos** <script>alert(4)</script>';
+        $itemMarkdown = '**Item cinco campos** <script>alert(5)</script>';
+
+        $this->browse(function (Browser $browser) use (
+            $administrator,
+            $project,
+            $task,
+            $meeting,
+            $meetingItem,
+            $projectMarkdown,
+            $taskMarkdown,
+            $commentMarkdown,
+            $meetingMarkdown,
+            $itemMarkdown,
+        ): void {
+            $browser->loginAs($administrator)
+                ->visit(route('projects.show', $project))
+                ->click('[aria-label="Editar descrição"]')
+                ->waitFor('#project-description-edit-'.$project->id.'-textarea + .EasyMDEContainer');
+
+            $this->fillEditorAndPreview(
+                $browser,
+                '#project-description-edit-'.$project->id.'-textarea',
+                $projectMarkdown,
+                'Projeto cinco campos',
+            );
+
+            $browser
+                ->waitForReload(fn (Browser $browser) => $browser->click(
+                    '#project-description-edit-'.$project->id.' form button[aria-label="Salvar"]'
+                ))
+                ->refresh()
+                ->assertSee('Projeto cinco campos')
+                ->assertSourceMissing('<script>alert(1)</script>');
+
+            $browser
+                ->visit(route('tasks.show', $task))
+                ->click('[aria-label="Editar descrição"]')
+                ->waitFor('#task-description-edit-'.$task->id.'-textarea + .EasyMDEContainer');
+
+            $this->fillEditorAndPreview(
+                $browser,
+                '#task-description-edit-'.$task->id.'-textarea',
+                $taskMarkdown,
+                'Tarefa cinco campos',
+            );
+
+            $browser
+                ->waitForReload(fn (Browser $browser) => $browser->click(
+                    '#task-description-edit-'.$task->id.' form button[aria-label="Salvar"]'
+                ))
+                ->refresh()
+                ->assertSee('Tarefa cinco campos')
+                ->assertSourceMissing('<script>alert(2)</script>');
+
+            $browser
+                ->visit(route('projects.show', $project))
+                ->waitFor('#comment-text + .EasyMDEContainer');
+
+            $this->fillEditorAndPreview($browser, '#comment-text', $commentMarkdown, 'Comentário cinco campos');
+
+            $browser
+                ->waitForReload(fn (Browser $browser) => $browser->click(
+                    'form[action*="/comments"] button[type="submit"]'
+                ))
+                ->refresh()
+                ->assertSee('Comentário cinco campos')
+                ->assertSourceMissing('<script>alert(3)</script>');
+
+            $browser
+                ->visit(route('projects.meetings.show', [$project, $meeting]))
+                ->click('[aria-label="Editar Anotações prévias"]')
+                ->waitFor('#meeting-notes-edit-'.$meeting->id.'-textarea + .EasyMDEContainer');
+
+            $this->fillEditorAndPreview(
+                $browser,
+                '#meeting-notes-edit-'.$meeting->id.'-textarea',
+                $meetingMarkdown,
+                'Reunião cinco campos',
+            );
+
+            $browser
+                ->waitForReload(fn (Browser $browser) => $browser->click(
+                    '#meeting-notes-edit-'.$meeting->id.' form button[aria-label="Salvar"]'
+                ))
+                ->refresh()
+                ->assertSee('Reunião cinco campos')
+                ->assertSourceMissing('<script>alert(4)</script>');
+
+            $itemNotesSelector = '#meeting-item-notes-'.$meetingItem->id;
+            $itemEditSelector = '#meeting-item-notes-edit-'.$meetingItem->id;
+            $itemTextarea = $itemEditSelector.'-textarea';
+
+            $browser
+                ->click('[aria-controls="meeting-item-notes-'.$meetingItem->id.'"]')
+                ->waitFor($itemNotesSelector.'.show')
+                ->click($itemNotesSelector.' [data-target*="meeting-item-notes-edit-'.$meetingItem->id.'"]')
+                ->waitFor($itemEditSelector.'.show')
+                ->waitFor($itemTextarea.' + .EasyMDEContainer');
+
+            $this->fillEditorAndPreview($browser, $itemTextarea, $itemMarkdown, 'Item cinco campos');
+
+            $itemSaveSelector = $itemEditSelector.' form button[aria-label="Salvar"]';
+            $itemSaveSelectorLiteral = json_encode($itemSaveSelector, JSON_THROW_ON_ERROR);
+
+            $browser->script("document.querySelector({$itemSaveSelectorLiteral}).scrollIntoView({block: 'center'});");
+
+            $browser
+                ->waitForReload(fn (Browser $browser) => $browser->script(
+                    "document.querySelector({$itemSaveSelectorLiteral}).click();"
+                ))
+                ->refresh()
+                ->click('[aria-controls="meeting-item-notes-'.$meetingItem->id.'"]')
+                ->waitFor($itemNotesSelector.'.show')
+                ->assertSeeIn($itemNotesSelector, 'Item cinco campos')
+                ->assertSourceMissing('<script>alert(5)</script>');
+        });
+
+        self::assertSame($projectMarkdown, $project->fresh()->description);
+        self::assertSame($taskMarkdown, $task->fresh()->description);
+        self::assertSame(
+            $commentMarkdown,
+            Comment::query()
+                ->where('commentable_type', $project->getMorphClass())
+                ->where('commentable_id', $project->id)
+                ->latest('id')
+                ->value('text'),
+        );
+        self::assertSame($meetingMarkdown, $meeting->fresh()->notes);
+        self::assertSame($itemMarkdown, $meetingItem->fresh()->notes);
     }
 
     public function test_editor_profiles_initialize_on_the_page_and_in_dynamic_containers(): void
@@ -388,8 +585,8 @@ class MarkdownEditorTest extends DuskTestCase
                 wrapper.setAttribute('data-file-reference-context-type', 'project');
                 wrapper.setAttribute('data-file-reference-context-id', '47');
                 wrapper.innerHTML = `
-                    <article id="file-11111111-1111-4111-8111-111111111111" data-file-card>
-                        <div></div>
+                    <article id="file-11111111-1111-4111-8111-111111111111" class="file-list-item" data-file-card>
+                        Documento
                     </article>
                     <div class="markdown-content">
                         <a
@@ -427,7 +624,7 @@ class MarkdownEditorTest extends DuskTestCase
 
             $highlightedCard = <<<'JS'
                 getComputedStyle(
-                    document.querySelector('#file-11111111-1111-4111-8111-111111111111 > div')
+                    document.querySelector('#file-11111111-1111-4111-8111-111111111111')
                 ).backgroundColor === 'rgb(255, 248, 219)'
             JS;
 
@@ -643,6 +840,7 @@ class MarkdownEditorTest extends DuskTestCase
 
             $browser
                 ->waitFor('#mention-selector')
+                ->scrollIntoView('[data-mention-user-id="9"]')
                 ->click('[data-mention-user-id="9"]')
                 ->assertScript(
                     "window.MarkdownEditors.get(document.querySelector('#mention-editor')).editor.value()",
@@ -824,6 +1022,38 @@ class MarkdownEditorTest extends DuskTestCase
                 return preview.{$assertion};
             })()
         JS;
+    }
+
+    private function fillEditorAndPreview(
+        Browser $browser,
+        string $textareaSelector,
+        string $markdown,
+        string $expectedText,
+    ): void {
+        $textarea = json_encode($textareaSelector, JSON_THROW_ON_ERROR);
+        $value = json_encode($markdown, JSON_THROW_ON_ERROR);
+        $expected = json_encode($expectedText, JSON_THROW_ON_ERROR);
+
+        $browser->script(<<<JS
+            const textarea = document.querySelector({$textarea});
+            const entry = window.MarkdownEditors.get(textarea);
+            entry.editor.value({$value});
+            entry.editor.toolbarElements.preview.click();
+        JS);
+
+        $browser->waitUntil(<<<JS
+            (() => {
+                const textarea = document.querySelector({$textarea});
+                const entry = textarea && window.MarkdownEditors.get(textarea);
+                const preview = entry && entry.preview.element();
+
+                return Boolean(
+                    preview
+                    && preview.textContent.includes({$expected})
+                    && !preview.querySelector('script')
+                );
+            })()
+        JS);
     }
 
     private function fullToolbarLayoutIsCorrect(): string

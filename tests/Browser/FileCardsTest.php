@@ -69,9 +69,11 @@ class FileCardsTest extends DuskTestCase
                 ->assertScript('window.fileDownloadResult.body.trim()', 'Conteúdo de teste para o fluxo Dusk de Arquivos.')
                 ->assertPresent('[data-file-rename-toggle]')
                 ->assertMissing('[data-file-rename-form]:not([hidden])')
-                ->click('[data-file-rename-toggle]')
-                ->assertVisible('[data-file-rename-form]')
-                ->assertVisible('[data-file-rename-form] button[type="submit"]');
+                ->click('[data-file-action] > button')
+                ->waitFor('[data-file-action] .dropdown-menu.show')
+                ->click('[data-file-action] .dropdown-menu.show [data-file-rename-toggle]')
+                ->assertVisible('[data-file-rename-form]:not([hidden])')
+                ->assertVisible('[data-file-rename-form]:not([hidden]) button[type="submit"]');
         });
     }
 }
