@@ -7,7 +7,7 @@ Nomes de classes, comandos, migrações e decisões internas ficam na
 
 ## Comece por aqui
 
-- [MVP](MVP.md) — visão do produto mínimo e dos recursos centrais.
+- [MVP](releases/MVP.md) — visão do produto mínimo e dos recursos centrais.
 - [Permissões](permissoes.md) — papéis, visibilidade, membros e herança de
   acesso nos projetos.
 - [Duplicação de entidades](duplicacao-de-entidades.md) — o que é copiado ou
@@ -21,6 +21,7 @@ Nomes de classes, comandos, migrações e decisões internas ficam na
   descrição de projeto com a sintaxe disponível.
 - [Notificações por e-mail](email/notificacoes.md) — eventos, destinatários
   e resumos de acompanhamento.
+- [Notas de versão](releases/README.md) — novidades de cada versão publicada.
 
 ## Produto e evolução
 

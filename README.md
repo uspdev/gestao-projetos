@@ -19,6 +19,6 @@ implantação, arquitetura e decisões do projeto:
 
 - [Abrir a documentação dev friendly](docs/dev-friendly/README.md)
 
-Os documentos históricos continuam nos caminhos originais dentro de `docs/`.
-Os dois índices acima são a entrada oficial por público e evitam duplicar o
-conteúdo dos ADRs e dos guias já existentes.
+Os dois índices são a entrada oficial por público. Guias de uso, roadmap e notas
+de versão ficam na área user friendly; instruções de execução, implantação,
+arquitetura e ADRs ficam na área dev friendly.

@@ -45,45 +45,40 @@ continuam legíveis, apenas sem realce de sintaxe.
 
 ## Menções
 
-Digite `@` e parte do nome da pessoa, depois selecione uma das opções exibidas.
-Também é possível usar o botão de menção da barra do editor. Somente usuários
-elegíveis no contexto atual aparecem na busca.
+Digite `@` e parte do nome ou título que procura. O seletor permite alternar
+entre **Todos**, **Pessoas**, **Projetos**, **Tarefas**, **Reuniões** e
+**Arquivos**. Selecione uma opção por clique, `Enter` ou `Tab`; digitar o texto
+sem selecioná-lo não cria uma Menção.
 
-O editor insere uma identificação interna junto ao nome. Não altere nem escreva
-essa identificação manualmente: ela mantém a menção vinculada à pessoa correta
-mesmo quando existem nomes iguais.
+O editor insere uma identificação interna junto ao rótulo. Não a altere nem a
+escreva manualmente: ela mantém a Menção ligada à entidade correta, mesmo quando
+existem nomes ou títulos iguais.
 
-Exemplo digitado:
+| Destino | Exemplo inserido pelo editor |
+| --- | --- |
+| Pessoa | `@[Marina Silva](mention:user:42)` |
+| Projeto | `@[Programa de modernização](mention:project:18)` |
+| Tarefa | `@[Revisar protótipo](mention:task:42)` |
+| Reunião | `@[Reunião de kickoff](mention:meeting:17)` |
+| Arquivo | `@[Termo de abertura](mention:file:550e8400-e29b-41d4-a716-446655440000)` |
 
-```markdown
-Responsável pela validação: @[Marina Silva](mention:user:42)
-```
+Na pré-visualização e no texto salvo, uma Menção disponível aparece como
+`@Nome ou título` e abre o recurso correspondente. A busca e a abertura sempre
+respeitam as permissões: criar uma Menção não concede acesso. Quando o leitor
+não puder ver o destino, a aplicação mostra uma mensagem de falta de permissão;
+quando ele não existir mais, informa que o destino não foi encontrado.
 
-Na pré-visualização, aparece `Responsável pela validação: @Marina Silva`, com o
-nome ligado ao perfil quando a pessoa está disponível. Se ela não estiver mais
-disponível, o sistema mostra `@Usuário indisponível` sem criar um link.
+### Menções a Arquivo
 
-## Referências de arquivos
+Use o botão de arquivo da barra do editor ou o seletor de Menções para escolher
+um Arquivo disponível no contexto atual. Em uma reunião, um Arquivo de outro
+contexto pode exigir a ação **Compartilhar com a reunião e mencionar** antes de
+ser inserido. Esse compartilhamento é explícito e pode ser removido depois.
 
-Use o botão de arquivo da barra do editor e escolha um arquivo disponível no
-contexto atual. O editor insere um link para o arquivo no texto.
-
-Exemplo digitado pelo seletor:
-
-```markdown
-Consulte o [Termo de abertura](/files/550e8400-e29b-41d4-a716-446655440000).
-```
-
-Na pré-visualização, isso aparece como um link clicável com o texto **Termo de
-abertura**. O UUID é ilustrativo; use o botão do editor para inserir o
-identificador real.
-
-A referência não concede acesso ao arquivo. A pessoa ainda precisa ter permissão
-para consultá-lo. Em reuniões, compartilhe primeiro um arquivo de outro contexto
-quando essa opção for necessária.
-
-Arrastar, colar ou usar a sintaxe de imagem do Markdown não envia arquivos. Faça
-o envio pela área de arquivos e insira a referência pelo seletor.
+Uma Menção a arquivo não concede acesso por si só. A pessoa ainda precisa ter
+permissão para consultar o Arquivo. Arrastar, colar ou usar a sintaxe de imagem
+do Markdown não envia arquivos: faça o envio pela área de Arquivos e depois
+insira a Menção pelo editor.
 
 ## Links
 

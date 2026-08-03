@@ -64,7 +64,9 @@ de acompanhamento é [Revisar permissões](/tasks/42) e a reunião de alinhament
 [Reunião de implantação](/projects/modulo-reunioes/meetings/17).
 
 Responsável pela validação: @[Marina Silva](mention:user:42).
-Consulte também o [Termo de abertura](/files/550e8400-e29b-41d4-a716-446655440000).
+Consulte o @[Programa de modernização](mention:project:18), a
+@[Revisar protótipo](mention:task:42), a @[Reunião de kickoff](mention:meeting:17)
+e o @[Termo de abertura](mention:file:550e8400-e29b-41d4-a716-446655440000).
 
 Ir para a [seção de indicadores](#indicadores) (o destino só funciona quando a
 página fornecer um elemento com esse identificador).
@@ -175,7 +177,8 @@ O projeto relacionado é [Módulo de reuniões](/projects/modulo-reunioes), a ta
 de acompanhamento é [Revisar permissões](/tasks/42) e a reunião de alinhamento é
 [Reunião de implantação](/projects/modulo-reunioes/meetings/17).
 
-Responsável pela validação: @Marina Silva. Consulte também o [Termo de abertura](/files/550e8400-e29b-41d4-a716-446655440000).
+Responsável pela validação: @Marina Silva. Consulte @Programa de modernização,
+@Revisar protótipo, @Reunião de kickoff e @Termo de abertura.
 
 Ir para a [seção de indicadores](#indicadores).
 

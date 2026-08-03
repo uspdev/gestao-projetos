@@ -184,27 +184,29 @@ As decisões de segurança e propriedade estão no
 
 ---
 
-## Menções estruturadas
+## Menções estruturadas e navegação entre entidades
 
 **Implementado em:** 07/2026
 
-O editor oferece autocomplete contextual para Menções a usuários e grava a
-sintaxe estável `@[Nome](mention:user:ID)` somente após uma seleção explícita.
+O editor oferece autocomplete contextual para Menções a Pessoas, Projetos,
+Tarefas, Reuniões e Arquivos. Ele grava a sintaxe estável
+`@[Rótulo histórico](mention:tipo:chave)` somente após uma seleção explícita.
+Cada tipo usa uma identificação estável — IDs para Pessoas, Projetos, Tarefas e
+Reuniões; UUID para Arquivos — enquanto a exibição resolve o rótulo atual.
+
 O Markdown continua sendo a fonte editorial da verdade; a tabela `mentions` é
 um índice derivado, atualizado transacionalmente, limpo quando a fonte deixa de
-estar disponível e reconstruível pelo comando `mentions:rebuild`.
+estar disponível e reconstruível pelo comando `mentions:rebuild`. Projetos,
+Tarefas, Reuniões, itens de pauta e Comentários podem ser fontes de Menções;
+itens de pauta e Comentários não são destinos navegáveis.
 
-A estrutura do índice aceita fontes polimórficas em Projetos, Tarefas, Reuniões,
-itens de pauta e comentários. A implementação de destinos, porém, está
-restrita a usuários: não há Menções implementadas para Projetos ou Tarefas.
-Somente participantes elegíveis do contexto aparecem no autocomplete, e a
-renderização usa o nome atual e as permissões de visualização sem reescrever o
-Markdown original.
+Somente destinos autorizados aparecem na busca e a renderização reavalia o
+acesso de cada leitor, sem reescrever o Markdown original. Uma Menção não
+concede acesso, nem envia notificações. Não há ainda tela de backlinks, caixa de
+entrada ou consulta dedicada de onde uma entidade foi mencionada.
 
-Notificações causadas por Menções, caixa de entrada, backlinks e consultas
-dedicadas de Menções não fazem parte desta entrega.
-
-Consulte o [ADR de Menções](../dev-friendly/adr/0005-generalizar-mencoes-para-entidades.md).
+Consulte o [guia de Markdown](markdown/README.md) e o
+[ADR de Menções](../dev-friendly/adr/0005-generalizar-mencoes-para-entidades.md).
 
 ---
 
