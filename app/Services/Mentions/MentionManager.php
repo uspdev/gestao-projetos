@@ -270,6 +270,36 @@ class MentionManager
     }
 
     /**
+     * Retorna somente as relações de saída cujo texto e destino podem ser
+     * visualizados pelo leitor informado.
+     *
+     * A relação Eloquent exposta pela fonte continua sendo o índice bruto
+     * usado pela sincronização. Consultas para consumo devem passar por este
+     * método para que uma Menção não se torne um caminho alternativo de
+     * descoberta de destinos inacessíveis.
+     */
+    public function outgoingMentions(
+        Model $source,
+        ?User $reader = null,
+        ?string $field = null,
+    ): Collection
+    {
+        $reader ??= Auth::user();
+
+        if (! $reader || ! $this->sourceIsVisible($source, $reader)
+            || ! method_exists($source, 'outgoingMentions')) {
+            return collect();
+        }
+
+        return $source->outgoingMentions()
+            ->when($field !== null, fn ($query) => $query->where('source_field', $field))
+            ->with('target')
+            ->get()
+            ->filter(fn (Mention $mention): bool => $this->targetIsVisible($mention, $reader))
+            ->values();
+    }
+
+    /**
      * Retorna somente as relações de entrada cujo destino e fonte podem ser
      * visualizados pelo leitor informado.
      */
@@ -424,6 +454,18 @@ class MentionManager
         return method_exists($adapter, 'publicKey')
             ? $adapter->publicKey($target)
             : (string) $target->getKey();
+    }
+
+    private function targetIsVisible(Mention $mention, User $reader): bool
+    {
+        $target = $mention->target;
+        $adapter = $target instanceof Model
+            ? $this->adapterFor($mention->target_type)
+            : null;
+
+        return $target instanceof Model
+            && $adapter !== null
+            && $adapter->present($this->publicTargetKey($adapter, $target), $reader)['status'] === 'available';
     }
 
     private function sourceIsUnavailable(Model $source): bool

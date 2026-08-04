@@ -1,12 +1,31 @@
 const { csrfHeaders } = require("./http");
 
 let activeMentionSelector = null;
+let activeMentionRequest = null;
 
 function closeMentionSelector() {
+    if (activeMentionRequest?.controller) {
+        activeMentionRequest.controller.abort();
+    }
+
+    if (activeMentionRequest?.textarea) {
+        activeMentionRequest.textarea.mentionRequest = null;
+    }
+
+    if (activeMentionSelector?.input) {
+        activeMentionSelector.input.removeAttribute("role");
+        activeMentionSelector.input.removeAttribute("aria-autocomplete");
+        activeMentionSelector.input.removeAttribute("aria-controls");
+        activeMentionSelector.input.removeAttribute("aria-expanded");
+        activeMentionSelector.input.removeAttribute("aria-activedescendant");
+    }
+
     if (activeMentionSelector) {
         activeMentionSelector.element.remove();
         activeMentionSelector = null;
     }
+
+    activeMentionRequest = null;
 }
 
 function mentionRange(editor) {
@@ -53,7 +72,21 @@ function mentionMarkdownLabel(target) {
         .replace(/\]/g, "\\]");
 }
 
+function sameMentionRange(left, right) {
+    return Boolean(left && right)
+        && left.term === right.term
+        && left.from.line === right.from.line
+        && left.from.ch === right.from.ch
+        && left.to.line === right.to.line
+        && left.to.ch === right.to.ch;
+}
+
 function insertMention(editor, range, target) {
+    if (!sameMentionRange(mentionRange(editor), range)) {
+        closeMentionSelector();
+        return false;
+    }
+
     const type = mentionType(target);
     const label = mentionMarkdownLabel(target);
     editor.codemirror.replaceRange(
@@ -63,6 +96,45 @@ function insertMention(editor, range, target) {
     );
     editor.codemirror.focus();
     closeMentionSelector();
+
+    return true;
+}
+
+function updateActiveMentionOption(index) {
+    if (!activeMentionSelector) {
+        return;
+    }
+
+    if (activeMentionSelector.activeTargets.length === 0) {
+        activeMentionSelector.activeIndex = -1;
+        activeMentionSelector.input.removeAttribute("aria-activedescendant");
+        return;
+    }
+
+    activeMentionSelector.activeIndex = index;
+    const options = [...activeMentionSelector.element.querySelectorAll(
+        "[data-mention-target-type]",
+    )];
+
+    options.forEach((option) => {
+        const optionIndex = Number(option.dataset.mentionIndex);
+        const isActive = optionIndex === index;
+        option.classList.toggle("active", isActive);
+        option.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+
+    const activeOption = options.find(
+        (option) => Number(option.dataset.mentionIndex) === index,
+    );
+
+    if (activeOption) {
+        activeMentionSelector.input.setAttribute(
+            "aria-activedescendant",
+            activeOption.id,
+        );
+    } else {
+        activeMentionSelector.input.removeAttribute("aria-activedescendant");
+    }
 }
 
 function renderMentionSelector(editor, range, targets) {
@@ -75,14 +147,24 @@ function renderMentionSelector(editor, range, targets) {
     const selector = document.createElement("div");
     selector.id = "mention-selector";
     selector.className = "list-group position-absolute shadow";
+    selector.setAttribute("role", "listbox");
+    selector.setAttribute("aria-label", "Destinos mencionáveis");
+    selector.tabIndex = -1;
     selector.style.zIndex = "1060";
     selector.style.minWidth = "16rem";
+    const input = editor.codemirror.getInputField();
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-controls", selector.id);
+    input.setAttribute("aria-expanded", "true");
     const position = editor.codemirror.cursorCoords(range.to, "page");
     selector.style.left = `${position.left}px`;
     selector.style.top = `${position.bottom + 4}px`;
 
     const filters = document.createElement("div");
     filters.className = "btn-group btn-group-sm w-100 mb-2";
+    filters.setAttribute("role", "group");
+    filters.setAttribute("aria-label", "Filtrar destinos mencionáveis");
     const filterOptions = [
         ["all", "Todos"],
         ["user", "Pessoas"],
@@ -115,6 +197,11 @@ function renderMentionSelector(editor, range, targets) {
 
         activeMentionSelector.activeTargets = filteredTargets;
         activeMentionSelector.activeIndex = 0;
+        filters.querySelectorAll("[data-mention-filter]").forEach((button) => {
+            const isActive = button.dataset.mentionFilter === filter;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
 
         groups.forEach((group, groupIndex) => {
             const heading = document.createElement("div");
@@ -125,13 +212,16 @@ function renderMentionSelector(editor, range, targets) {
             results.appendChild(heading);
 
             group.targets.forEach((target) => {
+                const targetIndex = filteredTargets.indexOf(target);
                 const option = document.createElement("button");
                 option.type = "button";
-                option.className = `list-group-item list-group-item-action${
-                    filteredTargets.indexOf(target) === 0 ? " active" : ""
-                }`;
+                option.className = "list-group-item list-group-item-action";
+                option.id = `mention-option-${targetIndex}`;
+                option.setAttribute("role", "option");
+                option.setAttribute("aria-selected", "false");
                 option.dataset.mentionTargetType = mentionType(target);
                 option.dataset.mentionTargetId = target.id;
+                option.dataset.mentionIndex = targetIndex;
                 if (mentionType(target) === "user") {
                     option.dataset.mentionUserId = target.id;
                 }
@@ -144,25 +234,35 @@ function renderMentionSelector(editor, range, targets) {
                 if (mentionType(target) === "file") {
                     option.dataset.mentionFileId = target.id;
                 }
-                option.textContent = `${mentionTypeLabel(target)}: ${mentionLabel(target)}`;
+                const accessibleName = `${mentionTypeLabel(target)}: ${mentionLabel(target)}`;
+                option.textContent = accessibleName;
+                option.setAttribute("aria-label", accessibleName);
+                option.title = accessibleName;
+                option.dataset.mentionTooltip = accessibleName;
                 option.addEventListener("click", () => {
                     insertMention(editor, range, target);
+                });
+                option.addEventListener("mouseenter", () => {
+                    updateActiveMentionOption(targetIndex);
+                });
+                option.addEventListener("focus", () => {
+                    updateActiveMentionOption(targetIndex);
                 });
                 results.appendChild(option);
             });
         });
+
+        updateActiveMentionOption(0);
     };
 
     filterOptions.forEach(([value, label], index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = `btn btn-outline-secondary${index === 0 ? " active" : ""}`;
+        button.setAttribute("aria-pressed", index === 0 ? "true" : "false");
         button.dataset.mentionFilter = value;
         button.textContent = label;
         button.addEventListener("click", () => {
-            filters.querySelectorAll("[data-mention-filter]").forEach((filterButton) => {
-                filterButton.classList.toggle("active", filterButton === button);
-            });
             renderResults(value);
         });
         filters.appendChild(button);
@@ -170,9 +270,17 @@ function renderMentionSelector(editor, range, targets) {
 
     document.body.appendChild(selector);
     selector.append(filters, results);
+    selector.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape" && event.target?.closest?.("[data-mention-filter]")) {
+            return;
+        }
+
+        handleMentionKeydown(event, editor);
+    });
     activeMentionSelector = {
         element: selector,
         editor,
+        input,
         range,
         targets,
         activeTargets: targets,
@@ -187,13 +295,11 @@ function selectActiveMention() {
         return false;
     }
 
-    insertMention(
+    return insertMention(
         activeMentionSelector.editor,
         activeMentionSelector.range,
         activeMentionSelector.activeTargets[activeMentionSelector.activeIndex],
     );
-
-    return true;
 }
 
 function moveActiveMention(step) {
@@ -201,25 +307,16 @@ function moveActiveMention(step) {
         return false;
     }
 
-    const { activeTargets, element } = activeMentionSelector;
+    const { activeTargets } = activeMentionSelector;
 
     if (activeTargets.length === 0) {
         return false;
     }
 
-    activeMentionSelector.activeIndex = (
+    const nextIndex = (
         activeMentionSelector.activeIndex + step + activeTargets.length
     ) % activeTargets.length;
-    element.querySelectorAll("[data-mention-target-type]").forEach((option) => {
-        const optionIndex = activeTargets.findIndex((target) =>
-            mentionType(target) === option.dataset.mentionTargetType
-            && String(target.id) === String(option.dataset.mentionTargetId)
-        );
-        option.classList.toggle(
-            "active",
-            optionIndex === activeMentionSelector.activeIndex,
-        );
-    });
+    updateActiveMentionOption(nextIndex);
 
     return true;
 }
@@ -228,18 +325,31 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
     const searchUrl = textarea.dataset.mentionSearchUrl;
 
     if (!searchUrl || !range) {
+        if (textarea.mentionRequest) {
+            textarea.mentionRequest = null;
+        }
         closeMentionSelector();
         return;
     }
 
+    closeMentionSelector();
     const url = new URL(searchUrl, window.location.origin);
     url.searchParams.set("term", range.term);
-    const requestId = Symbol("mention-request");
-    textarea.mentionRequestId = requestId;
+    const request = {
+        textarea,
+        editor,
+        range,
+        controller: typeof AbortController === "function"
+            ? new AbortController()
+            : null,
+    };
+    textarea.mentionRequest = request;
+    activeMentionRequest = request;
 
     window.fetch(url.toString(), {
         credentials: "same-origin",
         headers: csrfHeaders(),
+        ...(request.controller ? { signal: request.controller.signal } : {}),
     })
         .then((response) => {
             if (!response.ok) {
@@ -249,7 +359,9 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
             return response.json();
         })
         .then((payload) => {
-            if (textarea.mentionRequestId !== requestId) {
+            if (textarea.mentionRequest !== request
+                || activeMentionRequest !== request
+                || !sameMentionRange(mentionRange(editor), range)) {
                 return;
             }
 
@@ -259,11 +371,25 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
                 Array.isArray(payload.results) ? payload.results : [],
             );
         })
-        .catch(() => closeMentionSelector());
+        .catch(() => {
+            if (textarea.mentionRequest === request
+                && activeMentionRequest === request) {
+                closeMentionSelector();
+            }
+        });
 }
 
 function handleMentionKeydown(event, editor) {
-    if (!activeMentionSelector || activeMentionSelector.editor !== editor) {
+    if (!activeMentionSelector) {
+        if (event.key === "Escape" && activeMentionRequest?.editor === editor) {
+            event.preventDefault();
+            closeMentionSelector();
+        }
+
+        return;
+    }
+
+    if (activeMentionSelector.editor !== editor) {
         return;
     }
 

@@ -23,10 +23,17 @@ e sem o realce de código.
 
 ## Menções
 
-Digite `@` e parte do nome ou título que procura. O seletor permite alternar
-entre **Todos**, **Pessoas**, **Projetos**, **Tarefas**, **Reuniões** e
-**Arquivos**. Selecione uma opção por clique, `Enter` ou `Tab`; digitar o texto
-sem selecioná-lo não cria uma Menção.
+Digite `@` e parte do nome ou título que procura. A visão inicial **Todos**
+organiza os resultados por tipo e permite alternar entre **Pessoas**,
+**Projetos**, **Tarefas**, **Reuniões** e **Arquivos**. O contexto atual aparece
+primeiro quando a regra do destino permitir ampliação da busca. Selecione uma
+opção por clique, setas e `Enter`, ou `Tab`; digitar o texto sem selecioná-lo não
+cria uma Menção.
+
+Cada opção exibe seu tipo mesmo quando duas entidades têm o mesmo nome. O tipo
+também fica disponível no nome acessível e no tooltip durante o foco ou o hover.
+Em telas sensíveis ao toque não há uma interação adicional para descobrir essa
+informação.
 
 O editor insere uma identificação interna junto ao rótulo. Não a altere nem a
 escreva manualmente: ela mantém a Menção ligada à entidade correta, mesmo quando
@@ -44,7 +51,13 @@ Na pré-visualização e no texto salvo, uma Menção disponível aparece como
 `@Nome ou título` e abre o recurso correspondente. A busca e a abertura sempre
 respeitam as permissões: criar uma Menção não concede acesso. Quando o leitor
 não puder ver o destino, a aplicação mostra uma mensagem de falta de permissão;
-quando ele não existir mais, informa que o destino não foi encontrado.
+quando ele não existir mais, informa que o destino não foi encontrado. O rótulo
+histórico não é exposto nesses dois estados.
+
+Menções não geram notificações, e-mails ou eventos de acompanhamento e não
+criam uma tela de backlinks. Links Markdown comuns continuam sendo links e não
+entram no índice de Menções; sintaxes dentro de código também não são
+interpretadas como Menções.
 
 ### Menções a Arquivo
 

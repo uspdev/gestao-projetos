@@ -880,6 +880,146 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_mention_selector_exposes_type_and_active_option_accessibly(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [
+                                    { id: 9, name: 'Mesmo nome', type: 'user', type_label: 'Pessoa' },
+                                    { id: 42, name: 'Mesmo nome', type: 'project', type_label: 'Projeto' }
+                                ]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'accessible-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#accessible-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#accessible-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const options = [...selector.querySelectorAll('[data-mention-target-type]')];
+                        const input = window.MarkdownEditors
+                            .get(document.querySelector('#accessible-mention-editor'))
+                            .editor.codemirror.getInputField();
+
+                        return selector.getAttribute('role') === 'listbox'
+                            && selector.getAttribute('aria-label') === 'Destinos mencionáveis'
+                            && input.getAttribute('role') === 'combobox'
+                            && input.getAttribute('aria-controls') === 'mention-selector'
+                            && options.length === 2
+                            && options.every((option) => option.getAttribute('role') === 'option')
+                            && options.every((option) => option.getAttribute('aria-label').includes(': Mesmo nome'))
+                            && options.every((option) => option.getAttribute('title').includes(': Mesmo nome'))
+                            && options.every((option) => option.dataset.mentionTooltip.includes(': Mesmo nome'))
+                            && options.filter((option) => option.getAttribute('aria-selected') === 'true').length === 1
+                            && input.getAttribute('aria-activedescendant') !== null;
+                    })()
+                JS, true);
+
+            $browser->script("document.querySelector('[data-mention-filter=\"project\"]').focus();");
+            $browser->keys('[data-mention-filter="project"]', '{ENTER}')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+
+                        return selector.querySelectorAll('[data-mention-target-type]').length === 1
+                            && selector.querySelector('[data-mention-target-type="project"]') !== null
+                            && selector.querySelector('[data-mention-filter="project"]').getAttribute('aria-pressed') === 'true';
+                    })()
+                JS, true);
+
+            $browser->script(<<<'JS'
+                document.querySelector('[data-mention-filter="project"]').dispatchEvent(
+                    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+                );
+            JS);
+            $browser->assertScript('document.querySelector("#mention-selector") === null', true);
+
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#accessible-mention-editor')).editor.toolbarElements.mention.click();");
+            $browser->waitFor('#mention-selector');
+            $browser->click('[data-mention-filter="file"]')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const input = window.MarkdownEditors
+                            .get(document.querySelector('#accessible-mention-editor'))
+                            .editor.codemirror.getInputField();
+
+                        return document.querySelectorAll('#mention-selector [data-mention-target-type]').length === 0
+                            && input.getAttribute('aria-activedescendant') === null;
+                    })()
+                JS, true);
+        });
+    }
+
+    public function test_closing_mention_selector_ignores_an_obsolete_response(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.pendingMentionRequests = [];
+                window.fetch = function () {
+                    return new Promise((resolve) => {
+                        window.pendingMentionRequests.push(resolve);
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'stale-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+            $browser->waitFor('#stale-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#stale-mention-editor')).editor.toolbarElements.mention.click();");
+            $browser->waitUntil('window.pendingMentionRequests.length === 1');
+            $browser->script(<<<'JS'
+                    const wrapper = window.MarkdownEditors
+                        .get(document.querySelector('#stale-mention-editor'))
+                        .editor.codemirror.getWrapperElement();
+                    wrapper.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'Escape',
+                        bubbles: true,
+                    }));
+                    window.pendingMentionRequests[0]({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [{ id: 7, name: 'Resposta antiga', type: 'user', type_label: 'Pessoa' }]
+                            });
+                        }
+                    });
+                JS);
+            $browser
+                ->pause(100)
+                ->assertScript('document.querySelector("#mention-selector") === null', true);
+        });
+    }
+
     public function test_mention_selector_filters_projects_and_inserts_the_project_alias(): void
     {
         $this->browse(function (Browser $browser): void {

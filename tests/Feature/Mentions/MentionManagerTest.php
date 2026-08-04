@@ -1181,4 +1181,40 @@ class MentionManagerTest extends TestCase
 
         $this->assertSame([$visibleSource->id], $incoming->pluck('source_id')->all());
     }
+
+    public function test_authorized_outgoing_project_queries_do_not_reveal_hidden_targets(): void
+    {
+        $reader = User::query()->create(['name' => 'Pessoa leitora']);
+        $hiddenOwner = User::query()->create(['name' => 'Pessoa proprietária']);
+        $source = Project::query()->create([
+            'name' => 'Fonte visível',
+            'slug' => 'fonte-visivel',
+            'status' => 'ACTIVE',
+        ]);
+        $visibleTarget = Project::query()->create([
+            'name' => 'Destino visível',
+            'slug' => 'destino-visivel',
+            'status' => 'ACTIVE',
+        ]);
+        $hiddenTarget = Project::query()->create([
+            'name' => 'Destino oculto',
+            'slug' => 'destino-oculto',
+            'status' => 'ACTIVE',
+        ]);
+        $source->users()->attach($reader, ['role' => 'VIEWER']);
+        $visibleTarget->users()->attach($reader, ['role' => 'VIEWER']);
+        $hiddenTarget->users()->attach($hiddenOwner, ['role' => 'VIEWER']);
+        $markdown = implode(' ', [
+            '@[Destino visível](mention:project:' . $visibleTarget->id . ')',
+            '@[Destino oculto](mention:project:' . $hiddenTarget->id . ')',
+        ]);
+
+        $source->update(['description' => $markdown]);
+        $manager = app(MentionManager::class);
+        $manager->synchronize($source, 'description', $markdown, false);
+
+        $outgoing = $manager->outgoingMentions($source, $reader);
+
+        $this->assertSame([(string) $visibleTarget->id], $outgoing->pluck('target_id')->all());
+    }
 }

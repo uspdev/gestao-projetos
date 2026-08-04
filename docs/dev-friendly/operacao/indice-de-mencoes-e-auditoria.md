@@ -15,14 +15,24 @@ uma migração que tenha afetado fontes de Menções.
 php artisan mentions:rebuild
 ```
 
-O comando percorre as fontes Markdown registradas, reconstitui as relações
-válidas e informa no final a quantidade de fontes, relações e erros. Ele termina
-com falha se encontrar erro; trate esse resultado como sinal para investigar a
-fonte apontada antes de repetir a execução. Caso a tabela ainda não exista, as
-migrações precisam ser aplicadas antes do comando.
+O comando percorre todas as fontes Markdown registradas — Projetos, Tarefas,
+Reuniões, Itens de pauta e Comentários ativos —, reconstitui as relações para
+Usuários, Projetos, Tarefas, Reuniões e Arquivos e informa no final a quantidade
+de fontes, relações e erros. A operação é idempotente: repetir o comando não
+cria relações duplicadas. Destinos excluídos logicamente permanecem no índice
+para uma possível restauração; destinos definitivamente ausentes são ignorados
+e suas relações removidas. Ele termina com falha se encontrar erro; trate esse
+resultado como sinal para investigar a fonte apontada antes de repetir a
+execução. Caso a tabela ainda não exista, as migrações precisam ser aplicadas
+antes do comando.
 
 Não use a reconstrução como fluxo normal de salvamento. As alterações rotineiras
 devem validar e sincronizar o índice na mesma transação que grava o Markdown.
+
+Para consultas internas, use as operações autorizadas do `MentionManager` nas
+duas direções. `outgoingMentions()` e `incomingMentions()` dos Models são
+relacionamentos do índice bruto e não devem ser apresentados diretamente a um
+leitor: a consulta autorizada reavalia a visibilidade da fonte e do destino.
 
 ## Limpar a auditoria
 
@@ -61,4 +71,3 @@ php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60
 O resumo de acompanhamento é despachado após a confirmação da transação e fica
 atrasado pelo intervalo configurado em `projetos.watching.digest_minutes`
 (cinco minutos por padrão). 
-
