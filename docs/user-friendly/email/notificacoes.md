@@ -41,3 +41,24 @@ atividades ainda válidas.
 Antes do envio, a aplicação confirma que a pessoa ainda acompanha cada recurso
 e ainda pode visualizá-lo. Itens que não atendem a essas condições são
 descartados e não aparecem no resumo.
+
+O processamento separa os envios imediatos dos eventos agrupados em resumo:
+
+```mermaid
+flowchart TD
+    evento["Ação concluída com sucesso"] --> tipo{"Tipo de evento"}
+    tipo -->|"Inclusão de membro ou atribuição de Tarefa"| imediato["Colocar e-mail imediato na fila"]
+    imediato --> envio["Worker envia o e-mail"]
+
+    tipo -->|"Comentário, Tarefa concluída ou alteração de Reunião"| acompanhamento["Localizar pessoas que acompanham o recurso"]
+    acompanhamento --> excluirAutor["Excluir quem realizou a ação"]
+    excluirAutor --> pendencia["Criar uma pendência por destinatário"]
+    pendencia --> adiar["Adiar o resumo do destinatário"]
+    adiar --> prazo["Prazo de cinco minutos ou configuração equivalente"]
+    prazo --> revalidar["Revalidar acompanhamento e permissão de visualização"]
+    revalidar --> valido{"Pendência ainda é válida?"}
+    valido -->|"Sim"| resumo["Enviar um resumo agrupado"]
+    valido -->|"Não"| descartar["Descartar a pendência"]
+    resumo --> limpar["Remover as pendências processadas"]
+    descartar --> limpar
+```

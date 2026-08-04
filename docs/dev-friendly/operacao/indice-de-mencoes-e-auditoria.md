@@ -34,6 +34,25 @@ duas direções. `outgoingMentions()` e `incomingMentions()` dos Models são
 relacionamentos do índice bruto e não devem ser apresentados diretamente a um
 leitor: a consulta autorizada reavalia a visibilidade da fonte e do destino.
 
+O caminho normal e o caminho de recuperação têm responsabilidades diferentes:
+
+```mermaid
+flowchart TD
+    editar["Alterar campo Markdown"] --> validar["Validar Menções no contexto da fonte"]
+    validar --> salvar["Salvar Markdown e sincronizar índice"]
+    salvar --> confirmar["Confirmar a mesma transação"]
+
+    incidente["Recuperação, importação ou inconsistência"] --> rebuild["Executar mentions:rebuild"]
+    rebuild --> ler["Ler Markdown das fontes registradas"]
+    ler --> reconstruir["Reconstruir relações válidas em mentions"]
+    reconstruir --> resultado["Informar fontes, relações e erros"]
+    resultado --> erro{"Houve erro?"}
+    erro -->|"Sim"| investigar["Investigar a fonte indicada"]
+    erro -->|"Não"| pronto["Índice recuperado"]
+
+    confirmar -. "não usar rebuild no salvamento normal" .-> rebuild
+```
+
 ## Limpar a auditoria
 
 O agendador executa diariamente às 02:00:
@@ -70,4 +89,4 @@ php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60
 
 O resumo de acompanhamento é despachado após a confirmação da transação e fica
 atrasado pelo intervalo configurado em `projetos.watching.digest_minutes`
-(cinco minutos por padrão). 
+(cinco minutos por padrão).

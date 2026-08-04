@@ -145,3 +145,23 @@ Enquanto não ingressa, o usuário conserva apenas o acesso de visualização
 permitido pela configuração de herança. Ele não aparece como membro local, não
 pode ser atribuído a tarefas do subprojeto e não recebe automaticamente as
 notificações destinadas aos participantes desse projeto.
+
+O resultado da herança pode ser resumido assim:
+
+```mermaid
+flowchart TD
+    inicio["Pessoa acessa um Subprojeto"] --> local{"Existe vínculo direto no Subprojeto?"}
+    local -->|"Sim"| roleLocal["Usar role local: Admin, Colaborador ou Visualizador"]
+    local -->|"Não"| heranca{"Qual é a configuração de herança?"}
+    heranca -->|"NONE"| semAcesso["Sem acesso por herança"]
+    heranca -->|"READ"| leitura["Pode visualizar, sem colaborar"]
+    heranca -->|"FULL"| visualizar["Pode visualizar por herança"]
+    visualizar --> elegivel{"É Admin ou Colaborador no Projeto pai?"}
+    elegivel -->|"Não"| leitura
+    elegivel -->|"Sim"| participar["Interface oferece Participar do Projeto"]
+    participar --> ingresso{"Pessoa confirma o ingresso?"}
+    ingresso -->|"Não"| leitura
+    ingresso -->|"Sim"| vinculo["Criar vínculo direto no Subprojeto"]
+    vinculo --> rolePai["Preservar a role do Projeto pai"]
+    rolePai --> roleLocal
+```

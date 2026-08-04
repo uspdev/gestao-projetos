@@ -30,6 +30,24 @@ prévias. Se a Reunião for reaberta, essas edições voltam a ser permitidas.
 Ata e Transcrição continuam editáveis após a conclusão, pois podem ser
 finalizadas ou revisadas depois da conversa.
 
+O sistema não obriga uma sequência entre Rascunho, Agendada e Em Andamento. O
+fluxo abaixo destaca apenas o efeito de concluir e reabrir a Reunião:
+
+```mermaid
+flowchart TD
+    criar["Criar Reunião"] --> estado["Equipe escolhe o estado que representa a situação real"]
+    estado --> rascunho["Rascunho"]
+    estado --> agendada["Agendada"]
+    estado --> andamento["Em Andamento"]
+    rascunho --> concluir["Marcar como Concluída"]
+    agendada --> concluir
+    andamento --> concluir
+    concluir --> bloqueado["Pauta e Anotações prévias ficam bloqueadas"]
+    concluir --> registros["Ata e Transcrição continuam editáveis"]
+    bloqueado --> reabrir["Reabrir Reunião"]
+    reabrir --> estado
+```
+
 ## Pauta
 
 A Pauta é uma lista ordenada de assuntos. Cada item tem exatamente uma das

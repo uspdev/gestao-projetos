@@ -68,6 +68,29 @@ Arquivo original. Alterar a Pauta, os Projetos vinculados ou a configuração de
 módulos também não desfaz compartilhamentos já feitos; eles persistem até a
 remoção explícita, a exclusão da Reunião ou a exclusão definitiva do Arquivo.
 
+O acesso e o compartilhamento são decisões separadas. Uma Menção ajuda na
+navegação, mas não substitui a autorização nem cria um compartilhamento:
+
+```mermaid
+flowchart TD
+    envio["Enviar Arquivo"] --> proprietario["Proprietário do arquivo é definido e não muda"]
+    proprietario --> consulta{"Pessoa pode visualizar o Proprietário?"}
+    consulta -->|"Não"| oculto["Arquivo oculto como inexistente"]
+    consulta -->|"Sim"| formato{"É imagem raster válida?"}
+    formato -->|"Sim"| miniatura["Miniatura pode ser exibida"]
+    formato -->|"Não"| download["Disponível para download"]
+
+    origem["Arquivo de outro contexto"] --> elegivel{"Origem é elegível para a Reunião?"}
+    elegivel -->|"Não"| semCompartilhar["Não pode ser compartilhado com a Reunião"]
+    elegivel -->|"Sim"| autoriza{"Pessoa edita a Reunião e vê o Arquivo?"}
+    autoriza -->|"Não"| semAcao["Sem ação de compartilhamento"]
+    autoriza -->|"Sim"| compartilhar["Compartilhar explicitamente com a Reunião"]
+    compartilhar --> audiencia["Pessoas que veem a Reunião podem acessar o Arquivo"]
+    audiencia --> revogar["Remover da reunião revoga o acesso"]
+
+    mencao["Menção a arquivo no texto"] -. "não concede acesso" .-> consulta
+```
+
 ## Boas práticas
 
 - Escolha o Proprietário que representa o contexto permanente do Arquivo.
