@@ -523,9 +523,10 @@ class MarkdownEditorTest extends DuskTestCase
             JS);
 
             $browser->waitFor('#file-reference-editor + .EasyMDEContainer')
-                ->assertScript($this->toolbarHasFor('#file-reference-editor', 'file-reference'), true);
+                ->assertScript($this->toolbarHasFor('#file-reference-editor', 'mention'), true)
+                ->assertScript($this->toolbarHasFor('#file-reference-editor', 'file-reference'), false);
 
-            $browser->script("window.MarkdownEditors.get(document.querySelector('#file-reference-editor')).editor.toolbarElements['file-reference'].click();");
+            $this->openFileReferenceSelector($browser, '#file-reference-editor');
 
             $browser
                 ->waitFor('#file-reference-selector')
@@ -717,7 +718,7 @@ class MarkdownEditorTest extends DuskTestCase
             JS);
 
             $browser->waitFor('#task-file-reference-editor + .EasyMDEContainer');
-            $browser->script("window.MarkdownEditors.get(document.querySelector('#task-file-reference-editor')).editor.toolbarElements['file-reference'].click();");
+            $this->openFileReferenceSelector($browser, '#task-file-reference-editor');
 
             $browser
                 ->waitFor('#file-reference-selector')
@@ -787,7 +788,7 @@ class MarkdownEditorTest extends DuskTestCase
             JS);
 
             $browser->waitFor('#meeting-file-reference-editor + .EasyMDEContainer');
-            $browser->script("window.MarkdownEditors.get(document.querySelector('#meeting-file-reference-editor')).editor.toolbarElements['file-reference'].click();");
+            $this->openFileReferenceSelector($browser, '#meeting-file-reference-editor');
 
             $browser->waitFor('#file-reference-selector')
                 ->assertSeeIn('#file-reference-selector', 'Projeto na pauta: Gestão Projetos')
@@ -1235,6 +1236,19 @@ class MarkdownEditorTest extends DuskTestCase
                 return Boolean(entry && entry.editor.toolbarElements['{$button}']);
             })()
         JS;
+    }
+
+    private function openFileReferenceSelector(Browser $browser, string $textareaSelector): void
+    {
+        $selector = json_encode($textareaSelector, JSON_THROW_ON_ERROR);
+
+        $browser->script(<<<JS
+            const textarea = document.querySelector({$selector});
+            textarea.dispatchEvent(new CustomEvent('markdown-editor:file-reference', {
+                bubbles: true,
+                detail: { editor: window.MarkdownEditors.get(textarea).editor },
+            }));
+        JS);
     }
 
     private function previewScript(string $assertion): string

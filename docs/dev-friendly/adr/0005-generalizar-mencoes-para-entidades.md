@@ -10,7 +10,9 @@ repetido; o nome acessível continua incluindo tipo e nome para distinguir opç�
 iguais. Rótulos visíveis são limitados a 50 caracteres com reticências, e a caixa
 mantém largura fixa entre as abas. Esta revisão substitui apenas a apresentação do
 seletor; a indicação de tipo nas Menções já renderizadas permanece conforme as
-decisões de acessibilidade registradas neste ADR.
+decisões de acessibilidade registradas neste ADR. O botão específico de Arquivos
+foi removido da toolbar; Arquivos são escolhidos pela aba **Arquivos** do botão
+único de Menção.
 
 Menção passa a significar qualquer ligação estruturada presente em um texto que aponte para uma entidade identificável do sistema, e não apenas a ligação destinada a chamar a atenção de um usuário. A infraestrutura de Menções deverá admitir origem e destino polimórficos, preservando regras específicas por tipo de destino, como a intenção de chamar a atenção própria da Menção a usuário.
 

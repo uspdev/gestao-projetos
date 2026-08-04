@@ -62,10 +62,10 @@ interpretadas como Menções.
 
 ### Menções a Arquivo
 
-Use o botão de arquivo da barra do editor ou o seletor de Menções para escolher
-um Arquivo disponível no contexto atual. Em uma reunião, um Arquivo de outro
-contexto pode exigir a ação **Compartilhar com a reunião e mencionar** antes de
-ser inserido. Esse compartilhamento é explícito e pode ser removido depois.
+Use a aba **Arquivos** do seletor de Menções para escolher um Arquivo disponível
+no contexto atual. Em uma reunião, um Arquivo de outro contexto pode exigir a
+ação **Compartilhar com a reunião e mencionar** antes de ser inserido. Esse
+compartilhamento é explícito e pode ser removido depois.
 
 Uma Menção a arquivo não concede acesso por si só. A pessoa ainda precisa ter
 permissão para consultar o Arquivo. Arrastar, colar ou usar a sintaxe de imagem

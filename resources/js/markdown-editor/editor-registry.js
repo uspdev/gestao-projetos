@@ -60,7 +60,6 @@ function initializeEditor(textarea) {
         toolbar: toolbarFor(
             textarea.dataset.markdownProfile,
             previewAction,
-            Boolean(textarea.dataset.fileReferenceUrl),
         ),
         autosave: { enabled: false },
         spellChecker: false,

@@ -46,13 +46,6 @@ const mentionButton = {
     title: "Mencionar",
 };
 
-const fileReferenceButton = {
-    name: "file-reference",
-    action: extensionAction("markdown-editor:file-reference"),
-    className: "fa fa-paperclip",
-    title: "Mencionar Arquivo",
-};
-
 const inlineCodeButton = {
     name: "inline-code",
     action: (editor) => wrapSelection(editor, "`"),
@@ -79,13 +72,11 @@ const taskListButton = {
  *
  * O perfil "compact" remove ações menos usadas para ocupar menos espaço.
  */
-function toolbarFor(profile, previewAction, supportsFileReferences = true) {
+function toolbarFor(profile, previewAction) {
     const emphasis = ["bold", "italic"];
     const lists = ["quote", "unordered-list", "ordered-list"];
     const linkAndCode = ["link", inlineCodeButton, codeBlockButton];
-    const extensions = supportsFileReferences
-        ? [mentionButton, fileReferenceButton]
-        : [mentionButton];
+    const extensions = [mentionButton];
 
     if (profile === "compact") {
         return [
