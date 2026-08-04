@@ -39,6 +39,18 @@
     overscroll-behavior-y: contain;
 }
 
+#mention-selector {
+    box-sizing: border-box;
+    max-width: calc(100vw - 1rem);
+    width: 24rem;
+}
+
+#mention-selector [data-mention-target-type] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .markdown-mention {
     position: relative;
 }

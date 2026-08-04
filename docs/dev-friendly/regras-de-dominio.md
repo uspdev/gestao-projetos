@@ -80,7 +80,8 @@ esse rótulo na interface, enquanto o nome acessível preserva tipo e nome para
 distinguir opções iguais. Relações de saída e de entrada que serão consumidas pela
 aplicação devem passar pelo `MentionManager`, que reaplica a autorização do leitor;
 os relacionamentos dos Models permanecem disponíveis para a sincronização e a
-reconstrução do índice.
+reconstrução do índice. Rótulos visíveis são limitados a 50 caracteres com
+reticências, e a caixa mantém largura fixa entre as abas.
 
 Ao criar ou alterar um campo Markdown, a sequência é:
 

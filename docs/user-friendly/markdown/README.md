@@ -33,7 +33,8 @@ cria uma Menção.
 O tipo do destino é indicado pela aba ativa. Cada opção exibe somente seu nome
 ou título, sem repetir o tipo em um prefixo ou em um tooltip.
 Para tecnologias assistivas, o nome acessível mantém tipo e nome para distinguir
-opções com o mesmo rótulo.
+opções com o mesmo rótulo. Nomes longos são cortados visualmente após 50
+caracteres, e a caixa mantém largura uniforme entre as abas.
 
 O editor insere uma identificação interna junto ao rótulo. Não a altere nem a
 escreva manualmente: ela mantém a Menção ligada à entidade correta, mesmo quando

@@ -2,6 +2,7 @@ const { csrfHeaders } = require("./http");
 
 let activeMentionSelector = null;
 let activeMentionRequest = null;
+const MENTION_DISPLAY_LABEL_LIMIT = 50;
 
 function closeMentionSelector() {
     if (activeMentionRequest?.controller) {
@@ -63,6 +64,14 @@ function mentionTypeLabel(target) {
 
 function mentionLabel(target) {
     return target.name || target.title || target.label || "";
+}
+
+function mentionDisplayLabel(label) {
+    if (label.length <= MENTION_DISPLAY_LABEL_LIMIT) {
+        return label;
+    }
+
+    return `${label.slice(0, MENTION_DISPLAY_LABEL_LIMIT - 3)}...`;
 }
 
 function mentionMarkdownLabel(target) {
@@ -146,12 +155,11 @@ function renderMentionSelector(editor, range, targets) {
 
     const selector = document.createElement("div");
     selector.id = "mention-selector";
-    selector.className = "list-group position-absolute shadow";
+    selector.className = "mention-selector list-group position-absolute shadow";
     selector.setAttribute("role", "listbox");
     selector.setAttribute("aria-label", "Destinos mencionáveis");
     selector.tabIndex = -1;
     selector.style.zIndex = "1060";
-    selector.style.minWidth = "16rem";
     const input = editor.codemirror.getInputField();
     input.setAttribute("role", "combobox");
     input.setAttribute("aria-autocomplete", "list");
@@ -213,7 +221,7 @@ function renderMentionSelector(editor, range, targets) {
             }
             const label = mentionLabel(target);
             const accessibleName = `${mentionTypeLabel(target)}: ${label}`;
-            option.textContent = label;
+            option.textContent = mentionDisplayLabel(label);
             option.setAttribute("aria-label", accessibleName);
             option.addEventListener("click", () => {
                 insertMention(editor, range, target);

@@ -7,9 +7,10 @@ inicial **Todos** e filtros para Pessoas. A interface vigente não exibe a aba
 geral, usa **Usuários** como primeiro filtro e abre nessa aba. Cada filtro exibe
 somente o nome ou título do destino, sem cabeçalho, prefixo visual ou tooltip
 repetido; o nome acessível continua incluindo tipo e nome para distinguir opções
-iguais. Esta revisão substitui apenas a apresentação do seletor; a indicação de
-tipo nas Menções já renderizadas permanece conforme as decisões de acessibilidade
-registradas neste ADR.
+iguais. Rótulos visíveis são limitados a 50 caracteres com reticências, e a caixa
+mantém largura fixa entre as abas. Esta revisão substitui apenas a apresentação do
+seletor; a indicação de tipo nas Menções já renderizadas permanece conforme as
+decisões de acessibilidade registradas neste ADR.
 
 Menção passa a significar qualquer ligação estruturada presente em um texto que aponte para uma entidade identificável do sistema, e não apenas a ligação destinada a chamar a atenção de um usuário. A infraestrutura de Menções deverá admitir origem e destino polimórficos, preservando regras específicas por tipo de destino, como a intenção de chamar a atenção própria da Menção a usuário.
 

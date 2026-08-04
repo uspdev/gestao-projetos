@@ -1026,6 +1026,78 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_mention_selector_truncates_long_labels_and_keeps_a_fixed_width(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [
+                                    {
+                                        id: 9,
+                                        name: 'Eduardo Oliveira Ferraz de Campos com um nome muito longo',
+                                        type: 'user',
+                                        type_label: 'Pessoa'
+                                    },
+                                    {
+                                        id: 42,
+                                        name: 'Projeto com um nome suficientemente longo',
+                                        type: 'project',
+                                        type_label: 'Projeto'
+                                    }
+                                ]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'bounded-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#bounded-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#bounded-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const option = selector.querySelector('[data-mention-user-id="9"]');
+
+                        window.initialMentionSelectorWidth = selector.getBoundingClientRect().width;
+                        window.initialMentionOptionWidth = option.getBoundingClientRect().width;
+
+                        return option.textContent.trim().length === 50
+                            && option.textContent.trim().endsWith('...')
+                            && option.getAttribute('aria-label') === 'Pessoa: Eduardo Oliveira Ferraz de Campos com um nome muito longo'
+                            && !option.textContent.trim().startsWith('Pessoa:');
+                    })()
+                JS, true)
+                ->click('[data-mention-filter="project"]')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const option = selector.querySelector('[data-mention-project-id="42"]');
+
+                        return Math.abs(selector.getBoundingClientRect().width - window.initialMentionSelectorWidth) < 0.1
+                            && Math.abs(option.getBoundingClientRect().width - window.initialMentionOptionWidth) < 0.1;
+                    })()
+                JS, true);
+        });
+    }
+
     public function test_mention_selector_filters_projects_and_inserts_the_project_alias(): void
     {
         $this->browse(function (Browser $browser): void {

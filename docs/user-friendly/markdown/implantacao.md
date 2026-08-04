@@ -66,7 +66,8 @@ Execute `php artisan test` e `php artisan dusk`. Em homologação, confirme:
   alterar a propriedade do Arquivo;
 - o autocomplete unificado oferece abas para Usuários, Projetos, Tarefas,
   Reuniões e Arquivos, começa em Usuários, exibe apenas o nome ou título do
-  destino e exige seleção explícita, sem transformar texto digitado em Menção;
+  destino, corta nomes visíveis após 50 caracteres e mantém largura fixa entre
+  as abas, exigindo seleção explícita sem transformar texto digitado em Menção;
 - o índice de Menções e `php artisan mentions:rebuild` são idempotentes, mantêm
   destinos excluídos logicamente recuperáveis, ignoram destinos definitivamente
   ausentes e não geram notificações, e-mails ou tela de backlinks;
