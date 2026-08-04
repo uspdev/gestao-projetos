@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Contracts\Watchable;
 use App\Enums\Watch\WatchEventType;
 use App\Jobs\SendWatchDigest;
+use App\Mail\MeetingWatchUpdate;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 class PendingWatchNotification extends Model
@@ -68,6 +70,41 @@ class PendingWatchNotification extends Model
                 $details,
                 $url,
             );
+        }
+    }
+
+    /**
+     * Despacha notificações individuais para alterações de Reunião.
+     *
+     * Diferentemente dos demais eventos de acompanhamento, alterações de
+     * Reunião não aguardam o intervalo do resumo.
+     */
+    public static function dispatchMeetingUpdateForWatchers(
+        Meeting $meeting,
+        User $actor,
+        string $summary,
+    ): void {
+        if (! Schema::hasTable('watches')) {
+            return;
+        }
+
+        $watcherIds = Watch::query()
+            ->where('watchable_type', $meeting->getMorphClass())
+            ->where('watchable_id', $meeting->getKey())
+            ->where('user_id', '!=', $actor->id)
+            ->pluck('user_id');
+
+        $watchers = User::query()
+            ->whereIn('id', $watcherIds)
+            ->get();
+
+        foreach ($watchers as $watcher) {
+            Mail::to($watcher->email)->queue(new MeetingWatchUpdate(
+                $watcher,
+                $actor,
+                $meeting,
+                $summary,
+            ));
         }
     }
 

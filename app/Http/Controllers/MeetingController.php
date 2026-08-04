@@ -17,6 +17,7 @@ use App\Models\Meeting;
 use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\MeetingItem;
+use App\Models\Watch;
 use App\Services\Mentions\MentionManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,6 +85,12 @@ class MeetingController extends Controller
 
             $meeting = Meeting::create($data);
             $meeting->projects()->sync($projects);
+            Watch::enableForUsers(
+                DB::table('project_user')
+                    ->whereIn('project_id', $projects)
+                    ->pluck('user_id'),
+                $meeting,
+            );
             $mentionManager->validateAllMentions($meeting, 'notes', $data['notes'] ?? null);
             $mentionManager->synchronize($meeting, 'notes', $data['notes'] ?? null);
 
@@ -408,13 +415,10 @@ class MeetingController extends Controller
             ? 'Reunião agendada.'
             : 'Reunião atualizada.';
 
-        PendingWatchNotification::addForWatchers(
+        PendingWatchNotification::dispatchMeetingUpdateForWatchers(
             $meeting,
-            WatchEventType::MEETING_UPDATED,
             $actor,
             $summary,
-            null,
-            $meeting->watchUrl(),
         );
     }
 

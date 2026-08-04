@@ -120,6 +120,35 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
     }
 
+    public function test_project_members_start_watching_a_new_meeting(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+
+        $this->post('/projects/projeto-teste/meetings', [
+            'title' => 'Nova reunião acompanhada',
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+            'location' => 'Sala de reunião',
+            'notes' => null,
+            'status' => 'DRAFT',
+            'projects' => [1],
+        ])->assertRedirect();
+
+        $meetingId = DB::table('meetings')
+            ->where('title', 'Nova reunião acompanhada')
+            ->value('id');
+
+        $this->assertDatabaseHas('watches', [
+            'user_id' => 1,
+            'watchable_type' => 'meeting',
+            'watchable_id' => $meetingId,
+        ]);
+        $this->assertDatabaseHas('watches', [
+            'user_id' => 2,
+            'watchable_type' => 'meeting',
+            'watchable_id' => $meetingId,
+        ]);
+    }
+
     public function test_meeting_markdown_consumers_share_safe_rendering_while_records_remain_plain_text(): void
     {
         $markdown = '**Seguro** [Projeto](https://example.test) <script>alert(1)</script>';
@@ -951,6 +980,15 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             $table->foreignId('task_id');
             $table->foreignId('user_id');
             $table->timestamps();
+        });
+
+        Schema::create('watches', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('watchable_type');
+            $table->unsignedBigInteger('watchable_id');
+            $table->timestamps();
+            $table->unique(['user_id', 'watchable_type', 'watchable_id']);
         });
 
         Schema::create('tags', function (Blueprint $table) {

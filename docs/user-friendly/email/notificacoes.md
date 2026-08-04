@@ -11,7 +11,7 @@ como cada envio é processado.
 | Atribuição de responsável a uma Tarefa | Pessoa atribuída à Tarefa | Imediato, pela fila | Após a atribuição ser concluída. Não é enviado se a pessoa já estava atribuída ou se realizou a própria atribuição. |
 | Criação de Comentário em Projeto, Tarefa ou Reunião acompanhada | Pessoas que acompanham o recurso | Resumo agrupado, pela fila | Entra no resumo como `Novo comentário.`, com o texto do Comentário. |
 | Conclusão de Tarefa acompanhada | Pessoas que acompanham a Tarefa | Resumo agrupado, pela fila | Entra no resumo quando o status muda para concluída. |
-| Agendamento ou atualização de Reunião acompanhada | Pessoas que acompanham a Reunião | Resumo agrupado, pela fila | Entra no resumo como `Reunião agendada.` ou `Reunião atualizada.`. Reuniões em rascunho não geram essa notificação. |
+| Agendamento ou atualização de Reunião acompanhada | Pessoas que acompanham a Reunião | Imediato, pela fila | Envia `Reunião agendada.` ou `Reunião atualizada.` sem aguardar nem alterar o resumo. Reuniões em rascunho não geram essa notificação. |
 | Remoção de Reunião acompanhada | Pessoas que acompanham a Reunião | Resumo agrupado, pela fila | Entra no resumo como `Reunião removida.`. Não contém link para a Reunião removida. Reuniões em rascunho não geram essa notificação. |
 | Vínculo de Subprojeto acompanhado | Pessoas que acompanham o Subprojeto | Resumo agrupado, pela fila | Entra no resumo informando o Projeto pai. |
 | Desvínculo de Subprojeto acompanhado | Pessoas que acompanham o Subprojeto | Resumo agrupado, pela fila | Entra no resumo informando o Projeto organizacional anterior. |
@@ -21,16 +21,21 @@ notificação sobre a própria ação.
 
 ## Envio imediato pela fila
 
-Os e-mails de inclusão de membro e de atribuição de Tarefa são colocados na fila
-com `Mail::queue()`. O worker da fila executa o envio assim que processar o
-trabalho; portanto, eles não aguardam a formação de um resumo.
+Os e-mails de inclusão de membro, atribuição de Tarefa e alteração de Reunião
+são colocados na fila. O worker da fila executa o envio assim que processar o
+trabalho; portanto, eles não aguardam a formação de um resumo. Antes de enviar
+uma alteração de Reunião, a aplicação confirma que a pessoa ainda a acompanha
+e ainda pode visualizá-la.
 
 ## Resumo de acompanhamentos
 
 O resumo é destinado apenas a pessoas que ativaram o acompanhamento do Projeto,
-da Tarefa ou da Reunião relacionada. Ele é um resumo por destinatário, e não
-por recurso: atividades em diferentes recursos acompanhados podem compor o
-mesmo e-mail.
+da Tarefa ou da Reunião relacionada. As pessoas diretamente vinculadas aos
+Projetos de uma nova Reunião começam com esse acompanhamento ativo e podem
+desativá-lo na própria página. Ele é um resumo por destinatário, e não por
+recurso: atividades em diferentes recursos acompanhados podem compor o mesmo
+e-mail. Alterações de Reunião são a exceção: são enviadas imediatamente e não
+entram no resumo.
 
 Cada nova atividade adia o envio de todas as pendências daquele destinatário.
 O intervalo padrão é de cinco minutos, configurado em
@@ -50,7 +55,13 @@ flowchart TD
     tipo -->|"Inclusão de membro ou atribuição de Tarefa"| imediato["Colocar e-mail imediato na fila"]
     imediato --> envio["Worker envia o e-mail"]
 
-    tipo -->|"Comentário, Tarefa concluída ou alteração de Reunião"| acompanhamento["Localizar pessoas que acompanham o recurso"]
+    tipo -->|"Alteração de Reunião"| reuniao["Localizar pessoas que acompanham a Reunião"]
+    reuniao --> excluirAutorReuniao["Excluir quem realizou a ação"]
+    excluirAutorReuniao --> imediatoReuniao["Colocar notificação individual na fila, sem atraso"]
+    imediatoReuniao --> revalidarReuniao["Revalidar acompanhamento e permissão de visualização"]
+    revalidarReuniao --> envio
+
+    tipo -->|"Comentário, Tarefa concluída ou vínculo de Subprojeto"| acompanhamento["Localizar pessoas que acompanham Projeto (área de Resumos), Tarefa ou Reunião"]
     acompanhamento --> excluirAutor["Excluir quem realizou a ação"]
     excluirAutor --> pendencia["Criar uma pendência por destinatário"]
     pendencia --> adiar["Adiar o resumo do destinatário"]

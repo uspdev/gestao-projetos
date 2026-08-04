@@ -3,10 +3,14 @@
 ## Objetivo
 
 Permitir que uma pessoa acompanhe um Projeto, uma Tarefa ou uma Reunião e
-receba por e-mail um resumo das atividades relevantes ocorridas nesses
-recursos. O acompanhamento é uma preferência individual: não altera membros,
-permissões nem a visibilidade do recurso e não é herdado entre Projeto,
-subprojeto, Tarefa e Reunião.
+receba por e-mail atividades relevantes ocorridas nesses recursos. O
+acompanhamento é uma preferência individual: não altera membros, permissões
+nem a visibilidade do recurso e não é herdado entre Projeto, subprojeto,
+Tarefa e Reunião.
+
+Projetos e Tarefas continuam com acompanhamento opt-in. Ao criar uma Reunião,
+as pessoas diretamente vinculadas a qualquer Projeto dela começam a acompanhá-la
+automaticamente e podem desativar essa preferência na própria página da Reunião.
 
 Este documento descreve a estrutura já iniciada no código e o plano para
 consolidá-la em produção. O termo de domínio usado na interface é
@@ -19,14 +23,18 @@ Inclui:
 
 - ativar e desativar o acompanhamento por usuário e recurso;
 - preservar acompanhamentos de Tarefas originados em `task_user`;
+- ativar o acompanhamento dos membros diretos dos Projetos vinculados ao
+  registrar uma Reunião e preservar essa preferência para Reuniões não
+  concluídas já existentes;
 - registrar atividades pendentes por destinatário;
 - agrupar atividades em um resumo assíncrono por e-mail;
+- enviar alterações de Reunião imediatamente pela fila;
 - revalidar acesso e preferência antes do envio;
 - oferecer pontos de extensão para novos recursos e eventos.
 
-Ficam fora do escopo inicial notificações instantâneas, caixa de entrada no
-sistema, preferências por tipo de evento, herança automática e acompanhamento
-de itens de pauta.
+Ficam fora do escopo inicial notificações instantâneas além das alterações de
+Reunião, caixa de entrada no sistema, preferências por tipo de evento, herança
+automática e acompanhamento de itens de pauta.
 
 ## Modelo de dados
 
@@ -110,11 +118,14 @@ aceitam Comentários.
 | `WatchController` | `update()` | Resolve o recurso, autoriza leitura e ativa o acompanhamento do usuário autenticado. |
 | `WatchController` | `destroy()` | Resolve e autoriza o recurso, desativa a preferência e limpa suas pendências. |
 | `Watch` | `enableFor(int $userId, Watchable $watchable)` | Executa `upsert` idempotente em `watches`. |
+| `Watch` | `enableForUsers(iterable $userIds, Watchable $watchable)` | Executa um único `upsert` idempotente para os membros dos Projetos vinculados. |
 | `Watch` | `disableFor(int $userId, Watchable $watchable)` | Em transação, remove a preferência e as pendências daquele recurso; reagenda o resumo restante do destinatário. |
 | `PendingWatchNotification` | `addForWatchers(...)` | Localiza os acompanhantes do recurso, exceto quem realizou a ação, e cria uma pendência para cada um. |
 | `PendingWatchNotification` | `addForUser(...)` | Bloqueia o usuário, confirma que a preferência ainda existe, adia o resumo anterior e cria a nova pendência. |
+| `PendingWatchNotification` | `dispatchMeetingUpdateForWatchers(...)` | Localiza os acompanhantes da Reunião, exceto quem realizou a ação, e enfileira uma notificação individual sem criar pendência. |
 | `SendWatchDigest` | `handle()` | Processa somente o trabalho mais recente do destinatário, revalida acesso e preferência, envia o resumo válido e remove pendências processadas. |
 | `WatchDigest` | `build()` | Monta o assunto e a view `emails.watch.digest`. |
+| `MeetingWatchUpdate` | `build()` | Implementa `ShouldQueue` e monta o e-mail individual de agendamento ou atualização de Reunião. |
 | `TaskUser` | eventos `created` e `deleted` | Mantém a compatibilidade: vincular alguém a uma Tarefa ativa o acompanhamento; desvincular desativa-o. |
 
 Os métodos que alteram pendências devem usar transação e `lockForUpdate()` na
@@ -131,7 +142,7 @@ sejam estáveis para filtros futuros e auditoria.
 | --- | --- | --- |
 | `comment.created` | criação de Comentário em Projeto, Tarefa ou Reunião | `Novo comentário.` com o texto em `details`. |
 | `task.completed` | transição de status da Tarefa para concluída | `Tarefa concluída.` |
-| `meeting.updated` | agendamento ou atualização de Reunião | `Reunião agendada.` ou `Reunião atualizada.` |
+| `meeting.updated` | agendamento ou atualização de Reunião | `Reunião agendada.` ou `Reunião atualizada.`, enviada imediatamente pela fila e fora do resumo. |
 | `meeting.removed` | remoção de Reunião | `Reunião removida.`, sem URL. |
 | `subproject.linked` | vínculo de subprojeto | informa o Projeto pai. |
 | `subproject.unlinked` | desvínculo de subprojeto | informa o Projeto organizacional anterior. |
@@ -147,6 +158,11 @@ Pessoa ativa acompanhamento
   -> WatchController autoriza visualização
   -> Watch::enableFor grava uma preferência única
 
+Pessoa cria uma Reunião
+  -> localiza membros diretos de todos os Projetos vinculados
+  -> Watch::enableForUsers grava uma preferência única para cada pessoa
+  -> cada pessoa pode desativá-la na página da Reunião
+
 Atividade em recurso acompanhado
   -> PendingWatchNotification::addForWatchers
   -> uma pendência por destinatário
@@ -158,6 +174,11 @@ Trabalho executado após send_after
   -> revalida acesso ao recurso e existência do acompanhamento
   -> envia WatchDigest apenas com itens válidos
   -> remove todas as pendências lidas do destinatário
+
+Agendamento ou atualização de Reunião acompanhada
+  -> PendingWatchNotification::dispatchMeetingUpdateForWatchers
+  -> Mail::to(...)->queue(MeetingWatchUpdate) sem atraso
+  -> envia MeetingWatchUpdate sem afetar pendências de resumo
 ```
 
 O intervalo é configurado em `projetos.watching.digest_minutes` e inicia em
@@ -179,6 +200,20 @@ Com `QUEUE_CONNECTION=database`, o Laravel grava esse trabalho na tabela
 tabela continuamente, executa o job quando o prazo vence e o job chama
 `Mail::to(...)->send(new WatchDigest(...))`. Não há comando agendado para esse
 fluxo: `php artisan schedule:run` não é necessário para enviar os resumos.
+
+`MeetingWatchUpdate` implementa `ShouldQueue` e é enfileirado diretamente com
+`Mail::to(...)->queue(...)`, sem `delay`. Por isso, uma alteração de Reunião
+não é atrasada nem agrupada com pendências de resumo.
+
+## Migração de Reuniões existentes
+
+A migração `2026_08_04_120000_enable_watches_for_open_meetings` ativa o
+acompanhamento dos membros diretos de cada Projeto vinculado a uma Reunião não
+concluída e não removida já persistida. A operação é idempotente: registros de
+acompanhamento existentes são preservados, inclusive quando uma pessoa participa
+de mais de um Projeto da mesma Reunião. Reuniões concluídas e removidas não
+recebem um novo acompanhamento. A reversão não remove preferências, pois elas
+podem ter sido alteradas por pessoas depois da implantação.
 
 Em desenvolvimento, iniciar o worker em outro terminal:
 

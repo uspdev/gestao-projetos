@@ -85,8 +85,11 @@ interpretam Markdown ou HTML.
 
 ## Comentários, Arquivos e exportação
 
-Pessoas com acesso de contribuição à Reunião podem comentar nela. O
-acompanhamento por e-mail é opcional e segue as regras de
+Pessoas com acesso de contribuição à Reunião podem comentar nela. As pessoas
+diretamente vinculadas aos Projetos da Reunião começam com as notificações por
+e-mail dela ativas e podem desativá-las na própria página da Reunião. Para
+Projetos e Tarefas, o acompanhamento continua opcional. Alterações de uma
+Reunião acompanhada são enviadas diretamente, sem aguardar o resumo; as demais regras estão em
 [Notificações por e-mail](email/notificacoes.md).
 
 Arquivos enviados diretamente pertencem à Reunião. Também é possível

@@ -13,19 +13,43 @@ class Watch extends Model
 {
     public static function enableFor(int $userId, Watchable&EloquentModel $watchable): void
     {
+        static::enableForUsers([$userId], $watchable);
+    }
+
+    /**
+     * Ativa o acompanhamento para cada pessoa indicada, sem duplicar a preferência.
+     *
+     * @param iterable<int> $userIds
+     */
+    public static function enableForUsers(iterable $userIds, Watchable&EloquentModel $watchable): void
+    {
         if (! Schema::hasTable('watches')) {
+            return;
+        }
+
+        $userIds = collect($userIds)
+            ->filter(fn ($userId) => is_numeric($userId) && (int) $userId > 0)
+            ->map(fn ($userId) => (int) $userId)
+            ->unique()
+            ->values();
+
+        if ($userIds->isEmpty()) {
             return;
         }
 
         $now = now();
 
-        static::query()->upsert([[
-            'user_id' => $userId,
-            'watchable_type' => $watchable->getMorphClass(),
-            'watchable_id' => $watchable->getKey(),
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]], ['user_id', 'watchable_type', 'watchable_id'], ['updated_at']);
+        static::query()->upsert(
+            $userIds->map(fn (int $userId) => [
+                'user_id' => $userId,
+                'watchable_type' => $watchable->getMorphClass(),
+                'watchable_id' => $watchable->getKey(),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all(),
+            ['user_id', 'watchable_type', 'watchable_id'],
+            ['updated_at'],
+        );
     }
 
     public static function disableFor(int $userId, Watchable&EloquentModel $watchable): void
