@@ -326,8 +326,10 @@ class MeetingMentionTest extends TestCase
             ->assertJsonPath('results.0.type', 'meeting')
             ->assertJsonPath('results.0.type_label', 'Reunião')
             ->assertJsonPath('result_groups.0.type', 'meeting')
-            ->assertJsonPath('filters.4.value', 'meeting')
-            ->assertJsonPath('filters.4.label', 'Reuniões');
+            ->assertJsonPath('filters.0.value', 'user')
+            ->assertJsonPath('filters.0.label', 'Usuários')
+            ->assertJsonPath('filters.3.value', 'meeting')
+            ->assertJsonPath('filters.3.label', 'Reuniões');
     }
 
     public function test_it_presents_a_meeting_through_the_reader_accessible_project_and_current_title(): void

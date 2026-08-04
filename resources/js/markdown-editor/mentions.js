@@ -166,8 +166,7 @@ function renderMentionSelector(editor, range, targets) {
     filters.setAttribute("role", "group");
     filters.setAttribute("aria-label", "Filtrar destinos mencionáveis");
     const filterOptions = [
-        ["all", "Todos"],
-        ["user", "Pessoas"],
+        ["user", "Usuários"],
         ["project", "Projetos"],
         ["task", "Tarefas"],
         ["meeting", "Reuniões"],

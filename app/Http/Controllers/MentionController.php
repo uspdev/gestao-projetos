@@ -41,8 +41,7 @@ class MentionController extends Controller
             'results' => $results,
             'result_groups' => $groups,
             'filters' => [
-                ['value' => 'all', 'label' => 'Todos'],
-                ['value' => 'user', 'label' => 'Pessoas'],
+                ['value' => 'user', 'label' => 'Usuários'],
                 ['value' => 'project', 'label' => 'Projetos'],
                 ['value' => 'task', 'label' => 'Tarefas'],
                 ['value' => 'meeting', 'label' => 'Reuniões'],

@@ -73,11 +73,12 @@ salvamento do campo. A sintaxe canônica é
 `project`, `task`, `meeting` e `file`; fontes aceitas são `project`, `task`,
 `meeting`, `meeting_item` e `comment`.
 
-O autocomplete unificado começa em **Todos**, agrupa os cinco tipos e só cria
-uma Menção após uma escolha explícita. Relações de saída e de entrada que serão
-consumidas pela aplicação devem passar pelo `MentionManager`, que reaplica a
-autorização do leitor; os relacionamentos dos Models permanecem disponíveis
-para a sincronização e a reconstrução do índice.
+O autocomplete unificado começa com os cinco tipos agrupados, sem uma aba geral,
+e só cria uma Menção após uma escolha explícita. O filtro de Usuários usa esse
+rótulo na interface. Relações de saída e de entrada que serão consumidas pela
+aplicação devem passar pelo `MentionManager`, que reaplica a autorização do
+leitor; os relacionamentos dos Models permanecem disponíveis para a sincronização
+e a reconstrução do índice.
 
 Ao criar ou alterar um campo Markdown, a sequência é:
 

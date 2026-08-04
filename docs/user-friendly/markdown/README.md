@@ -23,9 +23,9 @@ e sem o realce de código.
 
 ## Menções
 
-Digite `@` e parte do nome ou título que procura. A visão inicial **Todos**
-organiza os resultados por tipo e permite alternar entre **Pessoas**,
-**Projetos**, **Tarefas**, **Reuniões** e **Arquivos**. O contexto atual aparece
+Digite `@` e parte do nome ou título que procura. A visão inicial organiza os
+resultados por tipo e permite alternar entre **Usuários**, **Projetos**,
+**Tarefas**, **Reuniões** e **Arquivos**. O contexto atual aparece
 primeiro quando a regra do destino permitir ampliação da busca. Selecione uma
 opção por clique, setas e `Enter`, ou `Tab`; digitar o texto sem selecioná-lo não
 cria uma Menção.

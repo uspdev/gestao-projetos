@@ -919,6 +919,7 @@ class MarkdownEditorTest extends DuskTestCase
                     (() => {
                         const selector = document.querySelector('#mention-selector');
                         const options = [...selector.querySelectorAll('[data-mention-target-type]')];
+                        const filters = [...selector.querySelectorAll('[data-mention-filter]')];
                         const input = window.MarkdownEditors
                             .get(document.querySelector('#accessible-mention-editor'))
                             .editor.codemirror.getInputField();
@@ -927,6 +928,8 @@ class MarkdownEditorTest extends DuskTestCase
                             && selector.getAttribute('aria-label') === 'Destinos mencionáveis'
                             && input.getAttribute('role') === 'combobox'
                             && input.getAttribute('aria-controls') === 'mention-selector'
+                            && !filters.some((button) => button.dataset.mentionFilter === 'all')
+                            && filters.find((button) => button.dataset.mentionFilter === 'user')?.textContent.trim() === 'Usuários'
                             && options.length === 2
                             && options.every((option) => option.getAttribute('role') === 'option')
                             && options.every((option) => option.getAttribute('aria-label').includes(': Mesmo nome'))
