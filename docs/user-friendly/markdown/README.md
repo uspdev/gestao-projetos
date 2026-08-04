@@ -23,17 +23,17 @@ e sem o realce de código.
 
 ## Menções
 
-Digite `@` e parte do nome ou título que procura. A visão inicial organiza os
-resultados por tipo e permite alternar entre **Usuários**, **Projetos**,
-**Tarefas**, **Reuniões** e **Arquivos**. O contexto atual aparece
+Digite `@` e parte do nome ou título que procura. A visão inicial abre na aba
+**Usuários** e permite alternar entre **Usuários**, **Projetos**, **Tarefas**,
+**Reuniões** e **Arquivos**. O contexto atual aparece
 primeiro quando a regra do destino permitir ampliação da busca. Selecione uma
 opção por clique, setas e `Enter`, ou `Tab`; digitar o texto sem selecioná-lo não
 cria uma Menção.
 
-Cada opção exibe seu tipo mesmo quando duas entidades têm o mesmo nome. O tipo
-também fica disponível no nome acessível e no tooltip durante o foco ou o hover.
-Em telas sensíveis ao toque não há uma interação adicional para descobrir essa
-informação.
+O tipo do destino é indicado pela aba ativa. Cada opção exibe somente seu nome
+ou título, sem repetir o tipo em um prefixo ou em um tooltip.
+Para tecnologias assistivas, o nome acessível mantém tipo e nome para distinguir
+opções com o mesmo rótulo.
 
 O editor insere uma identificação interna junto ao rótulo. Não a altere nem a
 escreva manualmente: ela mantém a Menção ligada à entidade correta, mesmo quando

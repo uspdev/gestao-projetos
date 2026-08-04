@@ -39,28 +39,8 @@
     overscroll-behavior-y: contain;
 }
 
-#mention-selector [data-mention-tooltip],
 .markdown-mention {
     position: relative;
-}
-
-#mention-selector [data-mention-tooltip].active::after,
-#mention-selector [data-mention-tooltip]:hover::after,
-#mention-selector [data-mention-tooltip]:focus-visible::after {
-    background: #212529;
-    border-radius: 0.25rem;
-    color: #fff;
-    content: attr(data-mention-tooltip);
-    left: calc(100% + 0.5rem);
-    max-width: min(24rem, 80vw);
-    padding: 0.25rem 0.5rem;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    white-space: normal;
-    width: max-content;
-    z-index: 1070;
-    pointer-events: none;
 }
 
 .markdown-mention:hover::after,

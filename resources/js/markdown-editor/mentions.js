@@ -180,19 +180,6 @@ function renderMentionSelector(editor, range, targets) {
         const filteredTargets = filter === "all"
             ? targets
             : targets.filter((target) => mentionType(target) === filter);
-        const groups = [];
-
-        filteredTargets.forEach((target) => {
-            const type = mentionType(target);
-            let group = groups.find((candidate) => candidate.type === type);
-
-            if (!group) {
-                group = { type, targets: [] };
-                groups.push(group);
-            }
-
-            group.targets.push(target);
-        });
 
         activeMentionSelector.activeTargets = filteredTargets;
         activeMentionSelector.activeIndex = 0;
@@ -202,53 +189,42 @@ function renderMentionSelector(editor, range, targets) {
             button.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
 
-        groups.forEach((group, groupIndex) => {
-            const heading = document.createElement("div");
-            heading.className = `small text-muted font-weight-bold${
-                groupIndex > 0 ? " mt-2" : ""
-            }`;
-            heading.textContent = mentionTypeLabel(group.targets[0]);
-            results.appendChild(heading);
-
-            group.targets.forEach((target) => {
-                const targetIndex = filteredTargets.indexOf(target);
-                const option = document.createElement("button");
-                option.type = "button";
-                option.className = "list-group-item list-group-item-action";
-                option.id = `mention-option-${targetIndex}`;
-                option.setAttribute("role", "option");
-                option.setAttribute("aria-selected", "false");
-                option.dataset.mentionTargetType = mentionType(target);
-                option.dataset.mentionTargetId = target.id;
-                option.dataset.mentionIndex = targetIndex;
-                if (mentionType(target) === "user") {
-                    option.dataset.mentionUserId = target.id;
-                }
-                if (mentionType(target) === "project") {
-                    option.dataset.mentionProjectId = target.id;
-                }
-                if (mentionType(target) === "task") {
-                    option.dataset.mentionTaskId = target.id;
-                }
-                if (mentionType(target) === "file") {
-                    option.dataset.mentionFileId = target.id;
-                }
-                const accessibleName = `${mentionTypeLabel(target)}: ${mentionLabel(target)}`;
-                option.textContent = accessibleName;
-                option.setAttribute("aria-label", accessibleName);
-                option.title = accessibleName;
-                option.dataset.mentionTooltip = accessibleName;
-                option.addEventListener("click", () => {
-                    insertMention(editor, range, target);
-                });
-                option.addEventListener("mouseenter", () => {
-                    updateActiveMentionOption(targetIndex);
-                });
-                option.addEventListener("focus", () => {
-                    updateActiveMentionOption(targetIndex);
-                });
-                results.appendChild(option);
+        filteredTargets.forEach((target, targetIndex) => {
+            const option = document.createElement("button");
+            option.type = "button";
+            option.className = "list-group-item list-group-item-action";
+            option.id = `mention-option-${targetIndex}`;
+            option.setAttribute("role", "option");
+            option.setAttribute("aria-selected", "false");
+            option.dataset.mentionTargetType = mentionType(target);
+            option.dataset.mentionTargetId = target.id;
+            option.dataset.mentionIndex = targetIndex;
+            if (mentionType(target) === "user") {
+                option.dataset.mentionUserId = target.id;
+            }
+            if (mentionType(target) === "project") {
+                option.dataset.mentionProjectId = target.id;
+            }
+            if (mentionType(target) === "task") {
+                option.dataset.mentionTaskId = target.id;
+            }
+            if (mentionType(target) === "file") {
+                option.dataset.mentionFileId = target.id;
+            }
+            const label = mentionLabel(target);
+            const accessibleName = `${mentionTypeLabel(target)}: ${label}`;
+            option.textContent = label;
+            option.setAttribute("aria-label", accessibleName);
+            option.addEventListener("click", () => {
+                insertMention(editor, range, target);
             });
+            option.addEventListener("mouseenter", () => {
+                updateActiveMentionOption(targetIndex);
+            });
+            option.addEventListener("focus", () => {
+                updateActiveMentionOption(targetIndex);
+            });
+            results.appendChild(option);
         });
 
         updateActiveMentionOption(0);
@@ -286,7 +262,7 @@ function renderMentionSelector(editor, range, targets) {
         activeIndex: 0,
         results,
     };
-    renderResults("all");
+    renderResults("user");
 }
 
 function selectActiveMention() {

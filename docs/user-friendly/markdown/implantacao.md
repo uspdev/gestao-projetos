@@ -64,9 +64,9 @@ Execute `php artisan test` e `php artisan dusk`. Em homologação, confirme:
   `Content-Disposition: attachment` e `X-Content-Type-Options: nosniff`;
 - Compartilhamentos de arquivo com Reunião podem ser criados e revogados sem
   alterar a propriedade do Arquivo;
-- o autocomplete unificado agrupa Usuários, Projetos, Tarefas, Reuniões e
-  Arquivos, sem aba geral, exige seleção explícita e não transforma texto
-  digitado em Menção;
+- o autocomplete unificado oferece abas para Usuários, Projetos, Tarefas,
+  Reuniões e Arquivos, começa em Usuários, exibe apenas o nome ou título do
+  destino e exige seleção explícita, sem transformar texto digitado em Menção;
 - o índice de Menções e `php artisan mentions:rebuild` são idempotentes, mantêm
   destinos excluídos logicamente recuperáveis, ignoram destinos definitivamente
   ausentes e não geram notificações, e-mails ou tela de backlinks;

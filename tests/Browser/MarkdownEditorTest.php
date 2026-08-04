@@ -930,11 +930,14 @@ class MarkdownEditorTest extends DuskTestCase
                             && input.getAttribute('aria-controls') === 'mention-selector'
                             && !filters.some((button) => button.dataset.mentionFilter === 'all')
                             && filters.find((button) => button.dataset.mentionFilter === 'user')?.textContent.trim() === 'Usuários'
-                            && options.length === 2
+                            && filters.find((button) => button.dataset.mentionFilter === 'user')?.getAttribute('aria-pressed') === 'true'
+                            && options.length === 1
                             && options.every((option) => option.getAttribute('role') === 'option')
-                            && options.every((option) => option.getAttribute('aria-label').includes(': Mesmo nome'))
-                            && options.every((option) => option.getAttribute('title').includes(': Mesmo nome'))
-                            && options.every((option) => option.dataset.mentionTooltip.includes(': Mesmo nome'))
+                            && options.every((option) => option.textContent.trim() === 'Mesmo nome')
+                            && options.every((option) => option.getAttribute('aria-label') === 'Pessoa: Mesmo nome')
+                            && options.every((option) => !option.hasAttribute('title'))
+                            && options.every((option) => !option.hasAttribute('data-mention-tooltip'))
+                            && selector.querySelector('.small.text-muted.font-weight-bold') === null
                             && options.filter((option) => option.getAttribute('aria-selected') === 'true').length === 1
                             && input.getAttribute('aria-activedescendant') !== null;
                     })()
@@ -1059,7 +1062,10 @@ class MarkdownEditorTest extends DuskTestCase
             $browser
                 ->waitFor('#mention-selector')
                 ->click('[data-mention-filter="project"]')
-                ->assertSeeIn('#mention-selector', 'Projeto: Projeto ] atual')
+                ->assertScript(
+                    "document.querySelector('[data-mention-project-id=\"42\"]').textContent.trim()",
+                    'Projeto ] atual'
+                )
                 ->click('[data-mention-project-id="42"]')
                 ->assertScript(
                     "window.MarkdownEditors.get(document.querySelector('#project-mention-editor')).editor.value()",
@@ -1108,7 +1114,10 @@ class MarkdownEditorTest extends DuskTestCase
             $browser
                 ->waitFor('#mention-selector')
                 ->click('[data-mention-filter="file"]')
-                ->assertSeeIn('#mention-selector', 'Arquivo: Decisão final')
+                ->assertScript(
+                    "document.querySelector('[data-mention-file-id=\"11111111-1111-4111-8111-111111111111\"]').textContent.trim()",
+                    'Decisão final'
+                )
                 ->click('[data-mention-file-id="11111111-1111-4111-8111-111111111111"]')
                 ->assertScript(
                     "window.MarkdownEditors.get(document.querySelector('#file-mention-editor')).editor.value()",
