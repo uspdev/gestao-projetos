@@ -29,24 +29,21 @@ Configure o `.env` com o banco, `SENHAUNICA_CALLBACK_ID`, credenciais da Senha
 Única e os dados do Replicado quando o ambiente precisar deles. A configuração
 copiada usa SQLite por padrão e o repositório já contém `database/database.sqlite`.
 
-Depois, aplique as migrações e compile os ativos próprios:
+Depois, aplique as migrações:
 
 ```sh
 php artisan migrate
-npm ci
-npm run production
 ```
-
-EasyMDE e `highlight.js` são carregados pelo navegador via CDN; o build local
-gera somente os JavaScripts e estilos próprios da aplicação.
 
 ### Executar a aplicação
 
-Em um terminal:
+Em um terminal, caso esteja rodando local:
 
 ```sh
 php artisan serve
 ```
+
+Não é rodar `php artisan serve` caso esteja usando um servidor que aponta para a pasta `public/`. O Laravel já contém um `.htaccess` para o Apache. Garanta que o servidor tenha permissão de escrita em `storage/` e `bootstrap/cache/`.
 
 Como a configuração padrão usa a fila `database`, execute o worker em outro
 terminal quando precisar validar e-mails, miniaturas ou outros trabalhos
@@ -56,20 +53,11 @@ assíncronos:
 php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60
 ```
 
+Você pode criar uma configuração de supervisão para o worker, mas não é necessário para desenvolvimento local.
+
 O módulo de Arquivos usa armazenamento privado. Não execute
 `php artisan storage:link` para esses Arquivos. Garanta que `storage/` e
 `bootstrap/cache/` tenham permissão de escrita.
-
-### Testes
-
-```sh
-php artisan test
-php artisan dusk
-```
-
-Os testes Dusk exigem um navegador e o driver compatível disponíveis no
-ambiente. Testes HTTP e unitários usam o ambiente `testing` configurado em
-`phpunit.xml`.
 
 ## Arquitetura e regras técnicas
 
