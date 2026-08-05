@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\Project;
 use App\Models\Meeting;
 use App\Models\MeetingItem;
+use App\Models\Comment;
 use App\Models\Mention;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\FileContextResolver;
 use App\Services\Mentions\MentionManager;
 use App\Services\MarkdownRenderer;
 use Illuminate\Database\Schema\Blueprint;
@@ -160,6 +162,73 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertOk()
             ->assertJsonPath('url', route('projects.show', $project).'#file-'.$projectFile->uuid)
             ->assertJsonPath('opens_new_tab', true);
+    }
+
+    public function test_file_context_resolver_returns_files_from_the_source_context(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $user = $this->user('Pessoa do contexto de arquivos');
+        $project = $this->projectWithMember('Projeto do contexto', $user);
+        $this->enableModule($project, 'tasks');
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa do contexto',
+            'status' => 'NEW',
+        ]);
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião do contexto',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach($project);
+        $meetingItem = MeetingItem::query()->create([
+            'meeting_id' => $meeting->id,
+            'title' => 'Item do contexto',
+            'order' => 1,
+        ]);
+
+        $this->actingAs($user);
+        $projectFile = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('projeto.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $taskFile = $task
+            ->addMedia(UploadedFile::fake()->createWithContent('tarefa.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $meetingFile = $meeting
+            ->addMedia(UploadedFile::fake()->createWithContent('reuniao.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $meeting->sharedFiles()->attach($projectFile);
+        $comment = Comment::query()->create([
+            'user_id' => $user->id,
+            'commentable_type' => $task->getMorphClass(),
+            'commentable_id' => $task->id,
+            'text' => 'Comentário do contexto',
+            'is_active' => true,
+        ]);
+
+        $resolver = app(FileContextResolver::class);
+
+        $this->assertSame(
+            [$projectFile->uuid],
+            $resolver->filesFor($project)->pluck('uuid')->all(),
+        );
+        $this->assertSame(
+            [$taskFile->uuid, $projectFile->uuid],
+            $resolver->filesFor($task)->pluck('uuid')->all(),
+        );
+        $this->assertSame(
+            [$meetingFile->uuid, $projectFile->uuid],
+            $resolver->filesFor($meeting)->pluck('uuid')->all(),
+        );
+        $this->assertSame(
+            [$meetingFile->uuid, $projectFile->uuid],
+            $resolver->filesFor($meetingItem)->pluck('uuid')->all(),
+        );
+        $this->assertSame(
+            [$taskFile->uuid, $projectFile->uuid],
+            $resolver->filesFor($comment)->pluck('uuid')->all(),
+        );
     }
 
     public function test_meeting_context_prioritizes_its_shared_file_section(): void

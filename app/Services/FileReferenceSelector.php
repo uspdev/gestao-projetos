@@ -10,11 +10,16 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Files\FileReferenceContext;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 
 class FileReferenceSelector
 {
+    public function __construct(private FileContextResolver $contextResolver)
+    {
+    }
+
     /** @return array{
      *     results: Collection<int, array{uuid: string, name: string}>,
      *     result_groups?: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>,
@@ -38,7 +43,7 @@ class FileReferenceSelector
     {
         Gate::forUser($user)->authorize('view', $project);
 
-        return $this->payload($user, $project->media()->latest()->get());
+        return $this->payload($user, $this->contextResolver->filesFor($project));
     }
 
     /** @return array{results: Collection<int, array{uuid: string, name: string}>, result_groups: Collection<int, array{label: string, results: Collection<int, array{uuid: string, name: string}>}>} */
@@ -46,14 +51,15 @@ class FileReferenceSelector
     {
         Gate::forUser($user)->authorize('view', $task);
 
+        $files = $this->contextResolver->filesFor($task);
         $groups = $this->visibleGroups($user, collect([
             [
                 'label' => "Tarefa atual: {$task->title}",
-                'media' => $task->media()->latest()->get(),
+                'media' => $this->filesOwnedBy($files, $task),
             ],
             [
                 'label' => "Projeto da tarefa: {$task->project->name}",
-                'media' => $task->project->media()->latest()->get(),
+                'media' => $this->filesOwnedBy($files, $task->project),
             ],
         ]));
 
@@ -78,11 +84,7 @@ class FileReferenceSelector
 
         $payload = $this->payload(
             $user,
-            $meeting->media()
-                ->latest()
-                ->get()
-                ->merge($meeting->sharedFiles()->latest()->get())
-                ->unique('id'),
+            $this->contextResolver->filesFor($meeting),
         );
 
         $payload['shareable_groups'] = $shareableGroups;
@@ -145,7 +147,7 @@ class FileReferenceSelector
         return $linkedProjects
             ->map(fn (Project $project) => [
                 'label' => "Projeto vinculado: {$project->name}",
-                'media' => $project->media()->latest()->get(),
+                'media' => $this->contextResolver->ownedFilesFor($project),
             ])
             ->concat(
                 $agendaOwners
@@ -154,7 +156,7 @@ class FileReferenceSelector
                     ->unique('id')
                     ->map(fn (Project $project) => [
                         'label' => "Projeto na pauta: {$project->name}",
-                        'media' => $project->media()->latest()->get(),
+                        'media' => $this->contextResolver->ownedFilesFor($project),
                     ])
             )
             ->concat(
@@ -163,7 +165,7 @@ class FileReferenceSelector
                     ->unique('id')
                     ->map(fn (Task $task) => [
                         'label' => "Tarefa na pauta: {$task->title}",
-                        'media' => $task->media()->latest()->get(),
+                        'media' => $this->contextResolver->ownedFilesFor($task),
                     ])
             )
             ->map(fn (array $source) => [
@@ -215,6 +217,15 @@ class FileReferenceSelector
                 'uuid' => $media->uuid,
                 'name' => $media->display_name,
             ])
+            ->values();
+    }
+
+    /** @param Collection<int, Media> $files */
+    private function filesOwnedBy(Collection $files, Model $owner): Collection
+    {
+        return $files
+            ->filter(fn (Media $media): bool => (int) $media->model_id === (int) $owner->getKey()
+                && $media->model_type === $owner->getMorphClass())
             ->values();
     }
 }

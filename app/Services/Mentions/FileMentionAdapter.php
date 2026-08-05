@@ -2,13 +2,9 @@
 
 namespace App\Services\Mentions;
 
-use App\Models\Comment;
 use App\Models\Media;
-use App\Models\Meeting;
-use App\Models\MeetingItem;
-use App\Models\Project;
-use App\Models\Task;
 use App\Models\User;
+use App\Services\FileContextResolver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -18,6 +14,13 @@ use Illuminate\Support\Str;
 final class FileMentionAdapter
 {
     public const ALIAS = 'file';
+
+    private FileContextResolver $contextResolver;
+
+    public function __construct(?FileContextResolver $contextResolver = null)
+    {
+        $this->contextResolver = $contextResolver ?? new FileContextResolver();
+    }
 
     public function supports(string $type): bool
     {
@@ -54,7 +57,7 @@ final class FileMentionAdapter
 
         return $media !== null
             && $reader !== null
-            && $this->contextFiles($source)->contains('uuid', $media->uuid)
+            && $this->contextResolver->filesFor($source)->contains('uuid', $media->uuid)
             && Gate::forUser($reader)->allows('view', $media);
     }
 
@@ -67,8 +70,7 @@ final class FileMentionAdapter
 
         $term = trim($term);
 
-        return $this->contextFiles($source)
-            ->unique('uuid')
+        return $this->contextResolver->filesFor($source)
             ->filter(fn (Media $media): bool => Gate::forUser($reader)->allows('view', $media))
             ->filter(fn (Media $media): bool => $term === '' || str_contains(
                 mb_strtolower((string) $media->display_name),
@@ -134,34 +136,5 @@ final class FileMentionAdapter
         return ! method_exists($owner, 'trashed') || ! $owner->trashed()
             ? $owner
             : null;
-    }
-
-    /** @return Collection<int, Media> */
-    private function contextFiles(Model $source): Collection
-    {
-        return match (true) {
-            $source instanceof Project => $this->ownedFiles($source),
-            $source instanceof Task => $this->ownedFiles($source)
-                ->concat($source->loadMissing('project')->project
-                    ? $this->ownedFiles($source->project)
-                    : collect()),
-            $source instanceof Meeting => $this->ownedFiles($source)
-                ->concat($source->sharedFiles()->latest()->get()),
-            $source instanceof MeetingItem => $source->loadMissing('meeting')->meeting
-                ? $this->contextFiles($source->meeting)
-                : collect(),
-            $source instanceof Comment => $source->loadMissing('commentable')->commentable
-                ? $this->contextFiles($source->commentable)
-                : collect(),
-            default => collect(),
-        };
-    }
-
-    /** @return Collection<int, Media> */
-    private function ownedFiles(Model $owner): Collection
-    {
-        return method_exists($owner, 'media')
-            ? $owner->media()->latest()->get()
-            : collect();
     }
 }
