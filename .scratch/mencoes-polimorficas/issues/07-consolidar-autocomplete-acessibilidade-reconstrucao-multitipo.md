@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] Exibir a visão inicial **Todos** com resultados agrupados e filtros para Pessoas, Projetos, Tarefas, Reuniões e Arquivos.
+- [ ] Abrir inicialmente na aba **Usuários** e oferecer filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos; na aba Projetos, mostrar primeiro o contexto e ampliar a busca para Projetos acessíveis quando o autor digitar.
 - [ ] Manter a prioridade contextual aprovada em cada tipo de fonte e permitir ampliação somente para os tipos autorizados.
 - [ ] Identificar claramente o tipo durante a seleção mesmo quando destinos compartilham o mesmo rótulo.
 - [ ] Permitir seleção explícita por clique, setas com `Enter` e `Tab`, sem transformar texto digitado em Menção sem escolha.

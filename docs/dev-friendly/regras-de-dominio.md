@@ -83,6 +83,12 @@ os relacionamentos dos Models permanecem disponíveis para a sincronização e a
 reconstrução do índice. Rótulos visíveis são limitados a 50 caracteres com
 reticências, e a caixa mantém largura fixa entre as abas.
 
+Na aba de Projetos, uma busca sem termo mostra apenas os Projetos contextuais e
+orienta o autor a digitar para pesquisar outros Projetos acessíveis. Quando há
+termo, os resultados contextuais aparecem antes dos demais e podem ser separados
+pelos rótulos “Projetos relacionados” e “Outros projetos acessíveis”; esses
+rótulos identificam grupos da busca, não prefixos das opções.
+
 Ao criar ou alterar um campo Markdown, a sequência é:
 
 1. validar novas Menções com `MentionManager` no contexto da fonte;

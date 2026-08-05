@@ -74,6 +74,12 @@ function mentionDisplayLabel(label) {
     return `${label.slice(0, MENTION_DISPLAY_LABEL_LIMIT - 3)}...`;
 }
 
+function mentionScopeLabel(scope) {
+    return scope === "global"
+        ? "Outros projetos acessíveis"
+        : "Projetos relacionados";
+}
+
 function mentionMarkdownLabel(target) {
     return mentionLabel(target)
         .replace(/\\/g, "\\\\")
@@ -146,10 +152,10 @@ function updateActiveMentionOption(index) {
     }
 }
 
-function renderMentionSelector(editor, range, targets) {
+function renderMentionSelector(editor, range, targets, initialFilter = "user") {
     closeMentionSelector();
 
-    if (targets.length === 0) {
+    if (targets.length === 0 && range.term.trim() !== "") {
         return;
     }
 
@@ -189,6 +195,7 @@ function renderMentionSelector(editor, range, targets) {
             ? targets
             : targets.filter((target) => mentionType(target) === filter);
 
+        activeMentionSelector.activeFilter = filter;
         activeMentionSelector.activeTargets = filteredTargets;
         activeMentionSelector.activeIndex = 0;
         filters.querySelectorAll("[data-mention-filter]").forEach((button) => {
@@ -197,7 +204,24 @@ function renderMentionSelector(editor, range, targets) {
             button.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
 
+        let previousScope = null;
+
         filteredTargets.forEach((target, targetIndex) => {
+            if (filter === "project" && range.term.trim() !== "") {
+                const scope = target.scope === "global" ? "global" : "contextual";
+
+                if (previousScope !== scope) {
+                    const scopeLabel = document.createElement("div");
+                    scopeLabel.className = "mention-selector-scope-label small text-muted font-weight-bold";
+                    scopeLabel.dataset.mentionScopeLabel = scope;
+                    scopeLabel.dataset.mentionScope = scope;
+                    scopeLabel.setAttribute("role", "presentation");
+                    scopeLabel.textContent = mentionScopeLabel(scope);
+                    results.appendChild(scopeLabel);
+                    previousScope = scope;
+                }
+            }
+
             const option = document.createElement("button");
             option.type = "button";
             option.className = "list-group-item list-group-item-action";
@@ -235,6 +259,15 @@ function renderMentionSelector(editor, range, targets) {
             results.appendChild(option);
         });
 
+        if (filter === "project" && range.term.trim() === "") {
+            const hint = document.createElement("div");
+            hint.className = "mention-selector-global-search-hint small text-muted";
+            hint.dataset.mentionGlobalSearchHint = "true";
+            hint.setAttribute("role", "note");
+            hint.textContent = "Digite o nome para buscar outros projetos";
+            results.appendChild(hint);
+        }
+
         updateActiveMentionOption(0);
     };
 
@@ -266,11 +299,12 @@ function renderMentionSelector(editor, range, targets) {
         input,
         range,
         targets,
+        activeFilter: initialFilter,
         activeTargets: targets,
         activeIndex: 0,
         results,
     };
-    renderResults("user");
+    renderResults(initialFilter);
 }
 
 function selectActiveMention() {
@@ -315,6 +349,9 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
         return;
     }
 
+    const activeFilter = activeMentionSelector?.editor === editor
+        ? activeMentionSelector.activeFilter
+        : "user";
     closeMentionSelector();
     const url = new URL(searchUrl, window.location.origin);
     url.searchParams.set("term", range.term);
@@ -352,6 +389,7 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
                 editor,
                 range,
                 Array.isArray(payload.results) ? payload.results : [],
+                activeFilter,
             );
         })
         .catch(() => {

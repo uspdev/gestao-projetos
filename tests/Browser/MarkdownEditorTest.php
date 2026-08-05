@@ -1147,6 +1147,95 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_project_mention_selector_explains_context_and_global_search(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function (url) {
+                    const term = new URL(url, window.location.origin).searchParams.get('term');
+                    const contextual = {
+                        id: 9,
+                        name: 'Projeto relacionado',
+                        type: 'project',
+                        type_label: 'Projeto',
+                        scope: 'contextual'
+                    };
+                    const global = {
+                        id: 42,
+                        name: 'Outro projeto acessível',
+                        type: 'project',
+                        type_label: 'Projeto',
+                        scope: 'global'
+                    };
+
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: term === '' ? [] : [contextual, global]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'scoped-project-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#scoped-project-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#scoped-project-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-filter="project"]')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const options = selector.querySelectorAll('[data-mention-target-type="project"]');
+                        const hint = selector.querySelector('[data-mention-global-search-hint]');
+
+                        return options.length === 0
+                            && hint?.textContent.trim() === 'Digite o nome para buscar outros projetos'
+                            && selector.querySelector('[data-mention-scope-label]') === null;
+                    })()
+                JS, true);
+
+            $browser->script(<<<'JS'
+                const entry = window.MarkdownEditors.get(document.querySelector('#scoped-project-mention-editor'));
+                entry.editor.value('@outro');
+                entry.editor.codemirror.setCursor({ line: 0, ch: 6 });
+                entry.editor.toolbarElements.mention.click();
+            JS);
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const labels = [...selector.querySelectorAll('[data-mention-scope-label]')]
+                            .map((label) => label.textContent.trim());
+                        const options = [...selector.querySelectorAll('[data-mention-target-type="project"]')];
+
+                        return labels.length === 2
+                            && labels[0] === 'Projetos relacionados'
+                            && labels[1] === 'Outros projetos acessíveis'
+                            && options.map((option) => option.dataset.mentionProjectId).join(',') === '9,42'
+                            && selector.querySelector('[data-mention-filter="project"]')
+                                ?.getAttribute('aria-pressed') === 'true'
+                            && selector.querySelector('[data-mention-global-search-hint]') === null;
+                    })()
+                JS, true);
+        });
+    }
+
     public function test_mention_selector_filters_files_and_inserts_the_file_uuid_alias(): void
     {
         $this->browse(function (Browser $browser): void {

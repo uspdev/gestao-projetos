@@ -2,11 +2,8 @@
 
 namespace App\Services\Mentions;
 
-use App\Models\Comment;
 use App\Models\Meeting;
-use App\Models\MeetingItem;
 use App\Models\Project;
-use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -15,6 +12,13 @@ use Illuminate\Support\Facades\Schema;
 final class MeetingMentionAdapter
 {
     public const ALIAS = 'meeting';
+
+    private MentionProjectContextResolver $contextResolver;
+
+    public function __construct(?MentionProjectContextResolver $contextResolver = null)
+    {
+        $this->contextResolver = $contextResolver ?? new MentionProjectContextResolver();
+    }
 
     public function supports(string $type): bool
     {
@@ -130,90 +134,11 @@ final class MeetingMentionAdapter
     /** @return Collection<int, int> */
     private function contextMeetingIds(Model $source): Collection
     {
-        return $this->contextProjects($source)
+        return $this->contextResolver->forMeetingSearch($source)
             ->flatMap(fn (Project $project) => $project->loadMissing('meetings')->meetings->pluck('id'))
             ->map(fn (mixed $id): int => (int) $id)
             ->unique()
             ->values();
-    }
-
-    /** @return Collection<int, Project> */
-    private function contextProjects(Model $source): Collection
-    {
-        return match (true) {
-            $source instanceof Project => $this->projectContext($source),
-            $source instanceof Task => $this->taskContext($source),
-            $source instanceof Meeting => $this->meetingContext($source),
-            $source instanceof MeetingItem => $source->loadMissing('meeting')->meeting
-                ? $this->meetingContext($source->meeting)
-                : collect(),
-            $source instanceof Comment => $this->commentContext($source),
-            default => collect(),
-        };
-    }
-
-    /** @return Collection<int, Project> */
-    private function projectContext(Project $project): Collection
-    {
-        $projects = collect([$project]);
-
-        if (! Schema::hasColumn($project->getTable(), 'parent_id')) {
-            return $projects;
-        }
-
-        $project->loadMissing('parent');
-
-        return $projects
-            ->merge($project->parent ? [$project->parent] : [])
-            ->merge($project->children()->get())
-            ->values();
-    }
-
-    /** @return Collection<int, Project> */
-    private function taskContext(Task $task): Collection
-    {
-        $task->loadMissing('project');
-
-        return $task->project ? collect([$task->project]) : collect();
-    }
-
-    /** @return Collection<int, Project> */
-    private function meetingContext(Meeting $meeting): Collection
-    {
-        $meeting->loadMissing(['projects', 'meetingItems.discussable']);
-        $projects = $meeting->projects;
-
-        foreach ($meeting->meetingItems as $item) {
-            $discussable = $item->discussable;
-
-            if ($discussable instanceof Project) {
-                $projects->push($discussable);
-            } elseif ($discussable instanceof Task) {
-                $discussable->loadMissing('project');
-
-                if ($discussable->project) {
-                    $projects->push($discussable->project);
-                }
-            }
-        }
-
-        return $projects
-            ->filter(fn (mixed $project): bool => $project instanceof Project)
-            ->unique('id')
-            ->values();
-    }
-
-    /** @return Collection<int, Project> */
-    private function commentContext(Comment $comment): Collection
-    {
-        $comment->loadMissing('commentable');
-
-        return match (true) {
-            $comment->commentable instanceof Project => $this->projectContext($comment->commentable),
-            $comment->commentable instanceof Task => $this->taskContext($comment->commentable),
-            $comment->commentable instanceof Meeting => $this->meetingContext($comment->commentable),
-            default => collect(),
-        };
     }
 
     /** @return array{id: int, name: string, type: string, type_label: string, group: string} */

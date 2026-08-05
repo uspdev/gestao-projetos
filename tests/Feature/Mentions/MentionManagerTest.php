@@ -915,7 +915,7 @@ class MentionManagerTest extends TestCase
             'is_active' => true,
         ]);
 
-        $results = app(MentionManager::class)->search($comment, '', $author, 'project');
+        $results = app(MentionManager::class)->search($comment, 'Projeto', $author, 'project');
 
         $this->assertSame(
             [$context->id, $otherVisible->id],
@@ -925,7 +925,39 @@ class MentionManagerTest extends TestCase
             ['project', 'project'],
             $results->pluck('type')->all()
         );
+        $this->assertSame(
+            ['contextual', 'global'],
+            $results->pluck('scope')->all()
+        );
         $this->assertFalse($results->contains('id', $hidden->id));
+    }
+
+    public function test_project_search_starts_with_visible_contextual_projects_only(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $context = Project::query()->create([
+            'name' => 'Projeto contextual',
+            'slug' => 'projeto-contextual-inicial',
+            'status' => 'ACTIVE',
+        ]);
+        $global = Project::query()->create([
+            'name' => 'Projeto global visível',
+            'slug' => 'projeto-global-visivel-inicial',
+            'status' => 'ACTIVE',
+        ]);
+        $context->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $global->users()->attach($author, ['role' => 'VIEWER']);
+        $comment = Comment::query()->create([
+            'user_id' => $author->id,
+            'commentable_type' => 'project',
+            'commentable_id' => $context->id,
+            'text' => 'Comentário',
+            'is_active' => true,
+        ]);
+
+        $results = app(MentionManager::class)->search($comment, '', $author, 'project');
+
+        $this->assertSame([$context->id], $results->pluck('id')->all());
     }
 
     public function test_the_autocomplete_route_returns_project_results_for_a_comment_context(): void

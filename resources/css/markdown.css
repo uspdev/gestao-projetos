@@ -51,6 +51,21 @@
     white-space: nowrap;
 }
 
+#mention-selector .mention-selector-scope-label,
+#mention-selector .mention-selector-global-search-hint {
+    padding: 0.5rem 0.75rem;
+}
+
+#mention-selector .mention-selector-scope-label {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    border-top: 1px solid #dee2e6;
+}
+
+#mention-selector .mention-selector-global-search-hint {
+    border-top: 1px solid #dee2e6;
+}
+
 .markdown-mention {
     position: relative;
 }

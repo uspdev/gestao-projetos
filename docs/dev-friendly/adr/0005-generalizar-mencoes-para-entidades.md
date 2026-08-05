@@ -14,6 +14,15 @@ decisões de acessibilidade registradas neste ADR. O botão específico de Arqui
 foi removido da toolbar; Arquivos são escolhidos pela aba **Arquivos** do botão
 único de Menção.
 
+**Revisão posterior: busca contextual de Projetos:** quando a aba **Projetos** é
+aberta sem termo, ela exibe somente os Projetos contextuais da fonte. A caixa
+orienta o autor com “Digite o nome para buscar outros projetos”. Ao digitar, a
+pesquisa se amplia para todos os Projetos que o autor pode visualizar, mantendo
+os contextuais primeiro e separando os resultados pelos rótulos **Projetos
+relacionados** e **Outros projetos acessíveis**. Esses rótulos são subdivisões
+da própria aba de Projetos e não substituem o nome visível de cada opção nem
+reintroduzem prefixos de tipo.
+
 Menção passa a significar qualquer ligação estruturada presente em um texto que aponte para uma entidade identificável do sistema, e não apenas a ligação destinada a chamar a atenção de um usuário. A infraestrutura de Menções deverá admitir origem e destino polimórficos, preservando regras específicas por tipo de destino, como a intenção de chamar a atenção própria da Menção a usuário.
 
 Esta decisão substitui a exclusividade de usuários estabelecida no ADR 0002. A generalização oferece um único conceito para navegação e consultas de ida e volta entre textos e entidades; em contrapartida, consumidores não poderão mais inferir somente pelo termo “Menção” que haverá uma pessoa a ser notificada.
@@ -46,7 +55,7 @@ A tabela `mentions` nomeará suas pontas como `source_type`/`source_id` e `targe
 
 Como a estrutura original de Menções foi introduzida somente na branch ainda não publicada `release/2.1`, a migração `2026_07_23_090000_create_mentions_table.php` será reescrita diretamente com o formato definitivo. Não haverá migração de compatibilidade, cópia de colunas legadas nem implantação em duas fases; bancos locais dessa branch deverão ser recriados ou revertidos durante o desenvolvimento.
 
-Na edição, `@` abrirá um autocomplete unificado com a visão inicial **Todos** e filtros para Pessoas, Projetos, Tarefas, Reuniões e Arquivos. Resultados serão agrupados e identificados pelo tipo, com entidades do contexto atual priorizadas, e pesquisados por seus nomes, títulos ou rótulos sem expor IDs ao autor. O seletor de Arquivos existente permanecerá como caminho adicional, mas passará a inserir a mesma sintaxe canônica de Menção.
+Na edição, `@` abrirá um autocomplete unificado inicialmente na aba **Usuários**, com filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos. Resultados serão identificados pelo tipo no nome acessível, com entidades do contexto atual priorizadas, e pesquisados por seus nomes, títulos ou rótulos sem expor IDs ao autor. Na aba Projetos, a busca sem termo fica restrita ao contexto e a digitação amplia a pesquisa para Projetos visíveis, separados entre relacionados e outros acessíveis. O seletor de Arquivos existente permanecerá como caminho adicional, mas passará a inserir a mesma sintaxe canônica de Menção.
 
 A primeira entrega não incluirá tela de backlinks. Ela fornecerá o índice, os relacionamentos e consultas internas autorizadas nas duas direções, além da edição e renderização das Menções generalizadas; decisões de apresentação, agrupamento, paginação e localização de uma futura visão “Mencionado em” ficarão para uma entrega própria.
 

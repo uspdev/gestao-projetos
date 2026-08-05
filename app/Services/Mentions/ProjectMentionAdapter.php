@@ -2,20 +2,22 @@
 
 namespace App\Services\Mentions;
 
-use App\Models\Comment;
-use App\Models\Meeting;
-use App\Models\MeetingItem;
 use App\Models\Project;
-use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
 
 final class ProjectMentionAdapter
 {
     public const ALIAS = 'project';
+
+    private MentionProjectContextResolver $contextResolver;
+
+    public function __construct(?MentionProjectContextResolver $contextResolver = null)
+    {
+        $this->contextResolver = $contextResolver ?? new MentionProjectContextResolver();
+    }
 
     public function supports(string $type): bool
     {
@@ -47,7 +49,7 @@ final class ProjectMentionAdapter
     }
 
     /**
-     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string}>
+     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string, scope: 'contextual'|'global'}>
      */
     public function search(Model $source, string $term = '', ?User $reader = null): Collection
     {
@@ -55,11 +57,18 @@ final class ProjectMentionAdapter
             return collect();
         }
 
+        $term = trim($term);
+        $contextIds = $this->contextProjectIds($source);
+
+        if ($term === '' && $contextIds->isEmpty()) {
+            return collect();
+        }
+
         $projects = Project::query()
-            ->when(trim($term) !== '', fn ($query) => $query->where('name', 'like', '%' . trim($term) . '%'))
+            ->when($term !== '', fn ($query) => $query->where('name', 'like', '%' . $term . '%'))
+            ->when($term === '', fn ($query) => $query->whereIn('id', $contextIds->all()))
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);
-        $contextIds = $this->contextProjectIds($source);
         $excludedIds = $source instanceof Project ? collect([(int) $source->getKey()]) : collect();
 
         $visible = $projects
@@ -74,9 +83,15 @@ final class ProjectMentionAdapter
             ->reject(fn (Project $project): bool => $contextIds->contains((int) $project->getKey()))
             ->values();
 
-        return $contextual
-            ->concat($global)
-            ->map(fn (Project $project): array => $this->result($project))
+        $results = $term === ''
+            ? $contextual
+            : $contextual->concat($global);
+
+        return $results
+            ->map(fn (Project $project): array => $this->result(
+                $project,
+                $contextIds->contains((int) $project->getKey()) ? 'contextual' : 'global',
+            ))
             ->values();
     }
 
@@ -121,8 +136,8 @@ final class ProjectMentionAdapter
         return Project::query()->find($key);
     }
 
-    /** @return array{id: int, name: string, type: string, type_label: string, group: string} */
-    private function result(Project $project): array
+    /** @return array{id: int, name: string, type: string, type_label: string, group: string, scope: 'contextual'|'global'} */
+    private function result(Project $project, string $scope): array
     {
         return [
             'id' => (int) $project->getKey(),
@@ -130,64 +145,18 @@ final class ProjectMentionAdapter
             'type' => self::ALIAS,
             'type_label' => 'Projeto',
             'group' => 'projects',
+            'scope' => $scope,
         ];
     }
 
     /** @return Collection<int, int> */
     private function contextProjectIds(Model $source): Collection
     {
-        $projects = match (true) {
-            $source instanceof Project => $this->relatedProjects($source),
-            $source instanceof Task => $this->contextualProjects($source->loadMissing('project')->project),
-            $source instanceof Meeting => $source->loadMissing('projects')->projects,
-            $source instanceof MeetingItem => $source->loadMissing('meeting.projects')->meeting?->projects ?? collect(),
-            $source instanceof Comment => $this->commentContextProjects($source),
-            default => collect(),
-        };
-
-        return collect($projects)
-            ->filter(fn (mixed $project): bool => $project instanceof Project)
+        return $this->contextResolver
+            ->forProjectSearch($source)
             ->pluck('id')
             ->map(fn (mixed $id): int => (int) $id)
             ->unique()
             ->values();
-    }
-
-    /** @return Collection<int, Project> */
-    private function relatedProjects(Project $project): Collection
-    {
-        if (! Schema::hasColumn($project->getTable(), 'parent_id')) {
-            return collect();
-        }
-
-        $project->loadMissing('parent');
-
-        return collect([$project->parent])
-            ->filter()
-            ->merge($project->children()->get())
-            ->values();
-    }
-
-    /** @return Collection<int, Project> */
-    private function commentContextProjects(Comment $comment): Collection
-    {
-        $comment->loadMissing('commentable');
-
-        return match (true) {
-            $comment->commentable instanceof Project => collect([$comment->commentable]),
-            $comment->commentable instanceof Task => $this->contextualProjects(
-                $comment->commentable->loadMissing('project')->project
-            ),
-            $comment->commentable instanceof Meeting => $comment->commentable->loadMissing('projects')->projects,
-            default => collect(),
-        };
-    }
-
-    /** @return Collection<int, Project> */
-    private function contextualProjects(?Project $project): Collection
-    {
-        return $project
-            ? collect([$project])->concat($this->relatedProjects($project))->values()
-            : collect();
     }
 }
