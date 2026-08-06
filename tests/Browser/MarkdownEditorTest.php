@@ -1739,6 +1739,7 @@ class MarkdownEditorTest extends DuskTestCase
 
             $browser->click('[data-mention-filter="meeting"]');
             $browser
+                ->waitFor('#mention-selector')
                 ->assertScript(<<<'JS'
                     (() => {
                         const selector = document.querySelector('#mention-selector');
@@ -1769,6 +1770,116 @@ class MarkdownEditorTest extends DuskTestCase
                             && optionHeights.every((height) =>
                                 Math.abs(height - window.__mentionMeetingUserOptionHeight) <= 0.1
                             );
+                    })()
+                JS, true);
+        });
+    }
+
+    public function test_meeting_mention_selector_keeps_status_row_height_and_scrolls_after_search(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function (url) {
+                    const term = new URL(url, window.location.origin).searchParams.get('term');
+                    const meetings = Array.from({ length: 30 }, function (_, index) {
+                        return {
+                            id: index + 19,
+                            name: `Reunião para rolagem ${index + 1}`,
+                            type: 'meeting',
+                            type_label: 'Reunião',
+                            completed: index >= 20,
+                            scope: 'contextual'
+                        };
+                    });
+
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: term === '' ? meetings.slice(0, 1) : meetings
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'meeting-scroll-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#meeting-scroll-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#meeting-scroll-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-filter="meeting"]')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const option = document.querySelector('[data-mention-meeting-id="19"]');
+
+                        window.__initialMeetingOptionHeight = option.getBoundingClientRect().height;
+                        window.__mentionStatusRowHeight = parseFloat(
+                            getComputedStyle(document.documentElement).fontSize
+                        ) * 3.125;
+
+                        return option.classList.contains('mention-status-option')
+                            && Math.abs(
+                                window.__initialMeetingOptionHeight - window.__mentionStatusRowHeight
+                            ) <= 1;
+                    })()
+                JS, true);
+
+            $browser->script(<<<'JS'
+                const entry = window.MarkdownEditors.get(document.querySelector('#meeting-scroll-mention-editor'));
+                entry.editor.value('@re');
+                entry.editor.codemirror.setCursor({ line: 0, ch: 3 });
+                entry.editor.toolbarElements.mention.click();
+            JS);
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->assertScript(
+                    "document.querySelectorAll('#mention-selector [data-mention-target-type=\"meeting\"]').length",
+                    30
+                )
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const options = [...document.querySelectorAll(
+                            '#mention-selector [data-mention-target-type="meeting"]'
+                        )];
+                        const heights = options.map((option) =>
+                            option.getBoundingClientRect().height
+                        );
+
+                        return heights.every((height) =>
+                            Math.abs(height - window.__initialMeetingOptionHeight) <= 1
+                            && Math.abs(height - window.__mentionStatusRowHeight) <= 1
+                        );
+                    })()
+                JS, true)
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const results = document.querySelector('.mention-selector-results');
+
+                        return results.scrollHeight > results.clientHeight;
+                    })()
+                JS, true)
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const results = document.querySelector('.mention-selector-results');
+                        const initialScrollTop = results.scrollTop;
+
+                        results.scrollTop = results.scrollHeight;
+
+                        return results.scrollTop > initialScrollTop
+                            && results.scrollTop + results.clientHeight >= results.scrollHeight - 1;
                     })()
                 JS, true);
         });
