@@ -75,9 +75,10 @@ salvamento do campo. A sintaxe canônica é
 
 O autocomplete unificado começa na aba de Usuários e oferece abas para os cinco
 tipos, sem uma aba geral. Cada aba mostra somente o nome ou título do destino,
-sem cabeçalho, prefixo ou tooltip repetindo o tipo. O filtro de Usuários usa
-esse rótulo na interface, enquanto o nome acessível preserva tipo e nome para
-distinguir opções iguais. Relações de saída e de entrada que serão consumidas pela
+sem cabeçalho de tipo, prefixo ou tooltip repetindo o tipo. A aba de Tarefas pode
+separar os estados por rótulos estáticos, sem contador ou toggle. O filtro de
+Usuários usa esse rótulo na interface, enquanto o nome acessível preserva tipo e
+nome para distinguir opções iguais. Relações de saída e de entrada que serão consumidas pela
 aplicação devem passar pelo `MentionManager`, que reaplica a autorização do leitor;
 os relacionamentos dos Models permanecem disponíveis para a sincronização e a
 reconstrução do índice. Rótulos visíveis são limitados a 50 caracteres com
@@ -88,6 +89,20 @@ orienta o autor a digitar para pesquisar outros Projetos acessíveis. Quando há
 termo, os resultados contextuais aparecem antes dos demais e podem ser separados
 pelos rótulos “Projetos relacionados” e “Outros projetos acessíveis”; esses
 rótulos identificam grupos da busca, não prefixos das opções.
+
+Na aba de Tarefas, a busca sem termo mostra somente tarefas dos Projetos
+contextuais e orienta o autor a digitar para pesquisar outras tarefas acessíveis.
+Com termo, pesquisa tarefas ativas de Projetos visíveis cujo módulo de Tarefas
+esteja habilitado, separando “Tarefas relacionadas” de “Outras tarefas
+acessíveis”. A lista ordena tarefas “Em andamento” antes de “Concluídas” e usa
+um símbolo colorido junto da identificação textual para não depender somente de
+cor. Todos os resultados são carregados de uma vez; a área de resultados possui
+altura máxima e rolagem interna.
+
+Em fontes de Reunião, Item de pauta e Comentário associado a esses objetos, o
+contexto inicial da aba de Tarefas é formado somente pelas Tarefas presentes na
+pauta. Quando há termo, a busca pode ser ampliada para outras Tarefas visíveis
+segundo as regras gerais, mantendo as Tarefas da pauta como prioridade.
 
 Ao criar ou alterar um campo Markdown, a sequência é:
 

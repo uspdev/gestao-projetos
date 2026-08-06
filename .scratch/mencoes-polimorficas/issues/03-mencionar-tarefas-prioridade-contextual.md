@@ -9,7 +9,7 @@
 - [ ] Registrar Tarefa como Entidade mencionável sob o alias `task`.
 - [ ] Inserir Menção a Tarefa com ID numérico imutável e Rótulo histórico baseado no título selecionado.
 - [ ] Incluir Tarefas no autocomplete unificado, com grupo e filtro próprios.
-- [ ] Em fonte de Projeto ou Tarefa, priorizar Tarefas do Projeto atual antes de outras Tarefas visíveis.
+- [ ] Em fonte de Projeto ou Tarefa, sem termo, exibir apenas Tarefas dos Projetos contextuais; ao digitar, priorizar essas Tarefas antes de outras Tarefas ativas, visíveis e com o módulo habilitado.
 - [ ] Em Comentário, herdar o contexto do objeto comentado para ordenar e limitar os primeiros resultados.
 - [ ] Permitir pesquisa ampliada somente sobre Tarefas que o autor possa visualizar e cujo módulo esteja habilitado.
 - [ ] Omitir e rejeitar Menção de uma Tarefa para ela própria em sua descrição.

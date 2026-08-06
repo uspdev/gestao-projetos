@@ -68,6 +68,13 @@ Execute `php artisan test` e `php artisan dusk`. Em homologação, confirme:
   Reuniões e Arquivos, começa em Usuários, exibe apenas o nome ou título do
   destino, corta nomes visíveis após 50 caracteres e mantém largura fixa entre
   as abas, exigindo seleção explícita sem transformar texto digitado em Menção;
+- nas abas Projetos e Tarefas, a busca sem termo mostra apenas resultados
+  contextuais; ao digitar, a pesquisa se amplia para Projetos visíveis ou para
+  Tarefas ativas de Projetos visíveis com o módulo habilitado, mantendo os
+  resultados relacionados primeiro;
+- na aba Tarefas, os resultados “Em andamento” aparecem antes dos “Concluídos”,
+  cada tarefa possui símbolo colorido de estado e todos os resultados são
+  carregados de uma vez dentro de uma área com rolagem interna;
 - o índice de Menções e `php artisan mentions:rebuild` são idempotentes, mantêm
   destinos excluídos logicamente recuperáveis, ignoram destinos definitivamente
   ausentes e não geram notificações, e-mails ou tela de backlinks;

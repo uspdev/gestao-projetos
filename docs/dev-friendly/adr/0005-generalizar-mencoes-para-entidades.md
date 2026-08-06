@@ -5,14 +5,16 @@
 **Revisão posterior da interface:** a decisão histórica abaixo previa uma visão
 inicial **Todos** e filtros para Pessoas. A interface vigente não exibe a aba
 geral, usa **Usuários** como primeiro filtro e abre nessa aba. Cada filtro exibe
-somente o nome ou título do destino, sem cabeçalho, prefixo visual ou tooltip
-repetido; o nome acessível continua incluindo tipo e nome para distinguir opções
-iguais. Rótulos visíveis são limitados a 50 caracteres com reticências, e a caixa
-mantém largura fixa entre as abas. Esta revisão substitui apenas a apresentação do
-seletor; a indicação de tipo nas Menções já renderizadas permanece conforme as
-decisões de acessibilidade registradas neste ADR. O botão específico de Arquivos
-foi removido da toolbar; Arquivos são escolhidos pela aba **Arquivos** do botão
-único de Menção.
+somente o nome ou título do destino, sem cabeçalho de tipo, prefixo visual ou
+tooltip repetido; o nome acessível continua incluindo tipo e nome para distinguir
+opções iguais. Na aba **Tarefas**, rótulos estáticos de estado podem separar
+“Em andamento” e “Concluídas”, sem contador ou controle de recolhimento. Rótulos
+visíveis são limitados a 50 caracteres com reticências, e a caixa mantém largura
+fixa entre as abas. Esta revisão substitui apenas a apresentação do seletor; a
+indicação de tipo nas Menções já renderizadas permanece conforme as decisões de
+acessibilidade registradas neste ADR. O botão específico de Arquivos foi removido
+da toolbar; Arquivos são escolhidos pela aba **Arquivos** do botão único de
+Menção.
 
 **Revisão posterior: busca contextual de Projetos:** quando a aba **Projetos** é
 aberta sem termo, ela exibe somente os Projetos contextuais da fonte. A caixa
@@ -22,6 +24,17 @@ os contextuais primeiro e separando os resultados pelos rótulos **Projetos
 relacionados** e **Outros projetos acessíveis**. Esses rótulos são subdivisões
 da própria aba de Projetos e não substituem o nome visível de cada opção nem
 reintroduzem prefixos de tipo.
+
+A mesma regra se aplica à aba **Tarefas**: sem termo, ela exibe apenas tarefas
+dos Projetos contextuais; ao digitar, pesquisa tarefas ativas em Projetos
+visíveis com o módulo de Tarefas habilitado, separando **Tarefas relacionadas**
+de **Outras tarefas acessíveis**. A apresentação ordena tarefas **Em andamento**
+antes de **Concluídas**, identifica cada estado por símbolo colorido e nome
+acessível e limita a área de resultados com rolagem interna, sem paginação ou
+carregamento incremental. Para fontes de Reunião, Item de pauta e Comentário
+associado a esses objetos, o contexto inicial de Tarefas é formado somente pelas
+Tarefas presentes na pauta; ao digitar, a busca pode ser ampliada para outras
+Tarefas visíveis, mantendo as da pauta primeiro.
 
 Menção passa a significar qualquer ligação estruturada presente em um texto que aponte para uma entidade identificável do sistema, e não apenas a ligação destinada a chamar a atenção de um usuário. A infraestrutura de Menções deverá admitir origem e destino polimórficos, preservando regras específicas por tipo de destino, como a intenção de chamar a atenção própria da Menção a usuário.
 
@@ -55,7 +68,7 @@ A tabela `mentions` nomeará suas pontas como `source_type`/`source_id` e `targe
 
 Como a estrutura original de Menções foi introduzida somente na branch ainda não publicada `release/2.1`, a migração `2026_07_23_090000_create_mentions_table.php` será reescrita diretamente com o formato definitivo. Não haverá migração de compatibilidade, cópia de colunas legadas nem implantação em duas fases; bancos locais dessa branch deverão ser recriados ou revertidos durante o desenvolvimento.
 
-Na edição, `@` abrirá um autocomplete unificado inicialmente na aba **Usuários**, com filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos. Resultados serão identificados pelo tipo no nome acessível, com entidades do contexto atual priorizadas, e pesquisados por seus nomes, títulos ou rótulos sem expor IDs ao autor. Na aba Projetos, a busca sem termo fica restrita ao contexto e a digitação amplia a pesquisa para Projetos visíveis, separados entre relacionados e outros acessíveis. O seletor de Arquivos existente permanecerá como caminho adicional, mas passará a inserir a mesma sintaxe canônica de Menção.
+Na edição, `@` abrirá um autocomplete unificado inicialmente na aba **Usuários**, com filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos. Resultados serão identificados pelo tipo no nome acessível, com entidades do contexto atual priorizadas, e pesquisados por seus nomes, títulos ou rótulos sem expor IDs ao autor. Nas abas Projetos e Tarefas, a busca sem termo fica restrita ao contexto e a digitação amplia a pesquisa autorizada, separando resultados relacionados dos demais acessíveis. O seletor de Arquivos existente permanecerá como caminho adicional, mas passará a inserir a mesma sintaxe canônica de Menção.
 
 A primeira entrega não incluirá tela de backlinks. Ela fornecerá o índice, os relacionamentos e consultas internas autorizadas nas duas direções, além da edição e renderização das Menções generalizadas; decisões de apresentação, agrupamento, paginação e localização de uma futura visão “Mencionado em” ficarão para uma entrega própria.
 

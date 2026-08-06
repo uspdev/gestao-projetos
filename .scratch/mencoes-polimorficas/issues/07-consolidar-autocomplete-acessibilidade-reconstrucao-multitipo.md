@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] Abrir inicialmente na aba **Usuários** e oferecer filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos; na aba Projetos, mostrar primeiro o contexto e ampliar a busca para Projetos acessíveis quando o autor digitar.
+- [ ] Abrir inicialmente na aba **Usuários** e oferecer filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos; nas abas Projetos e Tarefas, mostrar primeiro o contexto e ampliar a busca autorizada quando o autor digitar. Na aba Tarefas, ordenar “Em andamento” antes de “Concluídas”, separá-los opcionalmente por rótulos estáticos sem contador ou toggle, identificar cada estado por símbolo colorido e limitar a altura da área de resultados com rolagem interna.
 - [ ] Manter a prioridade contextual aprovada em cada tipo de fonte e permitir ampliação somente para os tipos autorizados.
 - [ ] Identificar claramente o tipo durante a seleção mesmo quando destinos compartilham o mesmo rótulo.
 - [ ] Permitir seleção explícita por clique, setas com `Enter` e `Tab`, sem transformar texto digitado em Menção sem escolha.
