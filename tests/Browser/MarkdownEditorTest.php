@@ -1099,6 +1099,102 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_mention_selector_keeps_the_selected_filter_while_typing_during_a_pending_search(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.pendingMentionResponses = [];
+                window.fetch = function (url) {
+                    const term = new URL(url, window.location.origin).searchParams.get('term');
+                    const response = {
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [
+                                    {
+                                        id: 9,
+                                        name: 'Projeto relacionado',
+                                        type: 'project',
+                                        type_label: 'Projeto',
+                                        scope: 'contextual'
+                                    },
+                                    {
+                                        id: 10,
+                                        name: 'Pessoa relacionada',
+                                        type: 'user',
+                                        type_label: 'Pessoa',
+                                        scope: 'contextual'
+                                    }
+                                ]
+                            });
+                        }
+                    };
+
+                    if (term === '') {
+                        return Promise.resolve(response);
+                    }
+
+                    return new Promise(function (resolve) {
+                        window.pendingMentionResponses.push(function () {
+                            resolve(response);
+                        });
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'pending-filter-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#pending-filter-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#pending-filter-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-filter="project"]');
+
+            $browser->script(<<<'JS'
+                    const textarea = document.querySelector('#pending-filter-mention-editor');
+                    const entry = window.MarkdownEditors.get(textarea);
+                    const codeMirror = entry.editor.codemirror;
+                    const signal = codeMirror.constructor.signal;
+
+                    codeMirror.focus();
+                    ['g', 'e'].forEach(function (character) {
+                        const from = codeMirror.getCursor();
+                        const to = { line: from.line, ch: from.ch + character.length };
+
+                        codeMirror.replaceRange(character, from, from, '+input');
+                        signal(codeMirror, 'inputRead', codeMirror, {
+                            from: from,
+                            to: to,
+                            text: [character],
+                            origin: '+input'
+                        });
+                    });
+                JS);
+
+            $browser
+                ->waitUntil('window.pendingMentionResponses.length >= 2');
+
+            $browser->script('window.pendingMentionResponses[window.pendingMentionResponses.length - 1]()');
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->assertScript(<<<'JS'
+                    document.querySelector('#mention-selector [data-mention-filter="project"]')
+                        ?.getAttribute('aria-pressed') === 'true'
+                JS, true);
+        });
+    }
+
     public function test_mention_selector_filters_projects_and_inserts_the_project_alias(): void
     {
         $this->browse(function (Browser $browser): void {

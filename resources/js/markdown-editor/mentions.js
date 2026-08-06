@@ -2,6 +2,7 @@ const { csrfHeaders } = require("./http");
 
 let activeMentionSelector = null;
 let activeMentionRequest = null;
+const mentionFilterStates = new WeakMap();
 const MENTION_DISPLAY_LABEL_LIMIT = 50;
 
 function closeMentionSelector() {
@@ -128,6 +129,38 @@ function sameMentionRange(left, right) {
         && left.to.ch === right.to.ch;
 }
 
+function sameMentionAnchor(left, right) {
+    return Boolean(left && right)
+        && left.line === right.line
+        && left.ch === right.ch;
+}
+
+function rememberMentionFilter(textarea, editor, range, filter) {
+    mentionFilterStates.set(textarea, {
+        editor,
+        from: { ...range.from },
+        filter,
+    });
+}
+
+function mentionFilterFor(textarea, editor, range) {
+    if (activeMentionSelector?.textarea === textarea
+        && activeMentionSelector.editor === editor
+        && sameMentionAnchor(activeMentionSelector.range.from, range.from)) {
+        return activeMentionSelector.activeFilter;
+    }
+
+    const state = mentionFilterStates.get(textarea);
+
+    if (state?.editor === editor && sameMentionAnchor(state.from, range.from)) {
+        return state.filter;
+    }
+
+    mentionFilterStates.delete(textarea);
+
+    return "user";
+}
+
 function insertMention(editor, range, target) {
     if (!sameMentionRange(mentionRange(editor), range)) {
         closeMentionSelector();
@@ -142,6 +175,9 @@ function insertMention(editor, range, target) {
         range.to,
     );
     editor.codemirror.focus();
+    if (activeMentionSelector?.textarea) {
+        mentionFilterStates.delete(activeMentionSelector.textarea);
+    }
     closeMentionSelector();
 
     return true;
@@ -184,7 +220,13 @@ function updateActiveMentionOption(index) {
     }
 }
 
-function renderMentionSelector(editor, range, targets, initialFilter = "user") {
+function renderMentionSelector(
+    textarea,
+    editor,
+    range,
+    targets,
+    initialFilter = "user",
+) {
     closeMentionSelector();
 
     if (targets.length === 0 && range.term.trim() !== "") {
@@ -238,6 +280,7 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
             : filteredTargets;
 
         activeMentionSelector.activeFilter = filter;
+        rememberMentionFilter(textarea, editor, range, filter);
         activeMentionSelector.activeTargets = visibleTargets;
         activeMentionSelector.activeIndex = 0;
         filters.querySelectorAll("[data-mention-filter]").forEach((button) => {
@@ -435,6 +478,7 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
     activeMentionSelector = {
         element: selector,
         editor,
+        textarea,
         input,
         range,
         targets,
@@ -484,13 +528,12 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
         if (textarea.mentionRequest) {
             textarea.mentionRequest = null;
         }
+        mentionFilterStates.delete(textarea);
         closeMentionSelector();
         return;
     }
 
-    const activeFilter = activeMentionSelector?.editor === editor
-        ? activeMentionSelector.activeFilter
-        : "user";
+    const activeFilter = mentionFilterFor(textarea, editor, range);
     closeMentionSelector();
     const url = new URL(searchUrl, window.location.origin);
     url.searchParams.set("term", range.term);
@@ -525,6 +568,7 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
             }
 
             renderMentionSelector(
+                textarea,
                 editor,
                 range,
                 Array.isArray(payload.results) ? payload.results : [],
