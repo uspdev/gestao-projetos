@@ -36,6 +36,14 @@ associado a esses objetos, o contexto inicial de Tarefas é formado somente pela
 Tarefas presentes na pauta; ao digitar, a busca pode ser ampliada para outras
 Tarefas visíveis, mantendo as da pauta primeiro.
 
+A aba **Reuniões** segue a mesma regra contextual: sem termo, exibe somente as
+Reuniões relacionadas à fonte; ao digitar, pesquisa todas as Reuniões que o
+autor pode visualizar, mantendo as relacionadas primeiro e separando
+**Reuniões relacionadas** de **Outras reuniões acessíveis**. Reuniões concluídas
+continuam incluídas, pois permanecem referências históricas válidas. A
+apresentação usa as mesmas seções e indicadores visuais de Tarefas: estados não
+concluídos em **Em andamento** e estado `COMPLETED` em **Concluídas**.
+
 Menção passa a significar qualquer ligação estruturada presente em um texto que aponte para uma entidade identificável do sistema, e não apenas a ligação destinada a chamar a atenção de um usuário. A infraestrutura de Menções deverá admitir origem e destino polimórficos, preservando regras específicas por tipo de destino, como a intenção de chamar a atenção própria da Menção a usuário.
 
 Esta decisão substitui a exclusividade de usuários estabelecida no ADR 0002. A generalização oferece um único conceito para navegação e consultas de ida e volta entre textos e entidades; em contrapartida, consumidores não poderão mais inferir somente pelo termo “Menção” que haverá uma pessoa a ser notificada.
@@ -68,7 +76,7 @@ A tabela `mentions` nomeará suas pontas como `source_type`/`source_id` e `targe
 
 Como a estrutura original de Menções foi introduzida somente na branch ainda não publicada `release/2.1`, a migração `2026_07_23_090000_create_mentions_table.php` será reescrita diretamente com o formato definitivo. Não haverá migração de compatibilidade, cópia de colunas legadas nem implantação em duas fases; bancos locais dessa branch deverão ser recriados ou revertidos durante o desenvolvimento.
 
-Na edição, `@` abrirá um autocomplete unificado inicialmente na aba **Usuários**, com filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos. Resultados serão identificados pelo tipo no nome acessível, com entidades do contexto atual priorizadas, e pesquisados por seus nomes, títulos ou rótulos sem expor IDs ao autor. Nas abas Projetos e Tarefas, a busca sem termo fica restrita ao contexto e a digitação amplia a pesquisa autorizada, separando resultados relacionados dos demais acessíveis. O seletor de Arquivos existente permanecerá como caminho adicional, mas passará a inserir a mesma sintaxe canônica de Menção.
+Na edição, `@` abrirá um autocomplete unificado inicialmente na aba **Usuários**, com filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos. Resultados serão identificados pelo tipo no nome acessível, com entidades do contexto atual priorizadas, e pesquisados por seus nomes, títulos ou rótulos sem expor IDs ao autor. Nas abas Projetos, Tarefas e Reuniões, a busca sem termo fica restrita ao contexto e a digitação amplia a pesquisa autorizada, separando resultados relacionados dos demais acessíveis. O seletor de Arquivos existente permanecerá como caminho adicional, mas passará a inserir a mesma sintaxe canônica de Menção.
 
 A primeira entrega não incluirá tela de backlinks. Ela fornecerá o índice, os relacionamentos e consultas internas autorizadas nas duas direções, além da edição e renderização das Menções generalizadas; decisões de apresentação, agrupamento, paginação e localização de uma futura visão “Mencionado em” ficarão para uma entrega própria.
 

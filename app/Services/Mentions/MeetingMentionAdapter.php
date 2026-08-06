@@ -2,6 +2,7 @@
 
 namespace App\Services\Mentions;
 
+use App\Enums\Meeting\MeetingStatus;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\User;
@@ -14,10 +15,14 @@ final class MeetingMentionAdapter
     public const ALIAS = 'meeting';
 
     private MentionProjectContextResolver $contextResolver;
+    private MentionContextualSearch $contextualSearch;
 
-    public function __construct(?MentionProjectContextResolver $contextResolver = null)
-    {
+    public function __construct(
+        ?MentionProjectContextResolver $contextResolver = null,
+        ?MentionContextualSearch $contextualSearch = null,
+    ) {
         $this->contextResolver = $contextResolver ?? new MentionProjectContextResolver();
+        $this->contextualSearch = $contextualSearch ?? new MentionContextualSearch();
     }
 
     public function supports(string $type): bool
@@ -49,7 +54,7 @@ final class MeetingMentionAdapter
     }
 
     /**
-     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string}>
+     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string, scope: 'contextual'|'global', completed: bool}>
      */
     public function search(Model $source, string $term = '', ?User $reader = null): Collection
     {
@@ -57,16 +62,23 @@ final class MeetingMentionAdapter
             return collect();
         }
 
+        $term = trim($term);
+        $contextIds = $this->contextMeetingIds($source);
+
+        if ($term === '' && $contextIds->isEmpty()) {
+            return collect();
+        }
+
         $meetings = Meeting::query()
             ->with('projects')
-            ->when(trim($term) !== '', fn ($query) => $query->where(
+            ->when($term !== '', fn ($query) => $query->where(
                 'title',
                 'like',
-                '%' . trim($term) . '%'
+                '%' . $term . '%'
             ))
+            ->when($term === '', fn ($query) => $query->whereIn('id', $contextIds->all()))
             ->orderBy('title')
-            ->get(['id', 'title']);
-        $contextMeetingIds = $this->contextMeetingIds($source);
+            ->get(['id', 'title', 'status']);
         $excludedIds = $source instanceof Meeting
             ? collect([(int) $source->getKey()])
             : collect();
@@ -74,17 +86,15 @@ final class MeetingMentionAdapter
         $visible = $meetings
             ->reject(fn (Meeting $meeting): bool => $excludedIds->contains((int) $meeting->getKey()))
             ->filter(fn (Meeting $meeting): bool => $meeting->contextProjectFor($reader) !== null);
-        $contextual = $visible
-            ->filter(fn (Meeting $meeting): bool => $contextMeetingIds->contains((int) $meeting->getKey()))
-            ->sortBy(fn (Meeting $meeting): int => (int) $contextMeetingIds->search((int) $meeting->getKey()))
-            ->values();
-        $global = $visible
-            ->reject(fn (Meeting $meeting): bool => $contextMeetingIds->contains((int) $meeting->getKey()))
-            ->values();
 
-        return $contextual
-            ->concat($global)
-            ->map(fn (Meeting $meeting): array => $this->result($meeting))
+        return $this->contextualSearch
+            ->prioritize(
+                $visible,
+                $term,
+                $contextIds,
+                fn (Model $meeting): int => (int) $meeting->getKey(),
+            )
+            ->map(fn (array $result): array => $this->result($result['target'], $result['scope']))
             ->values();
     }
 
@@ -141,8 +151,8 @@ final class MeetingMentionAdapter
             ->values();
     }
 
-    /** @return array{id: int, name: string, type: string, type_label: string, group: string} */
-    private function result(Meeting $meeting): array
+    /** @return array{id: int, name: string, type: string, type_label: string, group: string, scope: 'contextual'|'global', completed: bool} */
+    private function result(Meeting $meeting, string $scope): array
     {
         return [
             'id' => (int) $meeting->getKey(),
@@ -150,6 +160,8 @@ final class MeetingMentionAdapter
             'type' => self::ALIAS,
             'type_label' => 'Reunião',
             'group' => 'meetings',
+            'scope' => $scope,
+            'completed' => $meeting->status === MeetingStatus::COMPLETED,
         ];
     }
 }

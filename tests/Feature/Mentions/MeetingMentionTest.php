@@ -240,7 +240,8 @@ class MeetingMentionTest extends TestCase
         $hiddenProject = $this->project('Projeto oculto', $hiddenUser, 'VIEWER');
 
         $contextualMeeting = $this->meeting('Z reunião contextual', $sourceProject);
-        $globalMeeting = $this->meeting('A reunião global', $globalProject);
+        $globalMeeting = $this->meeting('A reunião global concluída', $globalProject);
+        $globalMeeting->update(['status' => 'COMPLETED']);
         $disabledMeeting = $this->meeting('Reunião sem módulo', $disabledProject);
         $hiddenMeeting = $this->meeting('Reunião oculta', $hiddenProject);
         $sourceTask = $this->task('Tarefa no contexto', $sourceProject);
@@ -258,20 +259,32 @@ class MeetingMentionTest extends TestCase
         );
 
         $this->assertSame(
-            [$contextualMeeting->id, $globalMeeting->id],
+            [$contextualMeeting->id],
             $results->pluck('id')->all(),
         );
-        $this->assertSame(['meeting', 'meeting'], $results->pluck('type')->all());
-        $this->assertSame(['Reunião', 'Reunião'], $results->pluck('type_label')->all());
+        $this->assertSame(['meeting'], $results->pluck('type')->all());
+        $this->assertSame(['Reunião'], $results->pluck('type_label')->all());
         $this->assertNotContains($disabledMeeting->id, $results->pluck('id')->all());
         $this->assertNotContains($hiddenMeeting->id, $results->pluck('id')->all());
+        $this->assertNotContains($globalMeeting->id, $results->pluck('id')->all());
 
         $taskResults = app(MentionManager::class)->search($sourceTask, '', $author, 'meeting');
 
         $this->assertSame(
-            [$contextualMeeting->id, $globalMeeting->id],
+            [$contextualMeeting->id],
             $taskResults->pluck('id')->all(),
         );
+
+        $expandedResults = app(MentionManager::class)->search(
+            $sourceProject,
+            'global',
+            $author,
+            'meeting',
+        );
+
+        $this->assertSame([$globalMeeting->id], $expandedResults->pluck('id')->all());
+        $this->assertSame(['global'], $expandedResults->pluck('scope')->all());
+        $this->assertTrue($expandedResults->first()['completed']);
     }
 
     public function test_project_search_uses_meeting_links_and_agenda_projects_as_context(): void
@@ -438,11 +451,26 @@ class MeetingMentionTest extends TestCase
         foreach ([$sourceMeeting, $meetingItem, $comment] as $source) {
             $results = app(MentionManager::class)->search($source, '', $author, 'meeting');
             $ids = $results->pluck('id')->all();
+            $expectedIds = $source instanceof Meeting
+                ? [$agendaMeeting->id]
+                : [$sourceMeeting->id, $agendaMeeting->id];
 
-            $this->assertLessThan(
-                array_search($globalMeeting->id, $ids, true),
-                array_search($agendaMeeting->id, $ids, true),
+            $this->assertSame($expectedIds, $ids);
+            $this->assertSame(
+                array_fill(0, count($expectedIds), 'contextual'),
+                $results->pluck('scope')->all(),
             );
+            $this->assertNotContains($globalMeeting->id, $ids);
+
+            $expandedResults = app(MentionManager::class)->search(
+                $source,
+                'fora',
+                $author,
+                'meeting',
+            );
+
+            $this->assertSame([$globalMeeting->id], $expandedResults->pluck('id')->all());
+            $this->assertSame(['global'], $expandedResults->pluck('scope')->all());
         }
     }
 

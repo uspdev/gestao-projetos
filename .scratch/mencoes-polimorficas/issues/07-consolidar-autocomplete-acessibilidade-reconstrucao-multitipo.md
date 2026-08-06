@@ -6,13 +6,13 @@
 
 **Status:** ready-for-agent
 
-- [ ] Abrir inicialmente na aba **Usuários** e oferecer filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos; nas abas Projetos e Tarefas, mostrar primeiro o contexto e ampliar a busca autorizada quando o autor digitar. Na aba Tarefas, ordenar “Em andamento” antes de “Concluídas”, separá-los opcionalmente por rótulos estáticos sem contador ou toggle, identificar cada estado por símbolo colorido e limitar a altura da área de resultados com rolagem interna.
+- [ ] Abrir inicialmente na aba **Usuários** e oferecer filtros para Usuários, Projetos, Tarefas, Reuniões e Arquivos; nas abas Projetos, Tarefas e Reuniões, mostrar primeiro o contexto e ampliar a busca autorizada quando o autor digitar. Nas abas Tarefas e Reuniões, ordenar “Em andamento” antes de “Concluídas”, separá-los por rótulos estáticos sem contador ou toggle, identificar cada estado por símbolo colorido e limitar a altura da área de resultados com rolagem interna.
 - [ ] Manter a prioridade contextual aprovada em cada tipo de fonte e permitir ampliação somente para os tipos autorizados.
 - [ ] Identificar claramente o tipo durante a seleção mesmo quando destinos compartilham o mesmo rótulo.
 - [ ] Permitir seleção explícita por clique, setas com `Enter` e `Tab`, sem transformar texto digitado em Menção sem escolha.
 - [ ] Tratar respostas assíncronas obsoletas e fechamento do seletor sem inserir destino incorreto.
 - [ ] Exibir todas as Menções disponíveis como `@{rótulo atual}`.
-- [ ] Exibir tooltip de tipo e rótulo no hover e no foco por teclado e fornecer nome acessível equivalente.
+- [ ] Fornecer nome acessível equivalente ao tipo e ao rótulo sem repetir essas informações visualmente em tooltip.
 - [ ] Não adicionar interação específica para revelar o tipo em dispositivos de toque.
 - [ ] Aplicar de forma uniforme as mensagens de falta de permissão e destino não encontrado, sem expor Rótulo histórico.
 - [ ] Comprovar que consultas de saída e de entrada não concedem acesso e podem ser filtradas para o leitor atual.

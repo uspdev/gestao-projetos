@@ -76,7 +76,8 @@ salvamento do campo. A sintaxe canônica é
 O autocomplete unificado começa na aba de Usuários e oferece abas para os cinco
 tipos, sem uma aba geral. Cada aba mostra somente o nome ou título do destino,
 sem cabeçalho de tipo, prefixo ou tooltip repetindo o tipo. A aba de Tarefas pode
-separar os estados por rótulos estáticos, sem contador ou toggle. O filtro de
+separar os estados por rótulos estáticos, sem contador ou toggle; a aba de
+Reuniões segue o mesmo padrão visual. O filtro de
 Usuários usa esse rótulo na interface, enquanto o nome acessível preserva tipo e
 nome para distinguir opções iguais. Relações de saída e de entrada que serão consumidas pela
 aplicação devem passar pelo `MentionManager`, que reaplica a autorização do leitor;
@@ -98,6 +99,14 @@ acessíveis”. A lista ordena tarefas “Em andamento” antes de “Concluída
 um símbolo colorido junto da identificação textual para não depender somente de
 cor. Todos os resultados são carregados de uma vez; a área de resultados possui
 altura máxima e rolagem interna.
+
+Na aba de Reuniões, a busca sem termo mostra somente as Reuniões relacionadas ao
+contexto da fonte. Ao digitar, a pesquisa se amplia para todas as Reuniões que o
+autor pode visualizar, mantendo as relacionadas primeiro e separando os grupos
+pelos rótulos “Reuniões relacionadas” e “Outras reuniões acessíveis”. Reuniões
+concluídas continuam elegíveis para Menção e são apresentadas na seção
+“Concluídas”; as demais ficam em “Em andamento”, com os mesmos símbolos e
+dimensões das opções de Tarefas.
 
 Em fontes de Reunião, Item de pauta e Comentário associado a esses objetos, o
 contexto inicial da aba de Tarefas é formado somente pelas Tarefas presentes na

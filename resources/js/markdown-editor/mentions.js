@@ -84,23 +84,32 @@ function mentionScopeLabel(type, scope) {
             contextual: "Tarefas relacionadas",
             global: "Outras tarefas acessíveis",
         },
+        meeting: {
+            contextual: "Reuniões relacionadas",
+            global: "Outras reuniões acessíveis",
+        },
     };
 
     return labels[type]?.[scope] || null;
 }
 
 function mentionSupportsExpandedSearch(type) {
-    return type === "project" || type === "task";
+    return type === "project" || type === "task" || type === "meeting";
 }
 
 function mentionGlobalSearchHint(type) {
-    return type === "task"
-        ? "Digite o nome para buscar outras tarefas"
-        : "Digite o nome para buscar outros projetos";
+    const labels = {
+        project: "Digite o nome para buscar outros projetos",
+        task: "Digite o nome para buscar outras tarefas",
+        meeting: "Digite o nome para buscar outras reuniões",
+    };
+
+    return labels[type] || "Digite o nome para buscar outros destinos";
 }
 
-function mentionTaskIsCompleted(target) {
-    return mentionType(target) === "task" && target.completed === true;
+function mentionTargetIsCompleted(target) {
+    return ["task", "meeting"].includes(mentionType(target))
+        && target.completed === true;
 }
 
 function mentionMarkdownLabel(target) {
@@ -217,15 +226,15 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
         const filteredTargets = filter === "all"
             ? targets
             : targets.filter((target) => mentionType(target) === filter);
-        const isTaskFilter = filter === "task";
-        const activeTaskTargets = isTaskFilter
-            ? filteredTargets.filter((target) => !mentionTaskIsCompleted(target))
+        const isStatusFilter = filter === "task" || filter === "meeting";
+        const activeStatusTargets = isStatusFilter
+            ? filteredTargets.filter((target) => !mentionTargetIsCompleted(target))
             : [];
-        const completedTaskTargets = isTaskFilter
-            ? filteredTargets.filter((target) => mentionTaskIsCompleted(target))
+        const completedStatusTargets = isStatusFilter
+            ? filteredTargets.filter((target) => mentionTargetIsCompleted(target))
             : [];
-        const visibleTargets = isTaskFilter
-            ? activeTaskTargets.concat(completedTaskTargets)
+        const visibleTargets = isStatusFilter
+            ? activeStatusTargets.concat(completedStatusTargets)
             : filteredTargets;
 
         activeMentionSelector.activeFilter = filter;
@@ -276,38 +285,66 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
                 option.dataset.mentionProjectId = target.id;
             }
             if (mentionType(target) === "task") {
-                const taskCompleted = mentionTaskIsCompleted(target);
+                const taskCompleted = mentionTargetIsCompleted(target);
                 option.dataset.mentionTaskId = target.id;
                 option.dataset.mentionTaskCompleted = taskCompleted
                     ? "true"
                     : "false";
                 option.classList.add(
+                    "mention-status-option",
                     "mention-task-option",
                     taskCompleted
                         ? "mention-task-option--completed"
                         : "mention-task-option--active",
                 );
             }
+            if (mentionType(target) === "meeting") {
+                const meetingCompleted = mentionTargetIsCompleted(target);
+                option.dataset.mentionMeetingId = target.id;
+                option.dataset.mentionMeetingCompleted = meetingCompleted
+                    ? "true"
+                    : "false";
+                option.classList.add(
+                    "mention-status-option",
+                    "mention-meeting-option",
+                    meetingCompleted
+                        ? "mention-status-option--completed"
+                        : "mention-status-option--active",
+                );
+            }
             if (mentionType(target) === "file") {
                 option.dataset.mentionFileId = target.id;
             }
             const label = mentionLabel(target);
-            const accessibleName = mentionType(target) === "task"
-                ? `${target.completed === true ? "Tarefa concluída" : "Tarefa em andamento"}: ${label}`
+            const isStatusTarget = ["task", "meeting"].includes(mentionType(target));
+            const targetCompleted = mentionTargetIsCompleted(target);
+            const accessibleName = isStatusTarget
+                ? `${mentionTypeLabel(target)} ${targetCompleted ? "concluída" : "em andamento"}: ${label}`
                 : `${mentionTypeLabel(target)}: ${label}`;
-            if (mentionType(target) === "task") {
+            if (isStatusTarget) {
                 const optionLabel = document.createElement("span");
                 const statusIndicator = document.createElement("span");
-                const taskCompleted = mentionTaskIsCompleted(target);
 
                 optionLabel.className = "mention-option-label";
                 optionLabel.textContent = mentionDisplayLabel(label);
-                statusIndicator.className = "mention-task-status-indicator";
-                statusIndicator.dataset.mentionTaskStatus = taskCompleted
+                statusIndicator.className = "mention-status-indicator";
+                if (mentionType(target) === "task") {
+                    statusIndicator.classList.add("mention-task-status-indicator");
+                    statusIndicator.dataset.mentionTaskStatus = targetCompleted
+                        ? "completed"
+                        : "active";
+                }
+                if (mentionType(target) === "meeting") {
+                    statusIndicator.classList.add("mention-meeting-status-indicator");
+                    statusIndicator.dataset.mentionMeetingStatus = targetCompleted
+                        ? "completed"
+                        : "active";
+                }
+                statusIndicator.dataset.mentionStatus = targetCompleted
                     ? "completed"
                     : "active";
                 statusIndicator.setAttribute("aria-hidden", "true");
-                statusIndicator.textContent = taskCompleted ? "✓" : "●";
+                statusIndicator.textContent = targetCompleted ? "✓" : "●";
                 option.append(optionLabel, statusIndicator);
             } else {
                 option.textContent = mentionDisplayLabel(label);
@@ -326,14 +363,20 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
             targetIndex += 1;
         };
 
-        const appendTaskSection = (key, label, sectionTargets) => {
+        const appendStatusSection = (key, label, sectionTargets) => {
             if (sectionTargets.length === 0) {
                 return;
             }
 
             const sectionLabel = document.createElement("div");
-            sectionLabel.className = "mention-task-section-label small text-muted font-weight-bold";
-            sectionLabel.dataset.mentionTaskSection = key;
+            sectionLabel.className = "mention-status-section-label small text-muted font-weight-bold";
+            sectionLabel.dataset.mentionStatusSection = key;
+            if (filter === "task") {
+                sectionLabel.dataset.mentionTaskSection = key;
+            }
+            if (filter === "meeting") {
+                sectionLabel.dataset.mentionMeetingSection = key;
+            }
             sectionLabel.setAttribute("role", "presentation");
             sectionLabel.textContent = label;
             results.appendChild(sectionLabel);
@@ -345,9 +388,9 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
             });
         };
 
-        if (isTaskFilter) {
-            appendTaskSection("active", "Em andamento", activeTaskTargets);
-            appendTaskSection("completed", "Concluídas", completedTaskTargets);
+        if (isStatusFilter) {
+            appendStatusSection("active", "Em andamento", activeStatusTargets);
+            appendStatusSection("completed", "Concluídas", completedStatusTargets);
         } else {
             filteredTargets.forEach((target) => {
                 appendScopeLabel(target);

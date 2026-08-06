@@ -75,19 +75,19 @@
     border-top: 1px solid #dee2e6;
 }
 
-#mention-selector .mention-task-section-label {
+#mention-selector .mention-status-section-label {
     border-bottom: 1px solid #dee2e6;
     padding: 0.5rem 0.75rem;
 }
 
-#mention-selector .mention-task-option {
+#mention-selector .mention-status-option {
     align-items: center;
     display: flex;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
 }
 
-#mention-selector .mention-task-option .mention-option-label {
+#mention-selector .mention-status-option .mention-option-label {
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -95,7 +95,7 @@
     white-space: nowrap;
 }
 
-#mention-selector .mention-task-status-indicator {
+#mention-selector .mention-status-indicator {
     align-items: center;
     border: 2px solid currentColor;
     border-radius: 50%;
@@ -109,15 +109,15 @@
     width: 1.25rem;
 }
 
-#mention-selector .mention-task-status-indicator[data-mention-task-status="active"] {
+#mention-selector .mention-status-indicator[data-mention-status="active"] {
     color: #f5a623;
 }
 
-#mention-selector .mention-task-option.active .mention-task-status-indicator[data-mention-task-status="active"] {
+#mention-selector .mention-status-option.active .mention-status-indicator[data-mention-status="active"] {
     background: currentColor;
 }
 
-#mention-selector .mention-task-status-indicator[data-mention-task-status="completed"] {
+#mention-selector .mention-status-indicator[data-mention-status="completed"] {
     color: #4dcc35;
     font-size: 0.9rem;
     font-weight: 700;
