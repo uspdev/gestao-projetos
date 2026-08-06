@@ -31,11 +31,13 @@ class MentionManager
         ?MeetingMentionAdapter $meetingAdapter = null,
         ?FileMentionAdapter $fileAdapter = null,
         ?MentionProjectContextResolver $contextResolver = null,
+        ?MentionContextualSearch $contextualSearch = null,
     ) {
         $this->userAdapter = $userAdapter ?? new UserMentionAdapter();
         $contextResolver ??= new MentionProjectContextResolver();
-        $this->projectAdapter = $projectAdapter ?? new ProjectMentionAdapter($contextResolver);
-        $this->taskAdapter = $taskAdapter ?? new TaskMentionAdapter();
+        $contextualSearch ??= new MentionContextualSearch();
+        $this->projectAdapter = $projectAdapter ?? new ProjectMentionAdapter($contextResolver, $contextualSearch);
+        $this->taskAdapter = $taskAdapter ?? new TaskMentionAdapter($contextResolver, $contextualSearch);
         $this->meetingAdapter = $meetingAdapter ?? new MeetingMentionAdapter($contextResolver);
         $this->fileAdapter = $fileAdapter ?? new FileMentionAdapter();
     }
@@ -252,7 +254,7 @@ class MentionManager
     }
 
     /**
-     * @return Collection<int, array{id: int|string, name: string, type: string, type_label: string, group: string, scope?: 'contextual'|'global'}>
+     * @return Collection<int, array{id: int|string, name: string, type: string, type_label: string, group: string, scope?: 'contextual'|'global', completed?: bool}>
      */
     public function search(
         Model $source,

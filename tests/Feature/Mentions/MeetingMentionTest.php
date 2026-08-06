@@ -331,17 +331,84 @@ class MeetingMentionTest extends TestCase
         $this->assertNotContains($source->id, $results->pluck('id')->all());
         $this->assertNotContains($global->id, $results->pluck('id')->all());
 
-        $taskResults = app(MentionManager::class)->search(
-            $this->task('Tarefa contextual', $source),
-            '',
-            $author,
-            'project',
-        );
+        $parentTask = $this->task('Tarefa no pai', $parent);
+        $sourceTask = $this->task('Tarefa na fonte', $source);
+        $childTask = $this->task('Tarefa no filho', $child);
+        $taskSource = $this->task('Tarefa fonte da hierarquia', $source);
+        $taskResults = app(MentionManager::class)->search($source, '', $author, 'task');
 
         $this->assertSame(
-            [$source->id, $parent->id, $child->id],
+            [
+                $taskSource->id,
+                $sourceTask->id,
+                $parentTask->id,
+                $childTask->id,
+            ],
             $taskResults->pluck('id')->all(),
         );
+
+        $taskSourceResults = app(MentionManager::class)->search($taskSource, '', $author, 'task');
+
+        $this->assertSame(
+            [$sourceTask->id, $parentTask->id, $childTask->id],
+            $taskSourceResults->pluck('id')->all(),
+        );
+    }
+
+    public function test_task_search_uses_agenda_tasks_as_meeting_context(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $linkedProject = $this->project('Projeto vinculado às tarefas', $author, 'VIEWER');
+        $agendaProject = $this->project('Projeto da pauta das tarefas', $author, 'VIEWER');
+        $globalProject = $this->project('Projeto global das tarefas', $author, 'VIEWER');
+        $meeting = $this->meeting('Reunião fonte das tarefas', $linkedProject);
+        $linkedTask = $this->task('Tarefa do projeto vinculado', $linkedProject);
+        $agendaTask = $this->task('Tarefa da pauta', $agendaProject);
+        $agendaProjectTask = $this->task('Outra tarefa do projeto da pauta', $agendaProject);
+        $globalTask = $this->task('Tarefa global', $globalProject);
+        $meetingItem = $meeting->meetingItems()->create([
+            'discussable_type' => 'task',
+            'discussable_id' => $agendaTask->id,
+            'order' => 1,
+        ]);
+        $comment = new Comment([
+            'commentable_type' => 'meeting',
+            'commentable_id' => $meeting->id,
+            'is_active' => true,
+        ]);
+        $comment->setRelation('commentable', $meeting);
+        $itemComment = new Comment([
+            'commentable_type' => 'meeting_item',
+            'commentable_id' => $meetingItem->id,
+            'is_active' => true,
+        ]);
+        $itemComment->setRelation('commentable', $meetingItem);
+
+        foreach ([$meeting, $meetingItem, $comment, $itemComment] as $source) {
+            $results = app(MentionManager::class)->search($source, '', $author, 'task');
+
+            $this->assertSame(
+                [$agendaTask->id],
+                $results->pluck('id')->all(),
+            );
+            $this->assertSame(
+                ['contextual'],
+                $results->pluck('scope')->all(),
+            );
+            $this->assertNotContains($linkedTask->id, $results->pluck('id')->all());
+            $this->assertNotContains($agendaProjectTask->id, $results->pluck('id')->all());
+            $this->assertNotContains($globalTask->id, $results->pluck('id')->all());
+        }
+
+        $expandedResults = app(MentionManager::class)->search(
+            $meeting,
+            'vinculado',
+            $author,
+            'task',
+        );
+
+        $this->assertSame([$linkedTask->id], $expandedResults->pluck('id')->all());
+        $this->assertSame(['global'], $expandedResults->pluck('scope')->all());
     }
 
     public function test_it_uses_agenda_projects_and_tasks_for_meeting_item_and_comment_contexts(): void

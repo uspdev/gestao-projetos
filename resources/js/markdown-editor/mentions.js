@@ -74,10 +74,33 @@ function mentionDisplayLabel(label) {
     return `${label.slice(0, MENTION_DISPLAY_LABEL_LIMIT - 3)}...`;
 }
 
-function mentionScopeLabel(scope) {
-    return scope === "global"
-        ? "Outros projetos acessíveis"
-        : "Projetos relacionados";
+function mentionScopeLabel(type, scope) {
+    const labels = {
+        project: {
+            contextual: "Projetos relacionados",
+            global: "Outros projetos acessíveis",
+        },
+        task: {
+            contextual: "Tarefas relacionadas",
+            global: "Outras tarefas acessíveis",
+        },
+    };
+
+    return labels[type]?.[scope] || null;
+}
+
+function mentionSupportsExpandedSearch(type) {
+    return type === "project" || type === "task";
+}
+
+function mentionGlobalSearchHint(type) {
+    return type === "task"
+        ? "Digite o nome para buscar outras tarefas"
+        : "Digite o nome para buscar outros projetos";
+}
+
+function mentionTaskIsCompleted(target) {
+    return mentionType(target) === "task" && target.completed === true;
 }
 
 function mentionMarkdownLabel(target) {
@@ -187,16 +210,26 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
         ["file", "Arquivos"],
     ];
     const results = document.createElement("div");
-    results.className = "list-group";
+    results.className = "list-group mention-selector-results";
 
     const renderResults = (filter) => {
         results.replaceChildren();
         const filteredTargets = filter === "all"
             ? targets
             : targets.filter((target) => mentionType(target) === filter);
+        const isTaskFilter = filter === "task";
+        const activeTaskTargets = isTaskFilter
+            ? filteredTargets.filter((target) => !mentionTaskIsCompleted(target))
+            : [];
+        const completedTaskTargets = isTaskFilter
+            ? filteredTargets.filter((target) => mentionTaskIsCompleted(target))
+            : [];
+        const visibleTargets = isTaskFilter
+            ? activeTaskTargets.concat(completedTaskTargets)
+            : filteredTargets;
 
         activeMentionSelector.activeFilter = filter;
-        activeMentionSelector.activeTargets = filteredTargets;
+        activeMentionSelector.activeTargets = visibleTargets;
         activeMentionSelector.activeIndex = 0;
         filters.querySelectorAll("[data-mention-filter]").forEach((button) => {
             const isActive = button.dataset.mentionFilter === filter;
@@ -205,24 +238,29 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
         });
 
         let previousScope = null;
+        let targetIndex = 0;
 
-        filteredTargets.forEach((target, targetIndex) => {
-            if (filter === "project" && range.term.trim() !== "") {
+        const appendScopeLabel = (target) => {
+            if (mentionSupportsExpandedSearch(filter) && range.term.trim() !== "") {
                 const scope = target.scope === "global" ? "global" : "contextual";
+                const label = mentionScopeLabel(filter, scope);
 
-                if (previousScope !== scope) {
+                if (previousScope !== scope && label) {
                     const scopeLabel = document.createElement("div");
                     scopeLabel.className = "mention-selector-scope-label small text-muted font-weight-bold";
                     scopeLabel.dataset.mentionScopeLabel = scope;
                     scopeLabel.dataset.mentionScope = scope;
                     scopeLabel.setAttribute("role", "presentation");
-                    scopeLabel.textContent = mentionScopeLabel(scope);
+                    scopeLabel.textContent = label;
                     results.appendChild(scopeLabel);
                     previousScope = scope;
                 }
             }
+        };
 
+        const appendOption = (target) => {
             const option = document.createElement("button");
+            const optionIndex = targetIndex;
             option.type = "button";
             option.className = "list-group-item list-group-item-action";
             option.id = `mention-option-${targetIndex}`;
@@ -230,7 +268,7 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
             option.setAttribute("aria-selected", "false");
             option.dataset.mentionTargetType = mentionType(target);
             option.dataset.mentionTargetId = target.id;
-            option.dataset.mentionIndex = targetIndex;
+            option.dataset.mentionIndex = optionIndex;
             if (mentionType(target) === "user") {
                 option.dataset.mentionUserId = target.id;
             }
@@ -238,33 +276,91 @@ function renderMentionSelector(editor, range, targets, initialFilter = "user") {
                 option.dataset.mentionProjectId = target.id;
             }
             if (mentionType(target) === "task") {
+                const taskCompleted = mentionTaskIsCompleted(target);
                 option.dataset.mentionTaskId = target.id;
+                option.dataset.mentionTaskCompleted = taskCompleted
+                    ? "true"
+                    : "false";
+                option.classList.add(
+                    "mention-task-option",
+                    taskCompleted
+                        ? "mention-task-option--completed"
+                        : "mention-task-option--active",
+                );
             }
             if (mentionType(target) === "file") {
                 option.dataset.mentionFileId = target.id;
             }
             const label = mentionLabel(target);
-            const accessibleName = `${mentionTypeLabel(target)}: ${label}`;
-            option.textContent = mentionDisplayLabel(label);
+            const accessibleName = mentionType(target) === "task"
+                ? `${target.completed === true ? "Tarefa concluída" : "Tarefa em andamento"}: ${label}`
+                : `${mentionTypeLabel(target)}: ${label}`;
+            if (mentionType(target) === "task") {
+                const optionLabel = document.createElement("span");
+                const statusIndicator = document.createElement("span");
+                const taskCompleted = mentionTaskIsCompleted(target);
+
+                optionLabel.className = "mention-option-label";
+                optionLabel.textContent = mentionDisplayLabel(label);
+                statusIndicator.className = "mention-task-status-indicator";
+                statusIndicator.dataset.mentionTaskStatus = taskCompleted
+                    ? "completed"
+                    : "active";
+                statusIndicator.setAttribute("aria-hidden", "true");
+                statusIndicator.textContent = taskCompleted ? "✓" : "●";
+                option.append(optionLabel, statusIndicator);
+            } else {
+                option.textContent = mentionDisplayLabel(label);
+            }
             option.setAttribute("aria-label", accessibleName);
             option.addEventListener("click", () => {
                 insertMention(editor, range, target);
             });
             option.addEventListener("mouseenter", () => {
-                updateActiveMentionOption(targetIndex);
+                updateActiveMentionOption(optionIndex);
             });
             option.addEventListener("focus", () => {
-                updateActiveMentionOption(targetIndex);
+                updateActiveMentionOption(optionIndex);
             });
             results.appendChild(option);
-        });
+            targetIndex += 1;
+        };
 
-        if (filter === "project" && range.term.trim() === "") {
+        const appendTaskSection = (key, label, sectionTargets) => {
+            if (sectionTargets.length === 0) {
+                return;
+            }
+
+            const sectionLabel = document.createElement("div");
+            sectionLabel.className = "mention-task-section-label small text-muted font-weight-bold";
+            sectionLabel.dataset.mentionTaskSection = key;
+            sectionLabel.setAttribute("role", "presentation");
+            sectionLabel.textContent = label;
+            results.appendChild(sectionLabel);
+
+            previousScope = null;
+            sectionTargets.forEach((target) => {
+                appendScopeLabel(target);
+                appendOption(target);
+            });
+        };
+
+        if (isTaskFilter) {
+            appendTaskSection("active", "Em andamento", activeTaskTargets);
+            appendTaskSection("completed", "Concluídas", completedTaskTargets);
+        } else {
+            filteredTargets.forEach((target) => {
+                appendScopeLabel(target);
+                appendOption(target);
+            });
+        }
+
+        if (mentionSupportsExpandedSearch(filter) && range.term.trim() === "") {
             const hint = document.createElement("div");
             hint.className = "mention-selector-global-search-hint small text-muted";
             hint.dataset.mentionGlobalSearchHint = "true";
             hint.setAttribute("role", "note");
-            hint.textContent = "Digite o nome para buscar outros projetos";
+            hint.textContent = mentionGlobalSearchHint(filter);
             results.appendChild(hint);
         }
 

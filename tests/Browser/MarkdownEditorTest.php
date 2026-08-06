@@ -1236,6 +1236,258 @@ class MarkdownEditorTest extends DuskTestCase
         });
     }
 
+    public function test_task_mention_selector_explains_context_and_global_search(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function (url) {
+                    const term = new URL(url, window.location.origin).searchParams.get('term');
+                    const contextual = {
+                        id: 9,
+                        name: 'Tarefa relacionada',
+                        type: 'task',
+                        type_label: 'Tarefa',
+                        scope: 'contextual'
+                    };
+                    const global = {
+                        id: 42,
+                        name: 'Outra tarefa acessível',
+                        type: 'task',
+                        type_label: 'Tarefa',
+                        scope: 'global'
+                    };
+
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: term === '' ? [] : [contextual, global]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'scoped-task-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#scoped-task-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#scoped-task-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-filter="task"]')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const options = selector.querySelectorAll('[data-mention-target-type="task"]');
+                        const hint = selector.querySelector('[data-mention-global-search-hint]');
+
+                        return options.length === 0
+                            && hint?.textContent.trim() === 'Digite o nome para buscar outras tarefas'
+                            && selector.querySelector('[data-mention-scope-label]') === null;
+                    })()
+                JS, true);
+
+            $browser->script(<<<'JS'
+                const entry = window.MarkdownEditors.get(document.querySelector('#scoped-task-mention-editor'));
+                entry.editor.value('@outra');
+                entry.editor.codemirror.setCursor({ line: 0, ch: 6 });
+                entry.editor.toolbarElements.mention.click();
+            JS);
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const labels = [...selector.querySelectorAll('[data-mention-scope-label]')]
+                            .map((label) => label.textContent.trim());
+                        const options = [...selector.querySelectorAll('[data-mention-target-type="task"]')];
+
+                        return labels.length === 2
+                            && labels[0] === 'Tarefas relacionadas'
+                            && labels[1] === 'Outras tarefas acessíveis'
+                            && options.map((option) => option.dataset.mentionTaskId).join(',') === '9,42'
+                            && selector.querySelector('[data-mention-filter="task"]')
+                                ?.getAttribute('aria-pressed') === 'true'
+                            && selector.querySelector('[data-mention-global-search-hint]') === null;
+                    })()
+                JS, true);
+        });
+    }
+
+    public function test_task_mention_selector_shows_status_indicators_and_limits_the_list_height(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: [
+                                    {
+                                        id: 1,
+                                        name: 'Usuário de referência',
+                                        type: 'user',
+                                        type_label: 'Usuário',
+                                        scope: 'contextual'
+                                    },
+                                    {
+                                        id: 9,
+                                        name: 'Tarefa em andamento',
+                                        type: 'task',
+                                        type_label: 'Tarefa',
+                                        completed: false,
+                                        scope: 'contextual'
+                                    },
+                                    {
+                                        id: 10,
+                                        name: 'Tarefa concluída',
+                                        type: 'task',
+                                        type_label: 'Tarefa',
+                                        completed: true,
+                                        scope: 'contextual'
+                                    }
+                                ]
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'task-status-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#task-status-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#task-status-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser->waitFor('#mention-selector');
+            $browser->script(<<<'JS'
+                window.__mentionUserOptionHeight = document
+                    .querySelector('[data-mention-target-type="user"]')
+                    .getBoundingClientRect()
+                    .height;
+            JS);
+
+            $browser->click('[data-mention-filter="task"]');
+            $browser
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const selector = document.querySelector('#mention-selector');
+                        const results = selector.querySelector('.mention-selector-results');
+                        const options = [...selector.querySelectorAll('[data-mention-target-type="task"]')];
+                        const active = selector.querySelector('[data-mention-task-id="9"]');
+                        const completed = selector.querySelector('[data-mention-task-id="10"]');
+                        const optionHeights = options.map((option) =>
+                            option.getBoundingClientRect().height
+                        );
+                        const indicatorShapes = options.map((option) => {
+                            const indicator = option.querySelector('.mention-task-status-indicator');
+                            const bounds = indicator?.getBoundingClientRect();
+
+                            return bounds && Math.abs(bounds.width - bounds.height) <= 1;
+                        });
+
+                        return getComputedStyle(selector).overflowY === 'auto'
+                            && getComputedStyle(selector).maxHeight !== 'none'
+                            && getComputedStyle(results).overflowY === 'auto'
+                            && getComputedStyle(results).maxHeight !== 'none'
+                            && selector.querySelector('[data-mention-task-section="active"]')
+                                ?.textContent.trim() === 'Em andamento'
+                            && selector.querySelector('[data-mention-task-section="completed"]')
+                                ?.textContent.trim() === 'Concluídas'
+                            && selector.querySelector('[data-mention-task-toggle]') === null
+                            && options.map((option) => option.dataset.mentionTaskId).join(',') === '9,10'
+                            && active?.classList.contains('mention-task-option--active')
+                            && completed?.classList.contains('mention-task-option--completed')
+                            && active?.querySelector('[data-mention-task-status="active"]')?.textContent === '●'
+                            && completed?.querySelector('[data-mention-task-status="completed"]')?.textContent === '✓'
+                            && optionHeights.every((height) =>
+                                Math.abs(height - window.__mentionUserOptionHeight) <= 0.1
+                            )
+                            && indicatorShapes.every(Boolean);
+                    })()
+                JS, true);
+        });
+    }
+
+    public function test_task_mention_selector_loads_all_tasks_and_scrolls_inside_results(): void
+    {
+        $this->browse(function (Browser $browser): void {
+            $browser->loginAs(self::getUser('admin'))
+                ->visit('/projects/create?project_type=organizacional')
+                ->waitFor('.EasyMDEContainer');
+
+            $browser->script(<<<'JS'
+                window.fetch = function () {
+                    return Promise.resolve({
+                        ok: true,
+                        json: function () {
+                            return Promise.resolve({
+                                results: Array.from({ length: 30 }, function (_, index) {
+                                    return {
+                                        id: index + 1,
+                                        name: `Tarefa para rolagem ${index + 1}`,
+                                        type: 'task',
+                                        type_label: 'Tarefa',
+                                        completed: index >= 20,
+                                        scope: 'contextual'
+                                    };
+                                })
+                            });
+                        }
+                    });
+                };
+                const fixture = document.createElement('textarea');
+                fixture.id = 'task-scroll-mention-editor';
+                fixture.setAttribute('data-markdown-editor', '');
+                fixture.setAttribute('data-markdown-profile', 'full');
+                fixture.setAttribute('data-markdown-preview-url', '/markdown/preview');
+                fixture.setAttribute('data-mention-search-url', '/mentions/selectable?context_type=project&context_id=1');
+                document.body.appendChild(fixture);
+            JS);
+
+            $browser->waitFor('#task-scroll-mention-editor + .EasyMDEContainer');
+            $browser->script("window.MarkdownEditors.get(document.querySelector('#task-scroll-mention-editor')).editor.toolbarElements.mention.click();");
+
+            $browser
+                ->waitFor('#mention-selector')
+                ->click('[data-mention-filter="task"]')
+                ->assertScript(<<<'JS'
+                    (() => {
+                        const results = document.querySelector('.mention-selector-results');
+                        const options = results.querySelectorAll('[data-mention-target-type="task"]');
+                        const initialScrollTop = results.scrollTop;
+
+                        results.scrollTop = results.scrollHeight;
+
+                        return options.length === 30
+                            && results.scrollHeight > results.clientHeight
+                            && results.scrollTop > initialScrollTop
+                            && results.scrollTop + results.clientHeight >= results.scrollHeight - 1;
+                    })()
+                JS, true);
+        });
+    }
+
     public function test_mention_selector_filters_files_and_inserts_the_file_uuid_alias(): void
     {
         $this->browse(function (Browser $browser): void {

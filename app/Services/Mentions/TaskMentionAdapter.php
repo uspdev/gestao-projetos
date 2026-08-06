@@ -2,8 +2,7 @@
 
 namespace App\Services\Mentions;
 
-use App\Models\Comment;
-use App\Models\Project;
+use App\Enums\Task\TaskStatus;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +13,18 @@ use Illuminate\Support\Facades\Schema;
 final class TaskMentionAdapter
 {
     public const ALIAS = 'task';
+
+    private MentionProjectContextResolver $contextResolver;
+    private MentionContextualSearch $contextualSearch;
+
+    public function __construct(
+        ?MentionProjectContextResolver $contextResolver = null,
+        ?MentionContextualSearch $contextualSearch = null,
+    )
+    {
+        $this->contextResolver = $contextResolver ?? new MentionProjectContextResolver();
+        $this->contextualSearch = $contextualSearch ?? new MentionContextualSearch();
+    }
 
     public function supports(string $type): bool
     {
@@ -45,7 +56,7 @@ final class TaskMentionAdapter
     }
 
     /**
-     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string}>
+     * @return Collection<int, array{id: int, name: string, type: string, type_label: string, group: string, scope: 'contextual'|'global', completed: bool}>
      */
     public function search(Model $source, string $term = '', ?User $reader = null): Collection
     {
@@ -53,16 +64,27 @@ final class TaskMentionAdapter
             return collect();
         }
 
+        $term = trim($term);
+        $contextTaskIds = $this->contextualTaskIds($source);
+        $contextIds = $contextTaskIds ?? $this->contextProjectIds($source);
+
+        if ($term === '' && $contextIds->isEmpty()) {
+            return collect();
+        }
+
         $tasks = Task::query()
             ->with('project')
-            ->when(trim($term) !== '', fn ($query) => $query->where(
+            ->when($term !== '', fn ($query) => $query->where(
                 'title',
                 'like',
-                '%' . trim($term) . '%'
+                '%' . $term . '%'
+            ))
+            ->when($term === '', fn ($query) => $query->whereIn(
+                $contextTaskIds !== null ? 'id' : 'project_id',
+                $contextIds->all(),
             ))
             ->orderBy('title')
-            ->get(['id', 'project_id', 'title']);
-        $contextProjectIds = $this->contextProjectIds($source);
+            ->get(['id', 'project_id', 'title', 'status']);
         $excludedIds = $source instanceof Task
             ? collect([(int) $source->getKey()])
             : collect();
@@ -71,19 +93,16 @@ final class TaskMentionAdapter
             ->reject(fn (Task $task): bool => $excludedIds->contains((int) $task->getKey()))
             ->filter(fn (Task $task): bool => $task->project
                 && Gate::forUser($reader)->allows('view', $task));
-        $contextual = $visible
-            ->filter(fn (Task $task): bool => $contextProjectIds->contains((int) $task->project_id))
-            ->sortBy(function (Task $task) use ($contextProjectIds): int {
-                return (int) $contextProjectIds->search((int) $task->project_id);
-            })
-            ->values();
-        $global = $visible
-            ->reject(fn (Task $task): bool => $contextProjectIds->contains((int) $task->project_id))
-            ->values();
-
-        return $contextual
-            ->concat($global)
-            ->map(fn (Task $task): array => $this->result($task))
+        return $this->contextualSearch
+            ->prioritize(
+                $visible,
+                $term,
+                $contextIds,
+                fn (Model $task): int => $contextTaskIds !== null
+                    ? (int) $task->getKey()
+                    : (int) $task->getAttribute('project_id'),
+            )
+            ->map(fn (array $result): array => $this->result($result['target'], $result['scope']))
             ->values();
     }
 
@@ -133,30 +152,27 @@ final class TaskMentionAdapter
     /** @return Collection<int, int> */
     private function contextProjectIds(Model $source): Collection
     {
-        $project = match (true) {
-            $source instanceof Project => $source,
-            $source instanceof Task => $source->loadMissing('project')->project,
-            $source instanceof Comment => $this->commentProject($source),
-            default => null,
-        };
-
-        return $project ? collect([(int) $project->getKey()]) : collect();
+        return $this->contextResolver
+            ->forTaskSearch($source)
+            ->pluck('id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
     }
 
-    private function commentProject(Comment $comment): ?Project
+    /** @return Collection<int, int>|null */
+    private function contextualTaskIds(Model $source): ?Collection
     {
-        $comment->loadMissing('commentable');
+        $tasks = $this->contextResolver->forTaskTargetSearch($source);
 
-        return match (true) {
-            $comment->commentable instanceof Project => $comment->commentable,
-            $comment->commentable instanceof Task => $comment->commentable
-                ->loadMissing('project')->project,
-            default => null,
-        };
+        return $tasks?->pluck('id')
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
     }
 
-    /** @return array{id: int, name: string, type: string, type_label: string, group: string} */
-    private function result(Task $task): array
+    /** @return array{id: int, name: string, type: string, type_label: string, group: string, scope: 'contextual'|'global', completed: bool} */
+    private function result(Task $task, string $scope): array
     {
         return [
             'id' => (int) $task->getKey(),
@@ -164,6 +180,8 @@ final class TaskMentionAdapter
             'type' => self::ALIAS,
             'type_label' => 'Tarefa',
             'group' => 'tasks',
+            'scope' => $scope,
+            'completed' => $task->status === TaskStatus::DONE,
         ];
     }
 }

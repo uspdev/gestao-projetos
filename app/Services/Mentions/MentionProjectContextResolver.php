@@ -27,6 +27,30 @@ final class MentionProjectContextResolver
     }
 
     /** @return Collection<int, Project> */
+    public function forTaskSearch(Model $source): Collection
+    {
+        return match (true) {
+            $source instanceof Project => $this->contextualProjects($source),
+            $source instanceof Task => $this->contextualProjects($source->loadMissing('project')->project),
+            $source instanceof Meeting => $this->meetingContextProjects($source),
+            $source instanceof MeetingItem => $this->meetingItemContextProjects($source),
+            $source instanceof Comment => $this->projectCommentContext($source),
+            default => collect(),
+        };
+    }
+
+    /** @return Collection<int, Task>|null */
+    public function forTaskTargetSearch(Model $source): ?Collection
+    {
+        return match (true) {
+            $source instanceof Meeting => $this->meetingAgendaTasks($source),
+            $source instanceof MeetingItem => $this->meetingItemAgendaTasks($source),
+            $source instanceof Comment => $this->commentTaskContext($source),
+            default => null,
+        };
+    }
+
+    /** @return Collection<int, Project> */
     public function forMeetingSearch(Model $source): Collection
     {
         return match (true) {
@@ -133,6 +157,30 @@ final class MentionProjectContextResolver
             ->values();
     }
 
+    /** @return Collection<int, Task> */
+    private function meetingAgendaTasks(Meeting $meeting): Collection
+    {
+        $meeting->loadMissing('meetingItems.discussable');
+
+        return $meeting->meetingItems
+            ->map(fn (MeetingItem $item): ?Task => $item->discussable instanceof Task
+                ? $item->discussable
+                : null)
+            ->filter(fn (mixed $task): bool => $task instanceof Task)
+            ->unique('id')
+            ->values();
+    }
+
+    /** @return Collection<int, Task> */
+    private function meetingItemAgendaTasks(MeetingItem $item): Collection
+    {
+        $item->loadMissing('meeting.meetingItems.discussable');
+
+        return $item->meeting instanceof Meeting
+            ? $this->meetingAgendaTasks($item->meeting)
+            : collect();
+    }
+
     /** @return Collection<int, Project> */
     private function meetingItemMeetingContext(MeetingItem $item): Collection
     {
@@ -141,6 +189,18 @@ final class MentionProjectContextResolver
         return $item->meeting instanceof Meeting
             ? $this->meetingContextProjects($item->meeting)
             : collect();
+    }
+
+    /** @return Collection<int, Task>|null */
+    private function commentTaskContext(Comment $comment): ?Collection
+    {
+        $commentable = $this->commentable($comment);
+
+        return match (true) {
+            $commentable instanceof Meeting => $this->meetingAgendaTasks($commentable),
+            $commentable instanceof MeetingItem => $this->meetingItemAgendaTasks($commentable),
+            default => null,
+        };
     }
 
     private function projectForDiscussable(?Model $discussable): ?Project

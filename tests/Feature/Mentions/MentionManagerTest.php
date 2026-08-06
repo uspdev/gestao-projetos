@@ -496,7 +496,7 @@ class MentionManagerTest extends TestCase
 
         $results = app(MentionManager::class)->search(
             $contextProject,
-            '',
+            'Tarefa',
             $author,
             'task'
         );
@@ -505,7 +505,66 @@ class MentionManagerTest extends TestCase
         $this->assertSame(['Tarefa contextual Z', 'Tarefa global A'], $results->pluck('name')->all());
         $this->assertSame(['task', 'task'], $results->pluck('type')->all());
         $this->assertSame(['Tarefa', 'Tarefa'], $results->pluck('type_label')->all());
+        $this->assertSame(['contextual', 'global'], $results->pluck('scope')->all());
         $this->assertFalse($results->contains('id', $hiddenTask->id));
+    }
+
+    public function test_task_search_starts_with_contextual_tasks_only(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $contextProject = Project::query()->create([
+            'name' => 'Projeto contextual inicial de tarefas',
+            'slug' => 'projeto-contextual-inicial-de-tarefas',
+            'status' => 'ACTIVE',
+        ]);
+        $otherProject = Project::query()->create([
+            'name' => 'Outro projeto inicial de tarefas',
+            'slug' => 'outro-projeto-inicial-de-tarefas',
+            'status' => 'ACTIVE',
+        ]);
+        $contextProject->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $otherProject->users()->attach($author, ['role' => 'VIEWER']);
+        $contextTask = Task::query()->create([
+            'project_id' => $contextProject->id,
+            'title' => 'Tarefa contextual inicial',
+            'status' => 'NEW',
+        ]);
+        $globalTask = Task::query()->create([
+            'project_id' => $otherProject->id,
+            'title' => 'Tarefa global inicial',
+            'status' => 'NEW',
+        ]);
+
+        $results = app(MentionManager::class)->search($contextProject, '', $author, 'task');
+
+        $this->assertSame([$contextTask->id], $results->pluck('id')->all());
+        $this->assertNotContains($globalTask->id, $results->pluck('id')->all());
+    }
+
+    public function test_task_search_identifies_completed_tasks_for_the_selector(): void
+    {
+        $author = User::query()->create(['name' => 'Pessoa autora']);
+        $project = Project::query()->create([
+            'name' => 'Projeto com tarefas em estados diferentes',
+            'slug' => 'projeto-com-tarefas-em-estados-diferentes',
+            'status' => 'ACTIVE',
+        ]);
+        $project->users()->attach($author, ['role' => 'CONTRIBUTOR']);
+        $openTask = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa em andamento',
+            'status' => 'IN_PROGRESS',
+        ]);
+        $completedTask = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa concluída',
+            'status' => 'DONE',
+        ]);
+
+        $results = app(MentionManager::class)->search($project, '', $author, 'task');
+
+        $this->assertFalse($results->firstWhere('id', $openTask->id)['completed']);
+        $this->assertTrue($results->firstWhere('id', $completedTask->id)['completed']);
     }
 
     public function test_task_search_in_a_comment_inherits_the_commented_project_context(): void
@@ -543,7 +602,8 @@ class MentionManagerTest extends TestCase
 
         $results = app(MentionManager::class)->search($comment, '', $author, 'task');
 
-        $this->assertSame([$contextTask->id, $otherTask->id], $results->pluck('id')->all());
+        $this->assertSame([$contextTask->id], $results->pluck('id')->all());
+        $this->assertNotContains($otherTask->id, $results->pluck('id')->all());
     }
 
     public function test_the_autocomplete_route_returns_task_results_and_its_filter(): void
@@ -635,7 +695,13 @@ class MentionManagerTest extends TestCase
 
         $results = app(MentionManager::class)->search($sourceTask, '', $author, 'task');
 
-        $this->assertSame([$contextTask->id, $otherTask->id], $results->pluck('id')->all());
+        $this->assertSame([$contextTask->id], $results->pluck('id')->all());
+        $this->assertNotContains($otherTask->id, $results->pluck('id')->all());
+
+        $expandedResults = app(MentionManager::class)->search($sourceTask, 'Tarefa', $author, 'task');
+
+        $this->assertSame([$contextTask->id, $otherTask->id], $expandedResults->pluck('id')->all());
+        $this->assertSame(['contextual', 'global'], $expandedResults->pluck('scope')->all());
     }
 
     public function test_it_presents_a_task_with_its_current_title_and_route_without_rewriting_markdown(): void
@@ -686,13 +752,16 @@ class MentionManagerTest extends TestCase
         $manager = app(MentionManager::class);
 
         $forbidden = $manager->present('task', (string) $task->id, $reader);
+        $forbiddenSearch = $manager->search($project, '', $reader, 'task');
 
         $project->users()->attach($reader, ['role' => 'VIEWER']);
+        $visibleSearch = $manager->search($project, '', $reader, 'task');
         DB::table('project_modules')
             ->where('project_id', $project->id)
             ->where('module_id', DB::table('modules')->where('slug', 'tasks')->value('id'))
             ->update(['enabled' => false]);
         $disabled = $manager->present('task', (string) $task->id, $reader);
+        $disabledSearch = $manager->search($project, '', $reader, 'task');
         $missing = $manager->present('task', '99999', $reader);
 
         $this->assertSame([
@@ -700,7 +769,10 @@ class MentionManagerTest extends TestCase
             'type' => 'tarefa',
             'message' => 'Menção a tarefa: você não tem permissão para visualizar',
         ], $forbidden);
+        $this->assertCount(0, $forbiddenSearch);
+        $this->assertSame([$task->id], $visibleSearch->pluck('id')->all());
         $this->assertSame($forbidden, $disabled);
+        $this->assertCount(0, $disabledSearch);
         $this->assertSame([
             'status' => 'missing',
             'type' => 'tarefa',

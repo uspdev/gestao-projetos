@@ -13,10 +13,15 @@ final class ProjectMentionAdapter
     public const ALIAS = 'project';
 
     private MentionProjectContextResolver $contextResolver;
+    private MentionContextualSearch $contextualSearch;
 
-    public function __construct(?MentionProjectContextResolver $contextResolver = null)
+    public function __construct(
+        ?MentionProjectContextResolver $contextResolver = null,
+        ?MentionContextualSearch $contextualSearch = null,
+    )
     {
         $this->contextResolver = $contextResolver ?? new MentionProjectContextResolver();
+        $this->contextualSearch = $contextualSearch ?? new MentionContextualSearch();
     }
 
     public function supports(string $type): bool
@@ -75,23 +80,14 @@ final class ProjectMentionAdapter
             ->reject(fn (Project $project): bool => $excludedIds->contains((int) $project->getKey()))
             ->filter(fn (Project $project): bool => Gate::forUser($reader)->allows('view', $project));
 
-        $contextual = $visible
-            ->filter(fn (Project $project): bool => $contextIds->contains((int) $project->getKey()))
-            ->sortBy(fn (Project $project): int => (int) $contextIds->search((int) $project->getKey()))
-            ->values();
-        $global = $visible
-            ->reject(fn (Project $project): bool => $contextIds->contains((int) $project->getKey()))
-            ->values();
-
-        $results = $term === ''
-            ? $contextual
-            : $contextual->concat($global);
-
-        return $results
-            ->map(fn (Project $project): array => $this->result(
-                $project,
-                $contextIds->contains((int) $project->getKey()) ? 'contextual' : 'global',
-            ))
+        return $this->contextualSearch
+            ->prioritize(
+                $visible,
+                $term,
+                $contextIds,
+                fn (Model $project): int => (int) $project->getKey(),
+            )
+            ->map(fn (array $result): array => $this->result($result['target'], $result['scope']))
             ->values();
     }
 
