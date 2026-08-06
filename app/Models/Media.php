@@ -62,7 +62,6 @@ class Media extends BaseMedia
             }
 
             $media->uuid = $fileUuid;
-            $media->setCustomProperty('thumbnail_status', 'pending');
         });
 
         static::updating(function (self $media): void {

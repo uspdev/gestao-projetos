@@ -14,8 +14,9 @@ gerais do ambiente.
 3. Confirme que `storage/app/files` é privado e gravável pelo PHP e pelo worker.
 4. Configure `upload_max_filesize=100M` e `post_max_size=110M`; o proxy que
    recebe o upload também deve aceitar pelo menos 100 MiB.
-5. Confirme a extensão GD com `php --ri gd` e mantenha
-   `QUEUE_CONNECTION=database` com um worker supervisionado, por exemplo:
+5. Confirme a extensão GD no processo PHP que atende as requisições com
+   `php --ri gd`. Mantenha `QUEUE_CONNECTION=database` com um worker
+   supervisionado para e-mails e outros trabalhos assíncronos, por exemplo:
    `php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60`.
    O `.env` não precisa declarar os defaults opcionais `MEDIA_DISK=files`,
    `MEDIA_CONVERSIONS_DISK=files` e `IMAGE_DRIVER=gd`.
@@ -58,8 +59,8 @@ Execute `php artisan test` e `php artisan dusk`. Em homologação, confirme:
 
 - os cinco campos Markdown salvam, recarregam e exibem conteúdo seguro;
 - Ata e Transcrição continuam texto simples;
-- Arquivos de Projeto, Tarefa e Reunião são privados, processam miniaturas e
-  respeitam os estados `DONE` e `COMPLETED`;
+- Arquivos de Projeto, Tarefa e Reunião são privados, geram miniaturas durante
+  o envio e respeitam os estados `DONE` e `COMPLETED`;
 - um upload próximo de 100 MiB é aceito, um maior é rejeitado e o download usa
   `Content-Disposition: attachment` e `X-Content-Type-Options: nosniff`;
 - Compartilhamentos de arquivo com Reunião podem ser criados e revogados sem
@@ -83,8 +84,10 @@ Execute `php artisan test` e `php artisan dusk`. Em homologação, confirme:
 ## Limites conhecidos
 
 São riscos aceitos: não há antivírus nem cotas; formatos gerais podem ser
-enviados; Menções a arquivo podem quebrar após exclusão; fila indisponível deixa
-miniaturas pendentes; e uploads aumentam o consumo de armazenamento e backups.
+enviados; Menções a arquivo podem quebrar após exclusão; o processamento
+síncrono pode aumentar o tempo da requisição e falhar por timeout; a fila
+indisponível afeta e-mails e outros trabalhos, não miniaturas; e uploads
+aumentam o consumo de armazenamento e backups.
 Os detalhes de Arquivos e compartilhamentos estão no [ADR 0003](../../dev-friendly/adr/0003-modelo-seguranca-e-compartilhamento-de-arquivos.md).
 
 ## Recuperação

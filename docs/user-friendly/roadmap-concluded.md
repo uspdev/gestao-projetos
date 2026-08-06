@@ -165,7 +165,7 @@ Reuniões. O armazenamento é privado, cada Arquivo possui UUID público estáve
 Nome original do arquivo preservado, Nome exibido editável, conteúdo imutável e
 limite de 100 MB. Downloads passam por autorização da aplicação; operações de
 envio, renomeação e exclusão são auditadas. Imagens raster válidas podem gerar
-miniaturas privadas em fila, enquanto os demais formatos permanecem disponíveis
+miniaturas privadas durante o envio, enquanto os demais formatos permanecem disponíveis
 para download.
 
 O seletor contextual insere no Markdown uma Menção a arquivo como link comum

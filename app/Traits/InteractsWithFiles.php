@@ -13,7 +13,7 @@ trait InteractsWithFiles
     use InteractsWithMedia;
 
     /** @return FileAdder<\App\Models\Media> */
-    public function addMedia(string|UploadedFile $file): FileAdder
+    public function addMedia(string|UploadedFile $file, ?int $uploadedBy = null): FileAdder
     {
         $originalName = $file instanceof UploadedFile
             ? $file->getClientOriginalName()
@@ -24,7 +24,7 @@ trait InteractsWithFiles
             ->usingFileName($this->normalizeFileName($originalName))
             ->withProperties([
                 'original_name' => $originalName,
-                'uploaded_by' => auth()->id(),
+                'uploaded_by' => $uploadedBy ?? auth()->id(),
             ]);
     }
 

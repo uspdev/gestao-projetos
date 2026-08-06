@@ -12,11 +12,11 @@
 - [ ] Validar Reunião multiprojeto com compartilhamento, audiência conjunta, revogação, mudança de pauta e exclusão lógica/restauração da origem.
 - [ ] Validar autocomplete → Menção → índice → perda de elegibilidade → reconstrução, sem qualquer notificação ou alteração de e-mail.
 - [ ] Executar testes de regressão para Ata e Transcrição como texto simples e para o conteúdo existente de Tipo de projeto.
-- [ ] Documentar disk privado, variáveis de ambiente, limite de 100 MB, ajustes de PHP/proxy, GD, processador de fila, publicação dos ativos próprios compilados e acesso do navegador ao jsDelivr.
+- [ ] Documentar disk privado, variáveis de ambiente, limite de 100 MB, ajustes de PHP/proxy e tempo da requisição síncrona, GD, processador de fila para e-mails, publicação dos ativos próprios compilados e acesso do navegador ao jsDelivr.
 - [ ] Documentar a ordem de implantação: cópia de segurança e validação → dependências/ativos → migrações/configuração → processador de fila → código → conversão legada → verificações funcionais.
 - [ ] Documentar plano de verificação e recuperação sem sugerir reversão destrutiva de migrações que já contenham Arquivos, compartilhamentos ou Menções.
-- [ ] Verificar em homologação upload próximo de 100 MB, cabeçalhos de download, armazenamento não público e processamento assíncrono.
-- [ ] Registrar explicitamente os riscos operacionais aceitos: ausência de antivírus e cotas, formatos gerais, links quebráveis, fila indisponível e consumo de armazenamento/backups.
+- [ ] Verificar em homologação upload próximo de 100 MB, cabeçalhos de download, armazenamento não público, geração síncrona de miniaturas e erro visível quando o processamento falhar.
+- [ ] Registrar explicitamente os riscos operacionais aceitos: ausência de antivírus e cotas, formatos gerais, links quebráveis, timeout de requisição, fila indisponível para e-mails e consumo de armazenamento/backups.
 - [ ] Não executar deploy, mudar infraestrutura, habilitar S3 nem alterar e-mails como parte deste ticket.
 
 ## Critérios de conclusão

@@ -12,7 +12,7 @@ Por fim, textos não possuem Menções estruturadas. Digitar um nome não cria i
 
 Criar um serviço único e injetável de renderização segura com `league/commonmark`, acompanhado de dois perfis do EasyMDE carregado por CDN e uma pré-visualização produzida pelo servidor. Aplicar a mesma política a todos os campos Markdown da primeira versão, incluindo Anotações prévias da reunião e do item, mantendo Ata e Transcrição como texto simples.
 
-Introduzir um módulo de Arquivos privados baseado em `spatie/laravel-medialibrary`, com Projeto, Tarefa ou Reunião como Proprietário único e imutável. Cada Arquivo terá UUID público estável, nome original imutável, nome exibido editável, conteúdo imutável, autor do envio e nome físico opaco. Downloads sempre passarão por autorização da aplicação. Imagens raster válidas poderão gerar miniaturas privadas assíncronas; outros formatos serão entregues somente como download.
+Introduzir um módulo de Arquivos privados baseado em `spatie/laravel-medialibrary`, com Projeto, Tarefa ou Reunião como Proprietário único e imutável. Cada Arquivo terá UUID público estável, nome original imutável, nome exibido editável, conteúdo imutável, autor do envio e nome físico opaco. Downloads sempre passarão por autorização da aplicação. Imagens raster válidas gerarão miniaturas privadas de forma síncrona durante o envio; outros formatos serão entregues somente como download.
 
 Permitir Referências de arquivo nos textos por links Markdown comuns. Uma reunião poderá persistir Compartilhamentos de arquivo com reunião para liberar Arquivos específicos de projetos e tarefas relacionados a todos que puderem visualizar a reunião, sem alterar a propriedade original.
 
@@ -138,8 +138,10 @@ Descrições de Tipo de projeto serão renderizadas pela mesma política segura 
 
 - Gerar miniaturas privadas somente para imagens raster que o GD consiga decodificar com segurança.
 - Recusar conversão acima de 25 megapixels ou quando largura ou altura exceder 10.000 pixels.
-- Processar a conversão em fila depois da confirmação da transação. Exibir estado de processamento e substituir por card genérico em formato não suportado ou falha definitiva.
-- Gerar apenas o primeiro quadro de GIF animado. O original permanecerá inalterado e disponível para download autorizado mesmo quando a conversão falhar.
+- Processar a conversão de forma síncrona durante o envio e só confirmar o Arquivo depois de concluir a miniatura ou classificá-lo como `not_supported`.
+- Usar somente os estados terminais `ready` e `not_supported`; não persistir `pending` ou `failed`.
+- Aceitar o original sem miniatura quando o formato, os limites ou o codec não forem suportados. Ausência do GD, falha de armazenamento ou exceção inesperada desfaz o envio inteiro, remove os arquivos físicos e informa o usuário.
+- Gerar apenas o primeiro quadro de GIF animado. O original permanecerá inalterado e disponível para download autorizado quando a miniatura não for suportada.
 
 ### Ciclo de vida e auditoria
 
@@ -260,7 +262,7 @@ Usuários com acesso apenas herdado não serão elegíveis. O próprio autor pod
 - Priorizar testes HTTP de funcionalidade para autorização, validação, persistência, resposta não encontrada, auditoria e comportamento por status.
 - Testar `MarkdownRenderer` isoladamente com matriz de XSS, HTML, esquemas de URL, âncoras, links relativos, imagens, aninhamento, Menções e blocos de código.
 - Testar a conversão protegida do conteúdo legado de Tipo de projeto e garantir idempotência/reversão segura compatível com os dados.
-- Usar `Storage::fake()` para upload, download, exclusão e conversões; usar `Queue::fake()` para despacho e testes separados da tarefa de miniatura executada em fila.
+- Usar `Storage::fake()` para upload, download, exclusão e conversões; usar `Queue::fake()` somente para comportamentos que ainda usam fila, como e-mails e resumos de acompanhamento. Testar a geração de miniatura diretamente no fluxo síncrono.
 - Cobrir Arquivos de cada Proprietário, cada papel, Autor do arquivo, administrador, tarefa `DONE`, reunião `COMPLETED`, exclusão lógica, restauração e exclusão definitiva.
 - Cobrir conteúdo malicioso renomeado, extensões de scripts bloqueadas, formatos gerais aceitos, cabeçalhos de download, limites de tamanho e dimensões de imagem.
 - Cobrir seletores e referências para todos os contextos, ausência de herança e resposta indistinguível de não encontrado.
@@ -273,7 +275,7 @@ Usuários com acesso apenas herdado não serão elegíveis. O próprio autor pod
 ## Implantação e operação
 
 - Publicar migrações e configuração antes de habilitar as interfaces que dependem delas.
-- Documentar `FILESYSTEM`/disk privado, limite de 100 MB, extensões GD necessárias e conexão de fila. O processador da fila precisa estar ativo quando a conexão não for `sync`.
+- Documentar `FILESYSTEM`/disk privado, limite de 100 MB, extensões GD necessárias, tempo de processamento da requisição e conexão de fila. O processador da fila continua necessário para e-mails e outros trabalhos assíncronos, não para miniaturas.
 - Validar limites de PHP e servidor web/proxy com um Arquivo próximo de 100 MB no ambiente de homologação.
 - Compilar e publicar somente os ativos próprios e validar o carregamento das bibliotecas Markdown pelo jsDelivr.
 - Executar a conversão do conteúdo legado de Tipo de projeto com verificação antes/depois.

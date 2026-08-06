@@ -11,7 +11,7 @@
 - [ ] Permitir renomeação e exclusão ao Autor do arquivo com acesso vigente e ao administrador de Projeto relacionado; manter a sobreposição administrativa global existente.
 - [ ] Criar rotas por UUID para metadados, miniatura e download que retornem o mesmo não encontrado para inexistência, falta de acesso ou Proprietário excluído.
 - [ ] Entregar originais como `attachment`, com `nosniff` e nome seguro composto do Nome exibido e extensão normalizada; nunca incorporar SVG, HTML, PDF ou outros originais.
-- [ ] Criar upload unitário com validação de 100 MB, persistência transacional e despacho de miniatura depois da confirmação da transação.
+- [ ] Criar upload unitário com validação de 100 MB, persistência transacional e geração síncrona da miniatura antes da confirmação e da resposta de sucesso.
 - [ ] Criar renomeação apenas do Nome exibido, aceitando duplicatas sem alterar URL, caminho, Nome original ou conteúdo.
 - [ ] Criar exclusão definitiva com confirmação explícita e aviso de referências quebradas.
 - [ ] Registrar upload, renomeação e exclusão no `activity_log`, sem conteúdo binário; não registrar listagem, metadados, miniatura ou download.

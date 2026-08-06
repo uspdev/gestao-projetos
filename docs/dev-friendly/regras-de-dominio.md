@@ -13,7 +13,7 @@ documentação.
 | Autorização por recurso | Policy e `FormRequest::authorize()` | editar Tarefa, visualizar Arquivo |
 | Forma e consistência de dados | Model, Form Request e transação | representação exclusiva de Item de pauta |
 | Disponibilidade de funcionalidade | resolução de módulos e Policy | Tarefas só existem quando `tasks` está ativo |
-| Efeito assíncrono | job despachado após confirmação da transação | miniatura e resumo de acompanhamento |
+| Efeito assíncrono | job despachado após confirmação da transação | e-mails e resumo de acompanhamento |
 | Recuperação de índice derivado | comando Artisan | `mentions:rebuild` |
 
 Não aplique uma regra somente na interface. Os controladores e endpoints devem

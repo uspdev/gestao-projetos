@@ -32,10 +32,12 @@ definitiva e não possui lixeira.
 
 ## Visualização segura
 
-Imagens raster válidas podem ter miniatura gerada e exibida em cartões. Outros
-formatos são oferecidos para download; PDF, SVG, HTML e conteúdos ativos não
-são incorporados na página. A aplicação não executa análise antivírus e aceita
-formatos gerais, inclusive arquivos potencialmente perigosos.
+Imagens raster válidas têm a miniatura gerada durante o envio e exibida em
+cartões. Outros formatos são oferecidos para download; PDF, SVG, HTML e
+conteúdos ativos não são incorporados na página. Se ocorrer uma falha técnica
+ao gerar a miniatura, o Arquivo não é salvo e o formulário informa o erro para
+que o usuário tente novamente. A aplicação não executa análise antivírus e
+aceita formatos gerais, inclusive arquivos potencialmente perigosos.
 
 Portanto, um Arquivo disponível no sistema não é garantia de que seja seguro.
 Abra apenas conteúdo de origem confiável e siga os procedimentos de segurança

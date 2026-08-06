@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\GenerateFileThumbnail;
+use App\Models\Media;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
+use App\Services\Files\FileUploadService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -114,7 +116,6 @@ class FilePersistenceTest extends TestCase
     public function test_file_upload_uses_the_private_disk_and_preserves_its_provenance(): void
     {
         Storage::fake('files');
-        Queue::fake();
 
         $project = new Project();
         $project->forceFill([
@@ -124,7 +125,7 @@ class FilePersistenceTest extends TestCase
         ])->save();
 
         $upload = UploadedFile::fake()->createWithContent('relatório final.PNG', 'conteúdo');
-        $media = $project->addMedia($upload)->toMediaCollection();
+        $media = $this->upload($project, $upload);
 
         $this->assertSame('files', $media->disk);
         $this->assertSame('relatório final.PNG', $media->original_name);
@@ -132,9 +133,8 @@ class FilePersistenceTest extends TestCase
         $this->assertTrue(Str::isUuid(pathinfo($media->uuid_name, PATHINFO_FILENAME)));
         $this->assertSame('png', pathinfo($media->uuid_name, PATHINFO_EXTENSION));
         $this->assertSame($media->uuid, pathinfo($media->uuid_name, PATHINFO_FILENAME));
-        $this->assertSame('pending', $media->getCustomProperty('thumbnail_status'));
+        $this->assertSame('not_supported', $media->getCustomProperty('thumbnail_status'));
         Storage::disk('files')->assertExists($media->getPathRelativeToRoot());
-        Queue::assertPushed(GenerateFileThumbnail::class);
     }
 
     public function test_executable_server_script_extensions_remain_blocked_even_when_disguised(): void
@@ -149,20 +149,17 @@ class FilePersistenceTest extends TestCase
         $project->addMedia($upload)->toMediaCollection();
     }
 
-    public function test_thumbnail_job_generates_a_private_thumbnail_for_a_valid_raster_image(): void
+    public function test_synchronous_thumbnail_generation_creates_a_private_thumbnail_for_a_valid_raster_image(): void
     {
         Storage::fake('files');
         Queue::fake();
 
-        $media = $this->project()
-            ->addMedia(UploadedFile::fake()->image('foto.png', 120, 80))
-            ->toMediaCollection();
-
-        (new GenerateFileThumbnail($media))->handle();
+        $media = $this->upload($this->project(), UploadedFile::fake()->image('foto.png', 120, 80));
 
         $media->refresh();
 
         $this->assertSame('ready', $media->getCustomProperty('thumbnail_status'));
+        Queue::assertNothingPushed();
         Storage::disk('files')->assertExists(
             $media->id.'/conversions/'.pathinfo($media->file_name, PATHINFO_FILENAME).'-thumbnail.jpg'
         );
@@ -173,11 +170,10 @@ class FilePersistenceTest extends TestCase
         Storage::fake('files');
         Queue::fake();
 
-        $media = $this->project()
-            ->addMedia(UploadedFile::fake()->createWithContent('manual.pdf', '%PDF-1.7'))
-            ->toMediaCollection();
-
-        (new GenerateFileThumbnail($media))->handle();
+        $media = $this->upload(
+            $this->project(),
+            UploadedFile::fake()->createWithContent('manual.pdf', '%PDF-1.7'),
+        );
 
         $media->refresh();
 
@@ -185,15 +181,30 @@ class FilePersistenceTest extends TestCase
         Storage::disk('files')->assertExists($media->getPathRelativeToRoot());
     }
 
+    public function test_thumbnail_failure_removes_the_original_media_and_upload_audit(): void
+    {
+        Storage::fake('files');
+        config(['media-library.thumbnail_max_side' => 0]);
+
+        try {
+            $media = $this->upload($this->project(), UploadedFile::fake()->image('foto.png', 120, 80));
+
+            $this->assertNull($media);
+        } finally {
+            $this->assertDatabaseCount('media', 0);
+            $this->assertDatabaseMissing('activity_log', ['event' => 'uploaded']);
+            $this->assertSame([], Storage::disk('files')->allFiles());
+        }
+    }
+
     public function test_soft_deleted_owner_preserves_files_and_force_deletion_removes_them(): void
     {
         Storage::fake('files');
-        Queue::fake();
-
         $project = $this->project();
-        $media = $project
-            ->addMedia(UploadedFile::fake()->createWithContent('registro.txt', 'conteúdo'))
-            ->toMediaCollection();
+        $media = $this->upload(
+            $project,
+            UploadedFile::fake()->createWithContent('registro.txt', 'conteúdo'),
+        );
 
         $conversionPath = $media->id.'/conversions/'
             .pathinfo($media->file_name, PATHINFO_FILENAME).'-thumbnail.jpg';
@@ -219,11 +230,10 @@ class FilePersistenceTest extends TestCase
     public function test_only_the_display_name_can_be_renamed_after_upload(): void
     {
         Storage::fake('files');
-        Queue::fake();
-
-        $media = $this->project()
-            ->addMedia(UploadedFile::fake()->createWithContent('evidencia.txt', 'conteúdo'))
-            ->toMediaCollection();
+        $media = $this->upload(
+            $this->project(),
+            UploadedFile::fake()->createWithContent('evidencia.txt', 'conteúdo'),
+        );
 
         $media->display_name = 'Evidência revisada';
         $media->save();
@@ -238,11 +248,10 @@ class FilePersistenceTest extends TestCase
     public function test_file_author_is_immutable_after_upload(): void
     {
         Storage::fake('files');
-        Queue::fake();
-
-        $media = $this->project()
-            ->addMedia(UploadedFile::fake()->createWithContent('evidencia.txt', 'conteúdo'))
-            ->toMediaCollection();
+        $media = $this->upload(
+            $this->project(),
+            UploadedFile::fake()->createWithContent('evidencia.txt', 'conteúdo'),
+        );
 
         $media->uploaded_by = 999;
 
@@ -254,14 +263,13 @@ class FilePersistenceTest extends TestCase
     public function test_general_download_formats_are_accepted_without_an_extension_allowlist(): void
     {
         Storage::fake('files');
-        Queue::fake();
-
         $project = $this->project();
 
         foreach (['ferramenta.exe', 'rotina.bat', 'script.sh'] as $fileName) {
-            $media = $project
-                ->addMedia(UploadedFile::fake()->createWithContent($fileName, 'conteúdo'))
-                ->toMediaCollection();
+            $media = $this->upload(
+                $project,
+                UploadedFile::fake()->createWithContent($fileName, 'conteúdo'),
+            );
 
             $this->assertSame(pathinfo($fileName, PATHINFO_EXTENSION), pathinfo($media->file_name, PATHINFO_EXTENSION));
             Storage::disk('files')->assertExists($media->getPathRelativeToRoot());
@@ -296,5 +304,12 @@ class FilePersistenceTest extends TestCase
         ])->save();
 
         return $project;
+    }
+
+    private function upload(Project $project, UploadedFile $upload): ?Media
+    {
+        $actor = User::query()->firstOrCreate(['name' => 'Uploader']);
+
+        return app(FileUploadService::class)->upload($project, $upload, $actor);
     }
 }

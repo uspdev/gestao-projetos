@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
+use App\Services\Files\FileUploadService;
 use App\Services\FileReferenceNavigator;
 use App\Services\FileReferenceSelector;
 use App\Support\Files\FileReferenceContext;
@@ -21,6 +22,8 @@ use Illuminate\Support\Str;
 
 class MediaController extends Controller
 {
+    public function __construct(private FileUploadService $fileUploadService) {}
+
     public function selectable(Request $request, FileReferenceSelector $selector): JsonResponse
     {
         $validated = $request->validate([
@@ -58,26 +61,17 @@ class MediaController extends Controller
             'file' => ['required', 'file', 'max:102400'],
         ]);
 
-        $media = DB::transaction(function () use ($owner, $request, $validated): Media {
-            $media = $owner->addMedia($validated['file'])->toMediaCollection();
+        $media = $this->fileUploadService->upload(
+            $owner,
+            $validated['file'],
+            $request->user(),
+        );
 
-            activity()
-                ->useLog('file')
-                ->event('uploaded')
-                ->performedOn($media)
-                ->causedBy($request->user())
-                ->withProperties([
-                    'attributes' => [
-                        'uuid' => $media->uuid,
-                        'owner_type' => $media->model_type,
-                        'owner_id' => $media->model_id,
-                        'size' => $media->size,
-                    ],
-                ])
-                ->log('uploaded');
-
-            return $media;
-        });
+        if ($media === null) {
+            return back()->withErrors([
+                'file' => 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.',
+            ]);
+        }
 
         return back()->with('alert-success', "Arquivo {$media->display_name} enviado com sucesso.");
     }

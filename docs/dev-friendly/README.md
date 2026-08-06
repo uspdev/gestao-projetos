@@ -46,8 +46,9 @@ php artisan serve
 Não é rodar `php artisan serve` caso esteja usando um servidor que aponta para a pasta `public/`. O Laravel já contém um `.htaccess` para o Apache. Garanta que o servidor tenha permissão de escrita em `storage/` e `bootstrap/cache/`.
 
 Como a configuração padrão usa a fila `database`, execute o worker em outro
-terminal quando precisar validar e-mails, miniaturas ou outros trabalhos
-assíncronos:
+terminal quando precisar validar e-mails ou outros trabalhos assíncronos. A
+geração de miniaturas ocorre dentro da requisição de upload e não depende do
+worker:
 
 ```sh
 php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60
@@ -82,6 +83,7 @@ alterar o comportamento documentado:
 - [Modelo, segurança e compartilhamento de Arquivos](adr/0003-modelo-seguranca-e-compartilhamento-de-arquivos.md)
 - [Bibliotecas de front-end por CDN](adr/0004-bibliotecas-frontend-por-cdn.md)
 - [Generalizar Menções para entidades do sistema](adr/0005-generalizar-mencoes-para-entidades.md)
+- [Geração síncrona de miniaturas no envio de Arquivos](adr/0006-geracao-sincrona-de-miniaturas.md)
 
 ## Implantação e operação
 

@@ -79,9 +79,9 @@ de retenção antes de executar manualmente em produção.
 
 ## Fila e observabilidade
 
-Miniaturas de imagens, e-mails imediatos e resumos de acompanhamento dependem
-da fila. Na configuração padrão, inicie um worker compatível com a fila
-`database`:
+E-mails imediatos e resumos de acompanhamento dependem da fila. Miniaturas são
+geradas durante o próprio envio do Arquivo e não dependem do worker. Na
+configuração padrão, inicie um worker compatível com a fila `database`:
 
 ```sh
 php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60

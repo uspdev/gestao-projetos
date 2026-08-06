@@ -50,6 +50,9 @@
           </button>
           <i class="fas fa-check-circle mr-1" aria-hidden="true"></i><span data-file-upload-name></span>
         </span>
+        @if ($errors->has('file'))
+          <div class="invalid-feedback d-block mt-1" role="alert">{{ $errors->first('file') }}</div>
+        @endif
       </form>
     @endcan
   </div>
@@ -127,7 +130,7 @@
                         <span class="d-flex flex-column align-items-center justify-content-center p-2 text-center text-muted">
                           <i class="far fa-image fa-2x mb-1" aria-hidden="true"></i>
                           <small>
-                            {{ $media->getCustomProperty('thumbnail_status') === 'pending' ? 'Processando prévia' : 'Prévia indisponível' }}
+                            Prévia indisponível
                           </small>
                         </span>
                       @endif
@@ -208,8 +211,6 @@
             $isShared = $sharedMediaIds->contains($media->id);
             $thumbnailLabel = match ($media->getCustomProperty('thumbnail_status')) {
               'ready' => 'Disponível',
-              'pending', null => 'Em processamento',
-              'failed' => 'Falha no processamento',
               'not_supported' => 'Não disponível',
               default => 'Não disponível',
             };

@@ -140,7 +140,7 @@ class FileExposureTest extends TestCase
         $this->assertNotNull($media);
         $this->assertSame($contributor->id, $media->uploaded_by);
         Storage::disk('files')->assertExists($media->getPathRelativeToRoot());
-        Queue::assertPushed(\App\Jobs\GenerateFileThumbnail::class);
+        Queue::assertNothingPushed();
         $this->assertDatabaseHas('activity_log', [
             'subject_id' => $media->id,
             'event' => 'uploaded',
@@ -153,6 +153,32 @@ class FileExposureTest extends TestCase
             ])
             ->assertRedirect(route('projects.files.store', $project))
             ->assertSessionHasErrors('file');
+    }
+
+    public function test_thumbnail_failure_rejects_the_upload_and_reports_the_error(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+        config(['media-library.thumbnail_max_side' => 0]);
+
+        $author = $this->user('Autor');
+        $viewer = $this->user('Visualizador');
+        $project = $this->projectWithMembers($author, $viewer);
+
+        $this->actingAs($author)
+            ->from(route('projects.files.store', $project))
+            ->post(route('projects.files.store', $project), [
+                'file' => UploadedFile::fake()->image('foto.png', 20, 20),
+            ])
+            ->assertRedirect(route('projects.files.store', $project))
+            ->assertSessionHasErrors([
+                'file' => 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.',
+            ]);
+
+        Queue::assertNothingPushed();
+        $this->assertDatabaseCount('media', 0);
+        $this->assertDatabaseMissing('activity_log', ['event' => 'uploaded']);
+        $this->assertSame([], Storage::disk('files')->allFiles());
     }
 
     public function test_author_can_rename_and_definitively_delete_without_changing_file_identity(): void
@@ -239,7 +265,7 @@ class FileExposureTest extends TestCase
         $this->assertNotNull($meeting->fresh()->getFirstMedia());
     }
 
-    public function test_thumbnail_is_private_and_available_only_after_processing(): void
+    public function test_thumbnail_is_private_and_available_only_when_ready(): void
     {
         Storage::fake('files');
         Queue::fake();
@@ -262,7 +288,7 @@ class FileExposureTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'image/jpeg');
 
-        $media->setCustomProperty('thumbnail_status', 'pending');
+        $media->setCustomProperty('thumbnail_status', 'not_supported');
         $media->save();
 
         $this->actingAs($viewer)

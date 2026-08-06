@@ -61,6 +61,10 @@ _Evitar_: Nome físico, nome exibido
 Nome editável apresentado aos usuários e utilizado para compor o nome seguro oferecido no download; não identifica nem altera fisicamente o Arquivo.
 _Evitar_: Nome original, nome físico
 
+**Miniatura**:
+Imagem derivada de um Arquivo para sua representação visual nos cards, sem substituir nem alterar o conteúdo original.
+_Evitar_: Thumbnail
+
 **Menção a arquivo**:
 Menção que aponta para um Arquivo existente sem tornar o texto proprietário dele.
 _Evitar_: Referência de arquivo, anexo, arquivo incorporado
