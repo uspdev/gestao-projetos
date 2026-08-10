@@ -24,8 +24,7 @@ class DeploymentGuideTest extends TestCase
             'php --ri gd',
             'php artisan queue:work database --queue=default --sleep=3 --tries=4 --timeout=60',
             'composer install --no-dev',
-            'npm ci',
-            'npm run production',
+            'php artisan assets:publish',
             'php artisan migrate --path=database/migrations/2026_07_21_090000_create_media_table.php --force',
             'php artisan migrate --path=database/migrations/2026_07_22_090000_create_meeting_file_shares_table.php --force',
             'php artisan migrate --path=database/migrations/2026_07_23_090000_create_mentions_table.php --force',
@@ -64,8 +63,7 @@ class DeploymentGuideTest extends TestCase
 
         $commands = [
             'composer install --no-dev',
-            'npm ci',
-            'npm run production',
+            'php artisan assets:publish',
             'php artisan migrate --path=database/migrations/2026_07_21_090000_create_media_table.php --force',
             'php artisan migrate --path=database/migrations/2026_07_22_090000_create_meeting_file_shares_table.php --force',
             'php artisan migrate --path=database/migrations/2026_07_23_090000_create_mentions_table.php --force',
@@ -100,6 +98,9 @@ class DeploymentGuideTest extends TestCase
         ] as $restriction) {
             self::assertStringContainsString($restriction, $normalizedGuide, $restriction);
         }
+
+        self::assertStringNotContainsString('npm ci', $guide);
+        self::assertStringNotContainsString('npm run production', $guide);
 
         $rollbackLines = array_values(array_filter(
             explode("\n", $guide),

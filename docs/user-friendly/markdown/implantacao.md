@@ -23,9 +23,11 @@ gerais do ambiente.
 
 ## Ordem da publicação
 
-1. Instale dependências travadas e compile somente os ativos próprios:
-   `composer install --no-dev --prefer-dist --optimize-autoloader`, `npm ci` e
-   `npm run production`.
+1. Instale as dependências travadas com
+   `composer install --no-dev --prefer-dist --optimize-autoloader`. O evento
+   `post-autoload-dump` publica automaticamente os ativos próprios com
+   `php artisan assets:publish`, sem exigir Node.js ou npm no ambiente de
+   produção. Use esse comando também quando precisar republicá-los manualmente.
 2. Confira `php artisan migrate:status` e aplique as migrações estruturais da
    release:
 

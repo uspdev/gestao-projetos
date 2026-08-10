@@ -11,7 +11,8 @@ com segurança.
 
 - PHP 8.2 ou superior;
 - Composer;
-- Node.js e npm para compilar os ativos próprios;
+- Node.js e npm somente para usar o pipeline opcional do Laravel Mix durante o
+  desenvolvimento; a publicação padrão dos ativos é feita pelo Composer;
 - SQLite, MariaDB ou MySQL compatível com a configuração do Laravel;
 - credenciais da Senha Única e, quando necessário, acesso ao Replicado.
 
