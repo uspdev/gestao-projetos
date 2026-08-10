@@ -9,6 +9,9 @@
 .file-browser-scroll {
     max-height: 24rem;
     overflow-y: auto;
+}
+
+.file-browser-scroll.has-vertical-overflow {
     overscroll-behavior: contain;
 }
 

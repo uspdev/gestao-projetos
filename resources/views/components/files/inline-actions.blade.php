@@ -38,6 +38,16 @@
         var tabs = Array.prototype.slice.call(browser.querySelectorAll('[data-file-tab]'));
         var panels = Array.prototype.slice.call(browser.querySelectorAll('[data-file-tab-panel]'));
         var placeholder = browser.querySelector('[data-file-details-placeholder]');
+        var scrollRegion = browser.querySelector('[data-file-browser-scroll]');
+
+        function updateScrollContainment() {
+          if (!scrollRegion) return;
+
+          scrollRegion.classList.toggle(
+            'has-vertical-overflow',
+            scrollRegion.scrollHeight > scrollRegion.clientHeight
+          );
+        }
 
         function clearDetails() {
           browser.querySelectorAll('[data-file-details]').forEach(function (details) {
@@ -65,6 +75,7 @@
           });
 
           clearDetails();
+          window.requestAnimationFrame(updateScrollContainment);
         }
 
         function showDetails(detailsId, focusDetails) {
@@ -85,6 +96,21 @@
 
           if (placeholder) placeholder.hidden = true;
           if (focusDetails) details.focus();
+        }
+
+        if (scrollRegion) {
+          window.requestAnimationFrame(updateScrollContainment);
+
+          if ('ResizeObserver' in window) {
+            var scrollObserver = new window.ResizeObserver(updateScrollContainment);
+
+            scrollObserver.observe(scrollRegion);
+            panels.forEach(function (panel) {
+              scrollObserver.observe(panel);
+            });
+          } else {
+            window.addEventListener('resize', updateScrollContainment);
+          }
         }
 
         tabs.forEach(function (tab, index) {

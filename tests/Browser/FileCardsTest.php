@@ -73,7 +73,37 @@ class FileCardsTest extends DuskTestCase
                 ->waitFor('[data-file-action] .dropdown-menu.show')
                 ->click('[data-file-action] .dropdown-menu.show [data-file-rename-toggle]')
                 ->assertVisible('[data-file-rename-form]:not([hidden])')
-                ->assertVisible('[data-file-rename-form]:not([hidden]) button[type="submit"]');
+                ->assertVisible('[data-file-rename-form]:not([hidden]) button[type="submit"]')
+                ->script(<<<'JS'
+                    document.querySelector('[data-file-browser-scroll]').style.maxHeight = 'none';
+                JS);
+
+            $browser
+                ->waitUntil(<<<'JS'
+                    const region = document.querySelector('[data-file-browser-scroll]');
+
+                    return region.scrollHeight <= region.clientHeight
+                        && !region.classList.contains('has-vertical-overflow');
+                JS)
+                ->assertScript(
+                    "getComputedStyle(document.querySelector('[data-file-browser-scroll]')).overscrollBehaviorY",
+                    'auto',
+                )
+                ->script(<<<'JS'
+                    document.querySelector('[data-file-browser-scroll]').style.maxHeight = '1px';
+                JS);
+
+            $browser
+                ->waitUntil(<<<'JS'
+                    const region = document.querySelector('[data-file-browser-scroll]');
+
+                    return region.scrollHeight > region.clientHeight
+                        && region.classList.contains('has-vertical-overflow');
+                JS)
+                ->assertScript(
+                    "getComputedStyle(document.querySelector('[data-file-browser-scroll]')).overscrollBehaviorY",
+                    'contain',
+                );
         });
     }
 }
