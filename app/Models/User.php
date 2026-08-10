@@ -133,6 +133,14 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /**
+     * Preferências de acompanhamento ativadas pelo usuário.
+     */
+    public function watches(): HasMany
+    {
+        return $this->hasMany(Watch::class);
+    }
+
     public function incomingMentions(): HasMany
     {
         return $this->hasMany(Mention::class, 'target_id')

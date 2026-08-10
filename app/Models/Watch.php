@@ -6,11 +6,20 @@ use App\Contracts\Watchable;
 use App\Jobs\SendWatchDigest;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class Watch extends Model
 {
+    /**
+     * Recurso ao qual esta preferência de acompanhamento pertence.
+     */
+    public function watchable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
     public static function enableFor(int $userId, Watchable&EloquentModel $watchable): void
     {
         static::enableForUsers([$userId], $watchable);

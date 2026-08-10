@@ -149,6 +149,75 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
         ]);
     }
 
+    public function test_personal_dashboard_lists_only_accessible_watched_resources(): void
+    {
+        $now = now();
+
+        DB::table('tasks')->insert([
+            'id' => 10,
+            'project_id' => 1,
+            'title' => 'Tarefa acompanhada na dashboard',
+            'status' => 'NEW',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        DB::table('projects')->insert([
+            'id' => 2,
+            'name' => 'Projeto acompanhado sem acesso',
+            'slug' => 'projeto-sem-acesso',
+            'status' => 'ACTIVE',
+            'permission_inheritance' => 'NONE',
+            'project_type_id' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        DB::table('watches')->insert([
+            [
+                'user_id' => 2,
+                'watchable_type' => 'project',
+                'watchable_id' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'user_id' => 2,
+                'watchable_type' => 'task',
+                'watchable_id' => 10,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'user_id' => 2,
+                'watchable_type' => 'meeting',
+                'watchable_id' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'user_id' => 2,
+                'watchable_type' => 'project',
+                'watchable_id' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $this->get(route('users.show', 2))
+            ->assertOk()
+            ->assertSee('Acompanhamentos')
+            ->assertSeeInOrder(['Minhas Tarefas', 'Acompanhamentos', 'Reuniões'])
+            ->assertSee('watch-dashboard-list', false)
+            ->assertSee('Projeto teste')
+            ->assertSee('Tarefa acompanhada na dashboard')
+            ->assertSee('Reunião teste')
+            ->assertSee('/watches/project/1', false)
+            ->assertSee('/watches/task/10', false)
+            ->assertSee('/watches/meeting/1', false)
+            ->assertDontSee('Projeto acompanhado sem acesso');
+    }
+
     public function test_meeting_markdown_consumers_share_safe_rendering_while_records_remain_plain_text(): void
     {
         $markdown = '**Seguro** [Projeto](https://example.test) <script>alert(1)</script>';

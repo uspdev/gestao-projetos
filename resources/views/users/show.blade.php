@@ -7,6 +7,7 @@
     <div class="row">
       <div class="col-md-9 border-right">
         @include('module-tasks.partials.user-dashboard')
+        @include('watches.partials.user-dashboard')
       </div>
       <div class="col-md-3">
         @include('module-meetings.partials.user-dashboard')

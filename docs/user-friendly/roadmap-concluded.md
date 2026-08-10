@@ -53,9 +53,11 @@ contexto em que o trabalho acontece, em vez de criar relatos paralelos.
 
 A página inicial autenticada funciona como dashboard individual. Ela reúne os
 projetos fixados pelo usuário, as reuniões agendadas dos projetos acessíveis e
-as tarefas atribuídas a ele. As tarefas podem ser exibidas em Kanban ou cartões,
-pesquisadas e filtradas para mostrar ou ocultar itens concluídos; as preferências
-de visualização são mantidas na sessão.
+as tarefas atribuídas a ele. A dashboard também lista os Projetos, as Tarefas e
+as Reuniões acompanhados, com navegação direta e a opção de desativar cada
+acompanhamento. As tarefas podem ser exibidas em Kanban ou cartões, pesquisadas
+e filtradas para mostrar ou ocultar itens concluídos; as preferências de
+visualização são mantidas na sessão.
 
 O backend carrega somente tarefas de projetos com o módulo correspondente ativo
 e seleciona reuniões de acordo com o acesso do usuário. Ainda não existe um

@@ -47,6 +47,17 @@ Antes do envio, a aplicação confirma que a pessoa ainda acompanha cada recurso
 e ainda pode visualizá-lo. Itens que não atendem a essas condições são
 descartados e não aparecem no resumo.
 
+## Consultar e gerenciar acompanhamentos
+
+A seção **Acompanhamentos** da dashboard pessoal lista os Projetos, as Tarefas
+e as Reuniões que a pessoa acompanha. Cada item oferece um link direto para o
+recurso e um botão para deixar de acompanhá-lo. Recursos que a pessoa não pode
+mais visualizar não são exibidos.
+
+Deixar de acompanhar um item desativa suas notificações e remove as atividades
+pendentes relacionadas a ele. Essa ação não altera membros, responsáveis nem as
+permissões do recurso.
+
 O processamento separa os envios imediatos dos eventos agrupados em resumo:
 
 ```mermaid
