@@ -209,6 +209,12 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
     {
         return $user->isViewerOfProject($this);
     }
+
+    public function watchCanReceiveNotifications(): bool
+    {
+        return true;
+    }
+
     public function parentProjectId(): ?int
     {
         return $this->parent_id ?: $this->getKey();

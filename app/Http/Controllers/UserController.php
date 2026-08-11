@@ -97,7 +97,9 @@ class UserController extends Controller
             ->map(function (Watch $watch) use ($user): ?array {
                 $resource = $watch->watchable;
 
-                if (! $resource instanceof Watchable || ! $resource->watchCanBeViewedBy($user)) {
+                if (! $resource instanceof Watchable
+                    || ! $resource->watchCanReceiveNotifications()
+                    || ! $resource->watchCanBeViewedBy($user)) {
                     return null;
                 }
 

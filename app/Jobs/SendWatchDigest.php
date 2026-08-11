@@ -69,6 +69,7 @@ class SendWatchDigest implements ShouldQueue
 
                 // Verifica se o usuário ainda pode ver o conteúdo assistido e se ele ainda está assistindo.
                 return $watchable
+                    && $watchable->watchCanReceiveNotifications()
                     && $watchable->watchCanBeViewedBy($user)
                     && Watch::query()
                     ->where('user_id', $user->id)

@@ -100,6 +100,12 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
             && $this->project->isModuleEnabled('tasks')
             && $user->isViewerOfProject($this->project);
     }
+
+    public function watchCanReceiveNotifications(): bool
+    {
+        return $this->status !== TaskStatus::DONE;
+    }
+
     /**
      * Relacionamento com meeting items via morph (Task pode ser um meeting item)
      */

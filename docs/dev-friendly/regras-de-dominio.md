@@ -142,8 +142,11 @@ Projetos em atalho para acesso a Arquivos.
 O acompanhamento é opt-in para Projeto, Tarefa e Reunião. Eventos criam
 pendências por destinatário após a transação; toda nova atividade do
 destinatário adia o resumo conforme `projetos.watching.digest_minutes`. Antes
-de enviar, `SendWatchDigest` confirma novamente acompanhamento e visualização.
-O autor da ação não recebe o próprio evento.
+de enviar, `SendWatchDigest` confirma novamente acompanhamento, visualização
+e elegibilidade pelo estado. Tarefas `DONE` e Reuniões `COMPLETED` não aparecem
+na dashboard nem geram notificações; pendências anteriores são descartadas. A
+preferência permanece gravada e volta a valer se o recurso for reaberto. O autor
+da ação não recebe o próprio evento.
 
 A auditoria registra alterações de modelos e relações relevantes, além de
 operações de Arquivos. A Transcrição não é copiada para `activity_log`: apenas

@@ -29,7 +29,7 @@ Inclui:
 - registrar atividades pendentes por destinatário;
 - agrupar atividades em um resumo assíncrono por e-mail;
 - enviar alterações de Reunião imediatamente pela fila;
-- revalidar acesso e preferência antes do envio;
+- revalidar acesso, preferência e elegibilidade pelo estado antes do envio;
 - oferecer pontos de extensão para novos recursos e eventos.
 
 Ficam fora do escopo inicial notificações instantâneas além das alterações de
@@ -97,13 +97,19 @@ Todo recurso elegível implementa `App\Contracts\Watchable`:
 public function watchLabel(): string;
 public function watchUrl(): ?string;
 public function watchCanBeViewedBy(User $user): bool;
+public function watchCanReceiveNotifications(): bool;
 ```
 
-| Recurso | Rótulo | URL | Regra de visualização |
-| --- | --- | --- | --- |
-| `Project` | `name` | `projects.show` | A pessoa é visualizadora do Projeto. |
-| `Task` | `title` | `tasks.show` | O módulo de Tarefas está ativo e a pessoa vê o Projeto da Tarefa. |
-| `Meeting` | `title` | `projects.meetings.show` para um Projeto vinculado | Existe Projeto vinculado, o módulo de Reuniões está ativo e a pessoa vê esse Projeto. |
+| Recurso | Rótulo | URL | Regra de visualização | Estado elegível |
+| --- | --- | --- | --- | --- |
+| `Project` | `name` | `projects.show` | A pessoa é visualizadora do Projeto. | Sempre. |
+| `Task` | `title` | `tasks.show` | O módulo de Tarefas está ativo e a pessoa vê o Projeto da Tarefa. | Status diferente de `DONE`. |
+| `Meeting` | `title` | `projects.meetings.show` para um Projeto vinculado | Existe Projeto vinculado, o módulo de Reuniões está ativo e a pessoa vê esse Projeto. | Status diferente de `COMPLETED`. |
+
+A conclusão pausa o acompanhamento sem apagar a preferência. O recurso deixa
+de aparecer na dashboard, não aceita novas notificações e tem pendências
+descartadas na revalidação do resumo. Se for reaberto, a preferência volta a
+valer.
 
 Ao introduzir outro tipo, ele deve implementar o contrato, receber um alias
 morfológico e ser incluído em um mapa específico de recursos acompanháveis.
@@ -120,10 +126,10 @@ aceitam Comentários.
 | `Watch` | `enableFor(int $userId, Watchable $watchable)` | Executa `upsert` idempotente em `watches`. |
 | `Watch` | `enableForUsers(iterable $userIds, Watchable $watchable)` | Executa um único `upsert` idempotente para os membros dos Projetos vinculados. |
 | `Watch` | `disableFor(int $userId, Watchable $watchable)` | Em transação, remove a preferência e as pendências daquele recurso; reagenda o resumo restante do destinatário. |
-| `PendingWatchNotification` | `addForWatchers(...)` | Localiza os acompanhantes do recurso, exceto quem realizou a ação, e cria uma pendência para cada um. |
+| `PendingWatchNotification` | `addForWatchers(...)` | Confirma a elegibilidade do recurso, localiza os acompanhantes, exceto quem realizou a ação, e cria uma pendência para cada um. |
 | `PendingWatchNotification` | `addForUser(...)` | Bloqueia o usuário, confirma que a preferência ainda existe, adia o resumo anterior e cria a nova pendência. |
-| `PendingWatchNotification` | `dispatchMeetingUpdateForWatchers(...)` | Localiza os acompanhantes da Reunião, exceto quem realizou a ação, e enfileira uma notificação individual sem criar pendência. |
-| `SendWatchDigest` | `handle()` | Processa somente o trabalho mais recente do destinatário, revalida acesso e preferência, envia o resumo válido e remove pendências processadas. |
+| `PendingWatchNotification` | `dispatchMeetingUpdateForWatchers(...)` | Confirma que a Reunião não está concluída, localiza os acompanhantes, exceto quem realizou a ação, e enfileira uma notificação individual sem criar pendência. |
+| `SendWatchDigest` | `handle()` | Processa somente o trabalho mais recente do destinatário, revalida acesso, preferência e estado elegível, envia o resumo válido e remove pendências processadas. |
 | `WatchDigest` | `build()` | Monta o assunto e a view `emails.watch.digest`. |
 | `MeetingWatchUpdate` | `build()` | Implementa `ShouldQueue` e monta o e-mail individual de agendamento ou atualização de Reunião. |
 | `TaskUser` | eventos `created` e `deleted` | Mantém a compatibilidade: vincular alguém a uma Tarefa ativa o acompanhamento; desvincular desativa-o. |
@@ -141,7 +147,6 @@ sejam estáveis para filtros futuros e auditoria.
 | Evento | Origem | Resumo esperado |
 | --- | --- | --- |
 | `comment.created` | criação de Comentário em Projeto, Tarefa ou Reunião | `Novo comentário.` com o texto em `details`. |
-| `task.completed` | transição de status da Tarefa para concluída | `Tarefa concluída.` |
 | `meeting.updated` | agendamento ou atualização de Reunião | `Reunião agendada.` ou `Reunião atualizada.`, enviada imediatamente pela fila e fora do resumo. |
 | `meeting.removed` | remoção de Reunião | `Reunião removida.`, sem URL. |
 | `subproject.linked` | vínculo de subprojeto | informa o Projeto pai. |
@@ -171,7 +176,7 @@ Atividade em recurso acompanhado
 
 Trabalho executado após send_after
   -> confirma que é a pendência mais recente do destinatário
-  -> revalida acesso ao recurso e existência do acompanhamento
+  -> revalida acesso, estado elegível e existência do acompanhamento
   -> envia WatchDigest apenas com itens válidos
   -> remove todas as pendências lidas do destinatário
 

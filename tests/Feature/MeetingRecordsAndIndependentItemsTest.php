@@ -153,14 +153,35 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
     {
         $now = now();
 
+        DB::table('meetings')->where('id', 1)->update(['status' => 'SCHEDULED']);
         DB::table('tasks')->insert([
-            'id' => 10,
-            'project_id' => 1,
-            'title' => 'Tarefa acompanhada na dashboard',
-            'status' => 'NEW',
+            [
+                'id' => 10,
+                'project_id' => 1,
+                'title' => 'Tarefa acompanhada na dashboard',
+                'status' => 'NEW',
+                'completed_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id' => 11,
+                'project_id' => 1,
+                'title' => 'Tarefa concluída fora dos acompanhamentos',
+                'status' => 'DONE',
+                'completed_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ]);
+        DB::table('meetings')->insert([
+            'id' => 2,
+            'title' => 'Reunião concluída fora dos acompanhamentos',
+            'status' => 'COMPLETED',
             'created_at' => $now,
             'updated_at' => $now,
         ]);
+        DB::table('meeting_projects')->insert(['meeting_id' => 2, 'project_id' => 1]);
         DB::table('projects')->insert([
             'id' => 2,
             'name' => 'Projeto acompanhado sem acesso',
@@ -195,6 +216,20 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ],
             [
                 'user_id' => 2,
+                'watchable_type' => 'task',
+                'watchable_id' => 11,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'user_id' => 2,
+                'watchable_type' => 'meeting',
+                'watchable_id' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'user_id' => 2,
                 'watchable_type' => 'project',
                 'watchable_id' => 2,
                 'created_at' => $now,
@@ -215,6 +250,10 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('/watches/project/1', false)
             ->assertSee('/watches/task/10', false)
             ->assertSee('/watches/meeting/1', false)
+            ->assertDontSee('Tarefa concluída fora dos acompanhamentos')
+            ->assertDontSee('Reunião concluída fora dos acompanhamentos')
+            ->assertDontSee('/watches/task/11', false)
+            ->assertDontSee('/watches/meeting/2', false)
             ->assertDontSee('Projeto acompanhado sem acesso');
     }
 

@@ -1,7 +1,8 @@
 @php
   $showLabel ??= false;
   $watchingAvailable = \Illuminate\Support\Facades\Schema::hasTable('watches');
-  $watchActive = $watchingAvailable && Auth::check() && \App\Models\Watch::query()
+  $watchingEnabled = $watchingAvailable && $watchable->watchCanReceiveNotifications();
+  $watchActive = $watchingEnabled && Auth::check() && \App\Models\Watch::query()
       ->where('user_id', Auth::id())
       ->where('watchable_type', $watchable->getMorphClass())
       ->where('watchable_id', $watchable->getKey())
@@ -11,7 +12,7 @@
   $watchStateLabel = $watchActive ? 'Notificações ativas' : 'Notificações inativas';
 @endphp
 
-@if ($watchingAvailable && Auth::check() && $watchable->watchCanBeViewedBy(Auth::user()))
+@if ($watchingEnabled && Auth::check() && $watchable->watchCanBeViewedBy(Auth::user()))
   <form
     method="POST"
     action="{{ $watchActive

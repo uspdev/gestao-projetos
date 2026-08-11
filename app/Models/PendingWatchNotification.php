@@ -50,6 +50,7 @@ class PendingWatchNotification extends Model
         if (
             ! Schema::hasTable('watches')
             || ! Schema::hasTable('pending_watch_notifications')
+            || ! $watchable->watchCanReceiveNotifications()
         ) {
             return;
         }
@@ -84,7 +85,7 @@ class PendingWatchNotification extends Model
         User $actor,
         string $summary,
     ): void {
-        if (! Schema::hasTable('watches')) {
+        if (! Schema::hasTable('watches') || ! $meeting->watchCanReceiveNotifications()) {
             return;
         }
 

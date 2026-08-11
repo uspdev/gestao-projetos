@@ -146,6 +146,11 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
         );
     }
 
+    public function watchCanReceiveNotifications(): bool
+    {
+        return $this->status !== MeetingStatus::COMPLETED;
+    }
+
     /**
      * Relacionamento com meeting items 1-N
      */

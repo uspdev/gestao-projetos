@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Task\TaskStatus;
-use App\Enums\Watch\WatchEventType;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\StoreTaskAssigneeRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
@@ -11,7 +10,6 @@ use App\Http\Requests\Task\UpdateTaskDescriptionRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
 use App\Mail\TaskAssigned;
 use App\Models\Project;
-use App\Models\PendingWatchNotification;
 use App\Models\Tag;
 use App\Models\Module;
 use App\Models\Task;
@@ -188,7 +186,6 @@ class TaskController extends Controller
     public function updateInfo(UpdateTaskRequest $request, Task $task)
     {
         $this->ensureTasksModuleEnabled($task->project);
-        $previousStatus = $task->status;
 
         DB::transaction(function () use ($task, $request) {
             $data = $request->only(['title', 'status', 'priority', 'start_date', 'due_date']);
@@ -203,8 +200,6 @@ class TaskController extends Controller
 
             $task->syncTagsByIds($request->tags ?? []);
         });
-
-        $this->notifyTaskCompleted($task, $previousStatus);
 
         if ($request->has('action')) {
             return redirect($request->action)
@@ -237,7 +232,6 @@ class TaskController extends Controller
     public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
     {
         $this->ensureTasksModuleEnabled($task->project);
-        $previousStatus = $task->status;
 
         DB::transaction(function () use ($task, $request) {
             $data = $request->validated();
@@ -251,8 +245,6 @@ class TaskController extends Controller
 
             $task->update($data);
         });
-
-        $this->notifyTaskCompleted($task, $previousStatus);
 
         return back()
             ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
@@ -339,24 +331,6 @@ class TaskController extends Controller
     private function ensureTasksModuleEnabled(Project $project): void
     {
         abort_unless(Module::isEnabledForProject($project, 'tasks'), 403);
-    }
-
-    private function notifyTaskCompleted(Task $task, TaskStatus $previousStatus): void
-    {
-        $actor = Auth::user();
-
-        if ($actor
-            && $previousStatus !== TaskStatus::DONE
-            && $task->status === TaskStatus::DONE) {
-            PendingWatchNotification::addForWatchers(
-                $task,
-                WatchEventType::TASK_COMPLETED,
-                $actor,
-                'Tarefa concluída.',
-                null,
-                $task->watchUrl(),
-            );
-        }
     }
 
     // Filtra as tarefas para retornar apenas aquelas cujo projeto tem o módulo de tarefas habilitado

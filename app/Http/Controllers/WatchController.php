@@ -32,6 +32,11 @@ class WatchController extends Controller
     ) {
         $watchable = $this->resolve($watchableType, $watchableId);
         $this->authorizeViewing($request->user(), $watchable);
+        abort_unless(
+            $watchable->watchCanReceiveNotifications(),
+            409,
+            'Recursos concluídos não podem receber notificações.',
+        );
 
         Watch::enableFor($request->user()->id, $watchable);
 

@@ -14,4 +14,7 @@ interface Watchable
 
     // Determina se um recurso observável pode ser visualizado por um usuário específico.
     public function watchCanBeViewedBy(User $user): bool;
+
+    // Determina se o estado atual do recurso permite exibi-lo e enviar notificações de acompanhamento.
+    public function watchCanReceiveNotifications(): bool;
 }

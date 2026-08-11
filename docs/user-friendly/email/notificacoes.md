@@ -10,7 +10,6 @@ como cada envio é processado.
 | Inclusão de membro em um Projeto | Pessoa incluída no Projeto | Imediato, pela fila | Após a inclusão ser concluída. Não é enviado se a própria pessoa realizou a inclusão. |
 | Atribuição de responsável a uma Tarefa | Pessoa atribuída à Tarefa | Imediato, pela fila | Após a atribuição ser concluída. Não é enviado se a pessoa já estava atribuída ou se realizou a própria atribuição. |
 | Criação de Comentário em Projeto, Tarefa ou Reunião acompanhada | Pessoas que acompanham o recurso | Resumo agrupado, pela fila | Entra no resumo como `Novo comentário.`, com o texto do Comentário. |
-| Conclusão de Tarefa acompanhada | Pessoas que acompanham a Tarefa | Resumo agrupado, pela fila | Entra no resumo quando o status muda para concluída. |
 | Agendamento ou atualização de Reunião acompanhada | Pessoas que acompanham a Reunião | Imediato, pela fila | Envia `Reunião agendada.` ou `Reunião atualizada.` sem aguardar nem alterar o resumo. Reuniões em rascunho não geram essa notificação. |
 | Remoção de Reunião acompanhada | Pessoas que acompanham a Reunião | Resumo agrupado, pela fila | Entra no resumo como `Reunião removida.`. Não contém link para a Reunião removida. Reuniões em rascunho não geram essa notificação. |
 | Vínculo de Subprojeto acompanhado | Pessoas que acompanham o Subprojeto | Resumo agrupado, pela fila | Entra no resumo informando o Projeto pai. |
@@ -44,15 +43,17 @@ O intervalo padrão é de cinco minutos, configurado em
 atividades ainda válidas.
 
 Antes do envio, a aplicação confirma que a pessoa ainda acompanha cada recurso
-e ainda pode visualizá-lo. Itens que não atendem a essas condições são
-descartados e não aparecem no resumo.
+e ainda pode visualizá-lo. Tarefas concluídas e Reuniões concluídas também são
+descartadas e não aparecem no resumo.
 
 ## Consultar e gerenciar acompanhamentos
 
 A seção **Acompanhamentos** da dashboard pessoal lista os Projetos, as Tarefas
 e as Reuniões que a pessoa acompanha. Cada item oferece um link direto para o
 recurso e um botão para deixar de acompanhá-lo. Recursos que a pessoa não pode
-mais visualizar não são exibidos.
+mais visualizar não são exibidos. Ao concluir uma Tarefa ou Reunião, ela deixa
+de aparecer nessa seção e deixa de gerar notificações. Se o recurso for
+reaberto, o acompanhamento volta a valer.
 
 Deixar de acompanhar um item desativa suas notificações e remove as atividades
 pendentes relacionadas a ele. Essa ação não altera membros, responsáveis nem as
@@ -72,12 +73,12 @@ flowchart TD
     imediatoReuniao --> revalidarReuniao["Revalidar acompanhamento e permissão de visualização"]
     revalidarReuniao --> envio
 
-    tipo -->|"Comentário, Tarefa concluída ou vínculo de Subprojeto"| acompanhamento["Localizar pessoas que acompanham Projeto (área de Resumos), Tarefa ou Reunião"]
+    tipo -->|"Comentário ou vínculo de Subprojeto"| acompanhamento["Localizar pessoas que acompanham Projeto (área de Resumos), Tarefa ou Reunião"]
     acompanhamento --> excluirAutor["Excluir quem realizou a ação"]
     excluirAutor --> pendencia["Criar uma pendência por destinatário"]
     pendencia --> adiar["Adiar o resumo do destinatário"]
     adiar --> prazo["Prazo de cinco minutos ou configuração equivalente"]
-    prazo --> revalidar["Revalidar acompanhamento e permissão de visualização"]
+    prazo --> revalidar["Revalidar acompanhamento, estado e permissão de visualização"]
     revalidar --> valido{"Pendência ainda é válida?"}
     valido -->|"Sim"| resumo["Enviar um resumo agrupado"]
     valido -->|"Não"| descartar["Descartar a pendência"]

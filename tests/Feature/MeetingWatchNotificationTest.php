@@ -74,6 +74,39 @@ class MeetingWatchNotificationTest extends TestCase
         });
     }
 
+    public function test_completed_meeting_updates_do_not_queue_notifications(): void
+    {
+        $now = now();
+        DB::table('users')->insert([
+            ['id' => 1, 'name' => 'Autor', 'email' => 'autor@example.test', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'name' => 'Acompanhante', 'email' => 'acompanhante@example.test', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('meetings')->insert([
+            'id' => 1,
+            'title' => 'Reunião concluída',
+            'status' => 'COMPLETED',
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        DB::table('watches')->insert([
+            'user_id' => 2,
+            'watchable_type' => 'meeting',
+            'watchable_id' => 1,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        Mail::fake();
+
+        PendingWatchNotification::dispatchMeetingUpdateForWatchers(
+            Meeting::query()->findOrFail(1),
+            User::query()->findOrFail(1),
+            'Reunião atualizada.',
+        );
+
+        Mail::assertNothingQueued();
+    }
+
     private function createSchema(): void
     {
         Schema::create('users', function (Blueprint $table) {

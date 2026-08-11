@@ -32,7 +32,7 @@ class Watch extends Model
      */
     public static function enableForUsers(iterable $userIds, Watchable&EloquentModel $watchable): void
     {
-        if (! Schema::hasTable('watches')) {
+        if (! Schema::hasTable('watches') || ! $watchable->watchCanReceiveNotifications()) {
             return;
         }
 
