@@ -1,9 +1,9 @@
-const {
+import {
     handleMentionKeydown,
     loadMentionSelector,
-} = require("./mentions");
-const { OfficialPreview } = require("./official-preview");
-const { toolbarFor } = require("./toolbar");
+} from "./mentions.js";
+import { OfficialPreview } from "./official-preview.js";
+import { toolbarFor } from "./toolbar.js";
 
 // WeakMap evita manter referências de textareas removidos do DOM.
 const editors = new WeakMap();
@@ -115,7 +115,7 @@ function getEditorEntry(textarea) {
     return editors.get(textarea);
 }
 
-module.exports = {
+export {
     getEditorEntry,
     initializeMarkdownEditors,
     refreshEditors,

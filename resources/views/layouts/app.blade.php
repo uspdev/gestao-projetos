@@ -28,7 +28,8 @@
     integrity="sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L"
     crossorigin="anonymous">
   @stack('styles')
-  <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/markdown.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/files.css') }}">
   <style>
     html {
       scroll-behavior: smooth;
@@ -109,7 +110,7 @@
     window.fileDownloadUrlTemplate = @json($fileDownloadUrlTemplate);
     window.fileNavigationUrlTemplate = @json($fileNavigationUrlTemplate);
   </script>
-  <script src="{{ mix('js/app.js') }}"></script>
+  <script type="module" src="{{ asset('js/app.js') }}"></script>
   <script>
     // Seu código .js
   </script>

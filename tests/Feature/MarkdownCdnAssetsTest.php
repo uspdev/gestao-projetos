@@ -38,9 +38,15 @@ class MarkdownCdnAssetsTest extends TestCase
             $html
         );
 
-        $this->assertLessThan(strpos($html, asset('css/app.css')), strpos($html, self::EASYMDE_CSS));
-        $this->assertLessThan(strpos($html, asset('css/app.css')), strpos($html, self::HIGHLIGHT_CSS));
-        $this->assertLessThan(strpos($html, mix('js/app.js')), strpos($html, self::EASYMDE_JS));
-        $this->assertLessThan(strpos($html, mix('js/app.js')), strpos($html, self::HIGHLIGHT_JS));
+        $this->assertStringContainsString(
+            '<script type="module" src="'.asset('js/app.js').'"></script>',
+            $html,
+        );
+        $this->assertStringContainsString(asset('css/markdown.css'), $html);
+        $this->assertStringContainsString(asset('css/files.css'), $html);
+        $this->assertLessThan(strpos($html, asset('css/markdown.css')), strpos($html, self::EASYMDE_CSS));
+        $this->assertLessThan(strpos($html, asset('css/markdown.css')), strpos($html, self::HIGHLIGHT_CSS));
+        $this->assertLessThan(strpos($html, asset('js/app.js')), strpos($html, self::EASYMDE_JS));
+        $this->assertLessThan(strpos($html, asset('js/app.js')), strpos($html, self::HIGHLIGHT_JS));
     }
 }

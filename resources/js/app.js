@@ -1,3 +1,3 @@
-require("./form-validation");
-require("./file-actions");
-require("./markdown-editor");
+import "./form-validation.js";
+import "./file-actions.js";
+import "./markdown-editor.js";

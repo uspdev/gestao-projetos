@@ -1,8 +1,8 @@
-const {
+import {
     configureFileReference,
     currentPageAnchorUrl,
     referencedFileUuid,
-} = require("./file-reference-navigation");
+} from "./file-reference-navigation.js";
 
 /**
  * Aplica highlight.js aos blocos de código já renderizados no DOM.
@@ -44,4 +44,4 @@ function highlightMarkdown(root = document) {
     });
 }
 
-module.exports = { highlightCodeBlocks, highlightMarkdown };
+export { highlightCodeBlocks, highlightMarkdown };

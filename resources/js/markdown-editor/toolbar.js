@@ -100,4 +100,4 @@ function toolbarFor(profile, previewAction) {
     ];
 }
 
-module.exports = { toolbarFor };
+export { toolbarFor };

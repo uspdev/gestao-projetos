@@ -1,4 +1,4 @@
-const { csrfHeaders } = require("./http");
+import { csrfHeaders } from "./http.js";
 
 function fileDownloadUrl(uuid) {
     const template = window.fileDownloadUrlTemplate;
@@ -135,7 +135,7 @@ function configureFileReference(link, content, uuid) {
         });
 }
 
-module.exports = {
+export {
     configureFileReference,
     currentPageAnchorUrl,
     fileDownloadUrl,

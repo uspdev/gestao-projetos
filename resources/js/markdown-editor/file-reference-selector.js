@@ -1,4 +1,4 @@
-const { csrfHeaders } = require("./http");
+import { csrfHeaders } from "./http.js";
 
 /**
  * Fecha o seletor usando o modal do Bootstrap, quando disponível,
@@ -249,4 +249,4 @@ function openFileReferenceSelector(textarea, editor) {
         });
 }
 
-module.exports = { openFileReferenceSelector };
+export { openFileReferenceSelector };

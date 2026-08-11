@@ -1,17 +1,17 @@
-const {
+import {
     getEditorEntry,
     initializeMarkdownEditors,
     refreshEditors,
-} = require("./markdown-editor/editor-registry");
-const {
+} from "./markdown-editor/editor-registry.js";
+import {
     loadMentionSelector,
     mentionRange,
-} = require("./markdown-editor/mentions");
-const {
+} from "./markdown-editor/mentions.js";
+import {
     openFileReferenceSelector,
-} = require("./markdown-editor/file-reference-selector");
-const { highlightMarkdown } = require("./markdown-editor/markdown-renderer");
-const { toolbarFor } = require("./markdown-editor/toolbar");
+} from "./markdown-editor/file-reference-selector.js";
+import { highlightMarkdown } from "./markdown-editor/markdown-renderer.js";
+import { toolbarFor } from "./markdown-editor/toolbar.js";
 
 /**
  * Inicializa os editores existentes e registra integrações globais.
@@ -75,8 +75,7 @@ if (document.readyState === "loading") {
     startMarkdownEditors();
 }
 
-// Mantém a API CommonJS já consumida pelo projeto.
-module.exports = {
+export {
     initializeMarkdownEditors,
     toolbarFor,
 };

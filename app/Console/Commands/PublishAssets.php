@@ -8,7 +8,7 @@ use RuntimeException;
 
 class PublishAssets extends Command
 {
-    protected $signature = 'assets:publish';
+    protected $signature = 'projetos:assets-publish';
 
     protected $description = 'Publica os JavaScripts e estilos próprios sem depender de npm';
 
@@ -23,7 +23,7 @@ class PublishAssets extends Command
         }
 
         $this->info(sprintf(
-            'Ativos publicados: %d arquivos de origem, app.js, app.css e mix-manifest.json.',
+            'Ativos publicados: %d arquivos copiados para public/js e public/css.',
             $result['files'],
         ));
 

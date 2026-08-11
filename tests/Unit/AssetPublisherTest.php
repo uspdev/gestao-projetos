@@ -29,70 +29,60 @@ class AssetPublisherTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_it_copies_sources_and_builds_browser_entries_without_npm(): void
+    public function test_it_copies_javascript_and_css_without_transforming_the_sources(): void
     {
         $resourcesPath = $this->temporaryPath.'/resources';
         $publicPath = $this->temporaryPath.'/public';
+        $javascript = "import { feature } from './nested/feature.js';\nwindow.result = feature;\n";
+        $feature = "export const feature = 'publicado';\n";
+        $css = ".app { color: blue; }\n";
 
-        $this->write($resourcesPath.'/js/app.js', "const feature = require('./feature');\nwindow.result = feature;\n");
-        $this->write($resourcesPath.'/js/feature.js', "module.exports = require('./nested/value');\n");
-        $this->write($resourcesPath.'/js/nested/value.js', "module.exports = 'publicado';\n");
-        $this->write($resourcesPath.'/js/standalone.js', "window.standalone = true;\n");
-        $this->write($resourcesPath.'/css/app.css', "@import \"./base.css\";\n.app { color: blue; }\n");
-        $this->write($resourcesPath.'/css/base.css', ".base { color: red; }\n");
+        $this->write($resourcesPath.'/js/app.js', $javascript);
+        $this->write($resourcesPath.'/js/nested/feature.js', $feature);
+        $this->write($resourcesPath.'/css/app.css', $css);
 
         $result = (new AssetPublisher($this->files))->publish($resourcesPath, $publicPath);
 
-        self::assertSame(6, $result['files']);
-        self::assertSame(
-            "window.standalone = true;\n",
-            $this->files->get($publicPath.'/js/standalone.js'),
-        );
-        self::assertSame(
-            "module.exports = 'publicado';\n",
-            $this->files->get($publicPath.'/js/nested/value.js'),
-        );
-
-        $javascript = $this->files->get($publicPath.'/js/app.js');
-        self::assertStringContainsString('"feature.js": function', $javascript);
-        self::assertStringContainsString('"nested/value.js": function', $javascript);
-        self::assertStringContainsString('require("feature.js")', $javascript);
-        self::assertStringNotContainsString("require('./feature')", $javascript);
-
-        $css = $this->files->get($publicPath.'/css/app.css');
-        self::assertStringContainsString('.base { color: red; }', $css);
-        self::assertStringContainsString('.app { color: blue; }', $css);
-        self::assertStringNotContainsString('@import', $css);
-
-        $manifest = json_decode(
-            $this->files->get($publicPath.'/mix-manifest.json'),
-            true,
-            flags: JSON_THROW_ON_ERROR,
-        );
-
-        self::assertSame(
-            '/js/app.js?id='.md5_file($publicPath.'/js/app.js'),
-            $manifest['/js/app.js'],
-        );
-        self::assertSame(
-            '/css/app.css?id='.md5_file($publicPath.'/css/app.css'),
-            $manifest['/css/app.css'],
-        );
+        self::assertSame(['files' => 3], $result);
+        self::assertSame($javascript, $this->files->get($publicPath.'/js/app.js'));
+        self::assertSame($feature, $this->files->get($publicPath.'/js/nested/feature.js'));
+        self::assertSame($css, $this->files->get($publicPath.'/css/app.css'));
+        self::assertFileDoesNotExist($publicPath.'/mix-manifest.json');
     }
 
-    public function test_it_rejects_modules_outside_the_javascript_source_directory(): void
+    public function test_it_requires_both_asset_directories(): void
     {
         $resourcesPath = $this->temporaryPath.'/resources';
         $publicPath = $this->temporaryPath.'/public';
 
-        $this->write($resourcesPath.'/js/app.js', "require('../../outside');\n");
-        $this->write($resourcesPath.'/css/app.css', ".app { color: blue; }\n");
-        $this->write($this->temporaryPath.'/outside.js', "module.exports = {};\n");
+        $this->write($resourcesPath.'/js/app.js', "window.app = true;\n");
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('fora do diretório permitido');
+        $this->expectExceptionMessage('Diretório de ativos não encontrado');
 
-        (new AssetPublisher($this->files))->publish($resourcesPath, $publicPath);
+        try {
+            (new AssetPublisher($this->files))->publish($resourcesPath, $publicPath);
+        } finally {
+            self::assertDirectoryDoesNotExist($publicPath.'/js');
+        }
+    }
+
+    public function test_application_assets_do_not_depend_on_commonjs_or_css_imports(): void
+    {
+        foreach ($this->files->allFiles(__DIR__.'/../../resources/js') as $file) {
+            $source = $file->getContents();
+
+            self::assertDoesNotMatchRegularExpression('/\\brequire\\s*\\(/', $source, $file->getPathname());
+            self::assertStringNotContainsString('module.exports', $source, $file->getPathname());
+        }
+
+        foreach ($this->files->allFiles(__DIR__.'/../../resources/css') as $file) {
+            self::assertDoesNotMatchRegularExpression(
+                '/^\\s*@import\\b/m',
+                $file->getContents(),
+                $file->getPathname(),
+            );
+        }
     }
 
     public function test_composer_publishes_assets_after_refreshing_the_package_assets(): void
@@ -106,7 +96,7 @@ class AssetPublisherTest extends TestCase
         $scripts = $composer['scripts']['post-autoload-dump'];
 
         self::assertSame(
-            '@php artisan assets:publish --ansi',
+            '@php artisan projetos:assets-publish --ansi',
             $scripts[array_key_last($scripts)],
         );
     }

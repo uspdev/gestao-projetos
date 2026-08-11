@@ -7,7 +7,7 @@
 **Status:** ready-for-agent
 
 - [ ] Carregar globalmente EasyMDE 2.20.0 e o bundle comum do `highlight.js` 11.11.1 pelo jsDelivr, antes dos ativos próprios, com versões fixas, SRI SHA-384 e `crossorigin="anonymous"`.
-- [ ] Remover EasyMDE e `highlight.js` das dependências npm; preservar Laravel Mix, Webpack e PostCSS apenas para compilar os JavaScripts e estilos próprios mantidos em `resources/`.
+- [ ] Remover EasyMDE e `highlight.js` das dependências npm; publicar os JavaScripts e estilos próprios mantidos em `resources/` por cópia direta, usando recursos nativos do navegador sem Laravel Mix, Webpack ou PostCSS.
 - [ ] Remover Lodash e seu carregamento por `bootstrap.js`, sem substituição por CDN, pois não existe consumidor na aplicação.
 - [ ] Manter o `textarea`, o salvamento e as funções locais disponíveis quando EasyMDE ou `highlight.js` não carregarem, sem fallback local, npm ou por outro CDN.
 - [ ] Criar inicialização reutilizável por atributos de dados, capaz de conviver com formulários inline, modais, erros de validação e múltiplos editores na mesma página.

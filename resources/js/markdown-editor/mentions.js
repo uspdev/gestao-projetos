@@ -1,4 +1,4 @@
-const { csrfHeaders } = require("./http");
+import { csrfHeaders } from "./http.js";
 
 let activeMentionSelector = null;
 let activeMentionRequest = null;
@@ -608,7 +608,7 @@ function handleMentionKeydown(event, editor) {
     }
 }
 
-module.exports = {
+export {
     handleMentionKeydown,
     loadMentionSelector,
     mentionRange,

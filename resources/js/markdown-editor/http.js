@@ -17,4 +17,4 @@ function csrfHeaders() {
     return headers;
 }
 
-module.exports = { csrfHeaders };
+export { csrfHeaders };

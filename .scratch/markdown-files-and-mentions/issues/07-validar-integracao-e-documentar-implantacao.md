@@ -12,7 +12,7 @@
 - [ ] Validar Reunião multiprojeto com compartilhamento, audiência conjunta, revogação, mudança de pauta e exclusão lógica/restauração da origem.
 - [ ] Validar autocomplete → Menção → índice → perda de elegibilidade → reconstrução, sem qualquer notificação ou alteração de e-mail.
 - [ ] Executar testes de regressão para Ata e Transcrição como texto simples e para o conteúdo existente de Tipo de projeto.
-- [ ] Documentar disk privado, variáveis de ambiente, limite de 100 MB, ajustes de PHP/proxy e tempo da requisição síncrona, GD, processador de fila para e-mails, publicação dos ativos próprios compilados e acesso do navegador ao jsDelivr.
+- [ ] Documentar disk privado, variáveis de ambiente, limite de 100 MB, ajustes de PHP/proxy e tempo da requisição síncrona, GD, processador de fila para e-mails, publicação dos ativos próprios por cópia direta e acesso do navegador ao jsDelivr.
 - [ ] Documentar a ordem de implantação: cópia de segurança e validação → dependências/ativos → migrações/configuração → processador de fila → código → conversão legada → verificações funcionais.
 - [ ] Documentar plano de verificação e recuperação sem sugerir reversão destrutiva de migrações que já contenham Arquivos, compartilhamentos ou Menções.
 - [ ] Verificar em homologação upload próximo de 100 MB, cabeçalhos de download, armazenamento não público, geração síncrona de miniaturas e erro visível quando o processamento falhar.

@@ -1,5 +1,5 @@
-const { csrfHeaders } = require("./http");
-const { highlightCodeBlocks } = require("./markdown-renderer");
+import { csrfHeaders } from "./http.js";
+import { highlightCodeBlocks } from "./markdown-renderer.js";
 
 const DEBOUNCE_MS = 500;
 
@@ -114,4 +114,4 @@ class OfficialPreview {
     }
 }
 
-module.exports = { OfficialPreview };
+export { OfficialPreview };
