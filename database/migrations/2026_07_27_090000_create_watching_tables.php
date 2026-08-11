@@ -53,7 +53,7 @@ return new class extends Migration
             $table->text('details')->nullable();
             $table->text('url')->nullable();
             $table->timestamp('occurred_at');
-            $table->timestamp('send_after');
+            $table->timestamp('send_after')->nullable();
             $table->timestamps();
             $table->index(['user_id', 'send_after'], 'pending_watch_user_send_index');
             $table->index(
