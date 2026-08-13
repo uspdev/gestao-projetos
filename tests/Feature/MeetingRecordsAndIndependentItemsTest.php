@@ -120,6 +120,39 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
     }
 
+    public function test_completed_meeting_duplication_modal_is_not_nested_in_another_modal_on_index(): void
+    {
+        DB::table('meetings')->insert([
+            'id' => 2,
+            'title' => 'Reunião agendada',
+            'status' => 'SCHEDULED',
+            'scheduled_at' => now()->addDay(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('meeting_projects')->insert(['meeting_id' => 2, 'project_id' => 1]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $html = $this->get('/projects/projeto-teste/meetings?show_completed=1')
+            ->assertOk()
+            ->getContent();
+
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $this->assertCount(1, $xpath->query('//*[@id="duplicate-meeting-modal-1"]'));
+        $this->assertCount(1, $xpath->query('//*[@id="duplicate-meeting-modal-2"]'));
+
+        $nestedCompletedModal = $xpath->query(
+            '//*[@id="duplicate-meeting-modal-1"]'
+            . '/ancestor::*[@id="duplicate-meeting-modal-2"]'
+        );
+
+        $this->assertCount(0, $nestedCompletedModal);
+    }
+
     public function test_project_members_start_watching_a_new_meeting(): void
     {
         $this->actingAs(User::findOrFail(1));

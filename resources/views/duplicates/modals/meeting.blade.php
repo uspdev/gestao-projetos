@@ -71,13 +71,14 @@
               @endforelse
             </div>
           </div>
+        </div>
 
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-copy mr-1" aria-hidden="true"></i> Duplicar reunião
-            </button>
-          </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-copy mr-1" aria-hidden="true"></i> Duplicar reunião
+          </button>
+        </div>
       </form>
     </div>
   </div>
