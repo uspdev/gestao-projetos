@@ -120,6 +120,26 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
     }
 
+    public function test_meeting_page_displays_status_next_to_the_meeting_title(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+
+        $html = $this->get('/projects/projeto-teste/meetings/1')
+            ->assertOk()
+            ->getContent();
+
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $titleAndStatus = $xpath->query(
+            '//*[contains(concat(" ", normalize-space(@class), " "), " d-inline-flex ")]'
+            . '[./b[normalize-space()="Reunião teste"] and .//*[@id="meeting-status-dropdown-1"]]'
+        );
+
+        $this->assertCount(1, $titleAndStatus);
+    }
+
     public function test_completed_meeting_duplication_modal_is_not_nested_in_another_modal_on_index(): void
     {
         DB::table('meetings')->insert([

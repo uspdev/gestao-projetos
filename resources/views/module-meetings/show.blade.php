@@ -13,7 +13,11 @@
     </a>
   </div>
 
-  <x-separator /> <b>{{ $meeting->title }}</b>
+  <x-separator />
+  <span class="d-inline-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+    <b>{{ $meeting->title }}</b>
+    @include('module-meetings.partials.status-badge')
+  </span>
 @endsection
 
 @section('meeting-content')
