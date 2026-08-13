@@ -137,6 +137,134 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
         $this->assertStringNotContainsString('com quebra', $transcriptionPreview->textContent);
     }
 
+    public function test_meeting_export_includes_the_complete_current_structure(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'scheduled_at' => '2026-08-13 14:30:00',
+            'location' => 'Sala do Conselho',
+            'notes' => "Contexto prévio\ncom detalhes",
+            'ata' => "Decisão aprovada\nPróximo passo definido",
+            'transcription' => "Pessoa A: proposta\nPessoa B: concordo",
+        ]);
+        DB::table('projects')->insert([
+            'id' => 2,
+            'name' => 'Projeto adicional',
+            'slug' => 'projeto-adicional',
+            'status' => 'ACTIVE',
+            'permission_inheritance' => 'NONE',
+            'project_type_id' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('meeting_projects')->insert(['meeting_id' => 1, 'project_id' => 2]);
+        DB::table('meeting_items')->insert([
+            [
+                'id' => 1,
+                'meeting_id' => 1,
+                'discussable_type' => 'project',
+                'discussable_id' => 1,
+                'title' => null,
+                'order' => 1,
+                'notes' => 'Revisar entregas',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'meeting_id' => 1,
+                'discussable_type' => null,
+                'discussable_id' => null,
+                'title' => 'Assunto independente',
+                'order' => 2,
+                'notes' => "Primeira observação\nSegunda observação",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+        DB::table('comments')->insert([
+            [
+                'user_id' => 1,
+                'commentable_type' => 'meeting',
+                'commentable_id' => 1,
+                'text' => 'Comentário visível',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => 2,
+                'commentable_type' => 'meeting',
+                'commentable_id' => 1,
+                'text' => 'Comentário removido',
+                'is_active' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $response = $this->get('/projects/projeto-teste/meetings/1/export')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+
+        $expected = <<<'TXT'
+instruções para IA:
+Use somente as informações registradas abaixo e não invente dados ausentes.
+
+link direto: https://localhost/projects/projeto-teste/meetings/1
+nome da reunião: Reunião teste
+data e hora: 13/08/2026 14:30
+local: Sala do Conselho
+projetos vinculados: Projeto adicional, Projeto teste
+
+anotações prévias:
+Contexto prévio
+com detalhes
+
+itens de pauta:
+item 1: Projeto teste
+conteúdo: Revisar entregas
+item 2: Assunto independente
+conteúdo: Primeira observação
+Segunda observação
+
+ata:
+Decisão aprovada
+Próximo passo definido
+
+transcrição:
+Pessoa A: proposta
+Pessoa B: concordo
+
+comentários:
+Colaborador: Comentário visível
+TXT;
+
+        $this->assertSame($expected . PHP_EOL, $response->getContent());
+        $this->assertStringNotContainsString('Comentário removido', $response->getContent());
+    }
+
+    public function test_meeting_export_keeps_empty_sections(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'notes' => null,
+            'ata' => null,
+            'transcription' => null,
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $content = $this->get('/projects/projeto-teste/meetings/1/export')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString("data e hora:\n", $content);
+        $this->assertStringContainsString("local:\n", $content);
+        $this->assertStringContainsString("anotações prévias:\n\nitens de pauta:", $content);
+        $this->assertStringContainsString("ata:\n\ntranscrição:\n\ncomentários:\n", $content);
+    }
+
     public function test_meeting_record_editor_has_actions_before_a_limited_scrollable_textarea(): void
     {
         DB::table('meetings')->where('id', 1)->update([
