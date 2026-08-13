@@ -368,13 +368,47 @@ TXT;
 
         $this->assertCount(1, $meetingXPath->query(
             '//*[contains(concat(" ", normalize-space(@class), " "), " d-inline-flex ")]'
-            . '[./b[normalize-space()="Reunião teste"]]//a[@aria-label="Editar reunião"]'
+            . '[./b[normalize-space()="Reunião teste"]]//button[@aria-label="Editar reunião"]'
         ));
         $this->assertCount(0, $meetingXPath->query(
             '//div[contains(concat(" ", normalize-space(@class), " "), " card ")]'
             . '[./div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
-            . '//h6[normalize-space()="Informações da reunião"]]//a[@aria-label="Editar reunião"]'
+            . '//h6[normalize-space()="Informações da reunião"]]//button[@aria-label="Editar reunião"]'
         ));
+        $this->assertCount(1, $meetingXPath->query(
+            '//button[@aria-label="Editar reunião" and @data-target="#modalMeetingEdit"]'
+        ));
+        $this->assertCount(1, $meetingXPath->query(
+            '//*[@id="modalMeetingEdit"]//form//input[@name="_method" and @value="PUT"]'
+        ));
+        $this->assertCount(1, $meetingXPath->query(
+            '//*[@id="modalMeetingEdit"]//input[@name="title" and @value="Reunião teste"]'
+        ));
+        $this->assertFalse(app('router')->has('projects.meetings.edit'));
+        $this->get('/projects/projeto-teste/meetings/1/edit')->assertNotFound();
+    }
+
+    public function test_meeting_edit_modal_reopens_with_validation_errors(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+
+        $showRoute = '/projects/projeto-teste/meetings/1';
+
+        $this->from($showRoute)
+            ->put($showRoute, [
+                '_meeting_form' => 'edit',
+                'title' => 'x',
+                'status' => 'COMPLETED',
+                'projects' => [1],
+            ])
+            ->assertRedirect($showRoute)
+            ->assertSessionHasErrors('title');
+
+        $this->get($showRoute)
+            ->assertOk()
+            ->assertSee('id="modalMeetingEdit"', false)
+            ->assertSee('data-show-on-errors="1"', false)
+            ->assertSee("$('#modalMeetingEdit').modal('show')", false);
     }
 
     public function test_completed_meeting_duplication_modal_is_not_nested_in_another_modal_on_index(): void

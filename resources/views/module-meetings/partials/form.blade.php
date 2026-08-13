@@ -7,12 +7,16 @@
   $selectedProjects = $selectedProjects ?? old('projects', $meeting?->projects?->pluck('id')->all() ?? [$project->id]);
   $selectedProjects = collect($selectedProjects)->map(fn($id) => (int) $id)->all();
   $showNotesField = $showNotesField ?? true;
+  $modal = $modal ?? false;
 @endphp
 
 <form method="POST" action="{{ $action }}">
   @csrf
   @if ($method !== 'POST')
     @method($method)
+  @endif
+  @if ($modal)
+    <input type="hidden" name="_meeting_form" value="edit">
   @endif
 
   <div class="row">
@@ -115,7 +119,14 @@
     </script>
   @endpushOnce
 
-  <div class="d-flex justify-content-end">
-    <x-form.save-button class="btn btn-primary" />
-  </div>
+  @if ($modal)
+    <div class="modal-footer px-0 pb-0">
+      <x-form.cancel-button data-dismiss="modal" />
+      <x-form.save-button class="btn btn-primary" />
+    </div>
+  @else
+    <div class="d-flex justify-content-end">
+      <x-form.save-button class="btn btn-primary" />
+    </div>
+  @endif
 </form>

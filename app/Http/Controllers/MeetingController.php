@@ -33,7 +33,7 @@ class MeetingController extends Controller
             \UspTheme::activeUrl('meus-projetos');
 
             return $next($request);
-        })->only(['index', 'create', 'show', 'edit', 'export']);
+        })->only(['index', 'create', 'show', 'export']);
     }
 
     public function index(Request $request, Project $project)
@@ -114,6 +114,21 @@ class MeetingController extends Controller
         $meetingProjects = $agendaData['meetingProjects'];
 
         $meeting->setRelation('projects', $meetingProjects);
+        $availableProjects = collect();
+        $selectedProjects = [];
+
+        if (Gate::allows('update', [$meeting, $project])) {
+            $availableProjects = Project::availableForMeetings(Auth::user())
+                ->get()
+                ->values();
+
+            if ($availableProjects->where('id', $project->id)->isEmpty()) {
+                $availableProjects->prepend($project);
+            }
+
+            $selectedProjects = old('projects', $meetingProjects->pluck('id')->all());
+        }
+
         $files = $meeting->media()
             ->with('uploader')
             ->orderByDesc('created_at')
@@ -125,7 +140,15 @@ class MeetingController extends Controller
             ->get();
 
         return view('module-meetings.show', array_merge(
-            compact('project', 'meeting', 'meetingItems', 'files', 'sharedFiles'),
+            compact(
+                'project',
+                'meeting',
+                'meetingItems',
+                'files',
+                'sharedFiles',
+                'availableProjects',
+                'selectedProjects'
+            ),
             $agendaData
         ));
     }
@@ -162,40 +185,6 @@ class MeetingController extends Controller
             'Content-Type' => 'text/plain; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
-    }
-
-    public function edit(Project $project, Meeting $meeting)
-    {
-        Gate::authorize('update', [$meeting, $project]);
-
-        $meetingItems = $meeting->meetingItems()
-            ->with('discussable')
-            ->orderBy('order')
-            ->get();
-
-        $agendaData = $meeting->meetingItemFormData($meetingItems);
-        $meetingProjects = $agendaData['meetingProjects'];
-
-        $meeting->setRelation('projects', $meetingProjects);
-
-        $user = Auth::user();
-
-        $availableProjects = Project::availableForMeetings($user)
-            ->get()
-            ->values();
-
-        if ($availableProjects->where('id', $project->id)->isEmpty()) {
-            $availableProjects->prepend($project);
-        }
-        $selectedProjects = old('projects', $meeting->projects->pluck('id')->all());
-
-        return view('module-meetings.edit', array_merge(compact(
-            'project',
-            'meeting',
-            'availableProjects',
-            'selectedProjects',
-            'meetingItems'
-        ), $agendaData));
     }
 
     public function update(UpdateMeetingRequest $request, Project $project, Meeting $meeting)

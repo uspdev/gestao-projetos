@@ -21,6 +21,10 @@
   </span>
 @endsection
 
+@push('modals')
+  @include('module-meetings.partials.edit-modal')
+@endpush
+
 @section('meeting-content')
   <div data-file-reference-context-type="meeting" data-file-reference-context-id="{{ $meeting->id }}"
     data-file-reference-context-project-id="{{ $project->id }}">
