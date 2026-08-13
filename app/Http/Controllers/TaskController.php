@@ -94,13 +94,21 @@ class TaskController extends Controller
     {
         $this->ensureTasksModuleEnabled($project);
 
-        $task = DB::transaction(function () use ($project, $request, $mentionManager) {
+        [$task, $assignee] = DB::transaction(function () use ($project, $request, $mentionManager) {
             $data = $request->validated();
+            $assigneeId = $data['assignee_id'] ?? null;
+            unset($data['assignee_id']);
+
             $data['project_id'] = $project->id;
             $data['created_by'] = Auth::id();
             $data['status'] = $data['status'] ?? TaskStatus::ASSIGNED->value;
 
             $task = Task::create($data);
+            $assignee = $assigneeId ? User::query()->findOrFail($assigneeId) : null;
+
+            if ($assignee) {
+                $this->assignUser($task, $assignee);
+            }
 
             $mentionManager->validateAllMentions($task, 'description', $data['description'] ?? null);
             $mentionManager->synchronize($task, 'description', $data['description'] ?? null);
@@ -112,8 +120,12 @@ class TaskController extends Controller
                 $task->syncTagsWithType($tagsToSync, Tag::TYPE_TASK);
             }
 
-            return $task;
+            return [$task, $assignee];
         });
+
+        if ($assignee) {
+            $this->queueAssignmentNotification($task, $assignee);
+        }
 
         return redirect()->route('tasks.show', $task)
             ->with('alert-success', 'Tarefa criada com sucesso!');
@@ -263,27 +275,17 @@ class TaskController extends Controller
         $data = $request->validated();
 
         $user = User::query()->findOrFail($data['user_id']);
-        $alreadyAssigned = $task->users()->where('users.id', $user->id)->exists();
-
         if (!$user->isContributorOfProject($task->project)) {
             return redirect()->route('tasks.show', $task)
                 ->with('alert-danger', 'Somente colaboradores do projeto podem ser atribuídos à tarefa.');
         }
 
-        DB::transaction(function () use ($task, $user) {
-            $task->users()->syncWithoutDetaching([$user->id]);
-
-            if ($task->status === TaskStatus::NEW) {
-                $task->update([
-                    'status' => TaskStatus::ASSIGNED
-                ]);
-            }
+        $newlyAssigned = DB::transaction(function () use ($task, $user): bool {
+            return $this->assignUser($task, $user);
         });
 
-        $actor = Auth::user();
-        if (! $alreadyAssigned && $actor && $actor->id !== $user->id) {
-            $task->loadMissing('project');
-            Mail::to($user->email)->queue(new TaskAssigned($user, $actor, $task));
+        if ($newlyAssigned) {
+            $this->queueAssignmentNotification($task, $user);
         }
 
         return redirect()->route('tasks.show', $task)
@@ -331,6 +333,40 @@ class TaskController extends Controller
     private function ensureTasksModuleEnabled(Project $project): void
     {
         abort_unless(Module::isEnabledForProject($project, 'tasks'), 403);
+    }
+
+    /**
+     * Vincula um responsável e aplica a transição inicial de status da tarefa.
+     */
+    private function assignUser(Task $task, User $user): bool
+    {
+        $alreadyAssigned = $task->users()->where('users.id', $user->id)->exists();
+
+        $task->users()->syncWithoutDetaching([$user->id]);
+
+        if ($task->status === TaskStatus::NEW) {
+            $task->update([
+                'status' => TaskStatus::ASSIGNED,
+            ]);
+        }
+
+        return ! $alreadyAssigned;
+    }
+
+    /**
+     * Enfileira o envio de um e-mail de notificação para o usuário atribuído à tarefa.
+     * E-mail será enviado diretamente para fila de envio, sem tempo de digestão. 
+     */
+    private function queueAssignmentNotification(Task $task, User $user): void
+    {
+        $actor = Auth::user();
+
+        if (! $actor || $actor->id === $user->id) {
+            return;
+        }
+
+        $task->loadMissing('project');
+        Mail::to($user->email)->queue(new TaskAssigned($user, $actor, $task));
     }
 
     // Filtra as tarefas para retornar apenas aquelas cujo projeto tem o módulo de tarefas habilitado

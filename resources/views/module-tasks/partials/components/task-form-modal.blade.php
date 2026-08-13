@@ -2,6 +2,8 @@
   $modalId = $modalId ?? 'modalTaskForm';
   $selectableTaskTags = $availableTaskTags ?? \App\Models\Tag::forTasks();
   $selectedTags = collect(old('tags', []))->map(fn($id) => (int) $id)->all();
+  $selectableTaskAssignees = $availableTaskAssignees
+      ?? \App\Models\User::assignableToProject($project->id)->get(['users.id', 'users.name', 'users.email']);
   $createAction = $createAction ?? route('projects.tasks.store', $project);
   $hasOldCreate = $errors->any() && old('_method') === null && old('title') !== null;
   $hasOldEdit = $errors->any() && old('_method') === 'PATCH' && old('title') !== null;
@@ -95,6 +97,26 @@
           </div>
 
           <div class="row">
+            <div class="col-12" data-role="create-assignee-field">
+              <div class="form-group mb-3">
+                <label for="task-assignee-id">Responsável <span class="text-muted">(opcional)</span></label>
+                <select name="assignee_id" id="task-assignee-id"
+                  class="form-control @error('assignee_id') is-invalid @enderror">
+                  <option value="">Sem responsável</option>
+                  @foreach ($selectableTaskAssignees as $assignee)
+                    <option value="{{ $assignee->id }}" @selected((int) old('assignee_id') === (int) $assignee->id)>
+                      {{ $assignee->name }} ({{ $assignee->email }})
+                    </option>
+                  @endforeach
+                </select>
+                @error('assignee_id')
+                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
             <div class="col-md-6">
               <x-form.input type="date" name="start_date" label="Data de Início" value="{{ old('start_date') }}" />
             </div>
@@ -134,6 +156,8 @@
       var dueDateInput = form.querySelector('[name="due_date"]');
       var descriptionInput = null;
       var tagsSelect = form.querySelector('[name="tags[]"]');
+      var assigneeField = form.querySelector('[data-role="create-assignee-field"]');
+      var assigneeSelect = form.querySelector('[name="assignee_id"]');
       var modalTitle = modal.querySelector('[data-role="modal-title"]');
       var submitBtn = modal.querySelector('[data-role="submit-btn"]');
 
@@ -193,6 +217,12 @@
         if (taskIdInput) {
           taskIdInput.value = '';
         }
+        if (assigneeField) {
+          assigneeField.classList.remove('d-none');
+        }
+        if (assigneeSelect) {
+          assigneeSelect.disabled = false;
+        }
         if (modalTitle) {
           modalTitle.textContent = 'Nova Tarefa';
         }
@@ -227,6 +257,9 @@
         if (tagsSelect) {
           setMultiSelect(tagsSelect, []);
         }
+        if (assigneeSelect) {
+          setSelectValue(assigneeSelect, '');
+        }
       }
 
       function applyEditData(data) {
@@ -237,6 +270,12 @@
         }
         if (taskIdInput) {
           taskIdInput.value = data.taskId || '';
+        }
+        if (assigneeField) {
+          assigneeField.classList.add('d-none');
+        }
+        if (assigneeSelect) {
+          assigneeSelect.disabled = true;
         }
         if (titleInput && data.title !== undefined) {
           titleInput.value = data.title;

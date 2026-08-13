@@ -154,7 +154,22 @@ class User extends Authenticatable
         })->orderBy('name');
     }
 
+    /**
+     * Retorna usuários que podem ser atribuídos a uma task específica.
+     * Exclui usuários que já estão atribuídos à task.
+     */
     public function scopeSelectableToTask(Builder $query, int $taskId, int $projectId): Builder
+    {
+        return $query->assignableToProject($projectId)
+            ->whereDoesntHave('tasks', function ($q) use ($taskId) {
+                $q->where('tasks.id', $taskId);
+            });
+    }
+    /**
+     * Retorna usuários que podem ser atribuídos a uma task específica.
+     * Exclui usuários que já estão atribuídos à task.
+     */
+    public function scopeAssignableToProject(Builder $query, int $projectId): Builder
     {
         return $query->whereHas('projects', function ($q) use ($projectId) {
             $q->where('projects.id', $projectId);
@@ -163,9 +178,6 @@ class User extends Authenticatable
                 ProjectUserRole::CONTRIBUTOR->value,
             ]);
         })
-            ->whereDoesntHave('tasks', function ($q) use ($taskId) {
-                $q->where('tasks.id', $taskId);
-            })
             ->orderBy('name');
     }
 
