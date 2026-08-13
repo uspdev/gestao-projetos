@@ -333,6 +333,50 @@ TXT;
         $this->assertCount(1, $titleAndStatus);
     }
 
+    public function test_task_and_meeting_edit_actions_are_shown_next_to_the_title_instead_of_the_information_card(): void
+    {
+        DB::table('tasks')->insert([
+            'id' => 1,
+            'project_id' => 1,
+            'title' => 'Tarefa editável',
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('task_user')->insert(['task_id' => 1, 'user_id' => 1]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $taskDocument = new \DOMDocument();
+        @$taskDocument->loadHTML($this->get('/tasks/1')->assertOk()->getContent());
+        $taskXPath = new \DOMXPath($taskDocument);
+
+        $this->assertCount(1, $taskXPath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
+            . '[.//b[normalize-space()="Tarefa editável"]]//button[@aria-label="Editar tarefa"]'
+        ));
+        $this->assertCount(0, $taskXPath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " card ")]'
+            . '[./div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
+            . '//h6[normalize-space()="Informações"]]//button[@aria-label="Editar tarefa"]'
+        ));
+
+        $meetingDocument = new \DOMDocument();
+        @$meetingDocument->loadHTML($this->get('/projects/projeto-teste/meetings/1')->assertOk()->getContent());
+        $meetingXPath = new \DOMXPath($meetingDocument);
+
+        $this->assertCount(1, $meetingXPath->query(
+            '//*[contains(concat(" ", normalize-space(@class), " "), " d-inline-flex ")]'
+            . '[./b[normalize-space()="Reunião teste"]]//a[@aria-label="Editar reunião"]'
+        ));
+        $this->assertCount(0, $meetingXPath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " card ")]'
+            . '[./div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
+            . '//h6[normalize-space()="Informações da reunião"]]//a[@aria-label="Editar reunião"]'
+        ));
+    }
+
     public function test_completed_meeting_duplication_modal_is_not_nested_in_another_modal_on_index(): void
     {
         DB::table('meetings')->insert([

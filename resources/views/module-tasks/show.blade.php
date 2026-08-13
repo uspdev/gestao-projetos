@@ -8,6 +8,7 @@
     <x-separator />
     <b class="text-truncate" title="{{ $task->title }}">{{ $task->title }}</b>
     @include('module-tasks.partials.components.update-status')
+    @include('module-tasks.partials.buttons.edit-btn')
   </div>
 
   <div class="ml-auto flex-shrink-0">

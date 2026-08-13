@@ -5,7 +5,6 @@
     </h6>
 
     <div class="d-flex align-items-center">
-      @include('module-tasks.partials.buttons.edit-btn')
       @include('module-tasks.partials.buttons.delete-btn')
     </div>
   </div>
