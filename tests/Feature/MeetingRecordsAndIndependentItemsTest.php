@@ -98,7 +98,7 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
     public function test_meeting_page_separates_prior_notes_from_the_meeting_record(): void
     {
         DB::table('meetings')->where('id', 1)->update([
-            'ata' => 'Ata exibida',
+            'ata' => "Ata exibida\nDetalhes da ata",
             'transcription' => "Transcrição exibida\ncom quebra",
         ]);
 
@@ -114,10 +114,75 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('data-target="#meeting-transcription-display"', false)
             ->assertSee('aria-expanded="false"', false)
             ->assertSee('meeting-record-toggle-icon', false)
-            ->assertSee('class="collapse" id="meeting-ata-display"', false)
-            ->assertSee('class="collapse" id="meeting-transcription-display"', false)
-            ->assertDontSee('class="collapse show" id="meeting-ata-display"', false)
-            ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
+            ->assertSee('class="collapse mt-2" id="meeting-ata-display"', false)
+            ->assertSee('class="collapse mt-2" id="meeting-transcription-display"', false);
+
+        $html = $this->get('/projects/projeto-teste/meetings/1')->getContent();
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $ataPreview = $xpath->query(
+            '//*[@id="meeting-ata-label"]/ancestor::div[contains(@class, "border")][1]'
+            . '//button[contains(@class, "meeting-record-preview")]'
+        )->item(0);
+        $transcriptionPreview = $xpath->query(
+            '//*[@id="meeting-transcription-label"]/ancestor::div[contains(@class, "border")][1]'
+            . '//button[contains(@class, "meeting-record-preview")]'
+        )->item(0);
+
+        $this->assertSame('Ata exibida', trim($ataPreview->textContent));
+        $this->assertSame('Transcrição exibida', trim($transcriptionPreview->textContent));
+        $this->assertStringNotContainsString('Detalhes da ata', $ataPreview->textContent);
+        $this->assertStringNotContainsString('com quebra', $transcriptionPreview->textContent);
+    }
+
+    public function test_meeting_record_editor_has_actions_before_a_limited_scrollable_textarea(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'transcription' => "Primeira linha\n" . str_repeat('Conteúdo extenso ', 100),
+        ]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $response = $this->get('/projects/projeto-teste/meetings/1')
+            ->assertOk()
+            ->assertSee('.meeting-record-content,', false)
+            ->assertSee('max-height: 50vh', false)
+            ->assertSee('overflow-y: auto', false)
+            ->assertSee('class="btn btn-outline-primary btn-sm py-0 meeting-record-edit-toggle"', false)
+            ->assertSee('data-display-target="#meeting-transcription-display"', false)
+            ->assertSee("window.jQuery(display).collapse('hide')", false)
+            ->assertSee('.meeting-record-item.is-editing .meeting-record-toggle', false)
+            ->assertSee('.meeting-record-item.is-editing .meeting-record-preview', false)
+            ->assertSee("record.classList.toggle('is-editing'", false)
+            ->assertSee("record.classList.remove('is-editing')", false);
+        $html = $response->getContent();
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $editor = $xpath->query('//*[@id="meeting-transcription-edit"]')->item(0);
+        $textarea = $xpath->query('.//textarea[@id="meeting-transcription-textarea"]', $editor)->item(0);
+        $display = $xpath->query(
+            '//*[@id="meeting-transcription-display"]'
+            . '/*[contains(concat(" ", normalize-space(@class), " "), " meeting-record-content ")]'
+        )->item(0);
+
+        $this->assertNotNull($textarea);
+        $this->assertNotNull($display);
+        $this->assertStringContainsString('meeting-record-textarea', $textarea->getAttribute('class'));
+        $this->assertFalse($textarea->hasAttribute('data-autogrow-textarea'));
+        $this->assertCount(1, $xpath->query(
+            './/textarea[@id="meeting-transcription-textarea"]'
+            . '/preceding::button[@type="submit" and ancestor::*[@id="meeting-transcription-edit"]]',
+            $editor
+        ));
+        $this->assertCount(1, $xpath->query(
+            './/textarea[@id="meeting-transcription-textarea"]'
+            . '/preceding::button[@type="button" and ancestor::*[@id="meeting-transcription-edit"]]',
+            $editor
+        ));
     }
 
     public function test_meeting_page_displays_status_next_to_the_meeting_title(): void
