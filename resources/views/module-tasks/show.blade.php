@@ -21,12 +21,12 @@
     <div class="row">
       <div class="col-md-8">
         @include('module-tasks.partials.show.main-card')
-        <x-files.list :owner="$task" :files="$files" />
         @include('comments.partials.thread', ['commentable' => $task])
       </div>
       <div class="col-md-4">
         @include('module-tasks.partials.show.info-card')
         @include('module-tasks.partials.show.assignees-card')
+        <x-files.list :owner="$task" :files="$files" />
       </div>
     </div>
   </div>

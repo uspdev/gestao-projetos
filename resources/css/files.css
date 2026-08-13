@@ -15,6 +15,11 @@
     overscroll-behavior: contain;
 }
 
+.file-browser-scroll.has-open-file-actions {
+    max-height: none;
+    overflow: visible;
+}
+
 .file-image-item:hover .file-image-card,
 .file-image-item:focus-within .file-image-card,
 .file-image-item.is-selected .file-image-card {

@@ -101,6 +101,17 @@
         if (scrollRegion) {
           window.requestAnimationFrame(updateScrollContainment);
 
+          if (window.jQuery) {
+            window.jQuery(browser)
+              .on('show.bs.dropdown', '[data-file-action]', function () {
+                scrollRegion.classList.add('has-open-file-actions');
+              })
+              .on('hidden.bs.dropdown', '[data-file-action]', function () {
+                scrollRegion.classList.remove('has-open-file-actions');
+                window.requestAnimationFrame(updateScrollContainment);
+              });
+          }
+
           if ('ResizeObserver' in window) {
             var scrollObserver = new window.ResizeObserver(updateScrollContainment);
 
