@@ -28,7 +28,16 @@ class MentionBacklinks
     }
 
     /**
-     * @return Collection<int, array{label: string, type: string, field: string, url: string}>
+     * @return Collection<int, array{
+     *     label: string,
+     *     type: string,
+     *     field: string,
+     *     url: string,
+     *     group_key: string,
+     *     group_label: string,
+     *     group_type: string,
+     *     group_url: string,
+     * }>
      */
     public function for(Model $target, ?User $reader = null): Collection
     {
@@ -49,7 +58,16 @@ class MentionBacklinks
     }
 
     /**
-     * @return array{label: string, type: string, field: string, url: string}|null
+     * @return array{
+     *     label: string,
+     *     type: string,
+     *     field: string,
+     *     url: string,
+     *     group_key: string,
+     *     group_label: string,
+     *     group_type: string,
+     *     group_url: string,
+     * }|null
      */
     private function present(Mention $mention, User $reader): ?array
     {
@@ -69,12 +87,15 @@ class MentionBacklinks
         };
 
         return match (true) {
-            $source instanceof Project => [
-                'label' => $source->name,
-                'type' => 'Projeto',
-                'field' => $field,
-                'url' => route('projects.show', $source),
-            ],
+            $source instanceof Project => $this->entry(
+                label: $source->name,
+                type: 'Projeto',
+                field: $field,
+                url: route('projects.show', $source),
+                groupKey: 'project:' . $source->getKey(),
+                groupLabel: $source->name,
+                groupType: 'Projeto',
+            ),
             $source instanceof Task => $this->task($source, $field),
             $source instanceof Meeting => $this->meeting($source, $reader, $field),
             $source instanceof MeetingItem => $this->meetingItem($source, $reader, $field),
@@ -84,35 +105,76 @@ class MentionBacklinks
     }
 
     /**
-     * @return array{label: string, type: string, field: string, url: string}|null
+     * @return array{
+     *     label: string,
+     *     type: string,
+     *     field: string,
+     *     url: string,
+     *     group_key: string,
+     *     group_label: string,
+     *     group_type: string,
+     *     group_url: string,
+     * }|null
      */
     private function task(Task $task, string $field): ?array
     {
-        return $task->project ? [
-            'label' => $task->title,
-            'type' => 'Tarefa',
-            'field' => $field,
-            'url' => route('tasks.show', $task),
-        ] : null;
+        if (! $task->project) {
+            return null;
+        }
+
+        return $this->entry(
+            label: $task->title,
+            type: 'Tarefa',
+            field: $field,
+            url: route('tasks.show', $task),
+            groupKey: 'task:' . $task->getKey(),
+            groupLabel: $task->title,
+            groupType: 'Tarefa',
+        );
     }
 
     /**
-     * @return array{label: string, type: string, field: string, url: string}|null
+     * @return array{
+     *     label: string,
+     *     type: string,
+     *     field: string,
+     *     url: string,
+     *     group_key: string,
+     *     group_label: string,
+     *     group_type: string,
+     *     group_url: string,
+     * }|null
      */
     private function meeting(Meeting $meeting, User $reader, string $field): ?array
     {
         $contextProject = $meeting->contextProjectFor($reader);
 
-        return $contextProject ? [
-            'label' => $meeting->title,
-            'type' => 'Reunião',
-            'field' => $field,
-            'url' => route('projects.meetings.show', [$contextProject, $meeting]),
-        ] : null;
+        if (! $contextProject) {
+            return null;
+        }
+
+        return $this->entry(
+            label: $meeting->title,
+            type: 'Reunião',
+            field: $field,
+            url: route('projects.meetings.show', [$contextProject, $meeting]),
+            groupKey: 'meeting:' . $meeting->getKey(),
+            groupLabel: $meeting->title,
+            groupType: 'Reunião',
+        );
     }
 
     /**
-     * @return array{label: string, type: string, field: string, url: string}|null
+     * @return array{
+     *     label: string,
+     *     type: string,
+     *     field: string,
+     *     url: string,
+     *     group_key: string,
+     *     group_label: string,
+     *     group_type: string,
+     *     group_url: string,
+     * }|null
      */
     private function meetingItem(MeetingItem $item, User $reader, string $field): ?array
     {
@@ -128,12 +190,15 @@ class MentionBacklinks
             ?? $item->title
             ?? "Item #{$item->order}";
 
-        return [
-            'label' => $label,
-            'type' => 'Item de pauta em ' . $meeting->title,
-            'field' => $field,
-            'url' => route('projects.meetings.show', [$contextProject, $meeting]),
-        ];
+        return $this->entry(
+            label: $label,
+            type: 'Item de pauta em ' . $meeting->title,
+            field: $field,
+            url: route('projects.meetings.show', [$contextProject, $meeting]),
+            groupKey: 'meeting_item:' . $item->getKey(),
+            groupLabel: $label,
+            groupType: 'Item de pauta',
+        );
     }
 
     /**
@@ -144,20 +209,59 @@ class MentionBacklinks
         $commentable = $comment->commentable;
 
         return match (true) {
-            $commentable instanceof Project => [
-                'label' => $commentable->name,
-                'type' => 'Comentário em projeto',
-                'field' => $field,
-                'url' => route('projects.show', $commentable),
-            ],
-            $commentable instanceof Task => $commentable->project ? [
-                'label' => $commentable->title,
-                'type' => 'Comentário em tarefa',
-                'field' => $field,
-                'url' => route('tasks.show', $commentable),
-            ] : null,
+            $commentable instanceof Project => $this->entry(
+                label: $commentable->name,
+                type: 'Comentário em projeto',
+                field: $field,
+                url: route('projects.show', $commentable),
+                groupKey: 'project:' . $commentable->getKey(),
+                groupLabel: $commentable->name,
+                groupType: 'Projeto',
+            ),
+            $commentable instanceof Task => $commentable->project ? $this->entry(
+                label: $commentable->title,
+                type: 'Comentário em tarefa',
+                field: $field,
+                url: route('tasks.show', $commentable),
+                groupKey: 'task:' . $commentable->getKey(),
+                groupLabel: $commentable->title,
+                groupType: 'Tarefa',
+            ) : null,
             $commentable instanceof Meeting => $this->meeting($commentable, $reader, $field),
             default => null,
         };
+    }
+
+    /**
+     * @return array{
+     *     label: string,
+     *     type: string,
+     *     field: string,
+     *     url: string,
+     *     group_key: string,
+     *     group_label: string,
+     *     group_type: string,
+     *     group_url: string,
+     * }
+     */
+    private function entry(
+        string $label,
+        string $type,
+        string $field,
+        string $url,
+        string $groupKey,
+        string $groupLabel,
+        string $groupType,
+    ): array {
+        return [
+            'label' => $label,
+            'type' => $type,
+            'field' => $field,
+            'url' => $url,
+            'group_key' => $groupKey,
+            'group_label' => $groupLabel,
+            'group_type' => $groupType,
+            'group_url' => $url,
+        ];
     }
 }

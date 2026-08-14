@@ -216,7 +216,8 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
 
         $this->get('/projects/projeto-teste')
             ->assertOk()
-            ->assertSee('Menções')
+            ->assertSee('Onde este projeto foi mencionado')
+            ->assertSee('3 locais em 3 itens')
             ->assertSee('mentions-card__list', false)
             ->assertSee('max-height: 22rem', false)
             ->assertSee('overflow-y: auto', false)
@@ -261,19 +262,19 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
 
         $this->get('/tasks/10')
             ->assertOk()
-            ->assertSee('Menções')
+            ->assertSee('Onde esta tarefa foi mencionada')
             ->assertSee('Projeto teste')
             ->assertSee('Descrição');
 
         $this->get('/projects/projeto-teste/meetings/1')
             ->assertOk()
-            ->assertSee('Menções')
+            ->assertSee('Onde esta reunião foi mencionada')
             ->assertSee('Projeto teste')
             ->assertSee('Descrição');
 
         $this->get('/users/2')
             ->assertOk()
-            ->assertSee('Menções')
+            ->assertSee('Onde você foi mencionado')
             ->assertSee('Projeto teste')
             ->assertSee('Descrição');
     }
