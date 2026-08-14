@@ -12,6 +12,8 @@
       <div class="col-md-3">
         @include('module-meetings.partials.user-dashboard')
         <hr class="my-4">
+        <x-mentions.incoming-card :target="$user" empty-message="Você ainda não foi mencionado." />
+        <hr class="my-4">
         @include('projects.partials.user-dashboard')
       </div>
     </div>

@@ -28,6 +28,7 @@
         @include('module-tasks.partials.show.info-card')
         @include('module-tasks.partials.show.assignees-card')
         <x-files.list :owner="$task" :files="$files" />
+        <x-mentions.incoming-card :target="$task" empty-message="Esta tarefa ainda não foi mencionada." />
       </div>
     </div>
   </div>
