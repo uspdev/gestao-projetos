@@ -29,6 +29,7 @@ class CommentController extends Controller
                 'commentable_id' => $commentable->getKey(),
                 'parent_id' => $data['parent_id'] ?? null,
                 'text' => $data['text'],
+                'is_active' => true,
             ]);
 
             $mentionManager->validateAllMentions($comment, 'text', $data['text']);

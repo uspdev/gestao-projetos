@@ -278,6 +278,29 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('Descrição');
     }
 
+    public function test_new_comment_mentions_are_indexed_during_creation(): void
+    {
+        $author = User::findOrFail(1);
+        $mentioned = User::findOrFail(2);
+        $project = Project::findOrFail(1);
+        $markdown = '@[' . $mentioned->name . '](mention:user:' . $mentioned->id . ')';
+
+        $this->actingAs($author)
+            ->post(route('comments.store'), [
+                'commentable_type' => $project->getMorphClass(),
+                'commentable_id' => $project->id,
+                'text' => $markdown,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('mentions', [
+            'source_type' => 'comment',
+            'source_field' => 'text',
+            'target_type' => 'user',
+            'target_id' => $mentioned->id,
+        ]);
+    }
+
     public function test_meeting_export_includes_the_complete_current_structure(): void
     {
         DB::table('meetings')->where('id', 1)->update([
