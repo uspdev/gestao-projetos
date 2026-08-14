@@ -72,6 +72,8 @@ O módulo de Arquivos usa armazenamento privado. Não execute
 - [Aware Prompt](aware_prompt.md) — contexto técnico para assistentes de IA.
 - [Regras de domínio e pontos de aplicação](regras-de-dominio.md) —
   invariáveis, autorização, módulos, ciclos e efeitos assíncronos.
+- [Ordenações do sistema](ordenacoes-do-sistema.md) — critérios das listas,
+  desempates, tratamento de valores nulos e lacunas sem ordem garantida.
 
 ## ADRs
 
