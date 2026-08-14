@@ -22,7 +22,7 @@
     </div>
   </div>
   <div class="mt-2 text-dark collapse {{ $isEditingComment ? '' : 'show' }}" id="{{ $commentEditDisplayId }}">
-    <x-markdown-content :text="$comment->text" />
+    <x-markdown.markdown-content :text="$comment->text" />
   </div>
   @can('update', $comment)
     <div class="collapse {{ $isEditingComment ? 'show' : '' }}" id="{{ $commentEditFormId }}">

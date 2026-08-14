@@ -30,7 +30,7 @@
     {{-- Descrição --}}
     <div class="text-justify collapse {{ $isEditingDescription ? '' : 'show' }}" id="{{ $descriptionDisplayId }}">
       @if ($project->description)
-        <x-markdown-content :text="$project->description" />
+        <x-markdown.markdown-content :text="$project->description" />
       @else
         <div class="text-center text-muted p-5 bg-light rounded">
           <i class="fas fa-align-left fa-3x mb-3 text-secondary"></i>

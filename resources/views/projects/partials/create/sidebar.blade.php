@@ -2,7 +2,7 @@
   <div class="card-body">
     <h5 class="card-title">{{ $projectType->name }}</h5>
     @if ($projectType->description)
-      <div class="text-muted"><x-markdown-content :text="$projectType->description" /></div>
+      <div class="text-muted"><x-markdown.markdown-content :text="$projectType->description" /></div>
     @else
       <p class="text-muted">Sem descrição cadastrada para este tipo de projeto.</p>
     @endif

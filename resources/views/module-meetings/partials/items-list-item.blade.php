@@ -130,7 +130,7 @@
 
       <div class="collapse show" id="{{ $notesDisplayId }}">
         @if (filled($item->notes))
-          <x-markdown-content :text="$item->notes" />
+          <x-markdown.markdown-content :text="$item->notes" />
         @else
           <div class="text-muted">Sem Anotações prévias.</div>
         @endif
