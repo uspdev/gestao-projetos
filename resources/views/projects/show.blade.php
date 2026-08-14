@@ -17,6 +17,10 @@
         <x-files.list :owner="$project" :files="$files" />
         <x-projects::show.membros-preview-card :project="$project" />
         @include('projects.partials.show.show-card-modulos')
+        <x-mentions.incoming-card :target="$project" empty-message="Este projeto ainda não foi mencionado." />
+        @if ($agendaMeetings->isNotEmpty())
+          <x-projects::show.pautas-card :project="$project" :meetings="$agendaMeetings" />
+        @endif
         <x-projects::show.subprojects-card :project="$project" type="preview" />
       </div>
     </div>

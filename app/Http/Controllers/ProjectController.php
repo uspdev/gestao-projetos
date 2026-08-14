@@ -16,6 +16,8 @@ use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
 use App\Models\Module;
+use App\Models\Meeting;
+use App\Models\MeetingItem;
 use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\ProjectModule;
@@ -94,9 +96,22 @@ class ProjectController extends Controller
             ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
 
+        $reader = $request->user();
+        $agendaMeetings = $project->meetingItems()
+            ->with('meeting.projects')
+            ->orderBy('order')
+            ->get()
+            ->filter(fn (MeetingItem $item): bool => $item->meeting
+                && Gate::forUser($reader)->allows('view', [$item->meeting, $project]))
+            ->map(fn (MeetingItem $item): ?Meeting => $item->meeting)
+            ->filter()
+            ->unique(fn (Meeting $meeting): int => (int) $meeting->getKey())
+            ->values();
+
         return view('projects.show', compact(
             'project',
             'files',
+            'agendaMeetings',
         ));
     }
 
