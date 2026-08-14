@@ -11,7 +11,7 @@ class MarkdownCdnAssetsTest extends TestCase
     private const HIGHLIGHT_CSS = 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/styles/github.min.css';
     private const HIGHLIGHT_JS = 'https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js';
 
-    public function test_layout_loads_approved_markdown_cdn_assets_before_application_assets(): void
+    public function test_layout_loads_approved_markdown_cdn_assets_before_application_javascript(): void
     {
         $html = preg_replace(
             '/\s+/',
@@ -42,10 +42,8 @@ class MarkdownCdnAssetsTest extends TestCase
             '<script type="module" src="'.asset('js/app.js').'"></script>',
             $html,
         );
-        $this->assertStringContainsString(asset('css/markdown.css'), $html);
-        $this->assertStringContainsString(asset('css/files.css'), $html);
-        $this->assertLessThan(strpos($html, asset('css/markdown.css')), strpos($html, self::EASYMDE_CSS));
-        $this->assertLessThan(strpos($html, asset('css/markdown.css')), strpos($html, self::HIGHLIGHT_CSS));
+        $this->assertStringNotContainsString(asset('css/markdown.css'), $html);
+        $this->assertStringNotContainsString(asset('css/files.css'), $html);
         $this->assertLessThan(strpos($html, asset('js/app.js')), strpos($html, self::EASYMDE_JS));
         $this->assertLessThan(strpos($html, asset('js/app.js')), strpos($html, self::HIGHLIGHT_JS));
     }

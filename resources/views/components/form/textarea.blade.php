@@ -13,6 +13,10 @@
   $validationErrors = $errorBag ?? $errors;
 @endphp
 
+@if ($markdownProfile)
+  @include('components.markdown.markdown-css')
+@endif
+
 <div class="{{ $groupClass }}">
   @if ($label)
     <label for="{{ $textareaId }}">{{ $label }}</label>
