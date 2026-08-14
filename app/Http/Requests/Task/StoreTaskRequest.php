@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Task;
 
+use App\Enums\Project\ProjectUserRole;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Models\Task;
@@ -27,6 +28,19 @@ class StoreTaskRequest extends FormRequest
             'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
             'due_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
 
+            // Campo assignee_id é opcional, mas se fornecido, deve ser um inteiro 
+            // e existir na tabela project_user com o mesmo project_id e ter um papel de ADMIN ou CONTRIBUTOR.
+            'assignee_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('project_user', 'user_id')
+                    ->where('project_id', $this->route('project')->getKey())
+                    ->whereIn('role', [
+                        ProjectUserRole::ADMIN->value,
+                        ProjectUserRole::CONTRIBUTOR->value,
+                    ]),
+            ],
+
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
         ];
@@ -48,6 +62,8 @@ class StoreTaskRequest extends FormRequest
             'due_date.date' => 'A data de vencimento deve ser uma data válida.',
             'due_date.date_format' => 'O formato da data de vencimento é inválido.',
             'due_date.after_or_equal' => 'A data de vencimento deve ser igual ou posterior à data de início.',
+            'assignee_id.integer' => 'O responsável selecionado é inválido.',
+            'assignee_id.exists' => 'O responsável deve ser um colaborador do projeto.',
         ];
     }
 }

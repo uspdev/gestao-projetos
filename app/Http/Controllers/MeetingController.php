@@ -33,7 +33,7 @@ class MeetingController extends Controller
             \UspTheme::activeUrl('meus-projetos');
 
             return $next($request);
-        })->only(['index', 'create', 'show', 'edit', 'export']);
+        })->only(['index', 'create', 'show', 'export']);
     }
 
     public function index(Request $request, Project $project)
@@ -114,6 +114,21 @@ class MeetingController extends Controller
         $meetingProjects = $agendaData['meetingProjects'];
 
         $meeting->setRelation('projects', $meetingProjects);
+        $availableProjects = collect();
+        $selectedProjects = [];
+
+        if (Gate::allows('update', [$meeting, $project])) {
+            $availableProjects = Project::availableForMeetings(Auth::user())
+                ->get()
+                ->values();
+
+            if ($availableProjects->where('id', $project->id)->isEmpty()) {
+                $availableProjects->prepend($project);
+            }
+
+            $selectedProjects = old('projects', $meetingProjects->pluck('id')->all());
+        }
+
         $files = $meeting->media()
             ->with('uploader')
             ->orderByDesc('created_at')
@@ -125,17 +140,23 @@ class MeetingController extends Controller
             ->get();
 
         return view('module-meetings.show', array_merge(
-            compact('project', 'meeting', 'meetingItems', 'files', 'sharedFiles'),
+            compact(
+                'project',
+                'meeting',
+                'meetingItems',
+                'files',
+                'sharedFiles',
+                'availableProjects',
+                'selectedProjects'
+            ),
             $agendaData
         ));
     }
     /**
      * Exporta o conteúdo de uma reunião em formato TXT.
      *
-     *
-     * O arquivo gerado contém o título da reunião, os itens da reunião com suas
-     * notas, as notas gerais e os comentários, conforme definido em
-     * meetingExportContent().
+     * O arquivo gerado contém instruções de contexto para IA, link direto,
+     * informações gerais, projetos vinculados, pauta, registros e comentários.
      *
      * @param  \App\Models\Project  $project
      * @param  \App\Models\Meeting  $meeting
@@ -150,9 +171,10 @@ class MeetingController extends Controller
         $meeting->load([
             'comments' => fn($query) => $query->active()->with('user')->oldest(),
             'meetingItems' => fn($query) => $query->with('discussable')->orderBy('order'),
+            'projects' => fn($query) => $query->orderBy('name'),
         ]);
 
-        $content = $this->meetingExportContent($meeting);
+        $content = $this->meetingExportContent($meeting, $project);
         $filename = sprintf(
             'reuniao-%s-%s.txt',
             Str::slug($meeting->title) ?: 'sem-titulo',
@@ -163,40 +185,6 @@ class MeetingController extends Controller
             'Content-Type' => 'text/plain; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
-    }
-
-    public function edit(Project $project, Meeting $meeting)
-    {
-        Gate::authorize('update', [$meeting, $project]);
-
-        $meetingItems = $meeting->meetingItems()
-            ->with('discussable')
-            ->orderBy('order')
-            ->get();
-
-        $agendaData = $meeting->meetingItemFormData($meetingItems);
-        $meetingProjects = $agendaData['meetingProjects'];
-
-        $meeting->setRelation('projects', $meetingProjects);
-
-        $user = Auth::user();
-
-        $availableProjects = Project::availableForMeetings($user)
-            ->get()
-            ->values();
-
-        if ($availableProjects->where('id', $project->id)->isEmpty()) {
-            $availableProjects->prepend($project);
-        }
-        $selectedProjects = old('projects', $meeting->projects->pluck('id')->all());
-
-        return view('module-meetings.edit', array_merge(compact(
-            'project',
-            'meeting',
-            'availableProjects',
-            'selectedProjects',
-            'meetingItems'
-        ), $agendaData));
     }
 
     public function update(UpdateMeetingRequest $request, Project $project, Meeting $meeting)
@@ -425,40 +413,64 @@ class MeetingController extends Controller
     /**
      * Monta o conteúdo textual da reunião para exportação em TXT.
      *
-     * Inclui o título da reunião, os itens com suas respectivas notas,
-     * as notas gerais e os comentários ativos da reunião.
+     * Mantém todos os rótulos, mesmo quando o respectivo conteúdo estiver
+     * vazio, para oferecer uma estrutura previsível a leitores e ferramentas.
      *
      * @param  \App\Models\Meeting  $meeting
+     * @param  \App\Models\Project  $project
      * @return string
      */
-    private function meetingExportContent(Meeting $meeting): string
+    private function meetingExportContent(Meeting $meeting, Project $project): string
     {
-        $sections = [
-            $this->plainText($meeting->title),
-        ];
+        $instructions = implode(PHP_EOL, [
+            'instruções para IA:',
+            'Use somente as informações registradas abaixo e não invente dados ausentes.',
+        ]);
+        $meetingInformation = implode(PHP_EOL, [
+            $this->exportInlineField('link direto', route('projects.meetings.show', [$project, $meeting])),
+            $this->exportInlineField('nome da reunião', $meeting->title),
+            $this->exportInlineField('data e hora', $meeting->scheduled_at?->format('d/m/Y H:i')),
+            $this->exportInlineField('local', $meeting->location),
+            $this->exportInlineField('projetos vinculados', $meeting->projects
+                ->map(fn(Project $linkedProject) => $this->plainText($linkedProject->name))
+                ->filter()
+                ->implode(', ')),
+        ]);
+        $agenda = ['itens de pauta:'];
 
         foreach ($meeting->meetingItems as $item) {
-            $sections[] = trim(implode(PHP_EOL, array_filter([
-                $this->plainText($this->meetingItemTitle($item)),
-                $this->plainText($item->notes),
-            ], fn($line) => $line !== '')));
+            $agenda[] = $this->exportInlineField('item ' . $item->order, $this->meetingItemTitle($item));
+            $agenda[] = $this->exportInlineField('conteúdo', $item->notes);
         }
 
-        $sections[] = trim(implode(PHP_EOL, array_filter([
-            'Notas gerais da reunião:',
-            $this->plainText($meeting->notes),
-        ], fn($line) => $line !== '')));
+        $comments = $meeting->comments
+            ->map(fn($comment) => $this->meetingCommentText($comment))
+            ->filter()
+            ->implode(PHP_EOL . PHP_EOL);
 
-        $sections[] = trim(implode(PHP_EOL, array_filter([
-            'Comentários da reunião:',
-            $meeting->comments
-                ->map(fn($comment) => $this->meetingCommentText($comment))
-                ->filter()
-                ->implode(PHP_EOL . PHP_EOL),
-        ], fn($line) => $line !== '')));
+        return implode(PHP_EOL . PHP_EOL, [
+            $instructions,
+            $meetingInformation,
+            $this->exportSection('anotações prévias', $meeting->notes),
+            implode(PHP_EOL, $agenda),
+            $this->exportSection('ata', $meeting->ata),
+            $this->exportSection('transcrição', $meeting->transcription),
+            $this->exportSection('comentários', $comments),
+        ]) . PHP_EOL;
+    }
 
-        return collect($sections)
-            ->implode(PHP_EOL . PHP_EOL) . PHP_EOL;
+    private function exportInlineField(string $label, ?string $content): string
+    {
+        $content = $this->plainText($content);
+
+        return $label . ':' . ($content === '' ? '' : ' ' . $content);
+    }
+
+    private function exportSection(string $label, ?string $content): string
+    {
+        $content = $this->plainText($content);
+
+        return $label . ':' . ($content === '' ? '' : PHP_EOL . $content);
     }
 
     /**
@@ -475,13 +487,17 @@ class MeetingController extends Controller
     {
         $discussable = $item->discussable;
 
+        if (filled($item->title)) {
+            return $item->title;
+        }
+
         if (! $discussable) {
-            return 'Item #' . $item->order . ':';
+            return 'Item #' . $item->order;
         }
 
         return $discussable->title
-            ?? ($discussable->name . ':')
-            ?? ('Item #' . $item->order . ':');
+            ?? $discussable->name
+            ?? ('Item #' . $item->order);
     }
 
     /**

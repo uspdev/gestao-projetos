@@ -166,6 +166,16 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
     }
 
     /**
+     * Ordena tarefas da maior para a menor prioridade e deixa as sem prioridade por último.
+     */
+    public function scopeOrderByPriority(Builder $query): Builder
+    {
+        return $query
+            ->orderByRaw('priority IS NULL')
+            ->orderBy('priority');
+    }
+
+    /**
      * Gera um texto concatenado com os campos utilizados em busca JS
      */
     public function searchableText(): string

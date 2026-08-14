@@ -174,7 +174,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/meetings/{meeting}/items/{meetingItem}/notes', [MeetingController::class, 'updateNotes'])
         ->name('projects.meetings.items.updateNotes');
 
-    Route::resource('projects.meetings', MeetingController::class);
+    Route::resource('projects.meetings', MeetingController::class)->except('edit');
     Route::post('projects/{project}/meetings/{meeting}/items', [MeetingController::class, 'storeItem'])
         ->name('projects.meetings.items.store');
 

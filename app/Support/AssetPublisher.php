@@ -16,7 +16,7 @@ class AssetPublisher
      */
     public function publish(string $resourcesPath, string $publicPath): array
     {
-        $directories = ['js', 'css'];
+        $directories = ['js'];
         $publishedFiles = 0;
 
         // Verifica se os diretórios de recursos existem

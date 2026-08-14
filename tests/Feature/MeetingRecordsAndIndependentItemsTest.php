@@ -98,7 +98,7 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
     public function test_meeting_page_separates_prior_notes_from_the_meeting_record(): void
     {
         DB::table('meetings')->where('id', 1)->update([
-            'ata' => 'Ata exibida',
+            'ata' => "Ata exibida\nDetalhes da ata",
             'transcription' => "Transcrição exibida\ncom quebra",
         ]);
 
@@ -114,10 +114,334 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertSee('data-target="#meeting-transcription-display"', false)
             ->assertSee('aria-expanded="false"', false)
             ->assertSee('meeting-record-toggle-icon', false)
-            ->assertSee('class="collapse" id="meeting-ata-display"', false)
-            ->assertSee('class="collapse" id="meeting-transcription-display"', false)
-            ->assertDontSee('class="collapse show" id="meeting-ata-display"', false)
-            ->assertDontSee('class="collapse show" id="meeting-transcription-display"', false);
+            ->assertSee('class="collapse mt-2" id="meeting-ata-display"', false)
+            ->assertSee('class="collapse mt-2" id="meeting-transcription-display"', false);
+
+        $html = $this->get('/projects/projeto-teste/meetings/1')->getContent();
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $ataPreview = $xpath->query(
+            '//*[@id="meeting-ata-label"]/ancestor::div[contains(@class, "border")][1]'
+            . '//button[contains(@class, "meeting-record-preview")]'
+        )->item(0);
+        $transcriptionPreview = $xpath->query(
+            '//*[@id="meeting-transcription-label"]/ancestor::div[contains(@class, "border")][1]'
+            . '//button[contains(@class, "meeting-record-preview")]'
+        )->item(0);
+
+        $this->assertSame('Ata exibida', trim($ataPreview->textContent));
+        $this->assertSame('Transcrição exibida', trim($transcriptionPreview->textContent));
+        $this->assertStringNotContainsString('Detalhes da ata', $ataPreview->textContent);
+        $this->assertStringNotContainsString('com quebra', $transcriptionPreview->textContent);
+    }
+
+    public function test_meeting_export_includes_the_complete_current_structure(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'scheduled_at' => '2026-08-13 14:30:00',
+            'location' => 'Sala do Conselho',
+            'notes' => "Contexto prévio\ncom detalhes",
+            'ata' => "Decisão aprovada\nPróximo passo definido",
+            'transcription' => "Pessoa A: proposta\nPessoa B: concordo",
+        ]);
+        DB::table('projects')->insert([
+            'id' => 2,
+            'name' => 'Projeto adicional',
+            'slug' => 'projeto-adicional',
+            'status' => 'ACTIVE',
+            'permission_inheritance' => 'NONE',
+            'project_type_id' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('meeting_projects')->insert(['meeting_id' => 1, 'project_id' => 2]);
+        DB::table('meeting_items')->insert([
+            [
+                'id' => 1,
+                'meeting_id' => 1,
+                'discussable_type' => 'project',
+                'discussable_id' => 1,
+                'title' => null,
+                'order' => 1,
+                'notes' => 'Revisar entregas',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 2,
+                'meeting_id' => 1,
+                'discussable_type' => null,
+                'discussable_id' => null,
+                'title' => 'Assunto independente',
+                'order' => 2,
+                'notes' => "Primeira observação\nSegunda observação",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+        DB::table('comments')->insert([
+            [
+                'user_id' => 1,
+                'commentable_type' => 'meeting',
+                'commentable_id' => 1,
+                'text' => 'Comentário visível',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => 2,
+                'commentable_type' => 'meeting',
+                'commentable_id' => 1,
+                'text' => 'Comentário removido',
+                'is_active' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $response = $this->get('/projects/projeto-teste/meetings/1/export')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
+
+        $expected = <<<'TXT'
+instruções para IA:
+Use somente as informações registradas abaixo e não invente dados ausentes.
+
+link direto: https://localhost/projects/projeto-teste/meetings/1
+nome da reunião: Reunião teste
+data e hora: 13/08/2026 14:30
+local: Sala do Conselho
+projetos vinculados: Projeto adicional, Projeto teste
+
+anotações prévias:
+Contexto prévio
+com detalhes
+
+itens de pauta:
+item 1: Projeto teste
+conteúdo: Revisar entregas
+item 2: Assunto independente
+conteúdo: Primeira observação
+Segunda observação
+
+ata:
+Decisão aprovada
+Próximo passo definido
+
+transcrição:
+Pessoa A: proposta
+Pessoa B: concordo
+
+comentários:
+Colaborador: Comentário visível
+TXT;
+
+        $this->assertSame($expected . PHP_EOL, $response->getContent());
+        $this->assertStringNotContainsString('Comentário removido', $response->getContent());
+    }
+
+    public function test_meeting_export_keeps_empty_sections(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'notes' => null,
+            'ata' => null,
+            'transcription' => null,
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $content = $this->get('/projects/projeto-teste/meetings/1/export')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString("data e hora:\n", $content);
+        $this->assertStringContainsString("local:\n", $content);
+        $this->assertStringContainsString("anotações prévias:\n\nitens de pauta:", $content);
+        $this->assertStringContainsString("ata:\n\ntranscrição:\n\ncomentários:\n", $content);
+    }
+
+    public function test_meeting_record_editor_has_actions_before_a_limited_scrollable_textarea(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'transcription' => "Primeira linha\n" . str_repeat('Conteúdo extenso ', 100),
+        ]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $response = $this->get('/projects/projeto-teste/meetings/1')
+            ->assertOk()
+            ->assertSee('.meeting-record-content,', false)
+            ->assertSee('max-height: 50vh', false)
+            ->assertSee('overflow-y: auto', false)
+            ->assertSee('class="btn btn-outline-primary btn-sm py-0 meeting-record-edit-toggle"', false)
+            ->assertSee('data-display-target="#meeting-transcription-display"', false)
+            ->assertSee("window.jQuery(display).collapse('hide')", false)
+            ->assertSee('.meeting-record-item.is-editing .meeting-record-toggle', false)
+            ->assertSee('.meeting-record-item.is-editing .meeting-record-preview', false)
+            ->assertSee("record.classList.toggle('is-editing'", false)
+            ->assertSee("record.classList.remove('is-editing')", false);
+        $html = $response->getContent();
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $editor = $xpath->query('//*[@id="meeting-transcription-edit"]')->item(0);
+        $textarea = $xpath->query('.//textarea[@id="meeting-transcription-textarea"]', $editor)->item(0);
+        $display = $xpath->query(
+            '//*[@id="meeting-transcription-display"]'
+            . '/*[contains(concat(" ", normalize-space(@class), " "), " meeting-record-content ")]'
+        )->item(0);
+
+        $this->assertNotNull($textarea);
+        $this->assertNotNull($display);
+        $this->assertStringContainsString('meeting-record-textarea', $textarea->getAttribute('class'));
+        $this->assertFalse($textarea->hasAttribute('data-autogrow-textarea'));
+        $this->assertCount(1, $xpath->query(
+            './/textarea[@id="meeting-transcription-textarea"]'
+            . '/preceding::button[@type="submit" and ancestor::*[@id="meeting-transcription-edit"]]',
+            $editor
+        ));
+        $this->assertCount(1, $xpath->query(
+            './/textarea[@id="meeting-transcription-textarea"]'
+            . '/preceding::button[@type="button" and ancestor::*[@id="meeting-transcription-edit"]]',
+            $editor
+        ));
+    }
+
+    public function test_meeting_page_displays_status_next_to_the_meeting_title(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+
+        $html = $this->get('/projects/projeto-teste/meetings/1')
+            ->assertOk()
+            ->getContent();
+
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $titleAndStatus = $xpath->query(
+            '//*[contains(concat(" ", normalize-space(@class), " "), " d-inline-flex ")]'
+            . '[./b[normalize-space()="Reunião teste"] and .//*[@id="meeting-status-dropdown-1"]]'
+        );
+
+        $this->assertCount(1, $titleAndStatus);
+    }
+
+    public function test_task_and_meeting_edit_actions_are_shown_next_to_the_title_instead_of_the_information_card(): void
+    {
+        DB::table('tasks')->insert([
+            'id' => 1,
+            'project_id' => 1,
+            'title' => 'Tarefa editável',
+            'priority' => 3,
+            'status' => 'ASSIGNED',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('task_user')->insert(['task_id' => 1, 'user_id' => 1]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $taskDocument = new \DOMDocument();
+        @$taskDocument->loadHTML($this->get('/tasks/1')->assertOk()->getContent());
+        $taskXPath = new \DOMXPath($taskDocument);
+
+        $this->assertCount(1, $taskXPath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
+            . '[.//b[normalize-space()="Tarefa editável"]]//button[@aria-label="Editar tarefa"]'
+        ));
+        $this->assertCount(0, $taskXPath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " card ")]'
+            . '[./div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
+            . '//h6[normalize-space()="Informações"]]//button[@aria-label="Editar tarefa"]'
+        ));
+
+        $meetingDocument = new \DOMDocument();
+        @$meetingDocument->loadHTML($this->get('/projects/projeto-teste/meetings/1')->assertOk()->getContent());
+        $meetingXPath = new \DOMXPath($meetingDocument);
+
+        $this->assertCount(1, $meetingXPath->query(
+            '//*[contains(concat(" ", normalize-space(@class), " "), " d-inline-flex ")]'
+            . '[./b[normalize-space()="Reunião teste"]]//button[@aria-label="Editar reunião"]'
+        ));
+        $this->assertCount(0, $meetingXPath->query(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " card ")]'
+            . '[./div[contains(concat(" ", normalize-space(@class), " "), " card-header ")]'
+            . '//h6[normalize-space()="Informações da reunião"]]//button[@aria-label="Editar reunião"]'
+        ));
+        $this->assertCount(1, $meetingXPath->query(
+            '//button[@aria-label="Editar reunião" and @data-target="#modalMeetingEdit"]'
+        ));
+        $this->assertCount(1, $meetingXPath->query(
+            '//*[@id="modalMeetingEdit"]//form//input[@name="_method" and @value="PUT"]'
+        ));
+        $this->assertCount(1, $meetingXPath->query(
+            '//*[@id="modalMeetingEdit"]//input[@name="title" and @value="Reunião teste"]'
+        ));
+        $this->assertFalse(app('router')->has('projects.meetings.edit'));
+        $this->get('/projects/projeto-teste/meetings/1/edit')->assertNotFound();
+    }
+
+    public function test_meeting_edit_modal_reopens_with_validation_errors(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+
+        $showRoute = '/projects/projeto-teste/meetings/1';
+
+        $this->from($showRoute)
+            ->put($showRoute, [
+                '_meeting_form' => 'edit',
+                'title' => 'x',
+                'status' => 'COMPLETED',
+                'projects' => [1],
+            ])
+            ->assertRedirect($showRoute)
+            ->assertSessionHasErrors('title');
+
+        $this->get($showRoute)
+            ->assertOk()
+            ->assertSee('id="modalMeetingEdit"', false)
+            ->assertSee('data-show-on-errors="1"', false)
+            ->assertSee("$('#modalMeetingEdit').modal('show')", false);
+    }
+
+    public function test_completed_meeting_duplication_modal_is_not_nested_in_another_modal_on_index(): void
+    {
+        DB::table('meetings')->insert([
+            'id' => 2,
+            'title' => 'Reunião agendada',
+            'status' => 'SCHEDULED',
+            'scheduled_at' => now()->addDay(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('meeting_projects')->insert(['meeting_id' => 2, 'project_id' => 1]);
+
+        $this->actingAs(User::findOrFail(1));
+
+        $html = $this->get('/projects/projeto-teste/meetings?show_completed=1')
+            ->assertOk()
+            ->getContent();
+
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+
+        $this->assertCount(1, $xpath->query('//*[@id="duplicate-meeting-modal-1"]'));
+        $this->assertCount(1, $xpath->query('//*[@id="duplicate-meeting-modal-2"]'));
+
+        $nestedCompletedModal = $xpath->query(
+            '//*[@id="duplicate-meeting-modal-1"]'
+            . '/ancestor::*[@id="duplicate-meeting-modal-2"]'
+        );
+
+        $this->assertCount(0, $nestedCompletedModal);
     }
 
     public function test_project_members_start_watching_a_new_meeting(): void

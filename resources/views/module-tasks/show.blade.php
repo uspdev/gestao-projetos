@@ -8,6 +8,7 @@
     <x-separator />
     <b class="text-truncate" title="{{ $task->title }}">{{ $task->title }}</b>
     @include('module-tasks.partials.components.update-status')
+    @include('module-tasks.partials.buttons.edit-btn')
   </div>
 
   <div class="ml-auto flex-shrink-0">
@@ -21,12 +22,12 @@
     <div class="row">
       <div class="col-md-8">
         @include('module-tasks.partials.show.main-card')
-        <x-files.list :owner="$task" :files="$files" />
         @include('comments.partials.thread', ['commentable' => $task])
       </div>
       <div class="col-md-4">
         @include('module-tasks.partials.show.info-card')
         @include('module-tasks.partials.show.assignees-card')
+        <x-files.list :owner="$task" :files="$files" />
       </div>
     </div>
   </div>

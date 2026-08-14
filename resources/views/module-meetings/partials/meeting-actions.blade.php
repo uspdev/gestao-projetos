@@ -12,7 +12,6 @@
       <span class="font-weight-bold">Pauta</span>
 
       @if ($meeting)
-        @include('module-meetings.partials.status-badge')
         @if ($meetingItems->isNotEmpty())
           <button type="button" id="meeting-notes-toggle-all" class="btn btn-sm btn-outline-secondary py-0"
             aria-expanded="false" title="Expandir anotações" aria-label="Expandir anotações">

@@ -10,7 +10,7 @@ class PublishAssets extends Command
 {
     protected $signature = 'projetos:assets-publish';
 
-    protected $description = 'Publica os JavaScripts e estilos próprios sem depender de npm';
+    protected $description = 'Publica os JavaScripts sem depender de npm';
 
     public function handle(AssetPublisher $publisher): int
     {
@@ -23,7 +23,7 @@ class PublishAssets extends Command
         }
 
         $this->info(sprintf(
-            'Ativos publicados: %d arquivos copiados para public/js e public/css.',
+            'Ativos publicados: %d arquivos copiados para public/js.',
             $result['files'],
         ));
 

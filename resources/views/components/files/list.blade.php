@@ -1,5 +1,7 @@
 @props(['owner', 'files', 'sharedFiles' => null])
 
+@include('components.files.files-css')
+
 @php
   $uploadRoute = match ($owner::class) {
     \App\Models\Project::class => route('projects.files.store', $owner),
