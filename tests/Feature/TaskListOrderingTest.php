@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\TaskController;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class TaskListOrderingTest extends TestCase
@@ -24,6 +27,7 @@ class TaskListOrderingTest extends TestCase
         DB::setDefaultConnection('sqlite');
 
         $this->createSchema();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $this->seedTasks();
     }
 
@@ -61,6 +65,50 @@ class TaskListOrderingTest extends TestCase
 
         $this->assertSame([
             'Urgente do Projeto Z',
+            'Urgente do Projeto A',
+            'Alta do Projeto A',
+            'Média do Projeto A',
+            'Baixa do Projeto A',
+            'Sem prioridade do Projeto A',
+        ], $tasks->all());
+    }
+
+    public function test_dashboard_kanban_orders_prioritized_tasks_first_inside_status(): void
+    {
+        $tasks = User::query()
+            ->findOrFail(1)
+            ->tasksByStatus('kanban')
+            ->get('NEW')
+            ->pluck('title');
+
+        $this->assertSame([
+            'Urgente do Projeto A',
+            'Urgente do Projeto Z',
+            'Alta do Projeto A',
+            'Média do Projeto A',
+            'Baixa do Projeto A',
+            'Sem prioridade do Projeto A',
+        ], $tasks->all());
+    }
+
+    public function test_project_kanban_orders_prioritized_tasks_first_inside_status(): void
+    {
+        $user = User::query()->findOrFail(1);
+        $project = Project::query()->findOrFail(1);
+        $request = new Request([
+            'view' => 'kanban',
+            'tasks_done' => '0',
+            'tasks_mine' => '0',
+        ]);
+
+        $this->actingAs($user);
+
+        $view = app(TaskController::class)->indexProject($request, $project);
+        $tasks = $view->getData()['tasksByStatus']
+            ->get('NEW')
+            ->pluck('title');
+
+        $this->assertSame([
             'Urgente do Projeto A',
             'Alta do Projeto A',
             'Média do Projeto A',
@@ -109,6 +157,10 @@ class TaskListOrderingTest extends TestCase
         DB::table('project_modules')->insert([
             ['project_id' => 1, 'module_id' => 1, 'enabled' => true, 'created_at' => $now, 'updated_at' => $now],
             ['project_id' => 2, 'module_id' => 1, 'enabled' => true, 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('project_user')->insert([
+            ['project_id' => 1, 'user_id' => 1, 'role' => 'ADMIN', 'pinned' => false, 'created_at' => $now, 'updated_at' => $now],
+            ['project_id' => 2, 'user_id' => 1, 'role' => 'ADMIN', 'pinned' => false, 'created_at' => $now, 'updated_at' => $now],
         ]);
         DB::table('tasks')->insert([
             ['id' => 1, 'project_id' => 1, 'title' => 'Baixa do Projeto A', 'priority' => 4, 'status' => 'NEW', 'created_at' => $now->copy()->subMinutes(5), 'updated_at' => $now],
@@ -163,6 +215,46 @@ class TaskListOrderingTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::create('project_user', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('user_id');
+            $table->string('role');
+            $table->boolean('pinned')->default(false);
+            $table->timestamps();
+        });
+
+        Schema::create('permissions', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('guard_name');
+            $table->timestamps();
+        });
+
+        Schema::create('roles', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('guard_name');
+            $table->timestamps();
+        });
+
+        Schema::create('model_has_permissions', function (Blueprint $table): void {
+            $table->unsignedBigInteger('permission_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+        });
+
+        Schema::create('model_has_roles', function (Blueprint $table): void {
+            $table->unsignedBigInteger('role_id');
+            $table->string('model_type');
+            $table->unsignedBigInteger('model_id');
+        });
+
+        Schema::create('role_has_permissions', function (Blueprint $table): void {
+            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('role_id');
+        });
+
         Schema::create('tasks', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('project_id');
@@ -179,6 +271,21 @@ class TaskListOrderingTest extends TestCase
             $table->unsignedBigInteger('task_id');
             $table->unsignedBigInteger('user_id');
             $table->timestamps();
+        });
+
+        Schema::create('tags', function (Blueprint $table): void {
+            $table->id();
+            $table->json('name');
+            $table->json('slug');
+            $table->string('type')->nullable();
+            $table->integer('order_column')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('taggables', function (Blueprint $table): void {
+            $table->unsignedBigInteger('tag_id');
+            $table->string('taggable_type');
+            $table->unsignedBigInteger('taggable_id');
         });
     }
 }

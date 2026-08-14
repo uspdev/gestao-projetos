@@ -66,12 +66,10 @@ class TaskController extends Controller
                 fn($query) => $query->where('status', TaskStatus::DONE->value),
                 fn($query) => $query->where('status', '!=', TaskStatus::DONE->value)
             )
+            ->orderByPriority()
             ->when(
                 $taskView === 'kanban',
-                fn($query) => $query
-                    ->orderBy('completed_at')
-                    ->orderBy('priority'),
-                fn($query) => $query->orderByPriority()
+                fn($query) => $query->orderBy('completed_at')
             )
             ->latest()
             ->get();
