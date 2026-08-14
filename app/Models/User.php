@@ -101,11 +101,16 @@ class User extends Authenticatable
             ->with(['project', 'users'])
             ->withTasksModuleEnabled()
             ->when(! $tasksDone, fn($query) => $query->where('status', '!=', TaskStatus::DONE->value))
-            ->orderBy(
-                Project::select('name')
-                    ->whereColumn('projects.id', 'tasks.project_id')
+            ->when(
+                $taskView === 'kanban',
+                fn($query) => $query
+                    ->orderBy(
+                        Project::select('name')
+                            ->whereColumn('projects.id', 'tasks.project_id')
+                    )
+                    ->orderBy('priority'),
+                fn($query) => $query->orderByPriority()
             )
-            ->orderBy('priority', 'asc')
             ->latest()
             ->get();
 
