@@ -8,6 +8,8 @@ use App\Http\Controllers\MarkdownPreviewController;
 use App\Http\Controllers\MentionController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MeetingFileShareController;
+use App\Http\Controllers\MeetingLinkShareController;
+use App\Http\Controllers\LinkController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
@@ -56,6 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::get('files/{uuid}', [MediaController::class, 'show'])->name('files.show');
     Route::patch('files/{uuid}', [MediaController::class, 'update'])->name('files.update');
     Route::delete('files/{uuid}', [MediaController::class, 'destroy'])->name('files.destroy');
+    Route::patch('links/{uuid}', [LinkController::class, 'update'])->name('links.update');
+    Route::delete('links/{uuid}', [LinkController::class, 'destroy'])->name('links.destroy');
 
     // ==========================================
     // BLOCO 1: PROJETOS
@@ -63,6 +67,7 @@ Route::middleware('auth')->group(function () {
 
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::post('projects/{project}/files', [MediaController::class, 'storeProject'])->name('projects.files.store');
+    Route::post('projects/{project}/links', [LinkController::class, 'storeProject'])->name('projects.links.store');
     Route::patch('projects/{project}/status', [ProjectController::class, 'updateProjectStatus'])->name('projects.updateStatus');
     Route::patch('projects/{project}/phase', [PhaseController::class, 'update'])->name('projects.updatePhase');
     Route::patch('projects/{project}/visibility', [ProjectController::class, 'updateProjectVisibility'])->name('projects.updateVisibility');
@@ -121,6 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::get('tasks', [TaskController::class, 'indexUser'])->name('tasks.index');
     // Rotas customizadas devem vir antes do resource para evitar conflitos de url.
     Route::post('tasks/{task}/files', [MediaController::class, 'storeTask'])->name('tasks.files.store');
+    Route::post('tasks/{task}/links', [LinkController::class, 'storeTask'])->name('tasks.links.store');
     Route::patch('tasks/{task}/status', [TaskController::class, 'updateTaskStatus'])->name('tasks.updateTaskStatus');
 
     // Update split: description and other info
@@ -151,10 +157,15 @@ Route::middleware('auth')->group(function () {
     // BLOCO 3: REUNIOES
     // ==========================================
     Route::post('meetings/{meeting}/files', [MediaController::class, 'storeMeeting'])->name('meetings.files.store');
+    Route::post('meetings/{meeting}/links', [LinkController::class, 'storeMeeting'])->name('meetings.links.store');
     Route::post('meetings/{meeting}/file-shares', [MeetingFileShareController::class, 'store'])
         ->name('meetings.file-shares.store');
     Route::delete('meetings/{meeting}/file-shares/{uuid}', [MeetingFileShareController::class, 'destroy'])
         ->name('meetings.file-shares.destroy');
+    Route::post('meetings/{meeting}/link-shares', [MeetingLinkShareController::class, 'store'])
+        ->name('meetings.link-shares.store');
+    Route::delete('meetings/{meeting}/link-shares/{uuid}', [MeetingLinkShareController::class, 'destroy'])
+        ->name('meetings.link-shares.destroy');
     Route::patch('projects/{project}/meetings/{meeting}/status', [MeetingController::class, 'updateStatus'])
         ->name('meetings.updateMeetingStatus');
     Route::patch('projects/{project}/meetings/{meeting}/notes', [MeetingController::class, 'updateMeetingNotes'])

@@ -134,10 +134,23 @@ class MeetingController extends Controller
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
+        $links = \Illuminate\Support\Facades\Schema::hasTable('links')
+            ? $meeting->links()
+                ->with('creator')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->paginate(20, ['*'], 'links_page')
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
         $sharedFiles = $meeting->sharedFiles()
             ->with('uploader')
             ->latest()
             ->get();
+        $sharedLinks = \Illuminate\Support\Facades\Schema::hasTable('meeting_link_shares')
+            ? $meeting->sharedLinks()
+                ->with('creator')
+                ->latest()
+                ->get()
+            : collect();
 
         return view('module-meetings.show', array_merge(
             compact(
@@ -145,7 +158,9 @@ class MeetingController extends Controller
                 'meeting',
                 'meetingItems',
                 'files',
+                'links',
                 'sharedFiles',
+                'sharedLinks',
                 'availableProjects',
                 'selectedProjects'
             ),

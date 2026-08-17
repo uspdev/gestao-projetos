@@ -95,6 +95,13 @@ class ProjectController extends Controller
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
+        $links = \Illuminate\Support\Facades\Schema::hasTable('links')
+            ? $project->links()
+                ->with('creator')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->paginate(20, ['*'], 'links_page')
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
 
         $reader = $request->user();
         $agendaMeetings = $project->meetingItems()
@@ -111,6 +118,7 @@ class ProjectController extends Controller
         return view('projects.show', compact(
             'project',
             'files',
+            'links',
             'agendaMeetings',
         ));
     }

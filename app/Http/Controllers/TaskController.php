@@ -152,9 +152,16 @@ class TaskController extends Controller
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
+        $links = \Illuminate\Support\Facades\Schema::hasTable('links')
+            ? $task->links()
+                ->with('creator')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->paginate(20, ['*'], 'links_page')
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
 
 
-        return view('module-tasks.show', compact('task', 'project', 'files'));
+        return view('module-tasks.show', compact('task', 'project', 'files', 'links'));
     }
 
     /**
