@@ -499,8 +499,11 @@ class MentionManager
 
         return match (true) {
             $source instanceof Project,
-            $source instanceof Task,
-            $source instanceof Comment => Gate::forUser($reader)->allows('view', $source),
+            $source instanceof Task => Gate::forUser($reader)->allows('view', $source),
+            $source instanceof Comment => $this->sourceIsVisible(
+                $source->loadMissing('commentable')->commentable,
+                $reader,
+            ),
             $source instanceof Meeting => $source->loadMissing('projects')->projects
                 ->contains(fn (Project $project): bool => Gate::forUser($reader)->allows('view', [$source, $project])),
             $source instanceof MeetingItem => $source->loadMissing('meeting.projects')->meeting?->projects
