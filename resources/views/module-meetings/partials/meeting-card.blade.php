@@ -14,6 +14,18 @@
       transform: translateY(-2px);
       box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
     }
+
+    .meetings-list {
+      max-height: min(70vh, 42rem);
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior-y: auto;
+      padding-right: .25rem;
+    }
+
+    .meetings-list--dashboard {
+      max-height: 22rem;
+    }
   </style>
 @endPushOnce
 
