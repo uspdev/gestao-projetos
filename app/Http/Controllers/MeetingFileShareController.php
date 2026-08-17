@@ -8,13 +8,14 @@ use App\Models\MeetingFileShare;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class MeetingFileShareController extends Controller
 {
-    public function store(Request $request, Meeting $meeting): JsonResponse
+    public function store(Request $request, Meeting $meeting): JsonResponse|RedirectResponse
     {
         Gate::forUser($request->user())->authorize('manageFileShares', $meeting);
 
@@ -32,12 +33,18 @@ class MeetingFileShareController extends Controller
             ['shared_by' => $request->user()->id],
         ));
 
-        return response()->json([
+        $response = [
             'uuid' => $media->uuid,
             'name' => $media->display_name,
             'markdown' => '@[' . $this->mentionMarkdownLabel((string) $media->display_name)
                 . '](mention:file:' . $media->uuid . ')',
-        ], $share->wasRecentlyCreated ? 201 : 200);
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json($response, $share->wasRecentlyCreated ? 201 : 200);
+        }
+
+        return back()->with('alert-success', 'Arquivo compartilhado com a reunião com sucesso.');
     }
 
     public function destroy(Request $request, Meeting $meeting, string $uuid)

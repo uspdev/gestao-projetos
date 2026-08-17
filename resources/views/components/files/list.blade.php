@@ -41,16 +41,20 @@
               ? 'links'
               : 'images'));
   $linkModalId = $componentId . '-add-links-modal';
+  $shareableFileGroups = collect();
   $shareableLinkGroups = collect();
-  if (
+  $canManageFileShares =
+      $owner instanceof \App\Models\Meeting && \Illuminate\Support\Facades\Gate::allows('manageFileShares', $owner);
+  $canManageLinkShares =
       $owner instanceof \App\Models\Meeting &&
       \Illuminate\Support\Facades\Schema::hasTable('links') &&
-      \Illuminate\Support\Facades\Gate::allows('manageLinkShares', $owner)
-  ) {
+      \Illuminate\Support\Facades\Gate::allows('manageLinkShares', $owner);
+  if ($canManageFileShares || $canManageLinkShares) {
+      $sharedMediaIds = $owner->sharedFiles()->pluck('media.id');
       $sharedIds = $sharedVisibleLinks->pluck('id');
       $linkedProjects = $owner->projects()->get();
       $agendaOwners = $owner->meetingItems()->with('discussable')->get()->pluck('discussable');
-      // Monta as possíveis fontes de links compartilháveis:
+      // Monta as possíveis fontes de links e Arquivos compartilháveis:
       // 1. projetos vinculados diretamente à reunião;
       // 2. projetos presentes na pauta e ainda não listados acima;
       // 3. tarefas presentes na pauta.
@@ -69,22 +73,42 @@
                   ->unique('id')
                   ->map(fn($task) => ['label' => "Tarefa na pauta: {$task->title}", 'owner' => $task]),
           );
-      // Para cada projeto ou tarefa encontrado, busca os links que ainda podem
-      // ser compartilhados com a reunião.
-      $shareableLinkGroups = $sources
-          ->map(function (array $source) use ($sharedIds) {
-              $available = $source['owner']
-                  ->links()
-                  ->with('creator')
-                  ->latest()
-                  ->get()
-                  ->reject(fn($link) => $sharedIds->contains($link->id))
-                  ->filter(fn($link) => \Illuminate\Support\Facades\Gate::allows('view', $link))
-                  ->values();
-              return ['label' => $source['label'], 'links' => $available];
-          })
-          ->filter(fn(array $group) => $group['links']->isNotEmpty())
-          ->values();
+
+      if ($canManageFileShares) {
+          $shareableFileGroups = $sources
+              ->map(function (array $source) use ($sharedMediaIds) {
+                  $available = $source['owner']
+                      ->media()
+                      ->with('uploader')
+                      ->latest()
+                      ->get()
+                      ->reject(fn($media) => $sharedMediaIds->contains($media->id))
+                      ->filter(fn($media) => \Illuminate\Support\Facades\Gate::allows('view', $media))
+                      ->values();
+                  return ['label' => $source['label'], 'files' => $available];
+              })
+              ->filter(fn(array $group) => $group['files']->isNotEmpty())
+              ->values();
+      }
+
+      if ($canManageLinkShares) {
+          // Para cada projeto ou tarefa encontrado, busca os links que ainda podem
+          // ser compartilhados com a reunião.
+          $shareableLinkGroups = $sources
+              ->map(function (array $source) use ($sharedIds) {
+                  $available = $source['owner']
+                      ->links()
+                      ->with('creator')
+                      ->latest()
+                      ->get()
+                      ->reject(fn($link) => $sharedIds->contains($link->id))
+                      ->filter(fn($link) => \Illuminate\Support\Facades\Gate::allows('view', $link))
+                      ->values();
+                  return ['label' => $source['label'], 'links' => $available];
+              })
+              ->filter(fn(array $group) => $group['links']->isNotEmpty())
+              ->values();
+      }
   }
 
   // Retorna a classe de ícone Font Awesome adequada à extensão do arquivo.
@@ -123,10 +147,10 @@
         <button type="button" class="btn btn-sm btn-outline-secondary mb-0 mr-2" data-toggle="modal"
           data-target="#{{ $linkModalId }}"><i class="fas fa-link mr-1" aria-hidden="true"></i>Adicionar links</button>
       @endcan
-      @if ($owner instanceof \App\Models\Meeting && $shareableLinkGroups->isNotEmpty())
+      @if ($owner instanceof \App\Models\Meeting && ($shareableFileGroups->isNotEmpty() || $shareableLinkGroups->isNotEmpty()))
         <button type="button" class="btn btn-sm btn-outline-secondary mb-0" data-toggle="modal"
           data-target="#{{ $componentId }}-share-links-modal"><i class="fas fa-share-alt mr-1"
-            aria-hidden="true"></i>Compartilhar links</button>
+            aria-hidden="true"></i>Compartilhar midia</button>
       @endif
     </div>
   </div>
@@ -278,30 +302,50 @@
   @endif
 @endcan
 
-@if ($owner instanceof \App\Models\Meeting && $shareableLinkGroups->isNotEmpty())
+@if ($owner instanceof \App\Models\Meeting && ($shareableFileGroups->isNotEmpty() || $shareableLinkGroups->isNotEmpty()))
   @push('modals')
     <div class="modal fade" id="{{ $componentId }}-share-links-modal" tabindex="-1" role="dialog"
       aria-labelledby="{{ $componentId }}-share-links-title" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h2 class="modal-title h5" id="{{ $componentId }}-share-links-title">Compartilhar links com a reunião</h2>
+            <h2 class="modal-title h5" id="{{ $componentId }}-share-links-title">Compartilhar arquivos e links com a
+              reunião</h2>
             <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
                 aria-hidden="true">&times;</span></button>
           </div>
           <div class="modal-body">
-            @foreach ($shareableLinkGroups as $group)
-              <h3 class="h6">{{ $group['label'] }}</h3>
-              <div class="list-group mb-3">
-                @foreach ($group['links'] as $link)
-                  <form action="{{ route('meetings.link-shares.store', $owner) }}" method="post"
-                    class="list-group-item d-flex align-items-center justify-content-between">@csrf<input type="hidden"
-                      name="link_uuid" value="{{ $link->uuid }}"><span
-                      class="text-truncate mr-3">{{ $link->display_name }}</span><button class="btn btn-sm btn-primary"
-                      type="submit">Compartilhar</button></form>
-                @endforeach
-              </div>
-            @endforeach
+            @if ($shareableFileGroups->isNotEmpty())
+              <h3 class="h6">Arquivos</h3>
+              @foreach ($shareableFileGroups as $group)
+                <h4 class="small font-weight-bold">{{ $group['label'] }}</h4>
+                <div class="list-group mb-3">
+                  @foreach ($group['files'] as $media)
+                    <form action="{{ route('meetings.file-shares.store', $owner) }}" method="post"
+                      class="list-group-item d-flex align-items-center justify-content-between">@csrf<input
+                        type="hidden" name="media_uuid" value="{{ $media->uuid }}"><span
+                        class="text-truncate mr-3">{{ $media->display_name }}</span><button
+                        class="btn btn-sm btn-primary" type="submit">Compartilhar</button></form>
+                  @endforeach
+                </div>
+              @endforeach
+            @endif
+
+            @if ($shareableLinkGroups->isNotEmpty())
+              <h3 class="h6">Links</h3>
+              @foreach ($shareableLinkGroups as $group)
+                <h4 class="small font-weight-bold">{{ $group['label'] }}</h4>
+                <div class="list-group mb-3">
+                  @foreach ($group['links'] as $link)
+                    <form action="{{ route('meetings.link-shares.store', $owner) }}" method="post"
+                      class="list-group-item d-flex align-items-center justify-content-between">@csrf<input
+                        type="hidden" name="link_uuid" value="{{ $link->uuid }}"><span
+                        class="text-truncate mr-3">{{ $link->display_name }}</span><button
+                        class="btn btn-sm btn-primary" type="submit">Compartilhar</button></form>
+                  @endforeach
+                </div>
+              @endforeach
+            @endif
           </div>
         </div>
       </div>
