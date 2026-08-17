@@ -18,7 +18,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Throwable;
 
 class MediaController extends Controller
 {
@@ -57,23 +59,59 @@ class MediaController extends Controller
     {
         Gate::forUser($request->user())->authorize('create', [Media::class, $owner]);
 
-        $validated = $request->validate([
-            'file' => ['required', 'file', 'max:102400'],
-        ]);
+        $legacyUpload = $request->hasFile('file');
+        $selectedFiles = $request->file('files', $legacyUpload ? [$request->file('file')] : []);
+        $selectedFiles = is_array($selectedFiles) ? $selectedFiles : [$selectedFiles];
 
-        $media = $this->fileUploadService->upload(
-            $owner,
-            $validated['file'],
-            $request->user(),
-        );
-
-        if ($media === null) {
+        if ($selectedFiles === []) {
             return back()->withErrors([
-                'file' => 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.',
+                $legacyUpload ? 'file' : 'files' => 'Selecione ao menos um Arquivo.',
             ]);
         }
 
-        return back()->with('alert-success', "Arquivo {$media->display_name} enviado com sucesso.");
+        $uploaded = [];
+        $errors = [];
+
+        foreach ($selectedFiles as $file) {
+            $name = $file?->getClientOriginalName() ?: 'Arquivo sem nome';
+            $validator = Validator::make(['file' => $file], [
+                'file' => ['required', 'file', 'max:102400'],
+            ]);
+
+            if ($validator->fails()) {
+                $message = $validator->errors()->first('file');
+                $errors[] = $legacyUpload ? $message : "{$name}: {$message}";
+                continue;
+            }
+
+            try {
+                $media = $this->fileUploadService->upload($owner, $file, $request->user());
+            } catch (Throwable $exception) {
+                report($exception);
+                $message = 'Não foi possível enviar o Arquivo. Tente novamente.';
+                $errors[] = $legacyUpload ? $message : "{$name}: {$message}";
+                continue;
+            }
+
+            if ($media === null) {
+                $message = 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.';
+                $errors[] = $legacyUpload ? $message : "{$name}: {$message}";
+                continue;
+            }
+
+            $uploaded[] = $media->display_name;
+        }
+
+        $response = back();
+        if ($uploaded !== []) {
+            $response->with('alert-success', count($uploaded).' Arquivo(s) enviado(s) com sucesso.');
+        }
+
+        if ($errors !== []) {
+            $response->withErrors([$legacyUpload ? 'file' : 'files' => $errors]);
+        }
+
+        return $response;
     }
 
     public function metadata(Request $request, string $uuid): JsonResponse

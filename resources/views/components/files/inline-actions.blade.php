@@ -7,31 +7,16 @@
 
       document.querySelectorAll('[data-file-upload-form]').forEach(function (form) {
         var input = form.querySelector('[data-file-upload-input]');
-        var submit = form.querySelector('[data-file-upload-submit]');
         var feedback = form.querySelector('[data-file-upload-feedback]');
-        var fileName = form.querySelector('[data-file-upload-name]');
-        var clear = form.querySelector('[data-file-upload-clear]');
 
-        if (!input || !submit || !feedback || !fileName || !clear) return;
+        if (!input) return;
 
-        function updateUploadState() {
-          var file = input.files && input.files.length ? input.files[0] : null;
-
-          submit.disabled = !file;
-          submit.setAttribute('aria-disabled', String(!file));
-          feedback.classList.toggle('d-none', !file);
-          fileName.textContent = file ? file.name : '';
-        }
-
-        input.addEventListener('change', updateUploadState);
-        clear.addEventListener('click', function () {
-          input.value = '';
-          updateUploadState();
+        input.addEventListener('change', function () {
+          var count = input.files ? input.files.length : 0;
+          if (!count) return;
+          if (feedback) feedback.textContent = count === 1 ? 'Enviando 1 Arquivo.' : 'Enviando ' + count + ' Arquivos.';
+          form.submit();
         });
-        form.addEventListener('reset', function () {
-          window.setTimeout(updateUploadState, 0);
-        });
-        updateUploadState();
       });
 
       document.querySelectorAll('[data-file-browser]').forEach(function (browser) {
@@ -209,6 +194,21 @@
             });
           }
         });
+      });
+
+      document.querySelectorAll('[data-link-edit-toggle]').forEach(function (toggle) {
+        var form = document.getElementById(toggle.getAttribute('aria-controls'));
+        if (!form) return;
+        var cancel = form.querySelector('[data-link-edit-cancel]');
+        toggle.addEventListener('click', function () {
+          document.querySelectorAll('[data-link-edit-form]').forEach(function (other) {
+            if (other !== form) other.hidden = true;
+          });
+          form.hidden = false;
+          var input = form.querySelector('input[name=name]');
+          if (input) input.focus();
+        });
+        if (cancel) cancel.addEventListener('click', function () { form.hidden = true; });
       });
     });
   </script>
