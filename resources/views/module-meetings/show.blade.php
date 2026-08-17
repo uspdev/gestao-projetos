@@ -38,7 +38,7 @@
 
       <div class="col-lg-4">
         @include('module-meetings.partials.overview')
-        <x-files.list :owner="$meeting" :files="$files" :shared-files="$sharedFiles" />
+        <x-files.list :owner="$meeting" :files="$files" :links="$links" :shared-files="$sharedFiles" :shared-links="$sharedLinks" />
         <x-mentions.incoming-card :target="$meeting" empty-message="Esta reunião ainda não foi mencionada." />
       </div>
     </div>

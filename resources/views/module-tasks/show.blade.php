@@ -27,7 +27,7 @@
       <div class="col-md-4">
         @include('module-tasks.partials.show.info-card')
         @include('module-tasks.partials.show.assignees-card')
-        <x-files.list :owner="$task" :files="$files" />
+        <x-files.list :owner="$task" :files="$files" :links="$links" />
         <x-mentions.incoming-card :target="$task" empty-message="Esta tarefa ainda não foi mencionada." />
       </div>
     </div>

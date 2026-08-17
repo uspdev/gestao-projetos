@@ -14,7 +14,7 @@
       </div>
       <div class="col-md-4">
         <x-projects::show.tipo-card :project="$project" />
-        <x-files.list :owner="$project" :files="$files" />
+        <x-files.list :owner="$project" :files="$files" :links="$links" />
         <x-projects::show.membros-preview-card :project="$project" />
         @include('projects.partials.show.show-card-modulos')
         <x-mentions.incoming-card :target="$project" empty-message="Este projeto ainda não foi mencionado." />
