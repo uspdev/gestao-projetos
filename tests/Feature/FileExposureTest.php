@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Project;
+use App\Models\Link;
 use App\Models\Meeting;
 use App\Models\Task;
 use App\Models\User;
@@ -153,6 +154,128 @@ class FileExposureTest extends TestCase
             ])
             ->assertRedirect(route('projects.files.store', $project))
             ->assertSessionHasErrors('file');
+    }
+
+    public function test_multiple_file_upload_keeps_valid_files_when_another_file_is_invalid(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $admin = $this->user('Admin de envio múltiplo');
+        $contributor = $this->user('Colaborador de envio múltiplo');
+        $project = $this->projectWithMembers($admin, $contributor);
+        $project->users()->updateExistingPivot($contributor->id, ['role' => 'CONTRIBUTOR']);
+
+        $this->actingAs($contributor)
+            ->post(route('projects.files.store', $project), [
+                'files' => [
+                    UploadedFile::fake()->create('valido.txt', 1),
+                    UploadedFile::fake()->create('grande.bin', 102401),
+                ],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasErrors('files')
+            ->assertSessionHas('alert-success');
+
+        $this->assertSame('valido', $project->fresh()->getFirstMedia()?->display_name);
+    }
+
+    public function test_project_contributor_can_add_distinct_external_links_in_batch(): void
+    {
+        $admin = $this->user('Admin de Links');
+        $contributor = $this->user('Colaborador de Links');
+        $project = $this->projectWithMembers($admin, $contributor);
+        $project->users()->updateExistingPivot($contributor->id, ['role' => 'CONTRIBUTOR']);
+
+        $this->actingAs($contributor)
+            ->post(route('projects.links.store', $project), [
+                'urls' => "https://example.test/manual\n\nhttps://example.test/planilha\nhttps://example.test/manual",
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('alert-success');
+
+        $links = $project->fresh()->links()->orderBy('url')->get();
+        $this->assertCount(2, $links);
+        $this->assertSame('https://example.test/manual', $links->first()->display_name);
+        $this->assertTrue($links->every(fn (Link $link) => $link->created_by === $contributor->id));
+        $this->assertDatabaseHas('activity_log', ['subject_id' => $links->first()->id, 'event' => 'created']);
+    }
+
+    public function test_link_batch_rejects_non_http_urls_without_creating_any_link(): void
+    {
+        $admin = $this->user('Admin de URLs');
+        $contributor = $this->user('Colaborador de URLs');
+        $project = $this->projectWithMembers($admin, $contributor);
+        $project->users()->updateExistingPivot($contributor->id, ['role' => 'CONTRIBUTOR']);
+
+        $this->actingAs($contributor)
+            ->from(route('projects.show', $project))
+            ->post(route('projects.links.store', $project), [
+                'urls' => "https://example.test/valido\nftp://example.test/invalido",
+            ])
+            ->assertRedirect(route('projects.show', $project))
+            ->assertSessionHasErrors('urls');
+
+        $this->assertDatabaseCount('links', 0);
+    }
+
+    public function test_author_can_edit_and_delete_a_link(): void
+    {
+        $author = $this->user('Autor de Link');
+        $viewer = $this->user('Leitor de Link');
+        $project = $this->projectWithMembers($author, $viewer);
+        $link = $project->links()->create([
+            'name' => 'Manual',
+            'url' => 'https://example.test/manual',
+            'created_by' => $author->id,
+        ]);
+
+        $this->actingAs($author)
+            ->patch(route('links.update', $link->uuid), [
+                'name' => 'Manual atualizado',
+                'url' => 'https://example.test/manual-v2',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('links', ['id' => $link->id, 'name' => 'Manual atualizado', 'url' => 'https://example.test/manual-v2']);
+
+        $this->actingAs($author)
+            ->delete(route('links.destroy', $link->uuid))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('links', ['id' => $link->id]);
+    }
+
+    public function test_meeting_editor_can_share_and_revoke_an_eligible_link(): void
+    {
+        $author = $this->user('Autor que compartilha Link');
+        $viewer = $this->user('Leitor da reunião');
+        $project = $this->projectWithMembers($author, $viewer);
+        $link = $project->links()->create([
+            'name' => 'Documento de pauta',
+            'url' => 'https://example.test/pauta',
+            'created_by' => $author->id,
+        ]);
+        $meeting = Meeting::query()->create(['title' => 'Reunião de Links', 'status' => 'SCHEDULED']);
+        $meeting->projects()->attach($project);
+        DB::table('model_has_permissions')->insert([
+            'permission_id' => DB::table('permissions')->where('name', 'admin')->value('id'),
+            'model_type' => User::class,
+            'model_id' => $author->id,
+        ]);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($author)
+            ->post(route('meetings.link-shares.store', $meeting), ['link_uuid' => $link->uuid])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('meeting_link_shares', ['meeting_id' => $meeting->id, 'link_id' => $link->id]);
+
+        $this->actingAs($author)
+            ->delete(route('meetings.link-shares.destroy', [$meeting, $link->uuid]))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('meeting_link_shares', ['meeting_id' => $meeting->id, 'link_id' => $link->id]);
     }
 
     public function test_thumbnail_failure_rejects_the_upload_and_reports_the_error(): void
@@ -437,6 +560,8 @@ class FileExposureTest extends TestCase
         $migration = require database_path('migrations/2026_07_21_090000_create_media_table.php');
         $migration->up();
         (require database_path('migrations/2026_07_22_090000_create_meeting_file_shares_table.php'))->up();
+        (require database_path('migrations/2026_08_17_090000_create_links_table.php'))->up();
+        (require database_path('migrations/2026_08_17_090100_create_meeting_link_shares_table.php'))->up();
 
         DB::table('permissions')->insert(collect([
             'admin', 'boss', 'manager', 'poweruser', 'user',

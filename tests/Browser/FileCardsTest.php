@@ -28,20 +28,13 @@ class FileCardsTest extends DuskTestCase
             $browser->loginAs($administrator)
                 ->visit(route('projects.show', $project))
                 ->waitFor('[data-file-upload-form]')
-                ->assertDisabled('[data-file-upload-submit]')
+                ->assertSee('Imagens')
+                ->assertSee('Documentos')
+                ->assertSee('Links')
                 ->attach(
                     '#file-upload-'.$project->getMorphClass().'-'.$project->id,
                     base_path('tests/Fixtures/arquivo-dusk.txt'),
                 )
-                ->assertEnabled('[data-file-upload-submit]')
-                ->assertVisible('[data-file-upload-feedback]')
-                ->click('[data-file-upload-clear]')
-                ->assertDisabled('[data-file-upload-submit]')
-                ->attach(
-                    '#file-upload-'.$project->getMorphClass().'-'.$project->id,
-                    base_path('tests/Fixtures/arquivo-dusk.txt'),
-                )
-                ->press('Enviar Arquivo')
                 ->waitFor('[data-file-card]')
                 ->assertSee('arquivo-dusk')
                 ->assertPresent('[data-file-card][id^="file-"]')
