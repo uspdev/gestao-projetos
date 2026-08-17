@@ -141,7 +141,7 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
         $this->loadMissing('projects');
 
         return $this->projects->contains(
-            fn (Project $project) => $project->isModuleEnabled('meetings')
+            fn(Project $project) => $project->isModuleEnabled('meetings')
                 && $user->isViewerOfProject($project)
         );
     }
@@ -162,6 +162,21 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
     public function sharedFiles(): BelongsToMany
     {
         return $this->belongsToMany(Media::class, 'meeting_file_shares')
+            ->withPivot('shared_by')
+            ->withTimestamps();
+    }
+
+    /**
+     * Relacionamento com links (morph)
+     */
+    public function links(): MorphMany
+    {
+        return $this->morphMany(Link::class, 'linkable');
+    }
+
+    public function sharedLinks(): BelongsToMany
+    {
+        return $this->belongsToMany(Link::class, 'meeting_link_shares')
             ->withPivot('shared_by')
             ->withTimestamps();
     }
@@ -308,7 +323,7 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
     public function duplicate(array $options = []): Model
     {
         return DB::transaction(
-            fn (): Model => $this->duplicateWithinTransaction($options)
+            fn(): Model => $this->duplicateWithinTransaction($options)
         );
     }
 
