@@ -1,5 +1,5 @@
 <div @class([
-    'card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky',
+    'card-header entity-header entity-header--project d-flex justify-content-between align-items-center gap-2 card-header-sticky',
     'border-bottom border-warning' => request()->routeIs('projects.settings', 'projects.activity'),
 ])>
   <div class="mb-0">

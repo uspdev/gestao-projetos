@@ -33,13 +33,13 @@
         @include('module-meetings.partials.meeting-notes')
         @include('module-meetings.partials.meeting-actions')
         @include('module-meetings.partials.meeting-records')
-        @include('comments.partials.thread', ['commentable' => $meeting])
+        @include('comments.partials.thread', ['commentable' => $meeting, 'cardClass' => 'content-surface'])
       </div>
 
       <div class="col-lg-4">
         @include('module-meetings.partials.overview')
-        <x-files.list :owner="$meeting" :files="$files" :links="$links" :shared-files="$sharedFiles" :shared-links="$sharedLinks" />
-        <x-mentions.incoming-card :target="$meeting" empty-message="Esta reunião ainda não foi mencionada." />
+        <x-files.list class="options-surface" :owner="$meeting" :files="$files" :links="$links" :shared-files="$sharedFiles" :shared-links="$sharedLinks" />
+        <x-mentions.incoming-card class="options-surface" :target="$meeting" empty-message="Esta reunião ainda não foi mencionada." />
       </div>
     </div>
   </div>

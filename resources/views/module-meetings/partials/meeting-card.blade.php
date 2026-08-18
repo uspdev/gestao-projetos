@@ -29,7 +29,7 @@
   </style>
 @endPushOnce
 
-<div class="card meeting-card">
+<div class="card meeting-card entity-card entity-card--meeting">
   <div class="card-body py-2 px-3">
     <a href="{{ route('projects.meetings.show', [$project, $meeting]) }}" class="stretched-link"></a>
     @if ($compact)

@@ -15,8 +15,6 @@
       \Carbon\Carbon::parse($task->due_date)->isPast() &&
       $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value;
 
-  $borderClass = 'border-' . $task->priority?->color();
-
 @endphp
 
 @pushOnce('styles')
@@ -42,7 +40,7 @@
   </style>
 @endPushOnce
 
-<div {{ $attributes->class(['card border-1 h-100 task-card mb-3 shadow-sm border-left', $borderClass]) }}>
+<div {{ $attributes->class(['card h-100 task-card entity-card entity-card--task mb-3 shadow-sm']) }}>
   <div class="card-body d-flex flex-column">
 
     {{-- Header --}}

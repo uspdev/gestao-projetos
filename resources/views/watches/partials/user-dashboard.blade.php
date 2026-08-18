@@ -4,16 +4,19 @@
           'label' => 'Projetos',
           'empty' => 'Nenhum projeto acompanhado.',
           'icon' => 'fas fa-folder-open',
+          'surface' => 'blue',
       ],
       'task' => [
           'label' => 'Tarefas',
           'empty' => 'Nenhuma tarefa acompanhada.',
           'icon' => 'fas fa-tasks',
+          'surface' => 'gray',
       ],
       'meeting' => [
           'label' => 'Reuniões',
           'empty' => 'Nenhuma reunião acompanhada.',
           'icon' => 'fas fa-calendar-alt',
+          'surface' => 'steel',
       ],
   ];
 @endphp
@@ -50,7 +53,7 @@
         @endphp
 
         <div class="col-md-6 col-xl-4 mb-3">
-          <div class="card h-100">
+          <div class="card app-card app-card--{{ $group['surface'] }} h-100">
             <div class="card-header d-flex align-items-center justify-content-between py-2">
               <h6 class="mb-0">
                 <i class="{{ $group['icon'] }} text-secondary mr-1" aria-hidden="true"></i>

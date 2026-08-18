@@ -22,13 +22,13 @@
     <div class="row">
       <div class="col-md-8">
         @include('module-tasks.partials.show.main-card')
-        @include('comments.partials.thread', ['commentable' => $task])
+        @include('comments.partials.thread', ['commentable' => $task, 'cardClass' => 'content-surface'])
       </div>
       <div class="col-md-4">
         @include('module-tasks.partials.show.info-card')
         @include('module-tasks.partials.show.assignees-card')
-        <x-files.list :owner="$task" :files="$files" :links="$links" />
-        <x-mentions.incoming-card :target="$task" empty-message="Esta tarefa ainda não foi mencionada." />
+        <x-files.list class="options-surface" :owner="$task" :files="$files" :links="$links" />
+        <x-mentions.incoming-card class="options-surface" :target="$task" empty-message="Esta tarefa ainda não foi mencionada." />
       </div>
     </div>
   </div>

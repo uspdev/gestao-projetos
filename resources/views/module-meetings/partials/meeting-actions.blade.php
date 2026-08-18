@@ -6,7 +6,7 @@
   $canEditNotes = $meeting && $project && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
-<div class="card mb-4 shadow-sm">
+<div class="card content-surface mb-4 shadow-sm">
   <div class="card-header h5 py-1 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
       <span class="font-weight-bold">Pauta</span>

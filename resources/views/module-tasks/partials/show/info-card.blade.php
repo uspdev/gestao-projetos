@@ -1,4 +1,4 @@
-<div class="card mb-4 shadow-sm border-top-primary">
+<div class="card options-surface mb-4 shadow-sm border-top-primary">
   <div class="card-header d-flex align-items-center justify-content-between py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações
