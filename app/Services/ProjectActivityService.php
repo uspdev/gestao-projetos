@@ -61,6 +61,37 @@ class ProjectActivityService
         'tag' => 'Etiqueta',
     ];
 
+    private const SUBJECT_SEARCH_FIELDS = [
+        Project::class => [
+            'label' => 'Projeto',
+            'fields' => ['name', 'slug'],
+        ],
+        Task::class => [
+            'label' => 'Tarefa',
+            'fields' => ['title'],
+        ],
+        Meeting::class => [
+            'label' => 'Reunião',
+            'fields' => ['title', 'location'],
+        ],
+        MeetingItem::class => [
+            'label' => 'Item de pauta',
+            'fields' => ['title', 'notes'],
+        ],
+        Comment::class => [
+            'label' => 'Comentário',
+            'fields' => ['text'],
+        ],
+        Media::class => [
+            'label' => 'Arquivo',
+            'fields' => ['name', 'original_name', 'uuid'],
+        ],
+        Link::class => [
+            'label' => 'Link',
+            'fields' => ['name', 'url'],
+        ],
+    ];
+
     private const FIELD_LABELS = [
         'name' => 'Nome',
         'slug' => 'Identificador',
@@ -99,7 +130,7 @@ class ProjectActivityService
             ->withQueryString();
 
         $activities->getCollection()->transform(
-            fn (ActivityLog $activity): array => $this->present($activity),
+            fn(ActivityLog $activity): array => $this->present($activity),
         );
 
         return $activities;
@@ -126,7 +157,7 @@ class ProjectActivityService
             ->where(function (Builder $query) use ($meetingIds, $projectAndTaskSubjects): void {
                 $query
                     ->whereIn('meeting_id', $meetingIds)
-                    ->orWhere(fn (Builder $query) => $this->whereMorphedToSubjects(
+                    ->orWhere(fn(Builder $query) => $this->whereMorphedToSubjects(
                         $query,
                         'discussable',
                         $projectAndTaskSubjects,
@@ -142,14 +173,14 @@ class ProjectActivityService
         ];
 
         return ActivityLog::query()->where(
-            fn (Builder $query) => $this->whereMorphedToSubjects($query, 'subject', $subjects),
+            fn(Builder $query) => $this->whereMorphedToSubjects($query, 'subject', $subjects),
         );
     }
 
     private function morphedSubjectIds(string $model, string $relation, array $subjects): Builder
     {
         return $model::query()
-            ->where(fn (Builder $query) => $this->whereMorphedToSubjects($query, $relation, $subjects))
+            ->where(fn(Builder $query) => $this->whereMorphedToSubjects($query, $relation, $subjects))
             ->select('id');
     }
 
@@ -183,11 +214,11 @@ class ProjectActivityService
         $query
             ->when(
                 filled($filters['from'] ?? null),
-                fn (Builder $query) => $query->whereDate('created_at', '>=', $filters['from']),
+                fn(Builder $query) => $query->whereDate('created_at', '>=', $filters['from']),
             )
             ->when(
                 filled($filters['until'] ?? null),
-                fn (Builder $query) => $query->whereDate('created_at', '<=', $filters['until']),
+                fn(Builder $query) => $query->whereDate('created_at', '<=', $filters['until']),
             );
 
         $search = trim((string) ($filters['search'] ?? ''));
@@ -200,7 +231,7 @@ class ProjectActivityService
         $matchedEvents = $this->searchMatches($search, self::EVENT_SEARCH_LABELS);
         $matchedLogNames = $this->searchMatches($search, self::LOG_NAME_SEARCH_LABELS);
 
-        return $query->where(function (Builder $query) use ($like, $matchedEvents, $matchedLogNames): void {
+        return $query->where(function (Builder $query) use ($search, $like, $matchedEvents, $matchedLogNames): void {
             $query
                 ->where('description', 'like', $like)
                 ->orWhere('event', 'like', $like)
@@ -215,39 +246,20 @@ class ProjectActivityService
                         ->where('name', 'like', $like)
                         ->orWhere('email', 'like', $like)
                         ->orWhere('codpes', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [Project::class], function (Builder $query) use ($like): void {
-                    $query
-                        ->where('name', 'like', $like)
-                        ->orWhere('slug', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [Task::class], function (Builder $query) use ($like): void {
-                    $query->where('title', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [Meeting::class], function (Builder $query) use ($like): void {
-                    $query
-                        ->where('title', 'like', $like)
-                        ->orWhere('location', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [MeetingItem::class], function (Builder $query) use ($like): void {
-                    $query
-                        ->where('title', 'like', $like)
-                        ->orWhere('notes', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [Comment::class], function (Builder $query) use ($like): void {
-                    $query->where('text', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [Media::class], function (Builder $query) use ($like): void {
-                    $query
-                        ->where('name', 'like', $like)
-                        ->orWhere('original_name', 'like', $like)
-                        ->orWhere('uuid', 'like', $like);
-                })
-                ->orWhereHasMorph('subject', [Link::class], function (Builder $query) use ($like): void {
-                    $query
-                        ->where('name', 'like', $like)
-                        ->orWhere('url', 'like', $like);
                 });
+
+            foreach (self::SUBJECT_SEARCH_FIELDS as $model => $configuration) {
+                $query->orWhereHasMorph(
+                    'subject',
+                    [$model],
+                    fn(Builder $subjectQuery): Builder => $this->applySubjectSearch(
+                        $subjectQuery,
+                        $search,
+                        $configuration['label'],
+                        $configuration['fields'],
+                    ),
+                );
+            }
 
             if ($matchedEvents !== []) {
                 $query
@@ -261,14 +273,55 @@ class ProjectActivityService
         });
     }
 
+    private function applySubjectSearch(
+        Builder $query,
+        string $search,
+        string $label,
+        array $fields,
+    ): Builder {
+        $like = '%' . $search . '%';
+
+        $query->where(function (Builder $query) use ($like, $fields, $search, $label): void {
+            $this->whereAnyLike($query, $fields, $like);
+
+            $labeledSearch = $this->searchTermAfterLabel($search, $label);
+
+            if ($labeledSearch !== null) {
+                $query->orWhere($fields[0], 'like', '%' . $labeledSearch . '%');
+            }
+        });
+
+        return $query;
+    }
+
+    private function whereAnyLike(Builder $query, array $fields, string $like): Builder
+    {
+        foreach ($fields as $index => $field) {
+            $query->{$index === 0 ? 'where' : 'orWhere'}($field, 'like', $like);
+        }
+
+        return $query;
+    }
+
     private function searchMatches(string $search, array $labelsToValues): array
     {
         $search = Str::lower($search);
 
         return collect($labelsToValues)
-            ->filter(fn (string $value, string $label): bool => Str::contains(Str::lower($label), $search))
+            ->filter(fn(string $value, string $label): bool => Str::contains(Str::lower($label), $search))
             ->values()
             ->all();
+    }
+
+    private function searchTermAfterLabel(string $search, string $label): ?string
+    {
+        $prefix = Str::lower($label) . ':';
+
+        if (! Str::startsWith(Str::lower($search), $prefix)) {
+            return null;
+        }
+
+        return trim(Str::substr($search, Str::length($prefix)));
     }
 
     private function subjectLabel(ActivityLog $activity): string
