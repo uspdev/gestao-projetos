@@ -194,7 +194,7 @@
                       href="{{ route('files.download', ['uuid' => $media->uuid]) }}"
                       class="file-image-name min-width-0 flex-grow-1 p-0 text-left text-truncate font-weight-bold"
                       title="{{ $media->display_name }}">{{ $media->display_name }}</a><x-files.actions
-                      :media="$media" :owner="$owner" :shared="$isShared" :previewable="false" :details-id="$componentId . '-details-' . $media->uuid" /></div>
+                      :media="$media" :owner="$owner" :shared="$isShared" /></div>
                 </div>
               </article>
             @endforeach
@@ -223,8 +223,7 @@
                     <span class="badge badge-light mr-2">Compartilhado</span>
                   @endif
                 </a>
-                <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" :previewable="false"
-                  :details-id="$componentId . '-details-' . $media->uuid" />
+                <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" />
               </article>
             @endforeach
           </div>

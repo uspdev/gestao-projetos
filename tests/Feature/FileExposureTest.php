@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\ViewErrorBag;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -244,6 +245,39 @@ class FileExposureTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseMissing('links', ['id' => $link->id]);
+    }
+
+    public function test_file_actions_hide_preview_and_link_edit_form_uses_the_shared_edit_region(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Autor das ações de Arquivos');
+        $viewer = $this->user('Leitor das ações de Arquivos');
+        $project = $this->projectWithMembers($author, $viewer);
+        $project->links()->create([
+            'name' => 'Manual',
+            'url' => 'https://example.test/manual',
+            'created_by' => $author->id,
+        ]);
+
+        $this->actingAs($author);
+        $project
+            ->addMedia(UploadedFile::fake()->createWithContent('manual.txt', 'conteudo'))
+            ->toMediaCollection();
+
+        $html = view('components.files.list', [
+            'owner' => $project,
+            'files' => $project->media()->with('uploader')->paginate(20, ['*'], 'files_page'),
+            'links' => $project->links()->with('creator')->paginate(20, ['*'], 'links_page'),
+            'errors' => new ViewErrorBag(),
+        ])->render();
+
+        $this->assertStringContainsString('data-file-rename-region', $html);
+        $this->assertStringContainsString('data-link-edit-form', $html);
+        $this->assertStringContainsString('Nome do link', $html);
+        $this->assertStringNotContainsString('data-file-preview-toggle', $html);
+        $this->assertStringNotContainsString('Pré-visualização indisponível', $html);
     }
 
     public function test_meeting_editor_can_share_and_revoke_an_eligible_link(): void

@@ -2,8 +2,6 @@
   'media',
   'owner',
   'shared' => false,
-  'previewable' => false,
-  'detailsId',
   'suffix' => 'item',
 ])
 
@@ -38,20 +36,6 @@
     <a class="dropdown-item" href="{{ route('files.download', ['uuid' => $media->uuid]) }}">
       <i class="fas fa-download fa-fw mr-2" aria-hidden="true"></i>Baixar
     </a>
-
-    @if ($previewable)
-      <button
-        type="button"
-        class="dropdown-item"
-        data-file-preview-toggle
-        data-file-details-id="{{ $detailsId }}">
-        <i class="fas fa-eye fa-fw mr-2" aria-hidden="true"></i>Pré-visualizar
-      </button>
-    @else
-      <button type="button" class="dropdown-item text-muted" disabled>
-        <i class="fas fa-eye-slash fa-fw mr-2" aria-hidden="true"></i>Pré-visualização indisponível
-      </button>
-    @endif
 
     @can('update', $media)
       <div class="dropdown-divider"></div>

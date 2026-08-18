@@ -156,6 +156,12 @@
               browser.querySelectorAll('[data-file-rename-toggle]').forEach(function (otherToggle) {
                 if (otherToggle !== toggle) otherToggle.setAttribute('aria-expanded', 'false');
               });
+              browser.querySelectorAll('[data-link-edit-form]').forEach(function (otherForm) {
+                otherForm.hidden = true;
+              });
+              browser.querySelectorAll('[data-link-edit-toggle]').forEach(function (otherToggle) {
+                otherToggle.setAttribute('aria-expanded', 'false');
+              });
 
               region.appendChild(form);
               region.hidden = false;
@@ -199,16 +205,69 @@
       document.querySelectorAll('[data-link-edit-toggle]').forEach(function (toggle) {
         var form = document.getElementById(toggle.getAttribute('aria-controls'));
         if (!form) return;
+
+        var browser = toggle.closest('[data-file-browser]');
+        var region = browser && browser.querySelector('[data-file-rename-region]');
+        if (!region) return;
+
         var cancel = form.querySelector('[data-link-edit-cancel]');
+
+        function setLinkEditVisibility(isVisible) {
+          if (isVisible) {
+            browser.querySelectorAll('[data-link-edit-form]').forEach(function (other) {
+              if (other !== form) other.hidden = true;
+            });
+            browser.querySelectorAll('[data-link-edit-toggle]').forEach(function (otherToggle) {
+              if (otherToggle !== toggle) otherToggle.setAttribute('aria-expanded', 'false');
+            });
+            browser.querySelectorAll('[data-file-rename-form]').forEach(function (otherForm) {
+              otherForm.hidden = true;
+            });
+            browser.querySelectorAll('[data-file-rename-toggle]').forEach(function (otherToggle) {
+              otherToggle.setAttribute('aria-expanded', 'false');
+            });
+
+            region.appendChild(form);
+            region.hidden = false;
+          }
+
+          form.hidden = !isVisible;
+          toggle.setAttribute('aria-expanded', String(isVisible));
+
+          if (isVisible) {
+            var input = form.querySelector('input[name=name]');
+            if (input) {
+              input.focus();
+              input.select();
+            }
+          }
+
+          if (!isVisible) {
+            form.querySelectorAll('input').forEach(function (input) {
+              input.value = input.defaultValue;
+            });
+            region.hidden = true;
+          }
+        }
+
         toggle.addEventListener('click', function () {
-          document.querySelectorAll('[data-link-edit-form]').forEach(function (other) {
-            if (other !== form) other.hidden = true;
-          });
-          form.hidden = false;
-          var input = form.querySelector('input[name=name]');
-          if (input) input.focus();
+          setLinkEditVisibility(true);
         });
-        if (cancel) cancel.addEventListener('click', function () { form.hidden = true; });
+
+        form.addEventListener('keydown', function (event) {
+          if (event.key !== 'Escape') return;
+
+          event.preventDefault();
+          setLinkEditVisibility(false);
+          toggle.focus();
+        });
+
+        if (cancel) {
+          cancel.addEventListener('click', function () {
+            setLinkEditVisibility(false);
+            toggle.focus();
+          });
+        }
       });
     });
   </script>
