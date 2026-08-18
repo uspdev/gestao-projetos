@@ -126,7 +126,7 @@
   };
 @endphp
 
-<section class="card my-4 file-browser" aria-labelledby="{{ $componentId }}-heading" data-file-browser>
+<section {{ $attributes->class(['card', 'my-4', 'file-browser']) }} aria-labelledby="{{ $componentId }}-heading" data-file-browser>
   <div class="card-header d-flex flex-column flex-sm-row align-items-start py-2">
     <h2 id="{{ $componentId }}-heading" class="h6 mt-1 mr-sm-3 mb-2 mb-sm-0 text-muted text-nowrap"><i
         class="fas fa-paperclip mr-1" aria-hidden="true"></i> Arquivos</h2>

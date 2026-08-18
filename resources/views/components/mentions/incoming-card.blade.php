@@ -80,7 +80,7 @@
   </style>
 @endPushOnce
 
-<div class="card mb-4 shadow-sm" data-mentions-card="{{ $target->getMorphClass() }}-{{ $target->getKey() }}">
+<div {{ $attributes->class(['card', 'mb-4', 'shadow-sm']) }} data-mentions-card="{{ $target->getMorphClass() }}-{{ $target->getKey() }}">
   <div class="card-header py-2 d-flex align-items-center justify-content-between">
     <div>
       <h6 class="m-0 text-muted">

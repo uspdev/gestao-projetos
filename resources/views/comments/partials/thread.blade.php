@@ -2,9 +2,10 @@
   $commentableType = $commentableType ?? $commentable->getMorphClass();
   $comments = $commentable->comments()->active()->with('user')->oldest()->get();
   $hasComments = $comments->isNotEmpty();
+  $cardClass = $cardClass ?? '';
 @endphp
 
-<div class="card mb-4 shadow-sm">
+<div @class(['card', 'mb-4', 'shadow-sm', $cardClass])>
   <div class="card-header py-2 d-flex align-items-center justify-content-between">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-comments mr-1" aria-hidden="true"></i> Comentários
