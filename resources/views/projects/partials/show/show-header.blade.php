@@ -1,6 +1,6 @@
 <div @class([
     'card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky',
-    'border-bottom border-warning' => request()->routeIs('projects.settings'),
+    'border-bottom border-warning' => request()->routeIs('projects.settings', 'projects.activity'),
 ])>
   <div class="mb-0">
     <div class="h4 mb-0 d-flex align-items-center flex-wrap" style="gap: 0.35rem;">
@@ -38,6 +38,7 @@
 
   <div class="d-flex align-items-center gap-2">
     @include('projects.partials.show.show-tag-badges')
+    @include('projects.partials.show.activity-btn')
     @include('projects.partials.show.settings-btn')
   </div>
 </div>

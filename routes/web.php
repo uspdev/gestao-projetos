@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/slug', [ProjectController::class, 'updateSlug'])->name('projects.updateSlug');
     Route::patch('projects/{project}/description', [ProjectController::class, 'updateDescription'])->name('projects.updateDescription');
     Route::patch('projects/{project}/tags', [ProjectController::class, 'updateTags'])->name('projects.updateTags');
+    Route::get('projects/{project}/activity', [ProjectController::class, 'activity'])->name('projects.activity');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
     Route::get('projects/{project}/subprojects/members', [ProjectController::class, 'subprojectMembers'])
         ->name('projects.subprojects.members');

@@ -5,6 +5,7 @@
 Todo agente que trabalhar neste projeto deve respeitar estas regras:
 
 - Não execute `git add`, `git commit`, `git push` nem qualquer outro comando que altere o estado do Git.
+- Não use Node para nada na aplicação, não usamos ele.
 - Ao concluir o trabalho, apresente apenas os comandos sugeridos de `git add` e `git commit` para análise do desenvolvedor. Use o padrão conventiona commits e inclua descrição, por exemplo:
     "feat(projects): permitir criação de subprojetos vinculados
     Adiciona a possibilidade de iniciar a criação de um subprojeto pelo
