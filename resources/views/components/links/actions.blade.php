@@ -7,7 +7,7 @@
     aria-label="Ações de {{ $link->display_name }}"><i class="fas fa-ellipsis-h" aria-hidden="true"></i></button>
   <div class="dropdown-menu dropdown-menu-right small" aria-labelledby="link-actions-{{ $link->uuid }}">
     @can('update', $link)
-      <button type="button" class="dropdown-item" data-link-edit-toggle aria-controls="{{ $formId }}"><i
+      <button type="button" class="dropdown-item" data-link-edit-toggle aria-controls="{{ $formId }}" aria-expanded="false"><i
           class="fas fa-pen fa-fw mr-2" aria-hidden="true"></i>Editar</button>
     @endcan
     <a class="dropdown-item" href="{{ $link->url }}" target="_blank" rel="noopener noreferrer"><i
@@ -31,13 +31,18 @@
   </div>
   @can('update', $link)
     <form id="{{ $formId }}" action="{{ route('links.update', $link->uuid) }}" method="post"
-      class="border-top mt-2 pt-2" data-link-edit-form hidden data-disable-client-validation>@csrf @method('PATCH')<label
-        class="sr-only" for="{{ $formId }}-name">Rótulo</label><input id="{{ $formId }}-name" name="name"
-        value="{{ $link->display_name }}" class="form-control form-control-sm mb-2" required maxlength="255"><label
-        class="sr-only" for="{{ $formId }}-url">URL</label><input id="{{ $formId }}-url" name="url"
-        value="{{ $link->url }}" class="form-control form-control-sm mb-2" required maxlength="2048" type="url">
-      <div class="d-flex justify-content-end"><button type="button" class="btn btn-sm btn-outline-secondary mr-2"
-          data-link-edit-cancel>Cancelar</button><button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+      class="w-100 mb-0" data-link-edit-form hidden data-disable-client-validation>@csrf @method('PATCH')
+      <div class="form-row">
+        <div class="col-12 col-md-6 mb-2"><label class="small mb-1" for="{{ $formId }}-name">Nome do link</label><input
+            id="{{ $formId }}-name" name="name" value="{{ $link->display_name }}" class="form-control form-control-sm"
+            required maxlength="255"></div>
+        <div class="col-12 col-md-6 mb-2"><label class="small mb-1" for="{{ $formId }}-url">URL</label><input
+            id="{{ $formId }}-url" name="url" value="{{ $link->url }}" class="form-control form-control-sm" required
+            maxlength="2048" type="url"></div>
+        <div class="col-12 d-flex justify-content-end"><button type="button"
+            class="btn btn-sm btn-outline-secondary mr-2" data-link-edit-cancel>Cancelar</button><button type="submit"
+            class="btn btn-sm btn-primary">Salvar</button>
+        </div>
       </div>
     </form>
   @endcan
