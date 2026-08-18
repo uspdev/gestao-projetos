@@ -15,6 +15,10 @@ use App\Http\Requests\Project\UpdateProjectSlugRequest;
 use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
+use App\Models\ActivityLog;
+use App\Models\Comment;
+use App\Models\Link;
+use App\Models\Media;
 use App\Models\Module;
 use App\Models\Meeting;
 use App\Models\MeetingItem;
@@ -22,11 +26,15 @@ use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\ProjectModule;
 use App\Models\ProjectType;
+use App\Models\Task;
+use App\Models\User;
 use App\Services\Mentions\MentionManager;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
@@ -121,6 +129,34 @@ class ProjectController extends Controller
             'links',
             'agendaMeetings',
         ));
+    }
+
+    public function activity(Project $project, Request $request)
+    {
+        Gate::authorize('viewActivity', $project);
+
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'from' => ['nullable', 'date'],
+            'until' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
+        $filters['search'] = trim((string) ($filters['search'] ?? ''));
+
+        $activities = $this->applyActivityFilters(
+            $this->projectActivityQuery($project),
+            $filters,
+        )
+            ->with(['causer', 'subject'])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(20, ['*'], 'activity_page')
+            ->withQueryString();
+
+        $activities->getCollection()->transform(
+            fn (ActivityLog $activity): array => $this->presentActivity($activity)
+        );
+
+        return view('projects.activity', compact('project', 'activities', 'filters'));
     }
 
     public function create(Request $request)
@@ -693,6 +729,385 @@ class ProjectController extends Controller
         );
 
         return view('projects.settings', compact('project'));
+    }
+
+    private function projectActivityQuery(Project $project): Builder
+    {
+        $projectType = $project->getMorphClass();
+        $taskType = (new Task())->getMorphClass();
+        $meetingType = (new Meeting())->getMorphClass();
+        $meetingItemType = (new MeetingItem())->getMorphClass();
+        $commentType = (new Comment())->getMorphClass();
+        $mediaType = (new Media())->getMorphClass();
+        $linkType = (new Link())->getMorphClass();
+
+        $taskIds = Task::withTrashed()
+            ->where('project_id', $project->getKey())
+            ->select('id');
+
+        $meetingIds = DB::table('meeting_projects')
+            ->where('project_id', $project->getKey())
+            ->select('meeting_id');
+
+        $meetingItemIds = MeetingItem::query()
+            ->where(function (Builder $query) use ($meetingIds, $projectType, $taskType, $project, $taskIds): void {
+                $query
+                    ->whereIn('meeting_id', $meetingIds)
+                    ->orWhere(function (Builder $query) use ($projectType, $project): void {
+                        $query
+                            ->where('discussable_type', $projectType)
+                            ->where('discussable_id', $project->getKey());
+                    })
+                    ->orWhere(function (Builder $query) use ($taskType, $taskIds): void {
+                        $query
+                            ->where('discussable_type', $taskType)
+                            ->whereIn('discussable_id', $taskIds);
+                    });
+            })
+            ->select('id');
+
+        $commentIds = Comment::query()
+            ->where(function (Builder $query) use ($projectType, $taskType, $meetingType, $project, $taskIds, $meetingIds): void {
+                $query
+                    ->where(function (Builder $query) use ($projectType, $project): void {
+                        $query
+                            ->where('commentable_type', $projectType)
+                            ->where('commentable_id', $project->getKey());
+                    })
+                    ->orWhere(function (Builder $query) use ($taskType, $taskIds): void {
+                        $query
+                            ->where('commentable_type', $taskType)
+                            ->whereIn('commentable_id', $taskIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($meetingType, $meetingIds): void {
+                        $query
+                            ->where('commentable_type', $meetingType)
+                            ->whereIn('commentable_id', $meetingIds);
+                    });
+            })
+            ->select('id');
+
+        $mediaIds = Media::query()
+            ->where(function (Builder $query) use ($projectType, $taskType, $meetingType, $project, $taskIds, $meetingIds): void {
+                $query
+                    ->where(function (Builder $query) use ($projectType, $project): void {
+                        $query
+                            ->where('model_type', $projectType)
+                            ->where('model_id', $project->getKey());
+                    })
+                    ->orWhere(function (Builder $query) use ($taskType, $taskIds): void {
+                        $query
+                            ->where('model_type', $taskType)
+                            ->whereIn('model_id', $taskIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($meetingType, $meetingIds): void {
+                        $query
+                            ->where('model_type', $meetingType)
+                            ->whereIn('model_id', $meetingIds);
+                    });
+            })
+            ->select('id');
+
+        $linkIds = Link::query()
+            ->where(function (Builder $query) use ($projectType, $taskType, $meetingType, $project, $taskIds, $meetingIds): void {
+                $query
+                    ->where(function (Builder $query) use ($projectType, $project): void {
+                        $query
+                            ->where('linkable_type', $projectType)
+                            ->where('linkable_id', $project->getKey());
+                    })
+                    ->orWhere(function (Builder $query) use ($taskType, $taskIds): void {
+                        $query
+                            ->where('linkable_type', $taskType)
+                            ->whereIn('linkable_id', $taskIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($meetingType, $meetingIds): void {
+                        $query
+                            ->where('linkable_type', $meetingType)
+                            ->whereIn('linkable_id', $meetingIds);
+                    });
+            })
+            ->select('id');
+
+        return ActivityLog::query()
+            ->where(function (Builder $query) use (
+                $projectType,
+                $taskType,
+                $meetingType,
+                $meetingItemType,
+                $commentType,
+                $mediaType,
+                $linkType,
+                $project,
+                $taskIds,
+                $meetingIds,
+                $meetingItemIds,
+                $commentIds,
+                $mediaIds,
+                $linkIds,
+            ): void {
+                $query
+                    ->where(function (Builder $query) use ($projectType, $project): void {
+                        $query
+                            ->where('subject_type', $projectType)
+                            ->where('subject_id', $project->getKey());
+                    })
+                    ->orWhere(function (Builder $query) use ($taskType, $taskIds): void {
+                        $query
+                            ->where('subject_type', $taskType)
+                            ->whereIn('subject_id', $taskIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($meetingType, $meetingIds): void {
+                        $query
+                            ->where('subject_type', $meetingType)
+                            ->whereIn('subject_id', $meetingIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($meetingItemType, $meetingItemIds): void {
+                        $query
+                            ->where('subject_type', $meetingItemType)
+                            ->whereIn('subject_id', $meetingItemIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($commentType, $commentIds): void {
+                        $query
+                            ->where('subject_type', $commentType)
+                            ->whereIn('subject_id', $commentIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($mediaType, $mediaIds): void {
+                        $query
+                            ->where('subject_type', $mediaType)
+                            ->whereIn('subject_id', $mediaIds);
+                    })
+                    ->orWhere(function (Builder $query) use ($linkType, $linkIds): void {
+                        $query
+                            ->where('subject_type', $linkType)
+                            ->whereIn('subject_id', $linkIds);
+                    });
+            });
+    }
+
+    private function presentActivity(ActivityLog $activity): array
+    {
+        return [
+            'record' => $activity,
+            'actor' => $activity->causer?->name ?? 'Sistema',
+            'action' => $this->activityActionLabel($activity),
+            'subject' => $this->activitySubjectLabel($activity),
+            'changes' => $this->activityChanges($activity),
+        ];
+    }
+
+    private function applyActivityFilters(Builder $query, array $filters): Builder
+    {
+        $query
+            ->when(
+                filled($filters['from'] ?? null),
+                fn (Builder $query) => $query->whereDate('created_at', '>=', $filters['from']),
+            )
+            ->when(
+                filled($filters['until'] ?? null),
+                fn (Builder $query) => $query->whereDate('created_at', '<=', $filters['until']),
+            );
+
+        $search = trim((string) ($filters['search'] ?? ''));
+
+        if ($search === '') {
+            return $query;
+        }
+
+        $like = '%' . $search . '%';
+        $matchedEvents = $this->activitySearchMatches($search, [
+            'criado' => 'created',
+            'alterado' => 'updated',
+            'excluído' => 'deleted',
+            'enviado' => 'uploaded',
+            'renomeado' => 'renamed',
+            'adicionado' => 'attached',
+            'removido' => 'detached',
+        ]);
+        $matchedLogNames = $this->activitySearchMatches($search, [
+            'projeto' => 'project',
+            'tarefa' => 'task',
+            'reunião' => 'meeting',
+            'comentário' => 'comment',
+            'arquivo' => 'file',
+            'link' => 'link',
+            'etiqueta' => 'tag',
+        ]);
+
+        return $query->where(function (Builder $query) use ($like, $matchedEvents, $matchedLogNames): void {
+            $query
+                ->where('description', 'like', $like)
+                ->orWhere('event', 'like', $like)
+                ->orWhere('log_name', 'like', $like)
+                ->orWhere('subject_type', 'like', $like)
+                ->orWhere('subject_id', 'like', $like)
+                ->orWhere('causer_type', 'like', $like)
+                ->orWhere('causer_id', 'like', $like)
+                ->orWhere('properties', 'like', $like)
+                ->orWhereHasMorph('causer', [User::class], function (Builder $query) use ($like): void {
+                    $query
+                        ->where('name', 'like', $like)
+                        ->orWhere('email', 'like', $like)
+                        ->orWhere('codpes', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [Project::class], function (Builder $query) use ($like): void {
+                    $query
+                        ->where('name', 'like', $like)
+                        ->orWhere('slug', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [Task::class], function (Builder $query) use ($like): void {
+                    $query->where('title', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [Meeting::class], function (Builder $query) use ($like): void {
+                    $query
+                        ->where('title', 'like', $like)
+                        ->orWhere('location', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [MeetingItem::class], function (Builder $query) use ($like): void {
+                    $query
+                        ->where('title', 'like', $like)
+                        ->orWhere('notes', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [Comment::class], function (Builder $query) use ($like): void {
+                    $query->where('text', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [Media::class], function (Builder $query) use ($like): void {
+                    $query
+                        ->where('name', 'like', $like)
+                        ->orWhere('original_name', 'like', $like)
+                        ->orWhere('uuid', 'like', $like);
+                })
+                ->orWhereHasMorph('subject', [Link::class], function (Builder $query) use ($like): void {
+                    $query
+                        ->where('name', 'like', $like)
+                        ->orWhere('url', 'like', $like);
+                });
+
+            if ($matchedEvents !== []) {
+                $query
+                    ->orWhereIn('event', $matchedEvents)
+                    ->orWhereIn('description', $matchedEvents);
+            }
+
+            if ($matchedLogNames !== []) {
+                $query->orWhereIn('log_name', $matchedLogNames);
+            }
+        });
+    }
+
+    private function activitySearchMatches(string $search, array $labelsToValues): array
+    {
+        $search = Str::lower($search);
+
+        return collect($labelsToValues)
+            ->filter(fn (string $value, string $label): bool => Str::contains(Str::lower($label), $search))
+            ->values()
+            ->all();
+    }
+
+    private function activityActionLabel(ActivityLog $activity): string
+    {
+        return match ($activity->event ?: $activity->description) {
+            'created' => 'criado',
+            'updated' => 'alterado',
+            'deleted' => 'excluído',
+            'uploaded' => 'enviado',
+            'renamed' => 'renomeado',
+            'attached', 'tag_attached' => 'adicionado',
+            'detached', 'tag_detached' => 'removido',
+            default => (string) ($activity->event ?: $activity->description),
+        };
+    }
+
+    private function activitySubjectLabel(ActivityLog $activity): string
+    {
+        $subject = $activity->subject;
+
+        return match (true) {
+            $subject instanceof Project => 'Projeto: ' . $subject->name,
+            $subject instanceof Task => 'Tarefa: ' . $subject->title,
+            $subject instanceof Meeting => 'Reunião: ' . $subject->title,
+            $subject instanceof MeetingItem => 'Item de pauta',
+            $subject instanceof Comment => 'Comentário',
+            $subject instanceof Media => 'Arquivo: ' . ($subject->display_name ?: $subject->original_name),
+            $subject instanceof Link => 'Link: ' . $subject->display_name,
+            default => match ($activity->log_name) {
+                'project' => 'Projeto',
+                'task' => 'Tarefa',
+                'meeting' => 'Reunião',
+                'meeting_item' => 'Item de pauta',
+                'comment' => 'Comentário',
+                'file' => 'Arquivo',
+                'link' => 'Link',
+                'tag' => 'Etiqueta',
+                default => 'Registro',
+            },
+        };
+    }
+
+    private function activityChanges(ActivityLog $activity): array
+    {
+        $old = $activity->oldValues;
+        $new = $activity->newValues;
+        $keys = array_values(array_unique(array_merge(array_keys($old), array_keys($new))));
+
+        return array_map(function (string|int $key) use ($old, $new): array {
+            $key = (string) $key;
+
+            return [
+                'field' => $this->activityFieldLabel($key),
+                'old' => array_key_exists($key, $old) ? $this->formatActivityValue($old[$key]) : null,
+                'new' => array_key_exists($key, $new) ? $this->formatActivityValue($new[$key]) : null,
+            ];
+        }, $keys);
+    }
+
+    private function activityFieldLabel(string $field): string
+    {
+        return [
+            'name' => 'Nome',
+            'slug' => 'Identificador',
+            'title' => 'Título',
+            'description' => 'Descrição',
+            'text' => 'Texto',
+            'notes' => 'Anotações prévias',
+            'ata' => 'Ata',
+            'status' => 'Status',
+            'visibility' => 'Visibilidade',
+            'permission_inheritance' => 'Herança de permissões',
+            'phase_id' => 'Fase',
+            'role' => 'Função',
+            'pinned' => 'Fixado',
+            'enabled' => 'Ativo',
+            'user_id' => 'Usuário',
+            'module_id' => 'Módulo',
+            'tag_id' => 'Etiqueta',
+            'project_id' => 'Projeto',
+            'owner_type' => 'Tipo de proprietário',
+            'owner_id' => 'Proprietário',
+            'url' => 'URL',
+            'location' => 'Local',
+            'scheduled_at' => 'Agendamento',
+            'transcription_length' => 'Tamanho da transcrição',
+            'transcription_sha256' => 'Hash da transcrição',
+        ][$field] ?? Str::headline($field);
+    }
+
+    private function formatActivityValue(mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '—';
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'Sim' : 'Não';
+        }
+
+        if (is_array($value)) {
+            $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        return Str::limit(strip_tags((string) $value), 180);
     }
 
     /**
