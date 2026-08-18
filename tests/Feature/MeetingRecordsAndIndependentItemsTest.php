@@ -1068,6 +1068,16 @@ TXT;
         $this->assertStringContainsString('id="task-description-edit-1-textarea"', $taskPage);
         $this->assertStringContainsString('id="meeting-notes-edit-1-textarea"', $meetingPage);
         $this->assertStringContainsString('id="meeting-item-notes-edit-1-textarea"', $meetingPage);
+        $this->assertStringContainsString('entity-header entity-header--project', $projectPage);
+        $this->assertStringContainsString('entity-header entity-header--task', $taskPage);
+        $this->assertStringContainsString('entity-header entity-header--meeting', $meetingPage);
+        foreach ([$projectPage, $taskPage, $meetingPage] as $page) {
+            $this->assertStringContainsString('content-surface', $page);
+            $this->assertStringContainsString('options-surface', $page);
+        }
+        $this->assertStringNotContainsString('border-left: 4px solid', $projectPage);
+        $this->assertStringNotContainsString('border-left: 4px solid', $taskPage);
+        $this->assertStringNotContainsString('border-left: 4px solid', $meetingPage);
 
         foreach ([$projectPage, $taskPage, $meetingPage] as $page) {
             $this->assertStringContainsString('data-markdown-profile="full"', $page);
