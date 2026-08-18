@@ -26,6 +26,8 @@
             @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
           </div>
 
+          @include('projects.partials.show.activity-card')
+
         </div>
       </div>
     </div>

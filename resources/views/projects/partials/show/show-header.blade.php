@@ -38,7 +38,6 @@
 
   <div class="d-flex align-items-center gap-2">
     @include('projects.partials.show.show-tag-badges')
-    @include('projects.partials.show.activity-btn')
     @include('projects.partials.show.settings-btn')
   </div>
 </div>

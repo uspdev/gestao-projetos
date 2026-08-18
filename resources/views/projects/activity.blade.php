@@ -79,21 +79,14 @@
               <td>{{ $item['subject'] }}</td>
               <td>
                 @if (count($item['changes']) > 0)
-                  <details>
-                    <summary class="text-primary" role="button">ver detalhes</summary>
-                    <dl class="row small mb-0 mt-2">
-                      @foreach ($item['changes'] as $change)
-                        <dt class="col-sm-4 mb-1">{{ $change['field'] }}</dt>
-                        <dd class="col-sm-8 mb-1">
-                          @if ($change['old'] !== null)
-                            <span class="text-muted">{{ $change['old'] }}</span>
-                            <i class="fas fa-arrow-right mx-1" aria-hidden="true"></i>
-                          @endif
-                          {{ $change['new'] ?? '—' }}
-                        </dd>
-                      @endforeach
-                    </dl>
-                  </details>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    data-toggle="modal"
+                    data-target="#activity-details-modal"
+                    data-activity-changes="{{ json_encode($item['changes'], JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_TAG) }}">
+                    Ver detalhes
+                  </button>
                 @else
                   <span class="text-muted">Sem detalhes</span>
                 @endif
@@ -121,4 +114,62 @@
       </div>
     @endif
   </div>
+
+  <div class="modal fade" id="activity-details-modal" tabindex="-1" role="dialog"
+    aria-labelledby="activity-details-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="activity-details-modal-label">Detalhes da alteração</h2>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <dl class="row small mb-0" data-activity-details></dl>
+        </div>
+      </div>
+    </div>
+  </div>
 @endsection
+
+@push('scripts')
+  <script>
+    (function() {
+      const modal = document.getElementById('activity-details-modal');
+      const details = modal?.querySelector('[data-activity-details]');
+
+      if (!modal || !details || !window.jQuery) return;
+
+      window.jQuery(modal).on('show.bs.modal', function(event) {
+        const changes = JSON.parse(event.relatedTarget?.dataset.activityChanges || '[]');
+
+        details.replaceChildren();
+
+        changes.forEach(function(change) {
+          const field = document.createElement('dt');
+          field.className = 'col-sm-4 mb-2';
+          field.textContent = change.field;
+
+          const value = document.createElement('dd');
+          value.className = 'col-sm-8 mb-2';
+
+          if (change.old !== null) {
+            const old = document.createElement('span');
+            old.className = 'text-muted';
+            old.textContent = change.old;
+            value.appendChild(old);
+
+            const arrow = document.createElement('i');
+            arrow.className = 'fas fa-arrow-right mx-1';
+            arrow.setAttribute('aria-hidden', 'true');
+            value.appendChild(arrow);
+          }
+
+          value.append(document.createTextNode(change.new ?? '—'));
+          details.append(field, value);
+        });
+      });
+    })();
+  </script>
+@endpush
