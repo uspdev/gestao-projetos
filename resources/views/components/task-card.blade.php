@@ -46,7 +46,7 @@
     {{-- Header --}}
     <div class="d-flex justify-content-between align-items-start mb-2">
       <h6 class="task-card__title font-weight-bold text-dark mb-0 pr-2">
-        {{ $task->title }} ok
+        {{ $task->title }}
       </h6>
 
       <div class="d-flex align-items-center position-relative" style="z-index: 2;">

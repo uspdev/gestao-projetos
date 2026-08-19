@@ -4,7 +4,7 @@
     $inheritance = $subproject->permission_inheritance;
   @endphp
 
-  <div class="card border mb-3"
+  <div class="card border entity-context-card entity-context-card--project mb-3"
     data-subproject-members-searchable="{{ $subproject->name }} {{ $subproject->users->pluck('name')->implode(' ') }}">
     <div class="card-header bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center">
       <div class="mb-2 mb-md-0">

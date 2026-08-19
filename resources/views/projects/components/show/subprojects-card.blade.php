@@ -8,7 +8,7 @@
     $displayedSubprojects = $isPreview ? $subprojects->take(2) : $subprojects;
   @endphp
 
-  <x-projects::show.card-template :type="$type">
+  <x-projects::show.card-template :type="$type" class="entity-context-card entity-context-card--project">
     <x-slot:header>
       <div class="d-flex align-items-center">
         {{-- 1. Título --}}

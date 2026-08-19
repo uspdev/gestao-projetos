@@ -1,4 +1,4 @@
-<div class="card border">
+<div class="card border config-card">
   <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-user-shield mr-1" aria-hidden="true"></i>

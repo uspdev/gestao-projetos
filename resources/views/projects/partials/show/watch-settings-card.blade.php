@@ -1,4 +1,4 @@
-<div class="card mb-4">
+<div class="card config-card mb-4">
   <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted">
       <i class="fas fa-bell mr-1" aria-hidden="true"></i> Notificações

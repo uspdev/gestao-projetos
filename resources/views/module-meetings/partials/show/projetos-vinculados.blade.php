@@ -1,7 +1,7 @@
 @php
   $linkedProjects = $meeting?->projects ?? collect();
 @endphp
-<div class="card border-0">
+<div class="card border-0 meeting-context-card">
   <div class="card-header py-2">
     <i class="fas fa-folder-open"></i> Projetos vinculados
   </div>

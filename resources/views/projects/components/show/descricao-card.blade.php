@@ -7,7 +7,8 @@
       old('form_context') === 'project-description' && (string) old('project_id') === (string) $project->id;
 @endphp
 
-<x-projects::show.card-template :type="$type" surface="content">
+<x-projects::show.card-template :type="$type" surface="content"
+  class="entity-context-card entity-context-card--project">
   <x-slot:header>
     <div class="d-flex align-items-center justify-content-between" style="gap: 0.75rem;">
       <h6 class="m-0 text-muted mr-2">

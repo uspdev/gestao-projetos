@@ -1,4 +1,4 @@
-<div class="card options-surface mb-3">
+<div class="card options-surface entity-context-card entity-context-card--meeting mb-3">
   <div class="card-header py-2 d-flex justify-content-between align-items-center">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações da reunião

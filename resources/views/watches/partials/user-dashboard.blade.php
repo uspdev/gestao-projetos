@@ -50,7 +50,7 @@
         @endphp
 
         <div class="col-md-6 col-xl-4 mb-3">
-          <div class="card h-100">
+          <div class="card h-100 watch-card watch-card--{{ $type }}">
             <div class="card-header d-flex align-items-center justify-content-between py-2">
               <h6 class="mb-0">
                 <i class="{{ $group['icon'] }} text-secondary mr-1" aria-hidden="true"></i>

@@ -34,6 +34,7 @@
       --entity-task-accent: #718596;
       --entity-meeting-accent: #47708D;
       --app-card-meeting-divider: #D5A13A;
+      --app-card-settings-divider: #D5A13A;
       --app-card-content-border: #C8D9E8;
       --app-card-options-border: #D4DEE5;
       --app-card-resources-divider: #6F8799;
@@ -105,6 +106,42 @@
       --entity-accent: var(--entity-meeting-accent);
       --entity-header-accent: var(--app-card-meeting-divider);
       border-bottom: 1px solid var(--app-card-meeting-divider) !important;
+    }
+
+    .entity-context-card > .card-header {
+      border-bottom: 1px solid var(--entity-context-divider);
+    }
+
+    .entity-context-card--project {
+      --entity-context-divider: var(--entity-project-accent);
+    }
+
+    .entity-context-card--task {
+      --entity-context-divider: var(--entity-task-accent);
+    }
+
+    .entity-context-card--meeting {
+      --entity-context-divider: var(--entity-meeting-accent);
+    }
+
+    .config-card > .card-header {
+      border-bottom: 1px solid var(--app-card-settings-divider);
+    }
+
+    .meeting-context-card > .card-header {
+      border-bottom: 1px solid var(--entity-meeting-accent);
+    }
+
+    .watch-card--project > .card-header {
+      border-bottom: 1px solid var(--entity-project-accent);
+    }
+
+    .watch-card--task > .card-header {
+      border-bottom: 1px solid var(--entity-task-accent);
+    }
+
+    .watch-card--meeting > .card-header {
+      border-bottom: 1px solid var(--entity-meeting-accent);
     }
 
     #skin_footer {

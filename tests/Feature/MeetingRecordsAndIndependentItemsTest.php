@@ -1071,6 +1071,9 @@ TXT;
         $this->assertStringNotContainsString('entity-header entity-header--project', $projectPage);
         $this->assertStringContainsString('entity-header entity-header--task', $taskPage);
         $this->assertStringContainsString('entity-header entity-header--meeting', $meetingPage);
+        $this->assertStringContainsString('entity-context-card entity-context-card--project', $projectPage);
+        $this->assertStringContainsString('entity-context-card entity-context-card--task', $taskPage);
+        $this->assertStringContainsString('entity-context-card entity-context-card--meeting', $meetingPage);
         foreach ([$projectPage, $taskPage, $meetingPage] as $page) {
             $this->assertStringContainsString('content-surface', $page);
             $this->assertStringContainsString('options-surface', $page);

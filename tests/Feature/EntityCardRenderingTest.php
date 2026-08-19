@@ -21,6 +21,7 @@ class EntityCardRenderingTest extends TestCase
             ->assertSee('--entity-task-accent: #718596', false)
             ->assertSee('--entity-meeting-accent: #47708D', false)
             ->assertSee('--app-card-meeting-divider: #D5A13A', false)
+            ->assertSee('--app-card-settings-divider: #D5A13A', false)
             ->assertSee('--app-card-resources-divider: #6F8799', false)
             ->assertSee('--app-card-shadow: 0 0.25rem 0.75rem rgba(31, 54, 73, 0.12)', false)
             ->assertSee('.card {', false)
@@ -31,6 +32,12 @@ class EntityCardRenderingTest extends TestCase
             ->assertSee('.comments-card > .card-header', false)
             ->assertSee('.mentions-card > .card-header', false)
             ->assertSee('.entity-header {', false)
+            ->assertSee('.entity-context-card > .card-header', false)
+            ->assertSee('.entity-context-card--project', false)
+            ->assertSee('.entity-context-card--task', false)
+            ->assertSee('.entity-context-card--meeting', false)
+            ->assertSee('.config-card > .card-header', false)
+            ->assertSee('.meeting-context-card > .card-header', false)
             ->assertSee('border-bottom: 1px solid var(--app-card-meeting-divider) !important', false)
             ->assertSee('border-left: 3px solid var(--entity-accent) !important', false)
             ->assertDontSee('--app-card-blue-header', false)
@@ -121,10 +128,11 @@ class EntityCardRenderingTest extends TestCase
         ])->render();
 
         $this->assertStringNotContainsString('entity-card', $kanbanHtml);
-        $this->assertMatchesRegularExpression(
-            '/class="[^"]*entity-card entity-card--project[^"]*"/',
-            $subprojectHtml,
-        );
+       $this->assertMatchesRegularExpression(
+           '/class="[^"]*entity-card entity-card--project[^"]*"/',
+           $subprojectHtml,
+       );
+       $this->assertStringContainsString('entity-context-card entity-context-card--project', $subprojectHtml);
     }
 
     public function test_watch_dashboard_keeps_neutral_cards_for_each_group(): void
@@ -157,6 +165,9 @@ class EntityCardRenderingTest extends TestCase
         $html = view('watches.partials.user-dashboard', compact('watchedResources'))->render();
 
         $this->assertStringContainsString('card h-100', $html);
+        $this->assertStringContainsString('watch-card watch-card--project', $html);
+        $this->assertStringContainsString('watch-card watch-card--task', $html);
+        $this->assertStringContainsString('watch-card watch-card--meeting', $html);
     }
 
     /**

@@ -5,7 +5,7 @@
   $canEditNotes = $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
-<div class="card content-surface mb-4 shadow-sm">
+<div class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm">
   <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-sticky-note mr-1" aria-hidden="true"></i> Anotações prévias

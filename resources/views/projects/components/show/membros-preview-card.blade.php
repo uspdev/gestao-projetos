@@ -1,4 +1,4 @@
-<x-projects::show.card-template>
+<x-projects::show.card-template class="entity-context-card entity-context-card--project">
   <x-slot:header>
     <i class="fas fa-users mr-1"></i> Membros do Projeto
     @include('projects.partials.show.settings-anchor-btn', ['anchor' => 'project-members'])
