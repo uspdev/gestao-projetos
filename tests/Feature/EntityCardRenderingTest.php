@@ -28,8 +28,6 @@ class EntityCardRenderingTest extends TestCase
             ->assertSee('box-shadow: var(--app-card-shadow) !important', false)
             ->assertSee('.content-surface > .card-header', false)
             ->assertSee('.options-surface > .card-header', false)
-            ->assertSee('.file-browser > .card-header', false)
-            ->assertSee('.comments-card > .card-header', false)
             ->assertSee('.mentions-card > .card-header', false)
             ->assertSee('.entity-header {', false)
             ->assertSee('.entity-context-card > .card-header', false)

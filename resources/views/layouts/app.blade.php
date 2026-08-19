@@ -74,8 +74,6 @@
       border-bottom-color: var(--app-card-options-border);
     }
 
-    .file-browser > .card-header,
-    .comments-card > .card-header,
     .mentions-card > .card-header {
       border-bottom-color: var(--app-card-resources-divider);
     }
