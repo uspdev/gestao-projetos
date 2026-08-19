@@ -1068,7 +1068,7 @@ TXT;
         $this->assertStringContainsString('id="task-description-edit-1-textarea"', $taskPage);
         $this->assertStringContainsString('id="meeting-notes-edit-1-textarea"', $meetingPage);
         $this->assertStringContainsString('id="meeting-item-notes-edit-1-textarea"', $meetingPage);
-        $this->assertStringContainsString('entity-header entity-header--project', $projectPage);
+        $this->assertStringNotContainsString('entity-header entity-header--project', $projectPage);
         $this->assertStringContainsString('entity-header entity-header--task', $taskPage);
         $this->assertStringContainsString('entity-header entity-header--meeting', $meetingPage);
         foreach ([$projectPage, $taskPage, $meetingPage] as $page) {

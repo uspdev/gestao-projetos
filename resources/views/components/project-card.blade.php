@@ -75,7 +75,7 @@
   </style>
 @endPushOnce
 
-<div {{ $attributes->class(['card project-card entity-card entity-card--project position-relative h-100']) }}>
+<div {{ $attributes->class(['card project-card position-relative h-100']) }}>
   <div class="card-body d-flex flex-column py-2">
 
     {{-- Header --}}

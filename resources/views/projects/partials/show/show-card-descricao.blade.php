@@ -11,7 +11,7 @@
       old('form_context') === 'project-description' && (string) old('project_id') === (string) $project->id;
 @endphp
 
-<div @class(['card mb-4', 'app-card app-card--blue' => $type === 'main'])>
+<div class="card mb-4">
   <div class="card-header {{ $class }} py-2">
     <div class="d-flex align-items-center justify-content-between" style="gap: 0.75rem;">
       <span>Descrição</span>

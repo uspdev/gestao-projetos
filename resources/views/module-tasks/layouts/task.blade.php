@@ -10,7 +10,7 @@
     $incompleteTasksCount = $project->getIncompleteTasksCount();
   @endphp
 
-  <div class="card app-card app-card--gray shadow-sm">
+  <div class="card shadow-sm">
     <div class="card-header entity-header entity-header--task h5 py-2 d-flex align-items-center justify-content-start gap-2">
       <a href="{{ route('projects.tasks.index', $project) }}" class="text-decoration-none text-dark">
         <i class="fas fa-tasks"></i> {{ $tasksMine ? 'Minhas' : 'Todas as' }} tarefas

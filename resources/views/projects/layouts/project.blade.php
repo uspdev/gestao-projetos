@@ -3,7 +3,7 @@
 @section('title', $title . ' | Detalhes do Projeto')
 
 @section('content')
-  <div class="card app-card app-card--blue">
+  <div class="card">
     @include('projects.partials.show.show-header')
     <div class="card-body p-2">
       @yield('project-content')

@@ -1,7 +1,4 @@
-<div @class([
-    'card-header entity-header entity-header--project d-flex justify-content-between align-items-center gap-2 card-header-sticky',
-    'border-bottom border-warning' => request()->routeIs('projects.settings', 'projects.activity'),
-])>
+<div class="card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky">
   <div class="mb-0">
     <div class="h4 mb-0 d-flex align-items-center flex-wrap" style="gap: 0.35rem;">
       <i class="fas fa-folder-open text-secondary"></i>

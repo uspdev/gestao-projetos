@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 class EntityCardRenderingTest extends TestCase
 {
-    public function test_layout_exposes_the_shared_entity_palette_and_interaction_styles(): void
+    public function test_layout_exposes_colored_card_dividers_and_shared_shadow(): void
     {
         $response = $this->get(route('about'))->assertOk();
 
@@ -20,19 +20,23 @@ class EntityCardRenderingTest extends TestCase
             ->assertSee('--entity-project-accent: #234983', false)
             ->assertSee('--entity-task-accent: #718596', false)
             ->assertSee('--entity-meeting-accent: #47708D', false)
-            ->assertSee('--app-card-blue-header: #EEF4FA', false)
-            ->assertSee('--app-card-gray-header: #F4F6F8', false)
-            ->assertSee('--app-card-steel-header: #EFF4F7', false)
-            ->assertSee('--app-card-meeting-header: #FFF5DB', false)
-            ->assertSee('--app-card-meeting-border: #D5A13A', false)
-            ->assertSee('background-color: var(--app-card-header-background)', false)
-            ->assertSee('.app-card > .card-header', false)
-            ->assertSee('.app-card--blue', false)
-            ->assertSee('.app-card--gray', false)
-            ->assertSee('.app-card--steel', false)
+            ->assertSee('--app-card-meeting-divider: #D5A13A', false)
+            ->assertSee('--app-card-resources-divider: #6F8799', false)
+            ->assertSee('--app-card-shadow: 0 0.25rem 0.75rem rgba(31, 54, 73, 0.12)', false)
+            ->assertSee('.card {', false)
+            ->assertSee('box-shadow: var(--app-card-shadow) !important', false)
             ->assertSee('.content-surface > .card-header', false)
             ->assertSee('.options-surface > .card-header', false)
+            ->assertSee('.file-browser > .card-header', false)
+            ->assertSee('.comments-card > .card-header', false)
+            ->assertSee('.mentions-card > .card-header', false)
+            ->assertSee('.entity-header {', false)
+            ->assertSee('border-bottom: 1px solid var(--app-card-meeting-divider) !important', false)
             ->assertSee('border-left: 3px solid var(--entity-accent) !important', false)
+            ->assertDontSee('--app-card-blue-header', false)
+            ->assertDontSee('--app-card-gray-header', false)
+            ->assertDontSee('--app-card-steel-header', false)
+            ->assertDontSee('background-color: var(--entity-header-background)', false)
             ->assertDontSee('--entity-project-background', false)
             ->assertDontSee('.entity-card:focus-within', false);
     }
@@ -56,10 +60,8 @@ class EntityCardRenderingTest extends TestCase
             'showDuplicate' => false,
         ])->render();
 
-        $this->assertMatchesRegularExpression(
-            '/class="[^"]*entity-card entity-card--project[^"]*"/',
-            $projectHtml,
-        );
+        $this->assertStringNotContainsString('entity-card', $projectHtml);
+        $this->assertStringContainsString('project-card', $projectHtml);
         $this->assertStringNotContainsString('DodgerBlue', $projectHtml);
         $this->assertStringContainsString('badge badge-success', $projectHtml);
 
@@ -125,7 +127,7 @@ class EntityCardRenderingTest extends TestCase
         );
     }
 
-    public function test_watch_dashboard_uses_a_colored_header_for_each_group(): void
+    public function test_watch_dashboard_keeps_neutral_cards_for_each_group(): void
     {
         [$project, $task, $meeting] = $this->entities();
         $watchedResources = collect([
@@ -154,9 +156,7 @@ class EntityCardRenderingTest extends TestCase
 
         $html = view('watches.partials.user-dashboard', compact('watchedResources'))->render();
 
-        $this->assertStringContainsString('card app-card app-card--blue h-100', $html);
-        $this->assertStringContainsString('card app-card app-card--gray h-100', $html);
-        $this->assertStringContainsString('card app-card app-card--steel h-100', $html);
+        $this->assertStringContainsString('card h-100', $html);
     }
 
     /**

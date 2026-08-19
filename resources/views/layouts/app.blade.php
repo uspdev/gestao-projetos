@@ -33,15 +33,11 @@
       --entity-project-accent: #234983;
       --entity-task-accent: #718596;
       --entity-meeting-accent: #47708D;
-      --app-card-blue-header: #EEF4FA;
-      --app-card-gray-header: #F4F6F8;
-      --app-card-steel-header: #EFF4F7;
-      --app-card-meeting-header: #FFF5DB;
-      --app-card-meeting-border: #D5A13A;
-      --app-card-content-header: #EAF2F9;
-      --app-card-options-header: #F2F5F7;
+      --app-card-meeting-divider: #D5A13A;
       --app-card-content-border: #C8D9E8;
       --app-card-options-border: #D4DEE5;
+      --app-card-resources-divider: #6F8799;
+      --app-card-shadow: 0 0.25rem 0.75rem rgba(31, 54, 73, 0.12);
     }
 
     html {
@@ -65,34 +61,22 @@
       min-height: 100vh;
     }
 
-    .app-card {
-      --app-card-header-background: var(--app-card-gray-header);
-    }
-
-    .app-card > .card-header {
-      background-color: var(--app-card-header-background);
-    }
-
-    .app-card--blue {
-      --app-card-header-background: var(--app-card-blue-header);
-    }
-
-    .app-card--gray {
-      --app-card-header-background: var(--app-card-gray-header);
-    }
-
-    .app-card--steel {
-      --app-card-header-background: var(--app-card-steel-header);
+    .card {
+      box-shadow: var(--app-card-shadow) !important;
     }
 
     .content-surface > .card-header {
-      background-color: var(--app-card-content-header);
       border-bottom-color: var(--app-card-content-border);
     }
 
     .options-surface > .card-header {
-      background-color: var(--app-card-options-header);
       border-bottom-color: var(--app-card-options-border);
+    }
+
+    .file-browser > .card-header,
+    .comments-card > .card-header,
+    .mentions-card > .card-header {
+      border-bottom-color: var(--app-card-resources-divider);
     }
 
     .entity-card {
@@ -101,27 +85,26 @@
     }
 
     .entity-header {
-      background-color: var(--entity-header-background) !important;
       border-bottom: 1px solid var(--entity-header-accent, var(--entity-accent));
     }
 
-    .entity-card--project,
-    .entity-header--project {
+    .entity-card--project {
       --entity-accent: var(--entity-project-accent);
-      --entity-header-background: var(--app-card-blue-header);
     }
 
     .entity-card--task,
     .entity-header--task {
       --entity-accent: var(--entity-task-accent);
-      --entity-header-background: var(--app-card-gray-header);
     }
 
-    .entity-card--meeting,
+    .entity-card--meeting {
+      --entity-accent: var(--entity-meeting-accent);
+    }
+
     .entity-header--meeting {
       --entity-accent: var(--entity-meeting-accent);
-      --entity-header-accent: var(--app-card-meeting-border);
-      --entity-header-background: var(--app-card-meeting-header);
+      --entity-header-accent: var(--app-card-meeting-divider);
+      border-bottom: 1px solid var(--app-card-meeting-divider) !important;
     }
 
     #skin_footer {
