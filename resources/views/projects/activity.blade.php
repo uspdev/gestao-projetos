@@ -147,6 +147,7 @@
         details.replaceChildren();
 
         changes.forEach(function(change) {
+          const isChanged = change.old !== change.new;
           const field = document.createElement('dt');
           field.className = 'col-sm-4 mb-2';
           field.textContent = change.field;
@@ -156,7 +157,7 @@
 
           if (change.old !== null) {
             const old = document.createElement('span');
-            old.className = 'text-muted';
+            old.className = isChanged ? 'text-danger' : 'text-muted';
             old.textContent = change.old;
             value.appendChild(old);
 
@@ -166,7 +167,18 @@
             value.appendChild(arrow);
           }
 
-          value.append(document.createTextNode(change.new ?? '—'));
+          const newValue = change.new ?? '—';
+
+          // Se o valor mudou, adiciona a classe de destaque, caso contrário, mantém o estilo padrão.
+          if (isChanged) {
+            const current = document.createElement('span');
+            current.className = 'text-danger';
+            current.textContent = newValue;
+            value.appendChild(current);
+          } else {
+            value.append(document.createTextNode(newValue));
+          }
+
           details.append(field, value);
         });
       });
