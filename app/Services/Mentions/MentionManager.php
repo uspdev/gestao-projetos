@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Meeting;
 use App\Models\MeetingItem;
 use App\Models\Mention;
+use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -55,6 +56,8 @@ class MentionManager
         bool $strict = true,
         ?User $actor = null,
     ): void {
+        $actor ??= Auth::user();
+
         DB::transaction(function () use ($source, $field, $markdown, $strict, $actor): void {
             if ($this->sourceIsUnavailable($source)) {
                 $this->clear($source);
@@ -65,6 +68,7 @@ class MentionManager
             $references = $strict
                 ? collect($this->referencesOrFail($field, $markdown))
                 : collect($this->extractor->references($markdown, false));
+            $referencesToNotify = collect();
 
             if ($strict) {
                 $currentMarkdown = $source->getRawOriginal($field);
@@ -74,8 +78,15 @@ class MentionManager
                 );
                 $currentIdentities = collect($currentReferences)
                     ->map(fn(MentionReference $reference): string => $reference->identity());
+                $indexedIdentities = $source->outgoingMentions()
+                    ->where('source_field', $field)
+                    ->get()
+                    ->map(fn(Mention $mention): string => $mention->target_type . ':' . $mention->target_id);
                 $newReferences = $references->reject(
                     fn(MentionReference $reference): bool => $currentIdentities->contains($reference->identity())
+                );
+                $referencesToNotify = $references->reject(
+                    fn(MentionReference $reference): bool => $indexedIdentities->contains($reference->identity())
                 );
 
                 $this->assertEligible($source, $field, $newReferences, $actor);
@@ -97,13 +108,27 @@ class MentionManager
                 ->reject(fn(Mention $mention): bool => $references->has($mention->target_type . ':' . $mention->target_id))
                 ->each->delete();
 
-            $references
+            $createdMentions = $references
                 ->reject(fn(MentionReference $reference): bool => $mentions->has($this->relationIdentity($reference)))
-                ->each(fn(MentionReference $reference) => $source->outgoingMentions()->create([
+                ->map(fn(MentionReference $reference): Mention => $source->outgoingMentions()->create([
                     'source_field' => $field,
                     'target_type' => $reference->type,
                     'target_id' => $this->relationTargetId($reference),
                 ]));
+
+            // Caso estrito, notifica apenas as menções que foram criadas e que são do tipo "user" (usuário).
+            if ($strict && $actor) {
+                $createdMentions
+                    // Para cada menção criada, verifica se o tipo de destino é "user" e se a identidade da menção
+                    // está contida nas referências a serem notificadas.
+                    ->filter(fn(Mention $mention): bool => $mention->target_type === 'user'
+                        && $referencesToNotify->contains(
+                            fn(MentionReference $reference): bool => $reference->identity() === $mention->target_type . ':' . $mention->target_id
+                        ))
+                    ->each(function (Mention $mention) use ($actor): void {
+                        PendingWatchNotification::addForMention($mention, $actor);
+                    });
+            }
         });
     }
 

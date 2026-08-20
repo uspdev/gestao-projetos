@@ -58,6 +58,46 @@ class MentionBacklinks
     }
 
     /**
+     * Apresenta a origem de uma Menção para o resumo de notificações.
+     *
+     * A origem passa pela mesma resolução contextual usada pelos backlinks,
+     * inclusive para Reuniões e Itens de pauta.
+     *
+     * @return array<string, string>|null
+     */
+    public function notificationSource(Mention $mention, User $reader): ?array
+    {
+        $source = $mention->source;
+
+        if (! $source instanceof Model) {
+            return null;
+        }
+
+        // O rótulo do campo de origem é usado na notificação para contextualizar o trecho
+        $field = match ($mention->source_field) {
+            'text' => 'Comentário',
+            'notes' => $source instanceof MeetingItem
+                ? 'Anotações prévias do item'
+                : 'Anotações prévias',
+            'description' => 'Descrição',
+            default => $mention->source_field,
+        };
+
+        $presentation = $this->present($mention, $reader);
+
+        if (! $presentation) {
+            return null;
+        }
+
+        return $presentation + [
+            'content' => (string) ($source->{$mention->source_field} ?? ''),
+            'field_label' => $field,
+        ];
+    }
+
+    /**
+     * Apresenta uma menção para o resumo de notificações.
+     *
      * @return array{
      *     label: string,
      *     type: string,

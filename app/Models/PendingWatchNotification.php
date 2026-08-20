@@ -6,10 +6,12 @@ use App\Contracts\Watchable;
 use App\Enums\Watch\WatchEventType;
 use App\Jobs\SendWatchDigest;
 use App\Mail\MeetingWatchUpdate;
+use App\Services\Mentions\MentionBacklinks;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
@@ -72,6 +74,74 @@ class PendingWatchNotification extends Model
                 $url,
             );
         }
+    }
+
+    public static function addForMention(
+        Mention $mention,
+        User $actor,
+    ): void {
+        if (
+            $mention->target_type !== 'user'
+            || ! Schema::hasTable('pending_watch_notifications')
+        ) {
+            return;
+        }
+
+        $userId = (int) $mention->target_id;
+
+        if ($userId === $actor->id) {
+            return;
+        }
+
+        Watch::enableMentionFor($userId);
+
+        $recipient = User::query()->find($userId);
+
+        if (! $recipient) {
+            return;
+        }
+
+        $source = app(MentionBacklinks::class)->notificationSource($mention, $recipient);
+
+        if (! $source) {
+            return;
+        }
+
+        DB::transaction(function () use ($mention, $actor, $recipient, $source): void {
+            $lockedRecipient = User::query()->whereKey($recipient->id)->lockForUpdate()->first();
+
+            if (! $lockedRecipient
+                || ! Watch::mentionEnabledFor($lockedRecipient->id)) {
+                return;
+            }
+
+            $occurredAt = now();
+            $sendAfter = $occurredAt->copy()->addMinutes(
+                (int) config('projetos.watching.digest_minutes', 5)
+            );
+
+            static::query()
+                ->where('user_id', $lockedRecipient->id)
+                ->update(['send_after' => $sendAfter]);
+
+            $pending = static::query()->create([
+                'user_id' => $lockedRecipient->id,
+                'watchable_type' => 'mention',
+                'watchable_id' => $mention->getKey(),
+                'event_type' => WatchEventType::MENTION_CREATED,
+                'actor_id' => $actor->id,
+                'title' => $source['group_label'],
+                'summary' => 'Você foi mencionado em ' . $source['type'] . '.',
+                'details' => Str::limit(trim(strip_tags($source['content'])), 1000),
+                'url' => $source['url'],
+                'occurred_at' => $occurredAt,
+                'send_after' => $sendAfter,
+            ]);
+
+            DB::afterCommit(
+                fn () => SendWatchDigest::dispatch($pending->id)->delay($sendAfter)
+            );
+        });
     }
 
     /**
@@ -169,6 +239,11 @@ class PendingWatchNotification extends Model
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_id');
+    }
+
+    public function mention(): BelongsTo
+    {
+        return $this->belongsTo(Mention::class, 'watchable_id');
     }
 
     public function watchable(): MorphTo
