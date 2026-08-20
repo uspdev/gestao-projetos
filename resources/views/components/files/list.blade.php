@@ -129,261 +129,64 @@
 
 <section {{ $attributes->class(['card', 'my-4', 'file-browser']) }} aria-labelledby="{{ $componentId }}-heading"
   data-file-browser>
-  <div class="card-header d-flex flex-column flex-sm-row align-items-start py-2">
-    <h2 id="{{ $componentId }}-heading" class="h6 mt-1 mr-sm-3 mb-2 mb-sm-0 text-muted text-nowrap"><i
-        class="fas fa-paperclip mr-1" aria-hidden="true"></i> Mídias </h2>
-    <div class="d-flex flex-wrap align-items-center">
-      @can('create', [\App\Models\Media::class, $owner])
-        <form action="{{ $uploadRoute }}" method="post" enctype="multipart/form-data" class="mb-0 mr-2"
-          data-file-upload-form>@csrf
-          <input id="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}" type="file" name="files[]" multiple
-            class="sr-only" data-file-upload-input>
-          <label class="btn btn-sm btn-primary mb-0"
-            for="file-upload-{{ $owner->getMorphClass() }}-{{ $owner->id }}"><i class="fas fa-upload mr-1"
-              aria-hidden="true"></i>Enviar arquivos</label>
-          <span class="sr-only" aria-live="polite" data-file-upload-feedback></span><noscript><button
-              class="btn btn-sm btn-outline-secondary" type="submit">Confirmar envio</button></noscript>
-        </form>
-      @endcan
-      @can('create', [\App\Models\Link::class, $owner])
-        <button type="button" class="btn btn-sm btn-outline-secondary mb-0 mr-2" data-toggle="modal"
-          data-target="#{{ $linkModalId }}"><i class="fas fa-link mr-1" aria-hidden="true"></i>Adicionar links</button>
-      @endcan
-      @if ($owner instanceof \App\Models\Meeting && ($shareableFileGroups->isNotEmpty() || $shareableLinkGroups->isNotEmpty()))
-        <button type="button" class="btn btn-sm btn-outline-secondary mb-0" data-toggle="modal"
-          data-target="#{{ $componentId }}-share-links-modal"><i class="fas fa-share-alt mr-1"
-            aria-hidden="true"></i>Compartilhar midia</button>
-      @endif
-    </div>
-  </div>
+  @include('components.files.partials.header', [
+      'owner' => $owner,
+      'uploadRoute' => $uploadRoute,
+      'linkModalId' => $linkModalId,
+      'componentId' => $componentId,
+      'shareableFileGroups' => $shareableFileGroups,
+      'shareableLinkGroups' => $shareableLinkGroups,
+  ])
 
   <div class="card-body p-0">
-    <ul class="nav nav-tabs bg-white px-3 pt-2 small" role="tablist" aria-label="Visualização dos recursos">
-      @foreach ([['images', 'far fa-images', 'Imagens', $imageFiles->count()], ['documents', 'far fa-file', 'Documentos', $documentFiles->count()], ['links', 'fas fa-link', 'Links', $visibleLinks->count()]] as [$tab, $icon, $label, $count])
-        <li class="nav-item"><button id="{{ $componentId }}-{{ $tab }}-tab"
-            class="nav-link {{ $initialTab === $tab ? 'active' : '' }}" type="button" role="tab"
-            aria-selected="{{ $initialTab === $tab ? 'true' : 'false' }}"
-            aria-controls="{{ $componentId }}-{{ $tab }}-panel"
-            tabindex="{{ $initialTab === $tab ? '0' : '-1' }}" data-file-tab="{{ $tab }}"><i
-              class="{{ $icon }} mr-1" aria-hidden="true"></i>{{ $label }} <span
-              class="badge badge-light ml-1">{{ $count }}</span></button></li>
-      @endforeach
-    </ul>
+    @include('components.files.partials.tabs', [
+        'componentId' => $componentId,
+        'initialTab' => $initialTab,
+        'imageFiles' => $imageFiles,
+        'documentFiles' => $documentFiles,
+        'visibleLinks' => $visibleLinks,
+    ])
 
     <div class="file-browser-scroll" data-file-browser-scroll>
-      <div id="{{ $componentId }}-images-panel"
-        class="file-tab-panel p-2 {{ $initialTab !== 'images' ? 'd-none' : '' }}" role="tabpanel"
-        aria-labelledby="{{ $componentId }}-images-tab" data-file-tab-panel="images">
-        @if ($imageFiles->isEmpty())
-          <p class="text-muted small m-2">Nenhuma imagem com pré-visualização disponível.</p>
-        @else
-          <div class="row mx-n1">
-            @foreach ($imageFiles as $media)
-              @php($isShared = $sharedMediaIds->contains($media->id))
-              <article id="file-{{ $media->uuid }}" class="file-image-item col-6 col-sm-4 col-lg-3 px-1 mb-2"
-                data-file-card data-file-uuid="{{ $media->uuid }}">
-                @php($imageModalId = $componentId . '-image-preview-' . $media->uuid)
-                <div class="file-image-card min-width-0 border rounded h-100 bg-white">
-                  @if ($media->getCustomProperty('thumbnail_status') === 'ready')
-                    <a href="{{ route('files.original', ['uuid' => $media->uuid]) }}" data-toggle="modal"
-                      data-target="#{{ $imageModalId }}" data-file-image-preview
-                      data-file-image-preview-url="{{ route('files.original', ['uuid' => $media->uuid]) }}"
-                      data-file-image-preview-name="{{ $media->display_name }}"
-                      class="file-image-select d-flex align-items-center justify-content-center overflow-hidden"
-                      aria-label="Abrir imagem original de {{ $media->display_name }}">
-                      <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt=""
-                        class="file-image-thumbnail d-block w-100 h-100">
-                    </a>
-                  @else
-                    <div class="file-image-select d-flex align-items-center justify-content-center overflow-hidden"
-                      role="img" aria-label="Imagem original indisponível para visualização">
-                      <i class="far fa-image fa-2x text-muted" aria-hidden="true"></i>
-                    </div>
-                  @endif
-                  <div class="file-image-caption d-flex align-items-center min-width-0 pl-2"><span
-                      class="file-image-name min-width-0 flex-grow-1 text-truncate font-weight-bold"
-                      title="{{ $media->display_name }}">{{ $media->display_name }}</span><x-files.actions
-                      :media="$media" :owner="$owner" :shared="$isShared" /></div>
-                </div>
-                <div class="file-item-edit-region border rounded bg-light p-2 mt-1" data-file-edit-region hidden></div>
-              </article>
-              {{-- Modal de visualização da imagem original --}}
-              @if ($media->getCustomProperty('thumbnail_status') === 'ready')
-                <div class="modal fade file-image-preview-modal" id="{{ $imageModalId }}" tabindex="-1" role="dialog"
-                  aria-labelledby="{{ $imageModalId }}-title" aria-hidden="true" data-file-image-preview-modal>
-                  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                      <div class="modal-header py-2">
-                        <h2 class="modal-title h5 text-truncate" id="{{ $imageModalId }}-title"
-                          data-file-image-preview-title>{{ $media->display_name }}</h2>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
-                            aria-hidden="true">&times;</span></button>
-                      </div>
-                      <div class="modal-body text-center p-2">
-                        <img src="{{ route('files.original', ['uuid' => $media->uuid]) }}"
-                          alt="{{ $media->display_name }}" class="file-image-preview-original img-fluid mx-auto"
-                          data-file-image-preview-image>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              @endif
-            @endforeach
-          </div>
-        @endif
-      </div>
-
-      <div id="{{ $componentId }}-documents-panel"
-        class="file-tab-panel {{ $initialTab !== 'documents' ? 'd-none' : '' }}" role="tabpanel"
-        aria-labelledby="{{ $componentId }}-documents-tab" data-file-tab-panel="documents">
-        @if ($documentFiles->isEmpty())
-          <p class="text-muted small m-3">Nenhum Documento disponível.</p>
-        @else
-          <div class="list-group list-group-flush file-compact-list">
-            @foreach ($documentFiles as $media)
-              @php($isShared = $sharedMediaIds->contains($media->id))
-              <article id="file-{{ $media->uuid }}"
-                class="list-group-item list-group-item-action file-list-item d-flex flex-wrap align-items-center py-2 pl-3 pr-2"
-                data-file-card data-file-uuid="{{ $media->uuid }}"><a
-                  href="{{ route('files.download', ['uuid' => $media->uuid]) }}"
-                  class="d-flex align-items-center min-width-0 flex-grow-1 text-body text-decoration-none"><i
-                    class="{{ $documentIcon($media) }} text-secondary mr-2" aria-hidden="true"></i><span
-                    class="file-list-name small min-width-0 flex-grow-1 font-weight-bold text-truncate"
-                    title="{{ $media->display_name }}">{{ $media->display_name }}</span>
-                  @if ($isShared)
-                    <span class="badge badge-light mr-2">Compartilhado</span>
-                  @endif
-                </a>
-                <x-files.actions :media="$media" :owner="$owner" :shared="$isShared" />
-                <div class="file-item-edit-region w-100 mt-2 pt-2 border-top" data-file-edit-region hidden></div>
-              </article>
-            @endforeach
-          </div>
-        @endif
-      </div>
-
-      <div id="{{ $componentId }}-links-panel" class="file-tab-panel {{ $initialTab !== 'links' ? 'd-none' : '' }}"
-        role="tabpanel" aria-labelledby="{{ $componentId }}-links-tab" data-file-tab-panel="links">
-        @if ($visibleLinks->isEmpty())
-          <p class="text-muted small m-3">Nenhum Link disponível.</p>
-        @else
-          <div class="list-group list-group-flush file-compact-list">
-            @foreach ($visibleLinks as $link)
-              @php($isShared = $sharedLinkIds->contains($link->id))
-              <article id="link-{{ $link->uuid }}"
-                class="list-group-item file-list-item d-flex flex-wrap align-items-center py-2 pl-3 pr-2"
-                data-link-card><a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer"
-                  class="d-block min-width-0 flex-grow-1 text-body text-decoration-none">
-                  <div class="d-flex align-items-center min-width-0"><i class="fas fa-link text-secondary mr-2"
-                      aria-hidden="true"></i><span class="small font-weight-bold text-truncate"
-                      title="{{ $link->display_name }}">{{ $link->display_name }}</span>
-                    @if ($isShared)
-                      <span class="badge badge-light ml-2">Compartilhado</span>
-                    @endif
-                  </div>
-                  <small class="d-block text-muted text-truncate ml-4"
-                    title="{{ $link->url }}">{{ $link->url }}</small>
-                </a><x-links.actions :link="$link" :owner="$owner" :shared="$isShared" />
-                <div class="file-item-edit-region w-100 mt-2 pt-2 border-top" data-file-edit-region hidden></div>
-              </article>
-            @endforeach
-          </div>
-        @endif
-      </div>
+      @include('components.files.partials.image-panel', [
+          'componentId' => $componentId,
+          'initialTab' => $initialTab,
+          'imageFiles' => $imageFiles,
+          'sharedMediaIds' => $sharedMediaIds,
+          'owner' => $owner,
+      ])
+      @include('components.files.partials.document-panel', [
+          'componentId' => $componentId,
+          'initialTab' => $initialTab,
+          'documentFiles' => $documentFiles,
+          'sharedMediaIds' => $sharedMediaIds,
+          'documentIcon' => $documentIcon,
+          'owner' => $owner,
+      ])
+      @include('components.files.partials.link-panel', [
+          'componentId' => $componentId,
+          'initialTab' => $initialTab,
+          'visibleLinks' => $visibleLinks,
+          'sharedLinkIds' => $sharedLinkIds,
+          'owner' => $owner,
+      ])
     </div>
-    @if ($files->hasPages() || $links->hasPages())
-      <div class="px-3 pt-2">{{ $files->links() }}{{ $links->links() }}</div>
-    @endif
+    @include('components.files.partials.pagination', ['files' => $files, 'links' => $links])
   </div>
 </section>
 
-@can('create', [\App\Models\Link::class, $owner])
-  @push('modals')
-    <div class="modal fade" id="{{ $linkModalId }}" tabindex="-1" role="dialog"
-      aria-labelledby="{{ $linkModalId }}-title" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <form action="{{ $linkRoute }}" method="post" data-disable-client-validation>@csrf<div
-              class="modal-header">
-              <h2 class="modal-title h5" id="{{ $linkModalId }}-title">Adicionar links</h2><button type="button"
-                class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body"><label for="{{ $componentId }}-urls">Cole uma URL por linha</label>
-              <textarea id="{{ $componentId }}-urls" name="urls" class="form-control @error('urls') is-invalid @enderror"
-                rows="7" required placeholder="https://exemplo.org/documento&#10;https://exemplo.org/site">{{ old('urls') }}</textarea>
-              @error('urls')
-                <div class="invalid-feedback">{{ $message }}</div>
-              @enderror
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-outline-secondary"
-                data-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary">Adicionar
-                links</button></div>
-          </form>
-        </div>
-      </div>
-    </div>
-  @endpush
-  @if ($errors->has('urls'))
-    @push('scripts')
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          if (window.jQuery) window.jQuery('#{{ $linkModalId }}').modal('show');
-        });
-      </script>
-    @endpush
-  @endif
-@endcan
-
-@if ($owner instanceof \App\Models\Meeting && ($shareableFileGroups->isNotEmpty() || $shareableLinkGroups->isNotEmpty()))
-  @push('modals')
-    <div class="modal fade" id="{{ $componentId }}-share-links-modal" tabindex="-1" role="dialog"
-      aria-labelledby="{{ $componentId }}-share-links-title" aria-hidden="true">
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2 class="modal-title h5" id="{{ $componentId }}-share-links-title">Compartilhar arquivos e links com a
-              reunião</h2>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
-                aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body">
-            @if ($shareableFileGroups->isNotEmpty())
-              <h3 class="h6">Arquivos</h3>
-              @foreach ($shareableFileGroups as $group)
-                <h4 class="small font-weight-bold">{{ $group['label'] }}</h4>
-                <div class="list-group mb-3">
-                  @foreach ($group['files'] as $media)
-                    <form action="{{ route('meetings.file-shares.store', $owner) }}" method="post"
-                      class="list-group-item d-flex align-items-center justify-content-between">@csrf<input
-                        type="hidden" name="media_uuid" value="{{ $media->uuid }}"><span
-                        class="text-truncate mr-3">{{ $media->display_name }}</span><button
-                        class="btn btn-sm btn-primary" type="submit">Compartilhar</button></form>
-                  @endforeach
-                </div>
-              @endforeach
-            @endif
-
-            @if ($shareableLinkGroups->isNotEmpty())
-              <h3 class="h6">Links</h3>
-              @foreach ($shareableLinkGroups as $group)
-                <h4 class="small font-weight-bold">{{ $group['label'] }}</h4>
-                <div class="list-group mb-3">
-                  @foreach ($group['links'] as $link)
-                    <form action="{{ route('meetings.link-shares.store', $owner) }}" method="post"
-                      class="list-group-item d-flex align-items-center justify-content-between">@csrf<input
-                        type="hidden" name="link_uuid" value="{{ $link->uuid }}"><span
-                        class="text-truncate mr-3">{{ $link->display_name }}</span><button
-                        class="btn btn-sm btn-primary" type="submit">Compartilhar</button></form>
-                  @endforeach
-                </div>
-              @endforeach
-            @endif
-          </div>
-        </div>
-      </div>
-    </div>
-  @endpush
-@endif
+@include('components.files.partials.add-links-modal', [
+    'owner' => $owner,
+    'linkRoute' => $linkRoute,
+    'linkModalId' => $linkModalId,
+    'componentId' => $componentId,
+])
+@include('components.files.partials.share-links-modal', [
+    'owner' => $owner,
+    'componentId' => $componentId,
+    'shareableFileGroups' => $shareableFileGroups,
+    'shareableLinkGroups' => $shareableLinkGroups,
+])
 
 @once
   @include('components.files.inline-actions')
