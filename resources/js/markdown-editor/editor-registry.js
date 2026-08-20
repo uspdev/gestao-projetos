@@ -71,6 +71,7 @@ function initializeEditor(textarea) {
 
     preview = new OfficialPreview(editor, textarea);
     editor.codemirror.getInputField().setAttribute("spellcheck", "true");
+    // Sincroniza o textarea original e agenda a pré-visualização a cada alteração.
     editor.codemirror.on("change", () => {
         // Mantenha o textarea sincronizado para o validador de formulários.
         editor.codemirror.save();
@@ -80,6 +81,7 @@ function initializeEditor(textarea) {
     editor.codemirror.on("inputRead", () =>
         loadMentionSelector(textarea, editor),
     );
+    // Encaminha teclas do seletor de menções para navegação e seleção.
     editor.codemirror.getWrapperElement().addEventListener("keydown", (event) => {
         handleMentionKeydown(event, editor);
     });
@@ -91,6 +93,8 @@ function initializeEditor(textarea) {
 }
 
 function initializeMarkdownEditors(root = document) {
+    // querySelectorAll encontra os editores dentro da raiz; a própria raiz também
+    // é aceita quando o MutationObserver entrega um textarea diretamente.
     const textareas =
         root.matches && root.matches("[data-markdown-editor]")
             ? [root]
@@ -100,6 +104,7 @@ function initializeMarkdownEditors(root = document) {
 }
 
 function refreshEditors(root) {
+    // Atualiza somente editores presentes na área que mudou de tamanho/visibilidade.
     const textareas = root.querySelectorAll("[data-markdown-editor]");
 
     textareas.forEach((textarea) => {

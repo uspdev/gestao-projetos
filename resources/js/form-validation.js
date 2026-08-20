@@ -1,9 +1,12 @@
+// Aguarda o DOM para encontrar os formulários já renderizados na página.
 document.addEventListener("DOMContentLoaded", function () {
+    // querySelectorAll retorna todos os formulários que receberão a validação.
     var forms = document.querySelectorAll("form");
 
     function getFieldLabel(field) {
         if (!field || !field.id) return "";
 
+        // A busca fica limitada ao formulário do campo para evitar labels homônimos.
         var label = field.form
             ? field.form.querySelector('label[for="' + field.id + '"]')
             : null;
@@ -16,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var group = field.closest(".form-group") || field.parentElement;
         if (!group) return null;
 
+        // Primeiro reutiliza a mensagem existente; só cria uma quando necessário.
         var feedback = group.querySelector(
             '.invalid-feedback[data-live-feedback="1"]',
         );
@@ -46,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function getValidationMessage(field) {
         var label = getFieldLabel(field);
         var prefix = label ? "O campo " + label + " " : "O campo ";
+        // A API de validade do navegador fornece a causa mais específica do erro.
         var validity = field.validity || {};
         var minLength = field.getAttribute("minlength");
         var maxLength = field.getAttribute("maxlength");
@@ -121,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         form.noValidate = true;
 
+        // Seleciona os controles do formulário e ignora botões/ campos ocultos.
         var fields = Array.prototype.slice
             .call(form.querySelectorAll("input, select, textarea"))
             .filter(function (field) {
@@ -138,11 +144,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 updateFieldState(field);
             };
 
+            // Os eventos atualizam o feedback enquanto o usuário preenche o campo.
             field.addEventListener("input", validate);
             field.addEventListener("change", validate);
             field.addEventListener("blur", validate);
         });
 
+        // No envio, valida todos e foca o primeiro campo inválido encontrado.
         form.addEventListener("submit", function (event) {
             var invalidField = null;
 
