@@ -38,6 +38,26 @@
         object-fit: cover;
     }
 
+    .file-image-preview-modal .modal-content {
+        background-color: #fff;
+    }
+
+    .file-image-preview-modal .modal-header {
+        color: #212529;
+        border-bottom-color: #dee2e6;
+    }
+
+    .file-image-preview-modal .close {
+        color: #212529;
+        text-shadow: none;
+        opacity: 0.8;
+    }
+
+    .file-image-preview-original {
+        max-height: calc(100vh - 150px);
+        object-fit: contain;
+    }
+
     .file-image-item {
         align-self: flex-start;
     }

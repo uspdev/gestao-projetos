@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::get('files/selectable', [MediaController::class, 'selectable'])->name('files.selectable');
     Route::get('files/{uuid}/metadata', [MediaController::class, 'metadata'])->name('files.metadata');
     Route::get('files/{uuid}/download', [MediaController::class, 'download'])->name('files.download');
+    Route::get('files/{uuid}/original', [MediaController::class, 'original'])->name('files.original');
     Route::get('files/{uuid}/thumbnail', [MediaController::class, 'thumbnail'])->name('files.thumbnail');
     Route::get('files/{uuid}/navigation', [MediaController::class, 'navigation'])->name('files.navigation');
     Route::get('files/{uuid}', [MediaController::class, 'show'])->name('files.show');

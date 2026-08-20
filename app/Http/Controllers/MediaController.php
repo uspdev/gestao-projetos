@@ -24,6 +24,14 @@ use Throwable;
 
 class MediaController extends Controller
 {
+    private const RASTER_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/avif',
+    ];
+
     public function __construct(private FileUploadService $fileUploadService) {}
 
     public function selectable(Request $request, FileReferenceSelector $selector): JsonResponse
@@ -144,6 +152,44 @@ class MediaController extends Controller
             $this->downloadName($media),
             [
                 'Content-Type' => 'application/octet-stream',
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+        );
+    }
+
+    public function original(Request $request, string $uuid)
+    {
+        $media = $this->visibleMedia($request, $uuid);
+
+        if (
+            ! in_array($media->mime_type, self::RASTER_MIME_TYPES, true)
+            || $media->getCustomProperty('thumbnail_status') !== 'ready'
+        ) {
+            abort(404);
+        }
+
+        $disk = Storage::disk($media->disk);
+        $path = $media->getPathRelativeToRoot();
+
+        if (! $disk->exists($path)) {
+            abort(404);
+        }
+
+        $stream = $disk->readStream($path);
+
+        if (! is_resource($stream)) {
+            abort(404);
+        }
+
+        return response()->stream(
+            function () use ($stream): void {
+                fpassthru($stream);
+                fclose($stream);
+            },
+            200,
+            [
+                'Content-Type' => $media->mime_type,
+                'Content-Disposition' => 'inline',
                 'X-Content-Type-Options' => 'nosniff',
             ],
         );

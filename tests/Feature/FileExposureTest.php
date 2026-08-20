@@ -121,6 +121,58 @@ class FileExposureTest extends TestCase
         ]);
     }
 
+    public function test_authorized_viewer_can_read_a_validated_raster_original_inline(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Autor da imagem');
+        $viewer = $this->user('Visualizador da imagem');
+        $project = $this->projectWithMembers($author, $viewer);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->image('foto.png', 20, 20))
+            ->toMediaCollection();
+        $media->setCustomProperty('thumbnail_status', 'ready');
+        $media->save();
+        Storage::disk('files')->put($media->getPathRelativeToRoot(), 'imagem-original');
+
+        $this->actingAs($viewer)
+            ->get(route('files.original', ['uuid' => $media->uuid]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/png')
+            ->assertHeader('Content-Disposition', 'inline')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertStreamedContent('imagem-original');
+    }
+
+    public function test_original_route_does_not_inline_non_raster_or_inaccessible_files(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Autor do arquivo original');
+        $viewer = $this->user('Visualizador do arquivo original');
+        $outsider = $this->user('Sem acesso ao arquivo original');
+        $project = $this->projectWithMembers($author, $viewer);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('manual.txt', 'conteudo'))
+            ->toMediaCollection();
+        $media->setCustomProperty('thumbnail_status', 'ready');
+        $media->save();
+
+        $this->actingAs($viewer)
+            ->get(route('files.original', ['uuid' => $media->uuid]))
+            ->assertNotFound();
+
+        $this->actingAs($outsider)
+            ->get(route('files.original', ['uuid' => $media->uuid]))
+            ->assertNotFound();
+    }
+
     public function test_project_contributor_uploads_one_file_with_audit_and_size_validation(): void
     {
         Storage::fake('files');
@@ -281,6 +333,43 @@ class FileExposureTest extends TestCase
         $this->assertStringContainsString('fas fa-times', $html);
         $this->assertStringNotContainsString('data-file-preview-toggle', $html);
         $this->assertStringNotContainsString('Pré-visualização indisponível', $html);
+    }
+
+    public function test_image_card_uses_the_thumbnail_for_the_card_and_the_original_for_the_modal(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $author = $this->user('Autor do card de imagem');
+        $viewer = $this->user('Visualizador do card de imagem');
+        $project = $this->projectWithMembers($author, $viewer);
+
+        $this->actingAs($author);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->image('foto.png', 20, 20))
+            ->toMediaCollection();
+        $media->setCustomProperty('thumbnail_status', 'ready');
+        $media->save();
+
+        $html = view('components.files.list', [
+            'owner' => $project,
+            'files' => $project->media()->with('uploader')->paginate(20, ['*'], 'files_page'),
+            'links' => $project->links()->with('creator')->paginate(20, ['*'], 'links_page'),
+            'errors' => new ViewErrorBag(),
+        ])->render();
+
+        $this->assertStringContainsString(route('files.thumbnail', ['uuid' => $media->uuid]), $html);
+        $this->assertStringContainsString(route('files.original', ['uuid' => $media->uuid]), $html);
+        $this->assertStringContainsString('data-file-image-preview', $html);
+        $this->assertStringContainsString(
+            'data-target="#files-project-'.$project->id.'-image-preview-'.$media->uuid.'"',
+            $html,
+        );
+        $this->assertStringContainsString(
+            '<img src="'.route('files.original', ['uuid' => $media->uuid]).'"',
+            $html,
+        );
+        $this->assertSame(1, substr_count($html, route('files.download', ['uuid' => $media->uuid])));
     }
 
     public function test_meeting_editor_can_share_and_revoke_an_eligible_link(): void

@@ -41,6 +41,7 @@
               ? 'links'
               : 'images'));
   $linkModalId = $componentId . '-add-links-modal';
+  $imageModalId = $componentId . '-image-preview-modal';
   $shareableFileGroups = collect();
   $shareableLinkGroups = collect();
   $canManageFileShares =
@@ -126,10 +127,11 @@
   };
 @endphp
 
-<section {{ $attributes->class(['card', 'my-4', 'file-browser']) }} aria-labelledby="{{ $componentId }}-heading" data-file-browser>
+<section {{ $attributes->class(['card', 'my-4', 'file-browser']) }} aria-labelledby="{{ $componentId }}-heading"
+  data-file-browser>
   <div class="card-header d-flex flex-column flex-sm-row align-items-start py-2">
     <h2 id="{{ $componentId }}-heading" class="h6 mt-1 mr-sm-3 mb-2 mb-sm-0 text-muted text-nowrap"><i
-        class="fas fa-paperclip mr-1" aria-hidden="true"></i> Arquivos</h2>
+        class="fas fa-paperclip mr-1" aria-hidden="true"></i> Mídias </h2>
     <div class="d-flex flex-wrap align-items-center">
       @can('create', [\App\Models\Media::class, $owner])
         <form action="{{ $uploadRoute }}" method="post" enctype="multipart/form-data" class="mb-0 mr-2"
@@ -180,24 +182,52 @@
               @php($isShared = $sharedMediaIds->contains($media->id))
               <article id="file-{{ $media->uuid }}" class="file-image-item col-6 col-sm-4 col-lg-3 px-1 mb-2"
                 data-file-card data-file-uuid="{{ $media->uuid }}">
+                @php($imageModalId = $componentId . '-image-preview-' . $media->uuid)
                 <div class="file-image-card min-width-0 border rounded h-100 bg-white">
-                  <a href="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" target="_blank" rel="noopener"
-                    class="file-image-select d-flex align-items-center justify-content-center overflow-hidden"
-                    aria-label="Abrir pré-visualização de {{ $media->display_name }}">
-                    @if ($media->getCustomProperty('thumbnail_status') === 'ready')
+                  @if ($media->getCustomProperty('thumbnail_status') === 'ready')
+                    <a href="{{ route('files.original', ['uuid' => $media->uuid]) }}" data-toggle="modal"
+                      data-target="#{{ $imageModalId }}" data-file-image-preview
+                      data-file-image-preview-url="{{ route('files.original', ['uuid' => $media->uuid]) }}"
+                      data-file-image-preview-name="{{ $media->display_name }}"
+                      class="file-image-select d-flex align-items-center justify-content-center overflow-hidden"
+                      aria-label="Abrir imagem original de {{ $media->display_name }}">
                       <img src="{{ route('files.thumbnail', ['uuid' => $media->uuid]) }}" alt=""
-                      class="file-image-thumbnail d-block w-100 h-100">@else<i class="far fa-image fa-2x text-muted"
-                        aria-hidden="true"></i>
-                    @endif
-                  </a>
-                  <div class="file-image-caption d-flex align-items-center min-width-0 pl-2"><a
-                      href="{{ route('files.download', ['uuid' => $media->uuid]) }}"
-                      class="file-image-name min-width-0 flex-grow-1 p-0 text-left text-truncate font-weight-bold"
-                      title="{{ $media->display_name }}">{{ $media->display_name }}</a><x-files.actions
+                        class="file-image-thumbnail d-block w-100 h-100">
+                    </a>
+                  @else
+                    <div class="file-image-select d-flex align-items-center justify-content-center overflow-hidden"
+                      role="img" aria-label="Imagem original indisponível para visualização">
+                      <i class="far fa-image fa-2x text-muted" aria-hidden="true"></i>
+                    </div>
+                  @endif
+                  <div class="file-image-caption d-flex align-items-center min-width-0 pl-2"><span
+                      class="file-image-name min-width-0 flex-grow-1 text-truncate font-weight-bold"
+                      title="{{ $media->display_name }}">{{ $media->display_name }}</span><x-files.actions
                       :media="$media" :owner="$owner" :shared="$isShared" /></div>
                 </div>
                 <div class="file-item-edit-region border rounded bg-light p-2 mt-1" data-file-edit-region hidden></div>
               </article>
+              {{-- Modal de visualização da imagem original --}}
+              @if ($media->getCustomProperty('thumbnail_status') === 'ready')
+                <div class="modal fade file-image-preview-modal" id="{{ $imageModalId }}" tabindex="-1" role="dialog"
+                  aria-labelledby="{{ $imageModalId }}-title" aria-hidden="true" data-file-image-preview-modal>
+                  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header py-2">
+                        <h2 class="modal-title h5 text-truncate" id="{{ $imageModalId }}-title"
+                          data-file-image-preview-title>{{ $media->display_name }}</h2>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
+                            aria-hidden="true">&times;</span></button>
+                      </div>
+                      <div class="modal-body text-center p-2">
+                        <img src="{{ route('files.original', ['uuid' => $media->uuid]) }}"
+                          alt="{{ $media->display_name }}" class="file-image-preview-original img-fluid mx-auto"
+                          data-file-image-preview-image>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @endif
             @endforeach
           </div>
         @endif
@@ -241,8 +271,8 @@
             @foreach ($visibleLinks as $link)
               @php($isShared = $sharedLinkIds->contains($link->id))
               <article id="link-{{ $link->uuid }}"
-                class="list-group-item file-list-item d-flex flex-wrap align-items-center py-2 pl-3 pr-2" data-link-card><a
-                  href="{{ $link->url }}" target="_blank" rel="noopener noreferrer"
+                class="list-group-item file-list-item d-flex flex-wrap align-items-center py-2 pl-3 pr-2"
+                data-link-card><a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer"
                   class="d-block min-width-0 flex-grow-1 text-body text-decoration-none">
                   <div class="d-flex align-items-center min-width-0"><i class="fas fa-link text-secondary mr-2"
                       aria-hidden="true"></i><span class="small font-weight-bold text-truncate"
@@ -253,8 +283,9 @@
                   </div>
                   <small class="d-block text-muted text-truncate ml-4"
                     title="{{ $link->url }}">{{ $link->url }}</small>
-                </a><x-links.actions :link="$link" :owner="$owner" :shared="$isShared" /><div
-                class="file-item-edit-region w-100 mt-2 pt-2 border-top" data-file-edit-region hidden></div></article>
+                </a><x-links.actions :link="$link" :owner="$owner" :shared="$isShared" />
+                <div class="file-item-edit-region w-100 mt-2 pt-2 border-top" data-file-edit-region hidden></div>
+              </article>
             @endforeach
           </div>
         @endif
