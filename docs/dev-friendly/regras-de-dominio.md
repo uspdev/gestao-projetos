@@ -148,6 +148,14 @@ na dashboard nem geram notificações; pendências anteriores são descartadas. 
 preferência permanece gravada e volta a valer se o recurso for reaberto. O autor
 da ação não recebe o próprio evento.
 
+Menções a Usuário também geram uma pendência `mention.created` no mesmo resumo.
+Ao criar a Menção, o sistema ativa no registro existente `watches` o
+acompanhamento geral de Menções daquele usuário; a dashboard permite
+desativá-lo e remove suas pendências. A validação do resumo reaplica a
+autorização da origem e confirma que a Menção ainda está indexada para o
+destinatário. Menções reconstruídas pelo comando operacional não geram novos
+e-mails.
+
 A auditoria registra alterações de modelos e relações relevantes, além de
 operações de Arquivos. A Transcrição não é copiada para `activity_log`: apenas
 tamanho e hash são guardados. A manutenção e a recuperação operacional estão
