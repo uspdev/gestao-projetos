@@ -247,7 +247,7 @@ class FileExposureTest extends TestCase
         $this->assertDatabaseMissing('links', ['id' => $link->id]);
     }
 
-    public function test_file_actions_hide_preview_and_link_edit_form_uses_the_shared_edit_region(): void
+    public function test_file_actions_render_an_edit_region_for_each_resource(): void
     {
         Storage::fake('files');
         Queue::fake();
@@ -273,9 +273,12 @@ class FileExposureTest extends TestCase
             'errors' => new ViewErrorBag(),
         ])->render();
 
-        $this->assertStringContainsString('data-file-rename-region', $html);
+        $this->assertStringContainsString('data-file-edit-region', $html);
+        $this->assertStringNotContainsString('data-file-rename-region', $html);
         $this->assertStringContainsString('data-link-edit-form', $html);
         $this->assertStringContainsString('Nome do link', $html);
+        $this->assertStringContainsString('fas fa-save', $html);
+        $this->assertStringContainsString('fas fa-times', $html);
         $this->assertStringNotContainsString('data-file-preview-toggle', $html);
         $this->assertStringNotContainsString('Pré-visualização indisponível', $html);
     }

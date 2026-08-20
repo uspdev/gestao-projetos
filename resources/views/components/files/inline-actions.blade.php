@@ -141,7 +141,8 @@
 
         browser.querySelectorAll('[data-file-rename-toggle]').forEach(function (toggle) {
           var form = document.getElementById(toggle.getAttribute('aria-controls'));
-          var region = browser.querySelector('[data-file-rename-region]');
+          var card = toggle.closest('[data-file-card]');
+          var region = card && card.querySelector('[data-file-edit-region]');
 
           if (!form || !region) return;
 
@@ -150,7 +151,7 @@
 
           function setRenameVisibility(isVisible) {
             if (isVisible) {
-              browser.querySelectorAll('[data-file-rename-form]').forEach(function (otherForm) {
+              browser.querySelectorAll('[data-file-rename-form], [data-link-edit-form]').forEach(function (otherForm) {
                 if (otherForm !== form) otherForm.hidden = true;
               });
               browser.querySelectorAll('[data-file-rename-toggle]').forEach(function (otherToggle) {
@@ -161,6 +162,10 @@
               });
               browser.querySelectorAll('[data-link-edit-toggle]').forEach(function (otherToggle) {
                 otherToggle.setAttribute('aria-expanded', 'false');
+              });
+
+              browser.querySelectorAll('[data-file-edit-region]').forEach(function (otherRegion) {
+                otherRegion.hidden = otherRegion !== region;
               });
 
               region.appendChild(form);
@@ -207,14 +212,15 @@
         if (!form) return;
 
         var browser = toggle.closest('[data-file-browser]');
-        var region = browser && browser.querySelector('[data-file-rename-region]');
+        var card = toggle.closest('[data-link-card]');
+        var region = card && card.querySelector('[data-file-edit-region]');
         if (!region) return;
 
         var cancel = form.querySelector('[data-link-edit-cancel]');
 
         function setLinkEditVisibility(isVisible) {
           if (isVisible) {
-            browser.querySelectorAll('[data-link-edit-form]').forEach(function (other) {
+            browser.querySelectorAll('[data-file-rename-form], [data-link-edit-form]').forEach(function (other) {
               if (other !== form) other.hidden = true;
             });
             browser.querySelectorAll('[data-link-edit-toggle]').forEach(function (otherToggle) {
@@ -225,6 +231,10 @@
             });
             browser.querySelectorAll('[data-file-rename-toggle]').forEach(function (otherToggle) {
               otherToggle.setAttribute('aria-expanded', 'false');
+            });
+
+            browser.querySelectorAll('[data-file-edit-region]').forEach(function (otherRegion) {
+              otherRegion.hidden = otherRegion !== region;
             });
 
             region.appendChild(form);

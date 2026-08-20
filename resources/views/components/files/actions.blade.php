@@ -77,8 +77,11 @@
       <div class="input-group input-group-sm">
         <input id="{{ $renameId }}-name" name="name" value="{{ $media->display_name }}" class="form-control form-control-sm" required maxlength="255" data-file-rename-input>
         <div class="input-group-append">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-outline-secondary" data-file-rename-cancel>Cancelar</button>
+          <button type="submit" class="btn btn-primary" aria-label="Salvar" title="Salvar">
+            <i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Salvar</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-file-rename-cancel aria-label="Cancelar"
+            title="Cancelar"><i class="fas fa-times" aria-hidden="true"></i><span class="sr-only">Cancelar</span></button>
         </div>
       </div>
     </form>

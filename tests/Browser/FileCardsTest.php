@@ -67,6 +67,15 @@ class FileCardsTest extends DuskTestCase
                 ->click('[data-file-action] .dropdown-menu.show [data-file-rename-toggle]')
                 ->assertVisible('[data-file-rename-form]:not([hidden])')
                 ->assertVisible('[data-file-rename-form]:not([hidden]) button[type="submit"]')
+                ->assertScript(<<<'JS'
+                    (function () {
+                        const form = document.querySelector('[data-file-rename-form]:not([hidden])');
+                        const region = form && form.closest('[data-file-edit-region]');
+                        const card = form && form.closest('[data-file-card]');
+
+                        return Boolean(form && region && card && region.closest('[data-file-card]') === card);
+                    })()
+                JS, true)
                 ->script(<<<'JS'
                     document.querySelector('[data-file-browser-scroll]').style.maxHeight = 'none';
                 JS);

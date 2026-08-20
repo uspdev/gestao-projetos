@@ -40,8 +40,10 @@
             id="{{ $formId }}-url" name="url" value="{{ $link->url }}" class="form-control form-control-sm" required
             maxlength="2048" type="url"></div>
         <div class="col-12 d-flex justify-content-end"><button type="button"
-            class="btn btn-sm btn-outline-secondary mr-2" data-link-edit-cancel>Cancelar</button><button type="submit"
-            class="btn btn-sm btn-primary">Salvar</button>
+            class="btn btn-sm btn-outline-secondary mr-2" data-link-edit-cancel aria-label="Cancelar" title="Cancelar"><i
+              class="fas fa-times" aria-hidden="true"></i><span class="sr-only">Cancelar</span></button><button
+            type="submit" class="btn btn-sm btn-primary" aria-label="Salvar" title="Salvar"><i class="fas fa-save"
+              aria-hidden="true"></i><span class="sr-only">Salvar</span></button>
         </div>
       </div>
     </form>

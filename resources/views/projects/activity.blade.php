@@ -142,6 +142,8 @@
       if (!modal || !details || !window.jQuery) return;
 
       window.jQuery(modal).on('show.bs.modal', function(event) {
+        // Pega o data-attribute do botão que abriu o modal e converte para objeto JavaScript.
+        // data-activity-changes='[{"id":1,"name":"Teste"}]'
         const changes = JSON.parse(event.relatedTarget?.dataset.activityChanges || '[]');
 
         details.replaceChildren();

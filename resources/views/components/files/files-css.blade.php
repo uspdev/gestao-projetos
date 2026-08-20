@@ -38,8 +38,16 @@
         object-fit: cover;
     }
 
+    .file-image-item {
+        align-self: flex-start;
+    }
+
     .file-image-caption {
         min-height: 34px;
+    }
+
+    .file-item-edit-region {
+        flex-basis: 100%;
     }
 
     .file-list-item.is-selected {
