@@ -1,4 +1,5 @@
 @php
+  $generalWatchPreferences ??= collect();
   $watchGroups = [
       'project' => [
           'label' => 'Projetos',
@@ -34,16 +35,18 @@
       Acompanhamentos
     </h4>
     <p class="text-muted mb-0">
-      Projetos, tarefas e reuniões cujas atividades podem gerar notificações para você.
+      Projetos, tarefas, reuniões e preferências gerais que podem gerar notificações para você.
     </p>
   </div>
 
-  @if ($watchedResources->isEmpty())
-    <div class="alert alert-light border mb-0">
-      Você não está acompanhando nenhum projeto, tarefa ou reunião.
-    </div>
-  @else
-    <div class="row">
+  <div class="row">
+    @if ($watchedResources->isEmpty())
+      <div class="col-12 mb-3">
+        <div class="alert alert-light border mb-0">
+          Você não está acompanhando nenhum projeto, tarefa ou reunião.
+        </div>
+      </div>
+    @else
       @foreach ($watchGroups as $type => $group)
         @php
           $items = $watchedResources->where('type', $type)->values();
@@ -100,6 +103,50 @@
           </div>
         </div>
       @endforeach
+    @endif
+
+    <div class="col-md-6 col-xl-4 mb-3">
+      <div class="card h-100 watch-card watch-card--general">
+        <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <h6 class="mb-0">
+            <i class="fas fa-sliders-h text-secondary mr-1" aria-hidden="true"></i>
+            Preferências gerais
+          </h6>
+        </div>
+
+        <div class="card-body py-3">
+          <p class="text-muted small mb-3">
+            Escolha outros tipos de acompanhamento que poderão ser adicionados aqui.
+          </p>
+
+          @forelse ($generalWatchPreferences as $preference)
+            <div class="d-flex align-items-start justify-content-between mb-{{ $loop->last ? '0' : '3' }}">
+              <div class="mr-2">
+                <strong class="d-block">{{ $preference['label'] }}</strong>
+                <span class="small text-muted">{{ $preference['description'] }}</span>
+              </div>
+
+              <form method="POST"
+                action="{{ $preference['active']
+                    ? route('watches.destroy', [$preference['type'], $preference['watchable_id']])
+                    : route('watches.update', [$preference['type'], $preference['watchable_id']]) }}"
+                class="flex-shrink-0">
+                @csrf
+                @method($preference['active'] ? 'DELETE' : 'PUT')
+                <button type="submit"
+                  class="btn btn-sm {{ $preference['active'] ? 'btn-outline-secondary' : 'btn-outline-primary' }}"
+                  title="{{ $preference['active'] ? 'Desativar' : 'Ativar' }} {{ $preference['label'] }}"
+                  aria-label="{{ $preference['active'] ? 'Desativar' : 'Ativar' }} {{ $preference['label'] }}"
+                  aria-pressed="{{ $preference['active'] ? 'true' : 'false' }}">
+                  <i class="fas fa-bell{{ $preference['active'] ? '' : '-slash' }}" aria-hidden="true"></i>
+                </button>
+              </form>
+            </div>
+          @empty
+            <span class="small text-muted">Nenhuma preferência geral disponível.</span>
+          @endforelse
+        </div>
+      </div>
     </div>
-  @endif
+  </div>
 </section>
