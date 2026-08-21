@@ -5,8 +5,7 @@
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h2 class="modal-title h5" id="{{ $componentId }}-share-links-title">Compartilhar arquivos e links com a
-              reunião</h2>
+            <h2 class="modal-title h5" id="{{ $componentId }}-share-links-title">Compartilhar links e arquivos com a reunião</h2>
             <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
                 aria-hidden="true">&times;</span></button>
           </div>

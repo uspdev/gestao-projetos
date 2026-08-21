@@ -38,7 +38,9 @@ class MeetingLinkShareController extends Controller
                 ->log('shared with meeting');
         }
 
-        return back()->with('alert-success', 'Link compartilhado com a reunião com sucesso.');
+        return back()
+            ->withFragment(deep_link_fragment($link))
+            ->with('alert-success', 'Link compartilhado com a reunião com sucesso.');
     }
 
     public function destroy(Request $request, Meeting $meeting, string $uuid): RedirectResponse
@@ -61,7 +63,9 @@ class MeetingLinkShareController extends Controller
             $share->delete();
         });
 
-        return back()->with('alert-success', 'Link removido da reunião com sucesso.');
+        return back()
+            ->withFragment('files-'.$meeting->getMorphClass().'-'.$meeting->getKey())
+            ->with('alert-success', 'Link removido da reunião com sucesso.');
     }
 
     private function isAllowedSource(Meeting $meeting, Link $link): bool

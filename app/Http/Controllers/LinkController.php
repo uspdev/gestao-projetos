@@ -41,7 +41,9 @@ class LinkController extends Controller
         ]);
 
         if (! $this->isExternalHttpUrl($validated['url'])) {
-            return back()->withErrors(['url' => 'Informe uma URL externa válida com http:// ou https://.']);
+            return back()
+                ->withFragment(deep_link_fragment($link))
+                ->withErrors(['url' => 'Informe uma URL externa válida com http:// ou https://.']);
         }
 
         DB::transaction(function () use ($link, $validated, $request): void {
@@ -58,13 +60,17 @@ class LinkController extends Controller
                 ->log('updated');
         });
 
-        return back()->with('alert-success', 'Link atualizado com sucesso.');
+        return back()
+            ->withFragment(deep_link_fragment($link))
+            ->with('alert-success', 'Link atualizado com sucesso.');
     }
 
     public function destroy(Request $request, string $uuid): RedirectResponse
     {
         $link = $this->visibleLink($request, $uuid);
         Gate::forUser($request->user())->authorize('delete', $link);
+
+        $browserFragment = $this->browserFragment($link->linkable);
 
         DB::transaction(function () use ($link, $request): void {
             activity()
@@ -78,12 +84,15 @@ class LinkController extends Controller
             $link->delete();
         });
 
-        return back()->with('alert-success', 'Link excluído definitivamente.');
+        return back()
+            ->withFragment($browserFragment)
+            ->with('alert-success', 'Link excluído definitivamente.');
     }
 
     private function storeForOwner(Request $request, Model $owner): RedirectResponse
     {
         Gate::forUser($request->user())->authorize('create', [Link::class, $owner]);
+        $ownerPageUrl = $this->ownerPageUrl($request, $owner);
 
         $validated = $request->validate([
             'urls' => ['required', 'string', 'max:20000'],
@@ -107,12 +116,15 @@ class LinkController extends Controller
         });
 
         if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
+            return redirect()->to($ownerPageUrl)
+                ->withFragment($this->browserFragment($owner))
+                ->withErrors($errors)
+                ->withInput();
         }
         // Executa a criação dos links e seus registros de atividade em uma transação,
         // garantindo que todas as operações sejam desfeitas caso ocorra algum erro.
-        DB::transaction(function () use ($owner, $urls, $request): void {
-            $urls->each(function (string $url) use ($owner, $request): void {
+        $createdLinks = DB::transaction(function () use ($owner, $urls, $request) {
+            return $urls->map(function (string $url) use ($owner, $request): Link {
                 $link = $owner->links()->create([
                     'name' => $url,
                     'url' => $url,
@@ -126,10 +138,38 @@ class LinkController extends Controller
                     ->causedBy($request->user())
                     ->withProperties(['attributes' => $link->only(['uuid', 'name', 'url', 'linkable_type', 'linkable_id'])])
                     ->log('created');
+
+                return $link;
             });
         });
 
-        return back()->with('alert-success', $urls->count() . ' Link(s) adicionado(s) com sucesso.');
+        return redirect()->to($ownerPageUrl)
+            ->withFragment(deep_link_fragment($createdLinks->last()))
+            ->with('alert-success', $urls->count() . ' Link(s) adicionado(s) com sucesso.');
+    }
+
+    private function ownerPageUrl(Request $request, Model $owner): string
+    {
+        if ($owner instanceof Project) {
+            return route('projects.show', $owner);
+        }
+
+        if ($owner instanceof Task) {
+            return route('tasks.show', $owner);
+        }
+
+        if ($owner instanceof Meeting) {
+            $owner->loadMissing('projects');
+            $project = $owner->projects
+                ->sortBy('name')
+                ->first(fn (Project $project): bool => $request->user()->isViewerOfProject($project));
+
+            abort_unless($project, 404);
+
+            return route('projects.meetings.show', [$project, $owner]);
+        }
+
+        abort(404);
     }
 
     private function visibleLink(Request $request, string $uuid): Link
@@ -151,5 +191,10 @@ class LinkController extends Controller
             && is_array($parts)
             && isset($parts['host'])
             && in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true);
+    }
+
+    private function browserFragment(Model $owner): string
+    {
+        return 'files-'.$owner->getMorphClass().'-'.$owner->getKey();
     }
 }

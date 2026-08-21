@@ -72,7 +72,7 @@ class MediaController extends Controller
         $selectedFiles = is_array($selectedFiles) ? $selectedFiles : [$selectedFiles];
 
         if ($selectedFiles === []) {
-            return back()->withErrors([
+            return back()->withFragment($this->browserFragment($owner))->withErrors([
                 $legacyUpload ? 'file' : 'files' => 'Selecione ao menos um Arquivo.',
             ]);
         }
@@ -107,10 +107,14 @@ class MediaController extends Controller
                 continue;
             }
 
-            $uploaded[] = $media->display_name;
+            $uploaded[] = $media;
         }
 
-        $response = back();
+        $response = back()->withFragment(
+            $uploaded !== []
+                ? deep_link_fragment($uploaded[array_key_last($uploaded)])
+                : $this->browserFragment($owner),
+        );
         if ($uploaded !== []) {
             $response->with('alert-success', count($uploaded).' Arquivo(s) enviado(s) com sucesso.');
         }
@@ -266,13 +270,17 @@ class MediaController extends Controller
                 ->log('renamed');
         });
 
-        return back()->with('alert-success', 'Nome do Arquivo atualizado com sucesso.');
+        return back()
+            ->withFragment(deep_link_fragment($media))
+            ->with('alert-success', 'Nome do Arquivo atualizado com sucesso.');
     }
 
     public function destroy(Request $request, string $uuid)
     {
         $media = Media::query()->where('uuid', $uuid)->firstOrFail();
         Gate::forUser($request->user())->authorize('delete', $media);
+
+        $browserFragment = $this->browserFragment($media->model);
 
         DB::transaction(function () use ($media, $request): void {
             activity()
@@ -293,7 +301,9 @@ class MediaController extends Controller
             $media->delete();
         });
 
-        return back()->with('alert-success', 'Arquivo excluído definitivamente.');
+        return back()
+            ->withFragment($browserFragment)
+            ->with('alert-success', 'Arquivo excluído definitivamente.');
     }
 
     private function referenceDestination(
@@ -351,5 +361,10 @@ class MediaController extends Controller
         return $media->id . '/conversions/'
             . pathinfo($media->file_name, PATHINFO_FILENAME)
             . '-thumbnail.jpg';
+    }
+
+    private function browserFragment(Model $owner): string
+    {
+        return 'files-'.$owner->getMorphClass().'-'.$owner->getKey();
     }
 }

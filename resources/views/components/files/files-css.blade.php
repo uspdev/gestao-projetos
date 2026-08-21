@@ -4,7 +4,9 @@
         min-width: 0;
     }
 
-    [data-file-card] {
+    [data-file-card],
+    [data-link-card],
+    [data-deep-link-target] {
         scroll-margin-top: 1rem;
     }
 

@@ -18,7 +18,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var card = targetId ? document.getElementById(targetId) : null;
 
-        if (!card || !card.matches("[data-file-card]")) return;
+        if (
+            !card ||
+            !card.matches("[data-file-card], [data-link-card]")
+        )
+            return;
 
         var hiddenPanel = card.closest("[data-file-tab-panel].d-none");
         var browser = card.closest("[data-file-browser]");
@@ -29,7 +33,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 '[data-file-tab="' + tabName + '"]',
             );
 
-            if (tab) tab.click();
+            if (tab) {
+                window.fileTabHashLocked = true;
+                tab.click();
+                window.fileTabHashLocked = false;
+            }
         }
 
         if (highlightedFileCard) {
@@ -39,6 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
         window.clearTimeout(fileReferenceHighlightTimeout);
         highlightedFileCard = card;
         card.classList.add("file-reference-highlight");
+        window.requestAnimationFrame(function () {
+            card.scrollIntoView({ block: "start" });
+            card.focus({ preventScroll: true });
+        });
 
         fileReferenceHighlightTimeout = window.setTimeout(function () {
             card.classList.remove("file-reference-highlight");
@@ -152,6 +164,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.requestAnimationFrame(updateScrollContainment);
             }
 
+            function selectTabFromHash(hash) {
+                var fragment;
+
+                try {
+                    fragment = decodeURIComponent(
+                        (hash || "").replace(/^#/, ""),
+                    );
+                } catch (error) {
+                    return false;
+                }
+
+                var tab = tabs.find(function (candidate) {
+                    return (
+                        candidate.getAttribute("data-file-tab-fragment") ===
+                        fragment
+                    );
+                });
+
+                if (!tab) return false;
+
+                selectTab(tab.getAttribute("data-file-tab"), true);
+                return true;
+            }
+
+            function updateTabFragment(tab) {
+                if (window.fileTabHashLocked) return;
+
+                window.history.replaceState(
+                    null,
+                    "",
+                    "#" + tab.getAttribute("data-file-tab-fragment"),
+                );
+            }
+
             function showDetails(detailsId, focusDetails) {
                 var details = detailsId
                     ? document.getElementById(detailsId)
@@ -228,6 +274,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Clique seleciona; setas percorrem as abas circularmente e dão foco.
                 tab.addEventListener("click", function () {
                     selectTab(tab.getAttribute("data-file-tab"), false);
+
+                    updateTabFragment(tab);
                 });
 
                 tab.addEventListener("keydown", function (event) {
@@ -242,6 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         tabs[nextIndex].getAttribute("data-file-tab"),
                         true,
                     );
+                    updateTabFragment(tabs[nextIndex]);
                 });
             });
 
@@ -268,6 +317,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         );
                     });
                 });
+
+            selectTabFromHash(window.location.hash);
+
+            window.addEventListener("hashchange", function () {
+                selectTabFromHash(window.location.hash);
+            });
         });
 
     // querySelectorAll permite ativar o envio automático de cada formulário de upload.

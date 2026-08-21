@@ -816,7 +816,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         $this->from($meetingPage)
             ->post(route('meetings.file-shares.store', $meeting), ['media_uuid' => $media->uuid])
-            ->assertRedirect($meetingPage);
+            ->assertRedirect($meetingPage.'#file-'.$media->uuid);
 
         $this->assertDatabaseHas('meeting_file_shares', [
             'meeting_id' => $meeting->id,
@@ -936,7 +936,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         $this->from($meetingPage)
             ->delete(route('meetings.file-shares.destroy', [$meeting, $media->uuid]))
-            ->assertRedirect($meetingPage);
+            ->assertRedirect($meetingPage.'#files-meeting-'.$meeting->id);
     }
 
     public function test_share_persists_while_a_soft_deleted_source_temporarily_hides_the_file_and_restoration_recovers_access(): void

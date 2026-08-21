@@ -206,7 +206,7 @@ class FileExposureTest extends TestCase
             ->post(route('projects.files.store', $project), [
                 'file' => UploadedFile::fake()->create('grande.bin', 102401),
             ])
-            ->assertRedirect(route('projects.files.store', $project))
+            ->assertRedirect(route('projects.files.store', $project).'#files-project-'.$project->id)
             ->assertSessionHasErrors('file');
     }
 
@@ -255,6 +255,28 @@ class FileExposureTest extends TestCase
         $this->assertDatabaseHas('activity_log', ['subject_id' => $links->first()->id, 'event' => 'created']);
     }
 
+    public function test_task_link_creation_returns_to_the_created_link_without_relying_on_the_referer(): void
+    {
+        $admin = $this->user('Admin da Tarefa com Link');
+        $contributor = $this->user('Colaborador da Tarefa com Link');
+        $project = $this->projectWithMembers($admin, $contributor);
+        $project->users()->updateExistingPivot($contributor->id, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa com Link',
+            'status' => 'NEW',
+        ]);
+
+        $response = $this->actingAs($contributor)
+            ->post(route('tasks.links.store', $task), [
+                'urls' => 'https://example.test/tarefa',
+            ]);
+
+        $link = $task->links()->sole();
+
+        $response->assertRedirect(route('tasks.show', $task).'#link-'.$link->uuid);
+    }
+
     public function test_link_batch_rejects_non_http_urls_without_creating_any_link(): void
     {
         $admin = $this->user('Admin de URLs');
@@ -267,7 +289,7 @@ class FileExposureTest extends TestCase
             ->post(route('projects.links.store', $project), [
                 'urls' => "https://example.test/valido\nftp://example.test/invalido",
             ])
-            ->assertRedirect(route('projects.show', $project))
+            ->assertRedirect(route('projects.show', $project).'#files-project-'.$project->id)
             ->assertSessionHasErrors('urls');
 
         $this->assertDatabaseCount('links', 0);
@@ -285,17 +307,19 @@ class FileExposureTest extends TestCase
         ]);
 
         $this->actingAs($author)
+            ->from(route('projects.show', $project))
             ->patch(route('links.update', $link->uuid), [
                 'name' => 'Manual atualizado',
                 'url' => 'https://example.test/manual-v2',
             ])
-            ->assertRedirect();
+            ->assertRedirect(route('projects.show', $project).'#link-'.$link->uuid);
 
         $this->assertDatabaseHas('links', ['id' => $link->id, 'name' => 'Manual atualizado', 'url' => 'https://example.test/manual-v2']);
 
         $this->actingAs($author)
+            ->from(route('projects.show', $project))
             ->delete(route('links.destroy', $link->uuid))
-            ->assertRedirect();
+            ->assertRedirect(route('projects.show', $project).'#files-project-'.$project->id);
 
         $this->assertDatabaseMissing('links', ['id' => $link->id]);
     }
@@ -327,6 +351,9 @@ class FileExposureTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('data-file-edit-region', $html);
+        $this->assertStringContainsString('data-file-tab-fragment="medias-imagens"', $html);
+        $this->assertStringContainsString('data-file-tab-fragment="medias-documentos"', $html);
+        $this->assertStringContainsString('data-file-tab-fragment="medias-links"', $html);
         $this->assertStringNotContainsString('data-file-rename-region', $html);
         $this->assertStringContainsString('data-link-edit-form', $html);
         $this->assertStringContainsString('Nome do link', $html);
@@ -446,7 +473,7 @@ class FileExposureTest extends TestCase
             ->post(route('projects.files.store', $project), [
                 'file' => UploadedFile::fake()->image('foto.png', 20, 20),
             ])
-            ->assertRedirect(route('projects.files.store', $project))
+            ->assertRedirect(route('projects.files.store', $project).'#files-project-'.$project->id)
             ->assertSessionHasErrors([
                 'file' => 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.',
             ]);
@@ -480,8 +507,9 @@ class FileExposureTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($author)
+            ->from(route('projects.show', $project))
             ->patch(route('files.update', ['uuid' => $uuid]), ['name' => 'Nome revisado'])
-            ->assertRedirect();
+            ->assertRedirect(route('projects.show', $project).'#file-'.$uuid);
 
         $media->refresh();
         $this->assertSame('Nome revisado', $media->display_name);
@@ -494,8 +522,9 @@ class FileExposureTest extends TestCase
         ]);
 
         $this->actingAs($author)
+            ->from(route('projects.show', $project))
             ->delete(route('files.destroy', ['uuid' => $uuid]))
-            ->assertRedirect();
+            ->assertRedirect(route('projects.show', $project).'#files-project-'.$project->id);
 
         $this->assertDatabaseMissing('media', ['id' => $media->id]);
         Storage::disk('files')->assertMissing($path);

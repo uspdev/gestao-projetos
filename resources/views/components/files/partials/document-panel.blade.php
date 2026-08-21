@@ -7,7 +7,7 @@
     <div class="list-group list-group-flush file-compact-list">
       @foreach ($documentFiles as $media)
         @php($isShared = $sharedMediaIds->contains($media->id))
-        <article id="file-{{ $media->uuid }}"
+        <article id="{{ deep_link_fragment($media) }}" tabindex="-1" data-deep-link-target
           class="list-group-item list-group-item-action file-list-item d-flex flex-wrap align-items-center py-2 pl-3 pr-2"
           data-file-card data-file-uuid="{{ $media->uuid }}"><a
             href="{{ route('files.download', ['uuid' => $media->uuid]) }}"

@@ -6,9 +6,9 @@
     <div class="list-group list-group-flush file-compact-list">
       @foreach ($visibleLinks as $link)
         @php($isShared = $sharedLinkIds->contains($link->id))
-        <article id="link-{{ $link->uuid }}"
+        <article id="{{ deep_link_fragment($link) }}" tabindex="-1" data-deep-link-target
           class="list-group-item file-list-item d-flex flex-wrap align-items-center py-2 pl-3 pr-2"
-          data-link-card><a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer"
+          data-link-card data-link-uuid="{{ $link->uuid }}"><a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer"
             class="d-block min-width-0 flex-grow-1 text-body text-decoration-none">
             <div class="d-flex align-items-center min-width-0"><i class="fas fa-link text-secondary mr-2"
                 aria-hidden="true"></i><span class="small font-weight-bold text-truncate"

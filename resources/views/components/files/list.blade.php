@@ -127,8 +127,8 @@
   };
 @endphp
 
-<section {{ $attributes->class(['card', 'my-4', 'file-browser']) }} aria-labelledby="{{ $componentId }}-heading"
-  data-file-browser>
+<section id="{{ $componentId }}" {{ $attributes->class(['card', 'my-4', 'file-browser']) }}
+  aria-labelledby="{{ $componentId }}-heading" tabindex="-1" data-deep-link-target data-file-browser>
   @include('components.files.partials.header', [
       'owner' => $owner,
       'uploadRoute' => $uploadRoute,

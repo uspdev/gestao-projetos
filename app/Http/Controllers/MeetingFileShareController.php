@@ -44,7 +44,9 @@ class MeetingFileShareController extends Controller
             return response()->json($response, $share->wasRecentlyCreated ? 201 : 200);
         }
 
-        return back()->with('alert-success', 'Arquivo compartilhado com a reunião com sucesso.');
+        return back()
+            ->withFragment(deep_link_fragment($media))
+            ->with('alert-success', 'Arquivo compartilhado com a reunião com sucesso.');
     }
 
     public function destroy(Request $request, Meeting $meeting, string $uuid)
@@ -64,7 +66,9 @@ class MeetingFileShareController extends Controller
             return response()->noContent();
         }
 
-        return back()->with('alert-success', 'Arquivo removido da reunião com sucesso.');
+        return back()
+            ->withFragment('files-'.$meeting->getMorphClass().'-'.$meeting->getKey())
+            ->with('alert-success', 'Arquivo removido da reunião com sucesso.');
     }
 
     private function isAllowedSource(Meeting $meeting, Media $media): bool

@@ -7,7 +7,8 @@
     <div class="row mx-n1">
       @foreach ($imageFiles as $media)
         @php($isShared = $sharedMediaIds->contains($media->id))
-        <article id="file-{{ $media->uuid }}" class="file-image-item col-6 col-sm-4 col-lg-3 px-1 mb-2"
+        <article id="{{ deep_link_fragment($media) }}" tabindex="-1" data-deep-link-target
+          class="file-image-item col-6 col-sm-4 col-lg-3 px-1 mb-2"
           data-file-card data-file-uuid="{{ $media->uuid }}">
           <div class="file-image-card min-width-0 border rounded h-100 bg-white">
             @if ($media->getCustomProperty('thumbnail_status') === 'ready')

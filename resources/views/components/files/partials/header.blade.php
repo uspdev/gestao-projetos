@@ -21,7 +21,7 @@
     @if ($owner instanceof \App\Models\Meeting && ($shareableFileGroups->isNotEmpty() || $shareableLinkGroups->isNotEmpty()))
       <button type="button" class="btn btn-sm btn-outline-secondary mb-0" data-toggle="modal"
         data-target="#{{ $componentId }}-share-links-modal"><i class="fas fa-share-alt mr-1"
-          aria-hidden="true"></i>Compartilhar midia</button>
+          aria-hidden="true"></i>Compartilhar links e arquivos</button>
     @endif
   </div>
 </div>
