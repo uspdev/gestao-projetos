@@ -150,6 +150,7 @@
     <div class="file-browser-scroll" data-file-browser-scroll>
       @include('components.files.partials.image-panel', [
           'componentId' => $componentId,
+          'imageModalId' => $imageModalId,
           'initialTab' => $initialTab,
           'imageFiles' => $imageFiles,
           'sharedMediaIds' => $sharedMediaIds,
@@ -187,7 +188,3 @@
     'shareableFileGroups' => $shareableFileGroups,
     'shareableLinkGroups' => $shareableLinkGroups,
 ])
-
-@once
-  @include('components.files.inline-actions')
-@endonce

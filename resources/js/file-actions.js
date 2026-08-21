@@ -49,24 +49,23 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 3000);
     }
 
-    // querySelectorAll encontra cada gatilho e os eventos carregam a imagem no modal.
-    // Cuida da visualização de imagens
-    // Cada navegador de Arquivos mantém suas próprias abas, cartões e detalhes.
+    // Cada navegador de Arquivos mantém um único modal de imagem. O gatilho que
+    // abriu o modal fornece a URL protegida e o Nome exibido do Arquivo.
     document
-        .querySelectorAll("[data-file-image-preview]")
-        .forEach(function (trigger) {
-            var modalSelector = trigger.getAttribute("data-target");
-            var modal = modalSelector
-                ? document.querySelector(modalSelector)
-                : null;
-            var image =
-                modal && modal.querySelector("[data-file-image-preview-image]");
-            var title =
-                modal && modal.querySelector("[data-file-image-preview-title]");
+        .querySelectorAll("[data-file-image-preview-modal]")
+        .forEach(function (modal) {
+            var image = modal.querySelector("[data-file-image-preview-image]");
+            var title = modal.querySelector("[data-file-image-preview-title]");
 
-            if (!modal || !image) return;
+            if (!image || !window.jQuery) return;
 
-            trigger.addEventListener("click", function (event) {
+            window.jQuery(modal).on("show.bs.modal", function (event) {
+                var trigger = event.relatedTarget;
+
+                if (!trigger || !trigger.matches("[data-file-image-preview]")) {
+                    return;
+                }
+
                 var imageUrl =
                     trigger.getAttribute("data-file-image-preview-url") ||
                     trigger.href;
@@ -79,25 +78,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 image.hidden = false;
 
                 if (title) title.textContent = imageName;
-
-                if (
-                    window.jQuery &&
-                    window.jQuery.fn &&
-                    window.jQuery.fn.modal
-                ) {
-                    event.preventDefault();
-                }
             });
 
-            if (window.jQuery) {
-                window.jQuery(modal).on("hidden.bs.modal", function () {
-                    image.removeAttribute("src");
-                    image.alt = "";
-                    image.hidden = true;
+            window.jQuery(modal).on("hidden.bs.modal", function () {
+                image.removeAttribute("src");
+                image.alt = "";
+                image.hidden = true;
 
-                    if (title) title.textContent = "Visualização da imagem";
-                });
-            }
+                if (title) title.textContent = "Visualização da imagem";
+            });
         });
 
     document

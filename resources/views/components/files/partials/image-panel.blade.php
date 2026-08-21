@@ -9,7 +9,6 @@
         @php($isShared = $sharedMediaIds->contains($media->id))
         <article id="file-{{ $media->uuid }}" class="file-image-item col-6 col-sm-4 col-lg-3 px-1 mb-2"
           data-file-card data-file-uuid="{{ $media->uuid }}">
-          @php($imageModalId = $componentId . '-image-preview-' . $media->uuid)
           <div class="file-image-card min-width-0 border rounded h-100 bg-white">
             @if ($media->getCustomProperty('thumbnail_status') === 'ready')
               <a href="{{ route('files.original', ['uuid' => $media->uuid]) }}" data-toggle="modal"
@@ -34,28 +33,29 @@
           </div>
           <div class="file-item-edit-region border rounded bg-light p-2 mt-1" data-file-edit-region hidden></div>
         </article>
-        {{-- Modal de visualização da imagem original --}}
-        @if ($media->getCustomProperty('thumbnail_status') === 'ready')
-          <div class="modal fade file-image-preview-modal" id="{{ $imageModalId }}" tabindex="-1" role="dialog"
-            aria-labelledby="{{ $imageModalId }}-title" aria-hidden="true" data-file-image-preview-modal>
-            <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-              <div class="modal-content">
-                <div class="modal-header py-2">
-                  <h2 class="modal-title h5 text-truncate" id="{{ $imageModalId }}-title"
-                    data-file-image-preview-title>{{ $media->display_name }}</h2>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
-                      aria-hidden="true">&times;</span></button>
-                </div>
-                <div class="modal-body text-center p-2">
-                  <img src="{{ route('files.original', ['uuid' => $media->uuid]) }}"
-                    alt="{{ $media->display_name }}" class="file-image-preview-original img-fluid mx-auto"
-                    data-file-image-preview-image>
-                </div>
-              </div>
-            </div>
-          </div>
-        @endif
       @endforeach
     </div>
   @endif
 </div>
+
+@if ($imageFiles->contains(fn($media) => $media->getCustomProperty('thumbnail_status') === 'ready'))
+  @push('modals')
+    <div class="modal fade file-image-preview-modal" id="{{ $imageModalId }}" tabindex="-1" role="dialog"
+      aria-labelledby="{{ $imageModalId }}-title" aria-hidden="true" data-file-image-preview-modal>
+      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header py-2">
+            <h2 class="modal-title h5 text-truncate" id="{{ $imageModalId }}-title" data-file-image-preview-title>
+              Visualização da imagem
+            </h2>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span
+                aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body text-center p-2">
+            <img alt="" class="file-image-preview-original img-fluid mx-auto" data-file-image-preview-image hidden>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endpush
+@endif

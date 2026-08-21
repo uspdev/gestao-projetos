@@ -2,13 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\Project;
 use App\Models\Link;
 use App\Models\Meeting;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
@@ -335,7 +336,7 @@ class FileExposureTest extends TestCase
         $this->assertStringNotContainsString('Pré-visualização indisponível', $html);
     }
 
-    public function test_image_card_uses_the_thumbnail_for_the_card_and_the_original_for_the_modal(): void
+    public function test_image_cards_share_one_lazy_loaded_original_preview_modal(): void
     {
         Storage::fake('files');
         Queue::fake();
@@ -345,31 +346,57 @@ class FileExposureTest extends TestCase
         $project = $this->projectWithMembers($author, $viewer);
 
         $this->actingAs($author);
-        $media = $project
-            ->addMedia(UploadedFile::fake()->image('foto.png', 20, 20))
+        $readyMedia = collect(['primeira.png', 'segunda.png'])->map(function (string $name) use ($project) {
+            $media = $project
+                ->addMedia(UploadedFile::fake()->image($name, 20, 20))
+                ->toMediaCollection();
+            $media->setCustomProperty('thumbnail_status', 'ready');
+            $media->save();
+
+            return $media;
+        });
+        $notReadyMedia = $project
+            ->addMedia(UploadedFile::fake()->image('sem-preview.png', 20, 20))
             ->toMediaCollection();
-        $media->setCustomProperty('thumbnail_status', 'ready');
-        $media->save();
+        $notReadyMedia->setCustomProperty('thumbnail_status', 'not_supported');
+        $notReadyMedia->save();
 
-        $html = view('components.files.list', [
-            'owner' => $project,
-            'files' => $project->media()->with('uploader')->paginate(20, ['*'], 'files_page'),
-            'links' => $project->links()->with('creator')->paginate(20, ['*'], 'links_page'),
-            'errors' => new ViewErrorBag(),
-        ])->render();
+        view()->share('errors', new ViewErrorBag());
+        $html = Blade::render(
+            '<x-files.list :owner="$owner" :files="$files" :links="$links" /> @stack("modals") @stack("scripts")',
+            [
+                'owner' => $project,
+                'files' => $project->media()->with('uploader')->paginate(20, ['*'], 'files_page'),
+                'links' => $project->links()->with('creator')->paginate(20, ['*'], 'links_page'),
+            ],
+        );
 
-        $this->assertStringContainsString(route('files.thumbnail', ['uuid' => $media->uuid]), $html);
-        $this->assertStringContainsString(route('files.original', ['uuid' => $media->uuid]), $html);
-        $this->assertStringContainsString('data-file-image-preview', $html);
-        $this->assertStringContainsString(
-            'data-target="#files-project-'.$project->id.'-image-preview-'.$media->uuid.'"',
+        $document = new \DOMDocument();
+        @$document->loadHTML($html);
+        $xpath = new \DOMXPath($document);
+        $modalId = 'files-project-'.$project->id.'-image-preview-modal';
+
+        $this->assertCount(3, $xpath->query('//*[@data-file-card]'));
+        $this->assertCount(2, $xpath->query('//*[@data-file-image-preview]'));
+        $this->assertCount(1, $xpath->query('//*[@data-file-image-preview-modal]'));
+        $this->assertCount(2, $xpath->query('//*[@data-file-image-preview][@data-target="#'.$modalId.'"]'));
+        $this->assertStringNotContainsString('window.fileActionsInitialized = true', $html);
+
+        $previewImage = $xpath->query('//*[@data-file-image-preview-image]')->item(0);
+        $this->assertNotNull($previewImage);
+        $this->assertFalse($previewImage->hasAttribute('src'));
+        $this->assertTrue($previewImage->hasAttribute('hidden'));
+
+        foreach ($readyMedia as $media) {
+            $this->assertStringContainsString(route('files.thumbnail', ['uuid' => $media->uuid]), $html);
+            $this->assertStringContainsString(route('files.original', ['uuid' => $media->uuid]), $html);
+            $this->assertSame(1, substr_count($html, route('files.download', ['uuid' => $media->uuid])));
+        }
+
+        $this->assertStringNotContainsString(
+            'data-file-image-preview-url="'.route('files.original', ['uuid' => $notReadyMedia->uuid]).'"',
             $html,
         );
-        $this->assertStringContainsString(
-            '<img src="'.route('files.original', ['uuid' => $media->uuid]).'"',
-            $html,
-        );
-        $this->assertSame(1, substr_count($html, route('files.download', ['uuid' => $media->uuid])));
     }
 
     public function test_meeting_editor_can_share_and_revoke_an_eligible_link(): void
