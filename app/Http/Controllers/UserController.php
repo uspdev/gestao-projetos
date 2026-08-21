@@ -46,7 +46,7 @@ class UserController extends Controller
         ]);
 
         if ($user->projects->isEmpty()) {
-            return view('projects.index-no-project');
+            return view('projects.index-no-project', compact('user'));
         }
 
         $tasksByStatus = $user->tasksByStatus($taskView, $tasksDone);
@@ -148,7 +148,7 @@ class UserController extends Controller
                     }
 
                     $context = $contextProject->name;
-                    $url = route('projects.meetings.show', [$contextProject, $resource]);
+                    $url = deep_link('projects.meetings.show', [$contextProject, $resource]);
                 }
 
                 if (! $url) {

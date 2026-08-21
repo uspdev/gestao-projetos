@@ -12,7 +12,7 @@
           <span class="badge badge-light border text-muted">
             <i class="fas fa-folder"></i>
           </span>
-          <a href="{{ route('projects.show', $linkedProject) }}"
+          <a href="{{ deep_link('projects.show', $linkedProject) }}"
             class="text-decoration-none text-dark font-weight-bold">
             {{ $linkedProject->name }}
           </a>

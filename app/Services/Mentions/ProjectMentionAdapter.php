@@ -118,7 +118,7 @@ final class ProjectMentionAdapter
             'status' => 'available',
             'type' => 'projeto',
             'label' => $project->name,
-            'url' => route('projects.show', $project),
+            'url' => deep_link('projects.show', $project),
             'accessible_name' => 'projeto: ' . $project->name,
         ];
     }

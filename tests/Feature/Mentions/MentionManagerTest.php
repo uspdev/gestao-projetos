@@ -729,7 +729,7 @@ class MentionManagerTest extends TestCase
 
         $this->assertSame('available', $presentation['status']);
         $this->assertSame('Título atual', $presentation['label']);
-        $this->assertSame(route('tasks.show', $task->fresh()), $presentation['url']);
+        $this->assertSame(route('tasks.show', $task->fresh()).'#task-'.$task->id, $presentation['url']);
         $this->assertSame('tarefa: Título atual', $presentation['accessible_name']);
         $this->assertSame($markdown, $project->fresh()->description);
     }
@@ -1145,7 +1145,7 @@ class MentionManagerTest extends TestCase
 
         $this->assertSame('available', $presentation['status']);
         $this->assertSame('Nome atual', $presentation['label']);
-        $this->assertSame(route('projects.show', $target->fresh()), $presentation['url']);
+        $this->assertSame(route('projects.show', $target->fresh()).'#project-'.$target->id, $presentation['url']);
         $this->assertSame('projeto: Nome atual', $presentation['accessible_name']);
         $this->assertSame($markdown, $source->fresh()->description);
     }

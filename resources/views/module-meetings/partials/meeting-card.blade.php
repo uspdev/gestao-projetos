@@ -29,9 +29,11 @@
   </style>
 @endPushOnce
 
-<div class="card meeting-card entity-card entity-card--meeting">
+<div id="{{ deep_link_fragment($meeting) }}" class="card meeting-card entity-card entity-card--meeting"
+  tabindex="-1" data-deep-link-target>
   <div class="card-body py-2 px-3">
-    <a href="{{ route('projects.meetings.show', [$project, $meeting]) }}" class="stretched-link"></a>
+    <a href="{{ deep_link('projects.meetings.show', [$project, $meeting]) }}"
+      class="stretched-link"></a>
     @if ($compact)
       <div class="d-flex align-items-start gap-2 mb-2">
         <div class="d-flex align-items-center flex-wrap flex-grow-1 min-width-0" style="gap: 0.35rem;">

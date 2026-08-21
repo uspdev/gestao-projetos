@@ -27,7 +27,8 @@
 @endpush
 
 @section('meeting-content')
-  <div data-file-reference-context-type="meeting" data-file-reference-context-id="{{ $meeting->id }}"
+  <div id="{{ deep_link_fragment($meeting) }}" tabindex="-1" data-deep-link-target
+    data-file-reference-context-type="meeting" data-file-reference-context-id="{{ $meeting->id }}"
     data-file-reference-context-project-id="{{ $project->id }}">
     <div class="row">
       <div class="col-lg-8 mb-4 mb-lg-0">

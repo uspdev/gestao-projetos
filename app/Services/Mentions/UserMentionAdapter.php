@@ -104,7 +104,7 @@ final class UserMentionAdapter
             'status' => 'available',
             'type' => 'usuário',
             'label' => $user->name,
-            'url' => route('users.show', $user),
+            'url' => deep_link('users.show', $user),
             'accessible_name' => 'usuário: ' . $user->name,
         ];
     }

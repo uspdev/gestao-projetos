@@ -10,7 +10,7 @@
 
   @foreach ($meetings as $meeting)
     <div class="@unless($loop->last) mb-3 @endunless">
-      <a href="{{ route('projects.meetings.show', [$project, $meeting]) }}" class="font-weight-bold text-dark">
+      <a href="{{ deep_link('projects.meetings.show', [$project, $meeting]) }}" class="font-weight-bold text-dark">
         {{ $meeting->title }}
       </a>
       <div class="small text-muted">

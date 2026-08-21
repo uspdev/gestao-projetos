@@ -524,7 +524,7 @@ class MeetingMentionTest extends TestCase
         $this->assertSame('available', $presentation['status']);
         $this->assertSame('Título antigo', $presentation['label']);
         $this->assertSame(
-            route('projects.meetings.show', [$visibleProject, $targetMeeting]),
+            route('projects.meetings.show', [$visibleProject, $targetMeeting]).'#meeting-'.$targetMeeting->id,
             $presentation['url'],
         );
         $this->assertSame('reunião: Título antigo', $presentation['accessible_name']);
@@ -543,7 +543,7 @@ class MeetingMentionTest extends TestCase
         $targetMeeting->projects()->sync([$hiddenProject->id, $replacementProject->id]);
 
         $this->assertSame(
-            route('projects.meetings.show', [$replacementProject, $targetMeeting]),
+            route('projects.meetings.show', [$replacementProject, $targetMeeting]).'#meeting-'.$targetMeeting->id,
             app(MentionManager::class)->present('meeting', (string) $targetMeeting->id, $reader)['url'],
         );
 

@@ -3,7 +3,7 @@
 @props(['task', 'showProject' => true, 'showDuplicate' => true])
 
 @php
-  $href = route('tasks.show', $task);
+  $href = deep_link('tasks.show', $task);
 
   $status = $task->status;
   $priority = $task->priority;
@@ -40,7 +40,8 @@
   </style>
 @endPushOnce
 
-<div {{ $attributes->class(['card h-100 task-card entity-card entity-card--task mb-3 shadow-sm']) }}>
+<div id="{{ deep_link_fragment($task) }}" tabindex="-1" data-deep-link-target
+  {{ $attributes->class(['card h-100 task-card entity-card entity-card--task mb-3 shadow-sm']) }}>
   <div class="card-body d-flex flex-column">
 
     {{-- Header --}}

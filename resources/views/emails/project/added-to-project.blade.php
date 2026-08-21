@@ -5,7 +5,7 @@
   <p>Responsável pela ação: {{ $actor->name }}.</p>
 
   @include('emails.partials.action-link', [
-      'url' => route('projects.show', $project),
+      'url' => deep_link('projects.show', $project),
       'label' => 'Ver projeto',
   ])
 @endsection

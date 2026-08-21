@@ -133,7 +133,9 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
         $this->loadMissing('projects');
         $project = $this->projects->first();
 
-        return $project ? route('projects.meetings.show', [$project, $this]) : null;
+        return $project
+            ? deep_link('projects.meetings.show', [$project, $this])
+            : null;
     }
 
     public function watchCanBeViewedBy(User $user): bool

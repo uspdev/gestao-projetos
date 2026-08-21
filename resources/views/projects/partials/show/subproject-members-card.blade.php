@@ -8,7 +8,7 @@
     data-subproject-members-searchable="{{ $subproject->name }} {{ $subproject->users->pluck('name')->implode(' ') }}">
     <div class="card-header bg-light d-flex flex-column flex-md-row align-items-start align-items-md-center">
       <div class="mb-2 mb-md-0 d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
-        <a href="{{ route('projects.show', $subproject) }}" class="font-weight-bold text-dark">
+        <a href="{{ deep_link('projects.show', $subproject) }}" class="font-weight-bold text-dark">
           <i class="fas fa-folder mr-1 text-secondary" aria-hidden="true"></i>
           {{ $subproject->name }}
         </a>
@@ -37,7 +37,7 @@
         <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-md-center">
           <div class="mb-2 mb-md-0">
             <i class="fas fa-user-circle text-secondary mr-1" aria-hidden="true"></i>
-            <a href="{{ route('users.show', $member) }}" class="text-dark">
+            <a href="{{ deep_link('users.show', $member) }}" class="text-dark">
               {{ $member->name }}
             </a>
           </div>

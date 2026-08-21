@@ -75,7 +75,8 @@
   </style>
 @endPushOnce
 
-<div {{ $attributes->class(['card project-card position-relative h-100']) }}>
+<div id="{{ deep_link_fragment($project) }}" tabindex="-1" data-deep-link-target
+  {{ $attributes->class(['card project-card position-relative h-100']) }}>
   <div class="card-body d-flex flex-column py-2">
 
     {{-- Header --}}
@@ -156,7 +157,7 @@
 
     {{-- Footer --}}
 
-    <a href="{{ route('projects.show', $project) }}" class="stretched-link"
+    <a href="{{ deep_link('projects.show', $project) }}" class="stretched-link"
       aria-label="Acessar projeto {{ $project->name }}">
     </a>
   </div>

@@ -48,7 +48,7 @@
 @endPushOnce
 
 @section('content')
-  <div class="card">
+  <div id="{{ deep_link_fragment($project) }}" class="card" tabindex="-1" data-deep-link-target>
     @include('projects.partials.show.show-header')
     <div class="card-body">
       <div class="row">

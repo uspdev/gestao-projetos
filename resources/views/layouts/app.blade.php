@@ -50,6 +50,10 @@
       scroll-margin-top: 70px;
     }
 
+    [data-deep-link-target] {
+      outline: none;
+    }
+
     /*seus estilos*/
     .gap-2>*+* {
       margin-left: 0.5rem;

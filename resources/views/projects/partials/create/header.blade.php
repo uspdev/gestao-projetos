@@ -12,7 +12,7 @@
       @if ($parentProject)
         <span class="d-block">
           Projeto pai:
-          <a href="{{ route('projects.show', $parentProject) }}?view=subprojects">
+          <a href="{{ deep_link('projects.show', [$parentProject, 'view' => 'subprojects']) }}">
             {{ $parentProject->name }}
           </a>
         </span>

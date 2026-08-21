@@ -5,7 +5,7 @@
   <p>Responsável pela atribuição: {{ $actor->name }}.</p>
 
   @include('emails.partials.action-link', [
-      'url' => route('tasks.show', $task),
+      'url' => deep_link('tasks.show', $task),
       'label' => 'Ver tarefa',
   ])
 @endsection

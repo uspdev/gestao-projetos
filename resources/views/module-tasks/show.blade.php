@@ -18,7 +18,8 @@
 @endsection
 
 @section('task-content')
-  <div data-file-reference-context-type="task" data-file-reference-context-id="{{ $task->id }}">
+  <div id="{{ deep_link_fragment($task) }}" tabindex="-1" data-deep-link-target
+    data-file-reference-context-type="task" data-file-reference-context-id="{{ $task->id }}">
     <div class="row">
       <div class="col-md-8">
         @include('module-tasks.partials.show.main-card')
