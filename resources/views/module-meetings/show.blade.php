@@ -18,6 +18,7 @@
     <b>{{ $meeting->title }}</b>
     @include('module-meetings.partials.status-badge')
     @include('module-meetings.partials.edit-btn')
+    @include('watches.partials.control', ['watchable' => $meeting])
   </span>
 @endsection
 

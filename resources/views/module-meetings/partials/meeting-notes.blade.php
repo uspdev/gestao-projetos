@@ -12,11 +12,11 @@
     </h6>
   </div>
   <div class="card-body">
-    <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center mb-2">
       <span class="text-muted">Preparação geral da reunião</span>
       @if ($canEditNotes)
         @can('update', [$meeting, $project])
-          <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"
+          <button type="button" class="btn btn-outline-primary btn-sm py-0 ml-2" data-toggle="collapse"
             data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" aria-label="Editar Anotações prévias">
             <i class="fas fa-edit"></i>
           </button>

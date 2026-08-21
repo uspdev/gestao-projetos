@@ -4,7 +4,6 @@
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações da reunião
     </h6>
 
-    @include('watches.partials.control', ['watchable' => $meeting])
     <div class="ml-auto">
       @include('module-meetings.partials.delete-btn')
     </div>
