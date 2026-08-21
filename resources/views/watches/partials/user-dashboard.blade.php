@@ -25,6 +25,31 @@
       max-height: 22rem;
       overflow-y: auto;
     }
+
+    .watch-preferences-toggle {
+      color: inherit;
+      text-decoration: none !important;
+    }
+
+    .watch-preferences-toggle:focus {
+      position: relative;
+      z-index: 1;
+      box-shadow: inset 0 0 0 0.2rem rgba(0, 123, 255, 0.2);
+    }
+
+    .watch-preferences-toggle-icon {
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .watch-preferences-toggle[aria-expanded="true"] .watch-preferences-toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .watch-preferences-toggle-icon {
+        transition: none;
+      }
+    }
   </style>
 @endPushOnce
 
@@ -37,6 +62,60 @@
     <p class="text-muted mb-0">
       Projetos, tarefas, reuniões e preferências gerais que podem gerar notificações para você.
     </p>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 col-xl-4 mb-3">
+      <div class="card watch-card watch-card--general">
+        <div class="card-header p-0">
+          <button type="button"
+            class="btn btn-link watch-preferences-toggle d-flex align-items-center justify-content-between w-100 text-left py-2 px-3 collapsed"
+            data-toggle="collapse" data-target="#user-watches-general-preferences" aria-expanded="false"
+            aria-controls="user-watches-general-preferences">
+            <span class="text-nowrap">
+              <i class="fas fa-sliders-h text-secondary mr-1" aria-hidden="true"></i>
+              Preferências gerais
+            </span>
+            <i class="fas fa-chevron-down text-secondary watch-preferences-toggle-icon" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div id="user-watches-general-preferences" class="collapse">
+          <div class="card-body py-3">
+            <p class="text-muted small mb-3">
+              Escolha outros tipos de acompanhamento que poderão ser adicionados aqui.
+            </p>
+
+            @forelse ($generalWatchPreferences as $preference)
+              <div class="d-flex align-items-start justify-content-between mb-{{ $loop->last ? '0' : '3' }}">
+                <div class="mr-2">
+                  <strong class="d-block">{{ $preference['label'] }}</strong>
+                  <span class="small text-muted">{{ $preference['description'] }}</span>
+                </div>
+
+                <form method="POST"
+                  action="{{ $preference['active']
+                      ? route('watches.destroy', [$preference['type'], $preference['watchable_id']])
+                      : route('watches.update', [$preference['type'], $preference['watchable_id']]) }}"
+                  class="flex-shrink-0">
+                  @csrf
+                  @method($preference['active'] ? 'DELETE' : 'PUT')
+                  <button type="submit"
+                    class="btn btn-sm {{ $preference['active'] ? 'btn-outline-secondary' : 'btn-outline-primary' }}"
+                    title="{{ $preference['active'] ? 'Desativar' : 'Ativar' }} {{ $preference['label'] }}"
+                    aria-label="{{ $preference['active'] ? 'Desativar' : 'Ativar' }} {{ $preference['label'] }}"
+                    aria-pressed="{{ $preference['active'] ? 'true' : 'false' }}">
+                    <i class="fas fa-bell{{ $preference['active'] ? '' : '-slash' }}" aria-hidden="true"></i>
+                  </button>
+                </form>
+              </div>
+            @empty
+              <span class="small text-muted">Nenhuma preferência geral disponível.</span>
+            @endforelse
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="row">
@@ -105,48 +184,5 @@
       @endforeach
     @endif
 
-    <div class="col-md-6 col-xl-4 mb-3">
-      <div class="card h-100 watch-card watch-card--general">
-        <div class="card-header d-flex align-items-center justify-content-between py-2">
-          <h6 class="mb-0">
-            <i class="fas fa-sliders-h text-secondary mr-1" aria-hidden="true"></i>
-            Preferências gerais
-          </h6>
-        </div>
-
-        <div class="card-body py-3">
-          <p class="text-muted small mb-3">
-            Escolha outros tipos de acompanhamento que poderão ser adicionados aqui.
-          </p>
-
-          @forelse ($generalWatchPreferences as $preference)
-            <div class="d-flex align-items-start justify-content-between mb-{{ $loop->last ? '0' : '3' }}">
-              <div class="mr-2">
-                <strong class="d-block">{{ $preference['label'] }}</strong>
-                <span class="small text-muted">{{ $preference['description'] }}</span>
-              </div>
-
-              <form method="POST"
-                action="{{ $preference['active']
-                    ? route('watches.destroy', [$preference['type'], $preference['watchable_id']])
-                    : route('watches.update', [$preference['type'], $preference['watchable_id']]) }}"
-                class="flex-shrink-0">
-                @csrf
-                @method($preference['active'] ? 'DELETE' : 'PUT')
-                <button type="submit"
-                  class="btn btn-sm {{ $preference['active'] ? 'btn-outline-secondary' : 'btn-outline-primary' }}"
-                  title="{{ $preference['active'] ? 'Desativar' : 'Ativar' }} {{ $preference['label'] }}"
-                  aria-label="{{ $preference['active'] ? 'Desativar' : 'Ativar' }} {{ $preference['label'] }}"
-                  aria-pressed="{{ $preference['active'] ? 'true' : 'false' }}">
-                  <i class="fas fa-bell{{ $preference['active'] ? '' : '-slash' }}" aria-hidden="true"></i>
-                </button>
-              </form>
-            </div>
-          @empty
-            <span class="small text-muted">Nenhuma preferência geral disponível.</span>
-          @endforelse
-        </div>
-      </div>
-    </div>
   </div>
 </section>

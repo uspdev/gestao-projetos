@@ -166,6 +166,18 @@ class EntityCardRenderingTest extends TestCase
         $this->assertStringContainsString('watch-card watch-card--project', $html);
         $this->assertStringContainsString('watch-card watch-card--task', $html);
         $this->assertStringContainsString('watch-card watch-card--meeting', $html);
+        $this->assertStringContainsString('watch-preferences-toggle', $html);
+        $this->assertStringContainsString('data-target="#user-watches-general-preferences"', $html);
+        $this->assertStringContainsString('aria-expanded="false"', $html);
+        $this->assertStringContainsString('id="user-watches-general-preferences" class="collapse"', $html);
+        $this->assertMatchesRegularExpression(
+            '/<div class="col-md-6 col-xl-4 mb-3">\s*<div class="card watch-card watch-card--general">/',
+            $html,
+        );
+        $this->assertLessThan(
+            strpos($html, 'watch-card watch-card--project'),
+            strpos($html, 'watch-card watch-card--general'),
+        );
     }
 
     /**
