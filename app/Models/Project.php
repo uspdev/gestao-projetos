@@ -210,7 +210,7 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
 
     public function watchUrl(): ?string
     {
-        return deep_link('projects.show', $this);
+        return route('projects.show', $this);
     }
 
     public function watchCanBeViewedBy(User $user): bool

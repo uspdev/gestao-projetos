@@ -148,7 +148,7 @@ class UserController extends Controller
                     }
 
                     $context = $contextProject->name;
-                    $url = deep_link('projects.meetings.show', [$contextProject, $resource]);
+                    $url = route('projects.meetings.show', [$contextProject, $resource]);
                 }
 
                 if (! $url) {

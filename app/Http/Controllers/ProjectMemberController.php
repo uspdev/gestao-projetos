@@ -105,7 +105,6 @@ class ProjectMemberController extends Controller
 
         if ($user->isAdminOfProject($project) && $project->isLastAdmin($user)) {
             return redirect()->route('projects.show', $project)
-                ->withFragment(deep_link_fragment($project))
                 ->with('alert-danger', 'O projeto precisa ter pelo menos um admin.');
         }
 

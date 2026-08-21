@@ -9,13 +9,13 @@
     </a>
     <x-separator />
     @if ($project->isSubproject() && $project->parent)
-      <a href="{{ deep_link('projects.show', $project->parent) }}" class="text-decoration-none text-secondary fw-medium">
+      <a href="{{ route('projects.show', $project->parent) }}" class="text-decoration-none text-secondary fw-medium">
         {{ $project->parent->name }}
       </a>
       <x-separator />
     @endif
 
-    <a href="{{ deep_link('projects.show', $project) }}" class="text-decoration-none text-secondary fw-medium">
+    <a href="{{ route('projects.show', $project) }}" class="text-decoration-none text-secondary fw-medium">
       {{ $project->name }}
     </a>
 

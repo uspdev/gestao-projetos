@@ -133,7 +133,7 @@ final class TaskMentionAdapter
             'status' => 'available',
             'type' => 'tarefa',
             'label' => $task->title,
-            'url' => deep_link('tasks.show', $task),
+            'url' => route('tasks.show', $task),
             'accessible_name' => 'tarefa: ' . $task->title,
         ];
     }

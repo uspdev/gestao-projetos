@@ -48,7 +48,7 @@
             <x-local-date :date="$task->completed_at" empty="-" />
           </td>
           <td>
-            <a href="{{ deep_link('tasks.show', $task) }}" class="text-decoration-none">
+            <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">
               {{ $task->title }}
             </a>
           </td>

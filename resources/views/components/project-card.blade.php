@@ -157,7 +157,7 @@
 
     {{-- Footer --}}
 
-    <a href="{{ deep_link('projects.show', $project) }}" class="stretched-link"
+    <a href="{{ route('projects.show', $project) }}" class="stretched-link"
       aria-label="Acessar projeto {{ $project->name }}">
     </a>
   </div>

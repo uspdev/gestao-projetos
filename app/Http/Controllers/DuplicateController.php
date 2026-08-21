@@ -39,13 +39,10 @@ class DuplicateController extends Controller
 
         return match (true) {
             $copy instanceof Task => redirect()->route('tasks.show', $copy)
-                ->withFragment(deep_link_fragment($copy))
                 ->with('alert-success', 'Tarefa duplicada com sucesso!'),
             $copy instanceof Meeting => redirect()->route('projects.meetings.show', [$project, $copy])
-                ->withFragment(deep_link_fragment($copy))
                 ->with('alert-success', 'Reunião duplicada com sucesso!'),
             $copy instanceof Project => redirect()->route('projects.show', $copy)
-                ->withFragment(deep_link_fragment($copy))
                 ->with('alert-success', 'Projeto duplicado com sucesso!'),
             default => abort(500),
         };

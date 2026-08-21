@@ -127,7 +127,7 @@ final class MeetingMentionAdapter
             'status' => 'available',
             'type' => 'reunião',
             'label' => $meeting->title,
-            'url' => deep_link('projects.meetings.show', [$project, $meeting]),
+            'url' => route('projects.meetings.show', [$project, $meeting]),
             'accessible_name' => 'reunião: ' . $meeting->title,
         ];
     }

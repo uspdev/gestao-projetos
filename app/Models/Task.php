@@ -97,7 +97,7 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
 
     public function watchUrl(): ?string
     {
-        return deep_link('tasks.show', $this);
+        return route('tasks.show', $this);
     }
 
     public function watchCanBeViewedBy(User $user): bool

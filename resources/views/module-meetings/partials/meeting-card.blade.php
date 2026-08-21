@@ -32,7 +32,7 @@
 <div id="{{ deep_link_fragment($meeting) }}" class="card meeting-card entity-card entity-card--meeting"
   tabindex="-1" data-deep-link-target>
   <div class="card-body py-2 px-3">
-    <a href="{{ deep_link('projects.meetings.show', [$project, $meeting]) }}"
+    <a href="{{ route('projects.meetings.show', [$project, $meeting]) }}"
       class="stretched-link"></a>
     @if ($compact)
       <div class="d-flex align-items-start gap-2 mb-2">

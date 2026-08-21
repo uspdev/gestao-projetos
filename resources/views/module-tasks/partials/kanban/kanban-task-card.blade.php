@@ -43,7 +43,7 @@
 <div id="{{ deep_link_fragment($task) }}" class="card border-0 shadow-sm kanban-task mb-2"
   tabindex="-1" data-deep-link-target data-search="{{ $task->searchableText() }}">
   <div class="card-body py-3">
-    <a href="{{ deep_link('tasks.show', $task) }}" class="stretched-link"></a>
+    <a href="{{ route('tasks.show', $task) }}" class="stretched-link"></a>
 
     <div class="d-flex align-items-start justify-content-between gap-2 px-1">
       <span>{{ $task->title }}</span>

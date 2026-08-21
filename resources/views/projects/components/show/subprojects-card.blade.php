@@ -42,7 +42,7 @@
 
         <div class="col-md-6 col-lg-6 mb-3" data-subproject-searchable="{{ $subproject->name }}">
           <x-card.preview id="{{ deep_link_fragment($subproject) }}" tabindex="-1" data-deep-link-target
-            class="entity-card entity-card--project" href="{{ deep_link('projects.show', $subproject) }}"
+            class="entity-card entity-card--project" href="{{ route('projects.show', $subproject) }}"
             aria-label="Acessar subprojeto {{ $subproject->name }}" :card-title="$subproject->name" title-variant="project"
             :status-label="$subproject->status?->label()" :status-class="$subproject->status?->color()" :project-type="$subproject->projectType?->name" :tags="$subprojectTags" :tags-limit="1" :role-label="$userRole?->label() ?? 'Sem vínculo'"
             :role-class="$userRole ? 'badge-' . $userRole->color() : 'badge-light border text-muted'" action-class="preview-card__action">
@@ -71,7 +71,7 @@
 
     @if ($isPreview && $totalSubprojects > 2)
       <div class="mt-2 text-right">
-        <a href="{{ deep_link('projects.show', [$project, 'view' => 'subprojects']) }}" class="text-primary small">
+        <a href="{{ route('projects.show', [$project, 'view' => 'subprojects']) }}" class="text-primary small">
           Ver todos os subprojetos ({{ $totalSubprojects }})
         </a>
       </div>

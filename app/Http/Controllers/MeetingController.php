@@ -98,7 +98,6 @@ class MeetingController extends Controller
         });
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
-            ->withFragment(deep_link_fragment($meeting))
             ->with('alert-success', 'Reuniao criada com sucesso!');
     }
 
@@ -222,7 +221,6 @@ class MeetingController extends Controller
         $this->notifyMeetingUpdated($meeting, $originalStatus);
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
-            ->withFragment(deep_link_fragment($meeting))
             ->with('alert-success', 'Reuniao atualizada com sucesso!');
     }
 
@@ -414,7 +412,6 @@ class MeetingController extends Controller
         $this->notifyMeetingUpdated($meeting, $originalStatus);
 
         return redirect()->route('projects.meetings.show', [$project, $meeting])
-            ->withFragment(deep_link_fragment($meeting))
             ->with('alert-success', 'Status da reunião atualizado com sucesso!');
     }
 
@@ -456,7 +453,7 @@ class MeetingController extends Controller
         $meetingInformation = implode(PHP_EOL, [
             $this->exportInlineField(
                 'link direto',
-                deep_link('projects.meetings.show', [$project, $meeting]),
+                route('projects.meetings.show', [$project, $meeting]),
             ),
             $this->exportInlineField('nome da reunião', $meeting->title),
             $this->exportInlineField('data e hora', $meeting->scheduled_at?->format('d/m/Y H:i')),

@@ -25,24 +25,15 @@ final class DeepLink
     /**
      * Gera a URL de uma rota e aponta para a entidade correspondente na tela.
      *
-     * Quando o destino não é informado, usa a última entidade Eloquent presente
-     * nos parâmetros da rota. Isso cobre chamadas como tasks.show e reuniões,
-     * sem esconder os parâmetros necessários para gerar a rota.
+     * O destino é sempre explícito porque deve representar um elemento interno
+     * diferente do recurso já identificado pela própria rota.
      */
     public static function route(
         BackedEnum|string $name,
-        mixed $parameters = [],
-        ?Model $target = null,
+        mixed $parameters,
+        Model $target,
         bool $absolute = true,
     ): string {
-        $target ??= self::lastModelParameter($parameters);
-
-        if (! $target) {
-            throw new InvalidArgumentException(
-                'Informe a entidade que será o destino do link de navegação.',
-            );
-        }
-
         return self::url(route($name, $parameters, $absolute), $target);
     }
 
@@ -75,24 +66,5 @@ final class DeepLink
     public static function withFragment(string $url, string $fragment): string
     {
         return str($url)->before('#').'#'.ltrim($fragment, '#');
-    }
-
-    private static function lastModelParameter(mixed $parameters): ?Model
-    {
-        if ($parameters instanceof Model) {
-            return $parameters;
-        }
-
-        if (! is_array($parameters)) {
-            return null;
-        }
-
-        foreach (array_reverse($parameters) as $parameter) {
-            if ($parameter instanceof Model) {
-                return $parameter;
-            }
-        }
-
-        return null;
     }
 }

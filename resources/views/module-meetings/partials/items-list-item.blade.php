@@ -25,8 +25,8 @@
       $title = $discussable->title ?? ($discussable->name ?? "Item #{$discussable->id}");
 
       $link = match ($morphClass) {
-          'task' => deep_link('tasks.show', $discussable),
-          'project' => deep_link('projects.show', $discussable),
+          'task' => route('tasks.show', $discussable),
+          'project' => route('projects.show', $discussable),
           default => null,
       };
   } elseif (filled($item->title)) {

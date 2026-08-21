@@ -50,7 +50,7 @@ class TaskCreationAssigneeTest extends TestCase
             ],
         );
 
-        $response->assertRedirect(route('tasks.show', 1).'#task-1');
+        $response->assertRedirect(route('tasks.show', 1));
         $this->assertDatabaseHas('tasks', [
             'id' => 1,
             'title' => 'Tarefa sem responsável',
@@ -73,7 +73,7 @@ class TaskCreationAssigneeTest extends TestCase
             ],
         );
 
-        $response->assertRedirect(route('tasks.show', 1).'#task-1');
+        $response->assertRedirect(route('tasks.show', 1));
         $this->assertDatabaseHas('tasks', [
             'id' => 1,
             'status' => 'ASSIGNED',

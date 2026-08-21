@@ -37,17 +37,7 @@ class DeepLinkTest extends TestCase
         ];
     }
 
-    public function test_it_builds_a_route_using_the_last_model_as_the_default_target(): void
-    {
-        $task = self::model(Task::class, 12);
-
-        self::assertSame(
-            route('tasks.show', $task).'#task-12',
-            deep_link('tasks.show', $task),
-        );
-    }
-
-    public function test_it_accepts_an_explicit_target_different_from_the_route_model(): void
+    public function test_it_points_to_an_explicit_target_different_from_the_route_model(): void
     {
         $task = self::model(Task::class, 12);
         $comment = self::model(Comment::class, 15);
@@ -58,14 +48,15 @@ class DeepLinkTest extends TestCase
         );
     }
 
-    public function test_it_finds_the_last_model_even_when_query_parameters_follow_it(): void
+    public function test_it_preserves_query_parameters_before_the_explicit_target(): void
     {
         $project = self::model(Project::class, 11);
         $project->setAttribute('slug', 'demo');
+        $comment = self::model(Comment::class, 15);
 
         self::assertSame(
-            route('projects.show', [$project, 'view' => 'subprojects']).'#project-11',
-            deep_link('projects.show', [$project, 'view' => 'subprojects']),
+            route('projects.show', [$project, 'view' => 'subprojects']).'#comment-15',
+            deep_link('projects.show', [$project, 'view' => 'subprojects'], target: $comment),
         );
     }
 

@@ -131,7 +131,6 @@ class TaskController extends Controller
         }
 
         return redirect()->route('tasks.show', $task)
-            ->withFragment(deep_link_fragment($task))
             ->with('alert-success', 'Tarefa criada com sucesso!');
     }
 
@@ -247,7 +246,6 @@ class TaskController extends Controller
         });
 
         return redirect()->route('projects.show', $task->project)
-            ->withFragment(deep_link_fragment($task->project))
             ->with('alert-success', 'Tarefa excluida com sucesso!');
     }
 

@@ -3,7 +3,7 @@
 @props(['task', 'showProject' => true, 'showDuplicate' => true])
 
 @php
-  $href = deep_link('tasks.show', $task);
+  $href = route('tasks.show', $task);
 
   $status = $task->status;
   $priority = $task->priority;

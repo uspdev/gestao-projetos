@@ -377,7 +377,7 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
 instruções para IA:
 Use somente as informações registradas abaixo e não invente dados ausentes.
 
-link direto: https://localhost/projects/projeto-teste/meetings/1#meeting-1
+link direto: https://localhost/projects/projeto-teste/meetings/1
 nome da reunião: Reunião teste
 data e hora: 13/08/2026 14:30
 local: Sala do Conselho

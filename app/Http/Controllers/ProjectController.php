@@ -260,7 +260,6 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('projects.show', $project)
-            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Projeto criado com sucesso!');
     }
 

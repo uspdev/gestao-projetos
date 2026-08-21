@@ -22,7 +22,7 @@
               <td>
                 <ul class="mb-0 pl-3">
                   @foreach ($user->projects as $project)
-                    <li><a href="{{ deep_link('projects.show', $project) }}">{{ $project->name }}</a></li>
+                    <li><a href="{{ route('projects.show', $project) }}">{{ $project->name }}</a></li>
                   @endforeach
                 </ul>
               </td>
