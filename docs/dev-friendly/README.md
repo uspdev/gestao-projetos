@@ -75,6 +75,7 @@ O módulo de Arquivos usa armazenamento privado. Não execute
 - [Ordenações do sistema](ordenacoes-do-sistema.md) — critérios das listas,
   desempates, tratamento de valores nulos e lacunas sem ordem garantida.
 - [Arquivos e Links](arquivos-links/implementar-links-mult-arquivos.md) — detalhes de implementação e compartilhamento de Arquivos e Links.
+- [Links profundos e fragmentos](navegacao/links-profundos-e-fragmentos.md) — uso de `deep_link()`, IDs de destino, redirects, Menções e navegação de Arquivos e Links.
 - [Cores dos Cards](visual/cores_cards.md) — identidade visual por entidade, incluindo projetos, tarefas e reuniões. Segue o padrão da EESC-USP, com cores discretas e consistentes em todas as telas.
 
 ## ADRs
