@@ -1,4 +1,5 @@
-<div class="card options-surface entity-context-card entity-context-card--task mb-4 shadow-sm border-top-primary">
+<div id="task-info-{{ $task->id }}" class="card options-surface entity-context-card entity-context-card--task mb-4 shadow-sm border-top-primary"
+  tabindex="-1" data-deep-link-target>
   <div class="card-header d-flex align-items-center justify-content-between py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações

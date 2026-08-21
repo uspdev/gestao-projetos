@@ -14,7 +14,7 @@
   <div class="card-body p-0">
     <ul class="list-group list-group-flush">
       @forelse($project->users as $user)
-        <li
+        <li id="{{ deep_link_fragment($user) }}" tabindex="-1" data-deep-link-target
           class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
           @include('users.partials.preview')
           <div class="d-flex flex-wrap align-items-center gap-2">

@@ -8,6 +8,7 @@
 @endphp
 
 <x-projects::show.card-template :type="$type" surface="content"
+  id="project-description-{{ $project->id }}" tabindex="-1" data-deep-link-target
   class="entity-context-card entity-context-card--project">
   <x-slot:header>
     <div class="d-flex align-items-center justify-content-between" style="gap: 0.75rem;">

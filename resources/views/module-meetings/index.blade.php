@@ -11,7 +11,8 @@
   @if ($meetings->isEmpty())
     <div class="alert alert-light border text-muted mb-0">Nenhuma reuniao cadastrada.</div>
   @else
-    <div class="meetings-list" style="max-height: min(70vh, 42rem); overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: auto;"
+    <div id="meetings-list" class="meetings-list" style="max-height: min(70vh, 42rem); overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: auto;"
+      data-deep-link-target
       tabindex="0" aria-label="Lista de reuniões">
       <div class="row">
         @foreach ($meetings as $meeting)

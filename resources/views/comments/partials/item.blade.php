@@ -5,7 +5,8 @@
   $editTextValue = $isEditingComment ? old('text') : $comment->text;
 @endphp
 
-<li class="list-group-item px-0 py-3">
+<li id="{{ deep_link_fragment($comment) }}" class="list-group-item px-0 py-3"
+  tabindex="-1" data-deep-link-target>
   <div class="d-flex align-items-start justify-content-between">
     @include('users.partials.preview', ['user' => $comment->user])
     <div class="d-flex align-items-center ml-3 flex-shrink-0">

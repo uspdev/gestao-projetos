@@ -29,6 +29,7 @@ class PhaseController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Fase do projeto atualizada com sucesso!');
     }
 }

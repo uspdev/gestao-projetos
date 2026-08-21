@@ -1,4 +1,5 @@
-<div class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm" id="meeting-record">
+<div class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm" id="meeting-record-{{ $meeting->id }}"
+  tabindex="-1" data-deep-link-target>
   <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-clipboard-list mr-1" aria-hidden="true"></i> Registro da reunião

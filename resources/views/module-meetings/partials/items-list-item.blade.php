@@ -25,8 +25,8 @@
       $title = $discussable->title ?? ($discussable->name ?? "Item #{$discussable->id}");
 
       $link = match ($morphClass) {
-          'task' => route('tasks.show', $discussable),
-          'project' => route('projects.show', $discussable),
+          'task' => deep_link('tasks.show', $discussable),
+          'project' => deep_link('projects.show', $discussable),
           default => null,
       };
   } elseif (filled($item->title)) {
@@ -35,7 +35,8 @@
   }
 @endphp
 
-<li class="list-group-item px-0 py-2">
+<li id="{{ deep_link_fragment($item) }}" class="list-group-item px-0 py-2"
+  tabindex="-1" data-deep-link-target data-deep-link-expand="{{ $notesCollapseId }}">
   <div class="d-flex align-items-start justify-content-between gap-3">
     <div class="d-flex align-items-start" style="gap: 0.75rem;">
 

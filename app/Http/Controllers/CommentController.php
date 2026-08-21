@@ -52,12 +52,15 @@ class CommentController extends Controller
         }
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($comment))
             ->with('alert-success', 'Comentario adicionado com sucesso!');
     }
 
     public function destroy(Comment $comment, MentionManager $mentionManager)
     {
         Gate::authorize('delete', $comment);
+
+        $threadFragment = 'comments-'.$comment->commentable->getMorphClass().'-'.$comment->commentable->getKey();
 
         DB::transaction(function () use ($comment, $mentionManager) {
             $comment->update([
@@ -67,6 +70,7 @@ class CommentController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment($threadFragment)
             ->with('alert-success', 'Comentario removido com sucesso!');
     }
 
@@ -84,6 +88,7 @@ class CommentController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($comment))
             ->with('alert-success', 'Comentario atualizado com sucesso!');
     }
 }

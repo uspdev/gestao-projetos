@@ -234,6 +234,7 @@ class ProjectController extends Controller
         ]);
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', $isPinned
                 ? 'Projeto removido dos pinados com sucesso!'
                 : 'Projeto fixado com sucesso!');
@@ -259,6 +260,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('projects.show', $project)
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Projeto criado com sucesso!');
     }
 
@@ -352,11 +354,13 @@ class ProjectController extends Controller
 
         if ($project->isSubproject()) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['subproject_id' => 'Não é possivel vincular subprojetos a um subprojeto.']);
         }
 
         if (! $project->isOrganizational()) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['subproject_id' => 'Apenas projetos do tipo organizacional podem vincular subprojetos.']);
         }
 
@@ -371,6 +375,7 @@ class ProjectController extends Controller
         $blockReason = $subproject->subprojectLinkBlockReason($project);
         if ($blockReason) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['subproject_id' => $blockReason]);
         }
 
@@ -392,6 +397,7 @@ class ProjectController extends Controller
         }
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($subproject))
             ->with('alert-success', 'Subprojeto vinculado com sucesso!');
     }
 
@@ -404,11 +410,13 @@ class ProjectController extends Controller
 
         if ($project->isSubproject()) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['parent_id' => 'Não é possivel vincular um projeto que já é subprojeto.']);
         }
 
         if ($project->isOrganizational()) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['parent_id' => 'Apenas projetos independentes podem ser vinculados a um projeto organizacional.']);
         }
 
@@ -421,6 +429,7 @@ class ProjectController extends Controller
         $blockReason = $project->subprojectLinkBlockReason($parent);
         if ($blockReason) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['parent_id' => $blockReason]);
         }
 
@@ -441,6 +450,7 @@ class ProjectController extends Controller
         }
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Projeto vinculado com sucesso!');
     }
 
@@ -462,6 +472,7 @@ class ProjectController extends Controller
 
         if ($subproject->parent_id !== $project->id) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['subproject_id' => 'O projeto selecionado não está vinculado como subprojeto deste projeto.']);
         }
 
@@ -482,6 +493,7 @@ class ProjectController extends Controller
         }
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Subprojeto desvinculado com sucesso!');
     }
 
@@ -500,6 +512,7 @@ class ProjectController extends Controller
         ]);
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Nome do projeto atualizado com sucesso!');
     }
 
@@ -520,6 +533,7 @@ class ProjectController extends Controller
         ]);
 
         return redirect()->route('projects.settings', $project)
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'URL do projeto atualizada com sucesso!');
     }
 
@@ -548,6 +562,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment('project-description-'.$project->getKey())
             ->with('alert-success', 'Descrição do projeto atualizada com sucesso!');
     }
 
@@ -565,6 +580,7 @@ class ProjectController extends Controller
         );
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Tags do projeto atualizado com sucesso!');
     }
     /**
@@ -593,6 +609,7 @@ class ProjectController extends Controller
 
             if (! $typeConfig) {
                 return redirect()->back()
+                    ->withFragment(deep_link_fragment($project))
                     ->withErrors(['module' => 'Este modulo nao esta disponivel para o tipo de projeto.']);
             }
         }
@@ -606,11 +623,13 @@ class ProjectController extends Controller
 
         if ($typeConfig && ($typeConfig['required'] ?? false) && ! $enabled) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['module' => 'Este modulo e obrigatorio e nao pode ser desativado.']);
         }
 
         if ($typeConfig && ! ($typeConfig['required'] ?? false) && ! ($typeConfig['editable'] ?? true)) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->withErrors(['module' => 'Este modulo nao permite alteracoes neste projeto.']);
         }
         // Se passar pelas validações, atualiza ou cria a configuração do módulo para o projeto usando updateOrCreate,
@@ -621,6 +640,7 @@ class ProjectController extends Controller
         );
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', $enabled
                 ? 'Modulo ativado com sucesso!'
                 : 'Modulo desativado com sucesso!');
@@ -634,6 +654,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->route('projects.index', Auth::id())
+            ->withFragment('todos-projetos')
             ->with('alert-success', 'Projeto excluido com sucesso!');
     }
 
@@ -654,6 +675,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Status do projeto atualizado com sucesso!');
     }
 
@@ -674,6 +696,7 @@ class ProjectController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Visibilidade do projeto atualizada com sucesso!');
     }
 
@@ -692,6 +715,7 @@ class ProjectController extends Controller
         ]);
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', 'Heranca de permissoes atualizada com sucesso!');
     }
 
