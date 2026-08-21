@@ -44,24 +44,23 @@
   <div class="card-body d-flex flex-column">
 
     {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-start mb-2">
-      <h6 class="task-card__title font-weight-bold text-dark mb-0 pr-2">
-        {{ $task->title }}
-      </h6>
-
-      <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+    <div class="d-flex align-items-start mb-2">
+      <div class="d-flex align-items-center flex-wrap flex-grow-1 min-width-0" style="gap: 0.35rem;">
+        <h6 class="task-card__title font-weight-bold text-dark mb-0">
+          {{ $task->title }}
+        </h6>
         @if ($status)
           <span class="badge badge-{{ $status->color() }}">
             {{ $status->label() }}
           </span>
         @endif
-
-        @if ($showDuplicate)
-          <div class="ml-1">
-            @include('module-tasks.partials.buttons.duplicate-btn')
-          </div>
-        @endif
       </div>
+
+      @if ($showDuplicate)
+        <div class="ml-1 d-flex align-items-center position-relative" style="z-index: 2;">
+          @include('module-tasks.partials.buttons.duplicate-btn')
+        </div>
+      @endif
     </div>
 
     {{-- Project --}}

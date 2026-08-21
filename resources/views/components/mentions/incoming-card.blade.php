@@ -81,14 +81,16 @@
 @endPushOnce
 
 <div {{ $attributes->class(['card', 'mentions-card', 'mb-4', 'shadow-sm']) }} data-mentions-card="{{ $target->getMorphClass() }}-{{ $target->getKey() }}">
-  <div class="card-header py-2 d-flex align-items-center justify-content-between">
+  <div class="card-header py-2">
     <div>
-      <h6 class="m-0 text-muted">
-        <i class="fas fa-at mr-1" aria-hidden="true"></i> {{ $resolvedCardTitle }}
-      </h6>
+      <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+        <h6 class="m-0 text-muted">
+          <i class="fas fa-at mr-1" aria-hidden="true"></i> {{ $resolvedCardTitle }}
+        </h6>
+        <span class="badge badge-pill badge-secondary text-nowrap">{{ $locationCount }} {{ $locationLabel }}</span>
+      </div>
       <div class="small text-muted mt-1">{{ $summary }}</div>
     </div>
-    <span class="badge badge-pill badge-secondary text-nowrap">{{ $locationCount }} {{ $locationLabel }}</span>
   </div>
 
   <div class="card-body p-0">

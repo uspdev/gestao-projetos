@@ -4,12 +4,12 @@
 
 @section('project-content')
   <div id="subproject-members" class="card border mb-4">
-    <div class="card-header h6 py-2 d-flex justify-content-between align-items-center">
+    <div class="card-header h6 py-2 d-flex align-items-center">
       <span>
         <i class="fas fa-users-cog mr-1" aria-hidden="true"></i>
         Membros dos subprojetos
       </span>
-      <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm btn-outline-secondary">
+      <a href="{{ route('projects.settings', $project) }}" class="btn btn-sm btn-outline-secondary ml-2">
         <i class="fas fa-arrow-left mr-1" aria-hidden="true"></i>
         Voltar às configurações
       </a>

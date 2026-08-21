@@ -18,12 +18,9 @@
       @endphp
       <div class="flex-shrink-0" style="width: 330px;">
         <div class="card shadow-sm border-0">
-          <div class="card-header d-flex align-items-center justify-content-between py-2">
+          <div class="card-header d-flex align-items-center py-2">
             <div class="font-weight-bold text-capitalize">{{ $status->label() }}</div>
-
-            <div class="d-flex align-items-center gap-2">
-              <span class="badge badge-{{ $status->color() }}">{{ $tasks->count() }}</span>
-            </div>
+            <span class="badge badge-{{ $status->color() }} ml-2">{{ $tasks->count() }}</span>
           </div>
 
           <div class="card-body bg-light p-2 kanban-column-body" tabindex="0"

@@ -1,7 +1,7 @@
 <div class="card border-0 shadow-sm mb-4">
-  <div class="card-header bg-white d-flex justify-content-between align-items-center">
+  <div class="card-header bg-white d-flex align-items-center">
     <h5 class="mb-0">Usuários com projetos</h5>
-    <span class="badge badge-info badge-pill">Relacionamentos</span>
+    <span class="badge badge-info badge-pill ml-2">Relacionamentos</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">

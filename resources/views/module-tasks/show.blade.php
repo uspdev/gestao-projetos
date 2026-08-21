@@ -9,10 +9,10 @@
     <b class="text-truncate" title="{{ $task->title }}">{{ $task->title }}</b>
     @include('module-tasks.partials.components.update-status')
     @include('module-tasks.partials.buttons.edit-btn')
+    @include('watches.partials.control', ['watchable' => $task])
   </div>
 
   <div class="ml-auto flex-shrink-0">
-    @include('watches.partials.control', ['watchable' => $task])
     @include('module-tasks.partials.buttons.duplicate-btn')
   </div>
 @endsection

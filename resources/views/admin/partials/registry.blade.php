@@ -1,9 +1,9 @@
 <div class="row mb-4">
   <div class="col-lg-6 mb-3 mb-lg-0">
     <div class="card border-0 shadow-sm h-100">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div class="card-header bg-white d-flex align-items-center">
         <h5 class="mb-0">Módulos e tags</h5>
-        <span class="badge badge-info badge-pill">Catálogo</span>
+        <span class="badge badge-info badge-pill ml-2">Catálogo</span>
       </div>
       <div class="card-body">
         <div class="mb-4">
@@ -37,9 +37,9 @@
 
   <div class="col-lg-6">
     <div class="card border-0 shadow-sm h-100">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div class="card-header bg-white d-flex align-items-center">
         <h5 class="mb-0">Tipos de projeto</h5>
-        <span class="badge badge-info badge-pill">Configuração</span>
+        <span class="badge badge-info badge-pill ml-2">Configuração</span>
       </div>
       <div class="card-body">
         <div class="list-group list-group-flush">

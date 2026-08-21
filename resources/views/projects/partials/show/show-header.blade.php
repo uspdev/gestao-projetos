@@ -30,11 +30,12 @@
         @includeIf("module-{$module}.partials.project-menu-item")
       @endforeach
 
+      @include('projects.partials.show.show-tag-badges')
+
     </div>
   </div>
 
-  <div class="d-flex align-items-center gap-2">
-    @include('projects.partials.show.show-tag-badges')
+  <div class="d-flex align-items-center gap-2 ml-auto">
     @include('projects.partials.show.settings-btn')
   </div>
 </div>

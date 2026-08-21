@@ -49,12 +49,12 @@
       </small>
     </form>
 
-    <div class="card-header bg-white px-0 pt-0 d-flex justify-content-between align-items-center">
-      <div>
-        <h1 class="h5 mb-1">Histórico de alterações</h1>
-        <p class="text-muted mb-0">Acompanhe as mudanças realizadas neste projeto e em seus itens.</p>
+    <div class="card-header bg-white px-0 pt-0">
+      <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
+        <h1 class="h5 mb-0">Histórico de alterações</h1>
+        <span class="badge badge-light border">{{ $activities->total() }} registros</span>
       </div>
-      <span class="badge badge-light border">{{ $activities->total() }} registros</span>
+      <p class="text-muted mb-0 mt-1">Acompanhe as mudanças realizadas neste projeto e em seus itens.</p>
     </div>
 
     <div class="table-responsive">

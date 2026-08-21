@@ -46,3 +46,9 @@ implementação.
 ### Glossário de tradução
 
 Quando uma skill usar termos em inglês, consulte `docs/dev-friendly/agents/glossario-traducao.md` e use as equivalências em português nos documentos do projeto.
+
+## Diretriz visual de ações e indicações
+
+- Em cards, mantenha à esquerda, junto do título, os botões, contadores, status, tags e demais indicações de uso frequente.
+- Reserve a direita para ações que devem ficar mais escondidas, como duplicar reunião ou tarefa, exportar dados, excluir reunião e ações de edição ou remoção.
+- Preserve esse padrão também nos componentes reutilizáveis e nos cabeçalhos de listas; quando houver uma ação discreta junto de uma indicação, separe a indicação à esquerda e a ação à direita.

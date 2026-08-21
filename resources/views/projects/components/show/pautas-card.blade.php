@@ -2,9 +2,9 @@
 
 <x-projects::show.card-template>
   <x-slot:header>
-    <div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center">
       <span><i class="fas fa-list-ol mr-1" aria-hidden="true"></i> Pautas de reuniões</span>
-      <span class="badge badge-pill badge-secondary">{{ $meetings->count() }}</span>
+      <span class="badge badge-pill badge-secondary ml-2">{{ $meetings->count() }}</span>
     </div>
   </x-slot:header>
 
