@@ -131,7 +131,7 @@ class MentionBacklinks
                 label: $source->name,
                 type: 'Projeto',
                 field: $field,
-                url: route('projects.show', $source),
+                url: route('projects.show', $source).'#project-description-'.$source->getKey(),
                 groupKey: 'project:' . $source->getKey(),
                 groupLabel: $source->name,
                 groupType: 'Projeto',
@@ -166,7 +166,7 @@ class MentionBacklinks
             label: $task->title,
             type: 'Tarefa',
             field: $field,
-            url: route('tasks.show', $task),
+            url: route('tasks.show', $task).'#task-description-'.$task->getKey(),
             groupKey: 'task:' . $task->getKey(),
             groupLabel: $task->title,
             groupType: 'Tarefa',
@@ -197,7 +197,7 @@ class MentionBacklinks
             label: $meeting->title,
             type: 'Reunião',
             field: $field,
-            url: route('projects.meetings.show', [$contextProject, $meeting]),
+            url: route('projects.meetings.show', [$contextProject, $meeting]).'#meeting-notes-'.$meeting->getKey(),
             groupKey: 'meeting:' . $meeting->getKey(),
             groupLabel: $meeting->title,
             groupType: 'Reunião',
@@ -234,7 +234,7 @@ class MentionBacklinks
             label: $label,
             type: 'Item de pauta em ' . $meeting->title,
             field: $field,
-            url: route('projects.meetings.show', [$contextProject, $meeting]),
+            url: deep_link('projects.meetings.show', [$contextProject, $meeting], target: $item),
             groupKey: 'meeting_item:' . $item->getKey(),
             groupLabel: $label,
             groupType: 'Item de pauta',
@@ -253,23 +253,46 @@ class MentionBacklinks
                 label: $commentable->name,
                 type: 'Comentário em projeto',
                 field: $field,
-                url: route('projects.show', $commentable),
-                groupKey: 'project:' . $commentable->getKey(),
+                url: deep_link('projects.show', $commentable, target: $comment),
+                groupKey: 'comment:' . $comment->getKey(),
                 groupLabel: $commentable->name,
-                groupType: 'Projeto',
+                groupType: 'Comentário',
             ),
             $commentable instanceof Task => $commentable->project ? $this->entry(
                 label: $commentable->title,
                 type: 'Comentário em tarefa',
                 field: $field,
-                url: route('tasks.show', $commentable),
-                groupKey: 'task:' . $commentable->getKey(),
+                url: deep_link('tasks.show', $commentable, target: $comment),
+                groupKey: 'comment:' . $comment->getKey(),
                 groupLabel: $commentable->title,
-                groupType: 'Tarefa',
+                groupType: 'Comentário',
             ) : null,
-            $commentable instanceof Meeting => $this->meeting($commentable, $reader, $field),
+            $commentable instanceof Meeting => $this->meetingComment($comment, $commentable, $reader, $field),
             default => null,
         };
+    }
+
+    private function meetingComment(
+        Comment $comment,
+        Meeting $meeting,
+        User $reader,
+        string $field,
+    ): ?array {
+        $contextProject = $meeting->contextProjectFor($reader);
+
+        if (! $contextProject) {
+            return null;
+        }
+
+        return $this->entry(
+            label: $meeting->title,
+            type: 'Comentário em reunião',
+            field: $field,
+            url: deep_link('projects.meetings.show', [$contextProject, $meeting], target: $comment),
+            groupKey: 'comment:'.$comment->getKey(),
+            groupLabel: $meeting->title,
+            groupType: 'Comentário',
+        );
     }
 
     /**
