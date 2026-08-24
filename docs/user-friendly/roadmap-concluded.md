@@ -116,7 +116,7 @@ concluídos. As restrições são aplicadas no backend e na interface.
 
 ## Trilha de auditoria avançada
 
-**Implementado em:** 06/2026; ampliada em 07/2026
+**Implementado em:** 06/2026; ampliada em 07/2026 e 08/2026
 
 O backend registra criação e alterações dos principais modelos, incluindo
 projetos, tarefas, reuniões, itens de pauta, comentários, tipos, módulos, fases,
@@ -127,8 +127,9 @@ auditadas.
 
 O modelo de atividade fornece filtros por categoria, autor, recurso e evento. Há
 limpeza programada com políticas de retenção por categoria e suporte a
-simulação por `dry-run`. A captura e a consulta estão prontas no backend, mas a
-interface gráfica de auditoria por projeto continua pendente.
+simulação por `dry-run`. Administradores de um Projeto também podem consultar
+seu histórico pela interface, filtrando por texto e período e abrindo os valores
+anteriores e atuais em detalhes paginados.
 
 ---
 
@@ -160,7 +161,7 @@ uso detalhado.
 
 ## Arquivos, Menções a arquivo e compartilhamento com reuniões
 
-**Implementado em:** 07/2026
+**Implementado em:** 07/2026; ampliado em 08/2026
 
 Foi criado um módulo centralizado de Arquivos para Projetos, Tarefas e
 Reuniões. O armazenamento é privado, cada Arquivo possui UUID público estável,
@@ -176,10 +177,15 @@ acesso: a autorização continua sendo verificada no destino. Reuniões podem
 receber compartilhamentos explícitos e revogáveis de Arquivos de Projetos e
 Tarefas relacionadas, sem transferir a propriedade.
 
+O card de Mídias passou a separar Imagens, Documentos e Links, com contadores,
+estados vazios e ações próprias. Links externos `http` e `https` são recursos
+separados de Arquivos, podem ser administrados nos mesmos contextos e podem ser
+compartilhados explicitamente com Reuniões elegíveis. O envio múltiplo de
+Arquivos preserva os sucessos quando um item falha, e imagens com miniatura
+podem abrir a imagem original em modal protegido.
+
 Portanto, a implementação não incorporou fotos, vídeos ou documentos dentro do
-texto. Ela entregou Arquivos privados, miniaturas em cards, links seguros e
-compartilhamento controlado; a incorporação direta de mídias continua fora do
-escopo concluído.
+texto. A incorporação direta de mídias continua fora do escopo concluído.
 
 As decisões de segurança e propriedade estão no
 [ADR de Arquivos](../dev-friendly/adr/0003-modelo-seguranca-e-compartilhamento-de-arquivos.md).
@@ -188,7 +194,7 @@ As decisões de segurança e propriedade estão no
 
 ## Menções estruturadas e navegação entre entidades
 
-**Implementado em:** 07/2026
+**Implementado em:** 07/2026; ampliado em 08/2026
 
 O editor oferece autocomplete contextual para Menções a Pessoas, Projetos,
 Tarefas, Reuniões e Arquivos. Ele grava a sintaxe estável
@@ -204,8 +210,9 @@ itens de pauta e Comentários não são destinos navegáveis.
 
 Somente destinos autorizados aparecem na busca e a renderização reavalia o
 acesso de cada leitor, sem reescrever o Markdown original. Uma Menção não
-concede acesso, nem envia notificações. Não há ainda tela de backlinks, caixa de
-entrada ou consulta dedicada de onde uma entidade foi mencionada.
+concede acesso. Cards de Menções recebidas mostram as origens autorizadas em
+Projetos, Tarefas, Reuniões e Usuários; a origem informa o campo e aponta para o
+conteúdo exato, sem criar uma caixa de entrada central.
 
 Consulte o [guia de Markdown](markdown/README.md) e o
 [ADR de Menções](../dev-friendly/adr/0005-generalizar-mencoes-para-entidades.md).
@@ -214,10 +221,11 @@ Consulte o [guia de Markdown](markdown/README.md) e o
 
 ## Acompanhamento de entidades e resumos por e-mail
 
-**Implementado em:** 07/2026
+**Implementado em:** 07/2026; ampliado em 08/2026
 
 Usuários podem ativar ou desativar o acompanhamento de Projetos, Tarefas e
-Reuniões que podem visualizar. Eventos relevantes são acumulados por alguns
+Reuniões que podem visualizar. Também podem ativar ou desativar o acompanhamento
+geral de Menções na dashboard. Eventos relevantes são acumulados por alguns
 minutos e enviados em um resumo por e-mail, com autor, data, contexto, detalhes
 e link para o recurso quando disponível. O próprio usuário que executou a ação
 não recebe o evento correspondente.

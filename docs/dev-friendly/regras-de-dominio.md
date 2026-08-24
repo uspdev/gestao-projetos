@@ -131,11 +131,20 @@ imutáveis; somente o Nome exibido pode mudar. A Policy de Arquivos precisa ser
 usada também para download, metadados, miniatura e navegação, que devem ocultar
 um recurso inacessível como inexistente.
 
-`meeting_file_shares` é a única exceção explícita de acesso entre contextos. A
-validação de origem pertence a `MeetingFileShareController`: Arquivo de Projeto
+`meeting_file_shares` e `meeting_link_shares` são relações explícitas de acesso
+entre contextos. A validação de origem de Arquivos pertence a
+`MeetingFileShareController`: Arquivo de Projeto
 vinculado ou incluído na Pauta, ou Arquivo de Tarefa incluída na Pauta. Uma
 Menção a arquivo não cria compartilhamento. Não transforme a hierarquia de
 Projetos em atalho para acesso a Arquivos.
+
+`Link` é um recurso externo separado de `Media`. Ele possui UUID público, autor,
+proprietário imutável, rótulo editável e URL `http`/`https` editável. A
+`LinkPolicy` controla leitura, criação, edição e exclusão, e a exclusão do
+proprietário ou do Link remove sua disponibilidade. `meeting_link_shares`
+repete a fronteira de compartilhamento dos Arquivos: somente Links de Projetos
+relacionados à Reunião ou de Tarefas presentes na Pauta são elegíveis, e o
+compartilhamento não transfere a propriedade.
 
 ## Acompanhamentos e auditoria
 
@@ -155,6 +164,10 @@ desativá-lo e remove suas pendências. A validação do resumo reaplica a
 autorização da origem e confirma que a Menção ainda está indexada para o
 destinatário. Menções reconstruídas pelo comando operacional não geram novos
 e-mails.
+
+Cards de Menções recebidas usam `MentionBacklinks` e reaplicam a autorização da
+fonte e do destino. A origem deve apontar para o campo ou item exato por meio de
+um fragmento canônico; isso é navegação contextual, não concessão de acesso.
 
 A auditoria registra alterações de modelos e relações relevantes, além de
 operações de Arquivos. A Transcrição não é copiada para `activity_log`: apenas

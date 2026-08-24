@@ -78,8 +78,9 @@ Execute `php artisan test` e `php artisan dusk`. Em homologação, confirme:
   “Concluídos”, cada opção possui símbolo colorido de estado e todos os
   resultados são carregados de uma vez dentro de uma área com rolagem interna;
 - o índice de Menções e `php artisan mentions:rebuild` são idempotentes, mantêm
-  destinos excluídos logicamente recuperáveis, ignoram destinos definitivamente
-  ausentes e não geram notificações, e-mails ou tela de backlinks;
+  destinos excluídos logicamente recuperáveis e ignoram destinos definitivamente
+  ausentes; a reconstrução não gera notificações nem e-mails, enquanto os cards
+  de Menções recebidas consultam o índice com autorização;
 - `storage/app/files` não é público e o acesso ao jsDelivr funciona no
   navegador.
 

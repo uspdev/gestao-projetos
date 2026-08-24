@@ -1,4 +1,4 @@
-# Aware Prompt - Sistema de Gestao de Projetos USP (2026-05-27)
+# Aware Prompt - Sistema de Gestao de Projetos USP (2026-08-24)
 
 ## Papel do LLM
 - Voce e um Engenheiro de Software Senior, especialista em PHP e Laravel, ajudando um sistema interno de gestao de projetos.
@@ -8,7 +8,8 @@
 ## Visao geral do sistema
 - Sistema interno para gestao unificada de projetos, tarefas e reunioes.
 - Usado por devs e por pessoas nao tecnicas; clareza e simplicidade sao essenciais, sem perder extensibilidade.
-- O MVP ja inclui projetos, tarefas e reunioes, com suporte a comentarios, tags e auditoria.
+- A aplicacao inclui projetos, tarefas e reunioes, com comentarios, tags,
+  Markdown, Arquivos, Links, Menções, acompanhamentos e auditoria.
 
 ## Stack e dependencias
 - PHP 8.2, Laravel 12, Laravel Sanctum.
@@ -20,7 +21,8 @@
 - Markdown: league/commonmark + spatie/commonmark-highlighter (helper md2html).
 
 ## Arquitetura e modulos (alto nivel)
-- Modulos principais: Projetos, Tarefas, Reunioes, Comentarios, Tags, Tipos de Projeto, Fases.
+- Modulos principais: Projetos, Tarefas, Reunioes, Comentarios, Arquivos, Links,
+  Menções, acompanhamentos, Tags, Tipos de Projeto, Fases e historico de alteracoes.
 - Modulos podem ser habilitados/desabilitados por projeto (ex.: tasks, meetings) via ProjectType e ProjectModule.
 - Subprojetos: projetos podem ter parent_id para hierarquia simples (1 nivel).
 - Comentarios e Itens de Pauta usam relacionamentos polimorficos.
@@ -37,6 +39,7 @@
   - meetings (N-N) via meeting_projects.
   - comments (morphMany).
   - meetingItems (morphMany) via discussable.
+  - links (morphMany) para Links externos administrados no card de midias.
   - projectType (N-1) e phase (N-1).
   - parent (N-1) e children (1-N).
 - Regras:
@@ -49,7 +52,7 @@
 - Modelo: App\Models\Task
 - Traits: HasTags, Auditable, SoftDeletes.
 - Campos principais: project_id, title, description, priority, status, start_date, due_date, completed_at.
-- Relacionamentos: project (N-1), users (N-N via TaskUser), comments (morphMany), meetingItems (morphMany).
+- Relacionamentos: project (N-1), users (N-N via TaskUser), comments (morphMany), meetingItems (morphMany), links (morphMany).
 - Regras:
   - Modulo tasks precisa estar habilitado no projeto.
   - Task DONE fica bloqueada para update/delete (TaskPolicy).
@@ -60,7 +63,7 @@
 - Modelo: App\Models\Meeting
 - Traits: Auditable, SoftDeletes.
 - Campos principais: title, scheduled_at, location, notes, status.
-- Relacionamentos: projects (N-N), meetingItems (1-N), comments (morphMany).
+- Relacionamentos: projects (N-N), meetingItems (1-N), comments (morphMany), links (morphMany), sharedLinks (N-N).
 - Regras:
   - Modulo meetings precisa estar habilitado no projeto.
   - Meeting pertence a projeto ou ao projeto pai (no caso de subprojetos) para autorizacao.
@@ -71,6 +74,11 @@
 - Campos: meeting_id, discussable_type, discussable_id, order, notes.
 - discussable: Project ou Task (morphTo).
 - comments: morphMany.
+
+### Link
+- Modelo: App\Models\Link
+- Recurso externo com UUID, autor, proprietario imutavel, rotulo editavel e URL `http`/`https` editavel.
+- Pode pertencer a Project, Task ou Meeting; compartilhamentos com Reunioes usam `MeetingLinkShare`.
 
 ### Comment
 - Modelo: App\Models\Comment
@@ -150,17 +158,20 @@
 - ActivityLog custom model com scopes.
 - PivotAuditSubscriber registra updateExistingPivot em pivots (ProjectUser, TaskUser, MeetingProject, ProjectModule, ProjectTypeModule, ProjectTypePhase).
 - TaggablePivot registra attach/detach de tags.
+- Administradores de Projeto podem consultar o historico paginado das alteracoes
+  do projeto e de seus itens relacionados com busca e filtro por periodo.
 
 ## Comentarios e notificacoes
 - Interface Watchable define rotulo, URL e verificacao de acesso para Project, Task e Meeting.
 - A existencia de um Watch ativa notificacoes apenas para a entidade exata.
 - PendingWatchNotification reune os eventos por usuario depois de cinco minutos sem nova atividade.
-- Entram no resumo: comentarios, conclusao de tarefa, atualizacao/remocao de reuniao fora de rascunho e vinculo/desvinculo de subprojeto.
+- Entram no resumo: comentarios, conclusao de tarefa, atualizacao/remocao de reuniao fora de rascunho, vinculo/desvinculo de subprojeto e Menções novas a Usuarios com acompanhamento geral ativo.
 - ProjectUserAdded e TaskAssigned continuam como avisos pessoais diretos.
 
 ## Rotas principais (web.php)
 - Projetos:
   - CRUD via resource projects (sem edit/update) + rotas patch para status, phase, visibility, permission-inheritance, name, slug, description, tags, pin, modules.
+  - Historico: /projects/{project}/activity.
   - Subprojetos: selectable, link, unlink.
   - Membros: listar selecionaveis, store, updateRole, destroy.
 - Tarefas:
@@ -173,11 +184,12 @@
   - items: store, destroy, update notes
   - update status
 - Comments: store, update, destroy.
+- Arquivos e Links: rotas de envio, administracao, compartilhamento em Reunioes e navegacao por UUID.
 - Admin: resource admin com middleware can:admin.
 
 ## UI e views
 - Views em resources/views:
-  - projects/, module-tasks/, module-meetings/, module-phases/, users/, admin/, comments/, emails/.
+  - projects/, module-tasks/, module-meetings/, module-phases/, users/, admin/, comments/, emails/, components/files/ e components/mentions/.
 - Tema via laravel-usp-theme; controllers ajustam activeUrl para menu.
 - Listas de tarefas suportam list/kanban e filtros (show_done, tasks_done, tasks_mine).
 
@@ -190,13 +202,12 @@
 ## Roadmap (futuro, ainda nao implementado)
 - Status updates periodicos.
 - Documentacao interna com entidade propia.
-- Midias em tarefas/comentarios.
+- Incorporacao direta de midias no editor Markdown.
 - Dashboards e calendario (projeto e pessoal).
 - Integracao bidirecional com GitHub.
 - Estruturas: folders, lists, subtasks e breadcrumbs dinamicos.
 - Views diferentes por perfil (dev vs admin).
-- Auditoria avancada (historico completo de mudancas).
-- Central de comunicacao (inbox, mencoes, emails).
+- Caixa de entrada central de Menções.
 - Busca global e filtros avancados.
 - Atalhos de teclado globais.
 

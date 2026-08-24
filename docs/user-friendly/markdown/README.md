@@ -55,10 +55,17 @@ não puder ver o destino, a aplicação mostra uma mensagem de falta de permiss�
 quando ele não existir mais, informa que o destino não foi encontrado. O rótulo
 histórico não é exposto nesses dois estados.
 
-Menções não geram notificações, e-mails ou eventos de acompanhamento e não
-criam uma tela de backlinks. Links Markdown comuns continuam sendo links e não
-entram no índice de Menções; sintaxes dentro de código também não são
-interpretadas como Menções.
+Menções não geram notificações, e-mails ou eventos de acompanhamento por si
+sós. Quando o acompanhamento geral de Menções está ativo, uma Menção a uma
+Pessoa também pode entrar no resumo agrupado por e-mail. Links Markdown comuns
+continuam sendo links e não entram no índice de Menções; sintaxes dentro de
+código também não são interpretadas como Menções.
+
+Projetos, Tarefas, Reuniões e Usuários podem exibir um card de Menções
+recebidas. Ele lista somente origens autorizadas e informa o campo de origem.
+Ao abrir uma Menção, a aplicação navega até a Descrição, as Anotações prévias,
+o Item de pauta ou o Comentário exato que contém a referência. Não existe uma
+caixa de entrada central de Menções.
 
 ### Menções a Arquivo
 
@@ -71,6 +78,9 @@ Uma Menção a arquivo não concede acesso por si só. A pessoa ainda precisa te
 permissão para consultar o Arquivo. Arrastar, colar ou usar a sintaxe de imagem
 do Markdown não envia arquivos: faça o envio pela área de Arquivos e depois
 insira a Menção pelo editor.
+
+Links adicionados na aba **Links** do card de Arquivos são recursos externos
+separados do Markdown. Eles não são Menções e não aparecem neste seletor.
 
 ## Links
 

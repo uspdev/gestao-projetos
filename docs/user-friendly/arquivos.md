@@ -30,11 +30,27 @@ seus Arquivos ficam indisponíveis nas rotas normais e voltam a ser acessíveis
 caso o proprietário seja restaurado. A exclusão individual de um Arquivo é
 definitiva e não possui lixeira.
 
+## Navegador de Arquivos e Links
+
+O card de Mídias mantém três abas: **Imagens**, **Documentos** e **Links**.
+Cada aba informa sua quantidade e mostra seu próprio estado vazio. Imagens são
+separadas dos demais Arquivos para facilitar a consulta; Links são recursos
+externos e não possuem conteúdo binário, MIME, download ou miniatura.
+
+Na aba **Links**, é possível adicionar uma ou várias URLs `http` ou `https`,
+editar o rótulo e a URL e excluir o recurso. O rótulo inicial é a própria URL.
+Ao abrir um Link, a aplicação usa uma nova aba do navegador.
+
+O botão **Enviar arquivos** aceita seleção múltipla. Cada Arquivo é processado
+individualmente: os válidos são preservados mesmo quando outro envio falha, e
+o formulário informa quais itens não foram enviados.
+
 ## Visualização segura
 
 Imagens raster válidas têm a miniatura gerada durante o envio e exibida em
-cartões. Outros formatos são oferecidos para download; PDF, SVG, HTML e
-conteúdos ativos não são incorporados na página. Se ocorrer uma falha técnica
+cartões. Quando a miniatura está disponível, selecione-a para abrir a imagem
+original em uma visualização protegida. Outros formatos são oferecidos para
+download; PDF, SVG, HTML e conteúdos ativos não são incorporados na página. Se ocorrer uma falha técnica
 ao gerar a miniatura, o Arquivo não é salvo e o formulário informa o erro para
 que o usuário tente novamente. A aplicação não executa análise antivírus e
 aceita formatos gerais, inclusive arquivos potencialmente perigosos.
@@ -64,6 +80,12 @@ seus participantes. Para ser elegível, o Arquivo deve pertencer a:
 Quem edita a Reunião e consegue visualizar o Arquivo pode compartilhá-lo. O
 compartilhamento dá acesso a todas as pessoas que podem visualizar a Reunião,
 mas não transfere a propriedade nem libera os demais Arquivos da mesma origem.
+
+Links elegíveis seguem a mesma regra: um Link de Projeto vinculado ou presente
+na Pauta, ou um Link de Tarefa presente na Pauta, pode ser compartilhado com a
+Reunião por quem puder editar a Reunião e visualizar o Link. O compartilhamento
+é independente do texto Markdown e pode ser revogado sem excluir o Link
+original.
 
 Use **Remover da reunião** para revogar esse acesso. A revogação não exclui o
 Arquivo original. Alterar a Pauta, os Projetos vinculados ou a configuração de
