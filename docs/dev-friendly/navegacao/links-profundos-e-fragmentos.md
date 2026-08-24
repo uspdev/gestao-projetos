@@ -49,21 +49,47 @@ substitui a rota. Ele somente identifica um elemento já renderizado na página.
 Se a rota já abre o recurso desejado, use apenas `route()`: `/tarefas/12` não
 precisa de `#task-12`.
 
-## Fragmentos canônicos
+## Fragmentos canônicos disponíveis
 
-[`DeepLink::fragment()`](../../../app/Support/Navigation/DeepLink.php#L49)
-centraliza a identidade usada na navegação:
+[`DeepLink::fragment()`](../../../app/Support/Navigation/DeepLink.php#L40)
+centraliza a identidade que uma entidade pode usar quando precisar ser
+localizada dentro de uma página.
 
-| Entidade | Fragmento | Identificador usado |
-| --- | --- | --- |
-| Projeto | `project-12` | ID do Projeto |
-| Tarefa | `task-20` | ID da Tarefa |
-| Reunião | `meeting-30` | ID da Reunião |
-| Item de pauta | `meeting-item-40` | ID do Item de pauta |
-| Comentário | `comment-50` | ID do Comentário |
-| Usuário | `user-60` | ID do Usuário |
-| Arquivo | `file-UUID` | UUID público do Arquivo |
-| Link | `link-UUID` | UUID público do Link |
+Estar nesta tabela **não significa que o fragmento será acrescentado a todo
+link da entidade**. A tabela define IDs padronizados para elementos HTML e para
+os casos em que uma tela contém vários itens. Quando a rota já abre a própria
+entidade, o link continua usando somente `route()`.
+
+| Entidade | Fragmento disponível | Identificador usado | Uso típico |
+| --- | --- | --- | --- |
+| Projeto | `project-12` | ID do Projeto | Localizar um card em listas de Projetos ou Subprojetos e preservar o foco após ações feitas nessas telas. Um link para a página do próprio Projeto não usa esse fragmento. |
+| Tarefa | `task-20` | ID da Tarefa | Localizar um card no dashboard, em listas ou no Kanban e retornar ao card após uma ação contextual. Um link para a página da própria Tarefa não usa esse fragmento. |
+| Reunião | `meeting-30` | ID da Reunião | Localizar um card em uma lista de Reuniões. Um link para a página da própria Reunião não usa esse fragmento. |
+| Item de pauta | `meeting-item-40` | ID do Item de pauta | Abrir a Reunião e localizar um Item de pauta específico, inclusive quando ele estiver em uma área recolhida. |
+| Comentário | `comment-50` | ID do Comentário | Abrir a página do Projeto, Tarefa ou Reunião que contém a conversa e localizar o Comentário exato. |
+| Usuário | `user-60` | ID do Usuário | Localizar uma pessoa em listas de membros ou retornar a ela após uma ação de vínculo ou função. Um link para o perfil do próprio Usuário não usa esse fragmento. |
+| Arquivo | `file-UUID` | UUID público do Arquivo | Abrir a página de seu Proprietário ou de uma Reunião compartilhada, selecionar a aba adequada e localizar o card do Arquivo. |
+| Link | `link-UUID` | UUID público do Link | Abrir a página que contém o Link, selecionar a aba de Links e localizar seu card. |
+
+Em resumo, Projeto, Tarefa, Reunião e Usuário possuem fragmentos porque também
+podem aparecer como itens dentro de telas mais amplas. Esses fragmentos não
+fazem parte de suas URLs normais:
+
+~~~text
+/projetos/demo
+/tarefas/20
+/projetos/demo/reunioes/30
+/usuarios/60
+~~~
+
+Já um destino interno precisa do fragmento para distinguir qual elemento da
+página deve receber rolagem e foco:
+
+~~~text
+/tarefas/20#comment-50
+/projetos/demo/reunioes/30#meeting-item-40
+/projetos/demo#file-UUID
+~~~
 
 Entidades que ainda não foram registradas no `match` de `DeepLink` não devem
 inventar um fragmento localmente. O método lança uma exceção para revelar que a
