@@ -206,7 +206,7 @@ class FileExposureTest extends TestCase
             ->post(route('projects.files.store', $project), [
                 'file' => UploadedFile::fake()->create('grande.bin', 102401),
             ])
-            ->assertRedirect(route('projects.files.store', $project).'#files-project-'.$project->id)
+            ->assertRedirect(route('projects.show', $project).'#files-project-'.$project->id)
             ->assertSessionHasErrors('file');
     }
 
@@ -232,6 +232,32 @@ class FileExposureTest extends TestCase
             ->assertSessionHas('alert-success');
 
         $this->assertSame('valido', $project->fresh()->getFirstMedia()?->display_name);
+    }
+
+    public function test_task_upload_returns_to_the_task_even_when_the_referer_is_the_user_dashboard(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $admin = $this->user('Admin da Tarefa');
+        $contributor = $this->user('Colaborador da Tarefa');
+        $project = $this->projectWithMembers($admin, $contributor);
+        $project->users()->updateExistingPivot($contributor->id, ['role' => 'CONTRIBUTOR']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa com upload',
+            'status' => 'NEW',
+        ]);
+
+        $response = $this->actingAs($contributor)
+            ->from(route('users.show', 3))
+            ->post(route('tasks.files.store', $task), [
+                'file' => UploadedFile::fake()->create('evidencia.txt', 1),
+            ]);
+
+        $media = $task->fresh()->getFirstMedia();
+
+        $response->assertRedirect(route('tasks.show', $task).'#file-'.$media->uuid);
     }
 
     public function test_project_contributor_can_add_distinct_external_links_in_batch(): void
@@ -473,7 +499,7 @@ class FileExposureTest extends TestCase
             ->post(route('projects.files.store', $project), [
                 'file' => UploadedFile::fake()->image('foto.png', 20, 20),
             ])
-            ->assertRedirect(route('projects.files.store', $project).'#files-project-'.$project->id)
+            ->assertRedirect(route('projects.show', $project).'#files-project-'.$project->id)
             ->assertSessionHasErrors([
                 'file' => 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.',
             ]);

@@ -66,13 +66,14 @@ class MediaController extends Controller
     private function storeForOwner(Request $request, Model $owner)
     {
         Gate::forUser($request->user())->authorize('create', [Media::class, $owner]);
+        $ownerPageUrl = $this->ownerPageUrl($request, $owner);
 
         $legacyUpload = $request->hasFile('file');
         $selectedFiles = $request->file('files', $legacyUpload ? [$request->file('file')] : []);
         $selectedFiles = is_array($selectedFiles) ? $selectedFiles : [$selectedFiles];
 
         if ($selectedFiles === []) {
-            return back()->withFragment($this->browserFragment($owner))->withErrors([
+            return redirect()->to($ownerPageUrl)->withFragment($this->browserFragment($owner))->withErrors([
                 $legacyUpload ? 'file' : 'files' => 'Selecione ao menos um Arquivo.',
             ]);
         }
@@ -110,13 +111,13 @@ class MediaController extends Controller
             $uploaded[] = $media;
         }
 
-        $response = back()->withFragment(
+        $response = redirect()->to($ownerPageUrl)->withFragment(
             $uploaded !== []
                 ? deep_link_fragment($uploaded[array_key_last($uploaded)])
                 : $this->browserFragment($owner),
         );
         if ($uploaded !== []) {
-            $response->with('alert-success', count($uploaded).' Arquivo(s) enviado(s) com sucesso.');
+            $response->with('alert-success', count($uploaded) . ' Arquivo(s) enviado(s) com sucesso.');
         }
 
         if ($errors !== []) {
@@ -365,6 +366,36 @@ class MediaController extends Controller
 
     private function browserFragment(Model $owner): string
     {
-        return 'files-'.$owner->getMorphClass().'-'.$owner->getKey();
+        return 'files-' . $owner->getMorphClass() . '-' . $owner->getKey();
+    }
+
+    /**
+     * Pega a URL da página do proprietário do arquivo (Project, Task ou Meeting)
+     *  para redirecionamento após upload.
+     *
+     * Corrige erro de redirecinamento errado para a dashboard
+     */
+    private function ownerPageUrl(Request $request, Model $owner): string
+    {
+        if ($owner instanceof Project) {
+            return route('projects.show', $owner);
+        }
+
+        if ($owner instanceof Task) {
+            return route('tasks.show', $owner);
+        }
+
+        if ($owner instanceof Meeting) {
+            $owner->loadMissing('projects');
+            $project = $owner->projects
+                ->sortBy('name')
+                ->first(fn(Project $project): bool => $request->user()->isViewerOfProject($project));
+
+            abort_unless($project, 404);
+
+            return route('projects.meetings.show', [$project, $owner]);
+        }
+
+        abort(404);
     }
 }
