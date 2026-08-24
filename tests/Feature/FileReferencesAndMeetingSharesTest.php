@@ -787,7 +787,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         $this->get(route('projects.meetings.show', [$project, $meeting]))
             ->assertOk()
-            ->assertSee('Compartilhar links e arquivos')
+            ->assertSee('Compartilhar com reunião')
             ->assertSee('Compartilhar links e arquivos com a reunião')
             ->assertSee('material-da-pauta')
             ->assertSee('name="media_uuid" value="'.$media->uuid.'"', false)
