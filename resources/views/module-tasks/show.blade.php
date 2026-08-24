@@ -9,25 +9,27 @@
     <b class="text-truncate" title="{{ $task->title }}">{{ $task->title }}</b>
     @include('module-tasks.partials.components.update-status')
     @include('module-tasks.partials.buttons.edit-btn')
+    @include('watches.partials.control', ['watchable' => $task])
   </div>
 
   <div class="ml-auto flex-shrink-0">
-    @include('watches.partials.control', ['watchable' => $task])
     @include('module-tasks.partials.buttons.duplicate-btn')
   </div>
 @endsection
 
 @section('task-content')
-  <div data-file-reference-context-type="task" data-file-reference-context-id="{{ $task->id }}">
+  <div id="{{ deep_link_fragment($task) }}" tabindex="-1" data-deep-link-target
+    data-file-reference-context-type="task" data-file-reference-context-id="{{ $task->id }}">
     <div class="row">
       <div class="col-md-8">
         @include('module-tasks.partials.show.main-card')
-        @include('comments.partials.thread', ['commentable' => $task])
+        @include('comments.partials.thread', ['commentable' => $task, 'cardClass' => 'content-surface entity-context-card entity-context-card--task'])
       </div>
       <div class="col-md-4">
         @include('module-tasks.partials.show.info-card')
         @include('module-tasks.partials.show.assignees-card')
-        <x-files.list :owner="$task" :files="$files" />
+        <x-files.list class="options-surface entity-context-card entity-context-card--task" :owner="$task" :files="$files" :links="$links" />
+        <x-mentions.incoming-card class="options-surface entity-context-card entity-context-card--task" :target="$task" empty-message="Esta tarefa ainda não foi mencionada." />
       </div>
     </div>
   </div>

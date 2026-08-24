@@ -15,6 +15,11 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             // Model Polimórfico: watchable_type e watchable_id permitem que um usuário
             // observe diferentes tipos de recursos (por exemplo, tarefas, projetos, etc.).
+            // Para menções, esse registro não representa uma Menção específica. Ele é uma preferência geral do usuário.
+            // user_id: 2
+            // watchable_type: mention  -> user 2 escolheu receber notificações de menções para si mesmo.
+            // watchable_id: 2
+
             $table->string('watchable_type');
             $table->unsignedBigInteger('watchable_id');
             $table->timestamps();
@@ -29,7 +34,7 @@ return new class extends Migration
             ->orderBy('id')
             ->chunkById(500, function ($assignments) use ($now): void {
                 DB::table('watches')->insert(
-                    $assignments->map(fn ($assignment) => [
+                    $assignments->map(fn($assignment) => [
                         'user_id' => $assignment->user_id,
                         'watchable_type' => 'task',
                         'watchable_id' => $assignment->task_id,

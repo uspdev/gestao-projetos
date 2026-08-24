@@ -15,7 +15,7 @@
       @if ($parentProject)
         <p class="text-muted mb-0">
           Escolha o tipo do subprojeto que será criado em
-          <a href="{{ route('projects.show', $parentProject) }}?view=subprojects">
+          <a href="{{ route('projects.show', [$parentProject, 'view' => 'subprojects']) }}">
             {{ $parentProject->name }}
           </a>.
         </p>

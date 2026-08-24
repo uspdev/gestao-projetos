@@ -134,10 +134,23 @@ class MeetingController extends Controller
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
+        $links = \Illuminate\Support\Facades\Schema::hasTable('links')
+            ? $meeting->links()
+                ->with('creator')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->paginate(20, ['*'], 'links_page')
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
         $sharedFiles = $meeting->sharedFiles()
             ->with('uploader')
             ->latest()
             ->get();
+        $sharedLinks = \Illuminate\Support\Facades\Schema::hasTable('meeting_link_shares')
+            ? $meeting->sharedLinks()
+                ->with('creator')
+                ->latest()
+                ->get()
+            : collect();
 
         return view('module-meetings.show', array_merge(
             compact(
@@ -145,7 +158,9 @@ class MeetingController extends Controller
                 'meeting',
                 'meetingItems',
                 'files',
+                'links',
                 'sharedFiles',
+                'sharedLinks',
                 'availableProjects',
                 'selectedProjects'
             ),
@@ -226,6 +241,7 @@ class MeetingController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment('meeting-notes-'.$meeting->getKey())
             ->with('alert-success', 'Notas da reuniao atualizadas com sucesso!');
     }
 
@@ -241,6 +257,7 @@ class MeetingController extends Controller
         ]);
 
         return redirect()->back()
+            ->withFragment('meeting-record-'.$meeting->getKey())
             ->with('alert-success', 'Ata da reuniao atualizada com sucesso!');
     }
 
@@ -256,6 +273,7 @@ class MeetingController extends Controller
         ]);
 
         return redirect()->back()
+            ->withFragment('meeting-record-'.$meeting->getKey())
             ->with('alert-success', 'Transcricao da reuniao atualizada com sucesso!');
     }
 
@@ -280,6 +298,7 @@ class MeetingController extends Controller
         }
 
         return redirect()->route('projects.meetings.index', $project)
+            ->withFragment('meetings-list')
             ->with('alert-success', 'Reuniao removida com sucesso!');
     }
 
@@ -288,7 +307,7 @@ class MeetingController extends Controller
         $discussable = $request->discussable();
 
         $requestedOrder = (int) $request->validated('order');
-        DB::transaction(function () use ($request, $meeting, $discussable, $requestedOrder) {
+        $meetingItem = DB::transaction(function () use ($request, $meeting, $discussable, $requestedOrder) {
             $maxOrder = (int) ($meeting->meetingItems()->max('order') ?? 0);
             $order = $requestedOrder;
 
@@ -300,7 +319,7 @@ class MeetingController extends Controller
                 ->where('order', '>=', $order)
                 ->increment('order');
 
-            MeetingItem::create([
+            return MeetingItem::create([
                 'meeting_id'       => $meeting->id,
                 'discussable_type' => $request->isIndependent() ? null : $discussable->getMorphClass(),
                 'discussable_id'   => $request->isIndependent() ? null : $discussable->getKey(),
@@ -310,6 +329,7 @@ class MeetingController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($meetingItem))
             ->with('alert-success', 'Item de pauta adicionado com sucesso!');
     }
 
@@ -323,6 +343,7 @@ class MeetingController extends Controller
 
         if ($meeting->status === MeetingStatus::COMPLETED) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($meetingItem))
                 ->withErrors(['meeting_item' => 'Nao é possivel remover itens de uma reunião já concluida.']);
         }
 
@@ -337,6 +358,7 @@ class MeetingController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment('meeting-agenda-'.$meeting->getKey())
             ->with('alert-success', 'Item de pauta removido com sucesso!');
     }
 
@@ -357,6 +379,7 @@ class MeetingController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($meetingItem))
             ->with('alert-success', 'Notas do item atualizadas com sucesso!');
     }
 
@@ -371,6 +394,7 @@ class MeetingController extends Controller
         ]);
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($meetingItem))
             ->with('alert-success', 'Título do item de pauta atualizado com sucesso!');
     }
 
@@ -427,7 +451,10 @@ class MeetingController extends Controller
             'Use somente as informações registradas abaixo e não invente dados ausentes.',
         ]);
         $meetingInformation = implode(PHP_EOL, [
-            $this->exportInlineField('link direto', route('projects.meetings.show', [$project, $meeting])),
+            $this->exportInlineField(
+                'link direto',
+                route('projects.meetings.show', [$project, $meeting]),
+            ),
             $this->exportInlineField('nome da reunião', $meeting->title),
             $this->exportInlineField('data e hora', $meeting->scheduled_at?->format('d/m/Y H:i')),
             $this->exportInlineField('local', $meeting->location),

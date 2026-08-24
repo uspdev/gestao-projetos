@@ -5,18 +5,19 @@
   $canEditNotes = $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
-<div class="card mb-4 shadow-sm">
+<div id="meeting-notes-{{ $meeting->id }}" class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm"
+  tabindex="-1" data-deep-link-target>
   <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-sticky-note mr-1" aria-hidden="true"></i> Anotações prévias
     </h6>
   </div>
   <div class="card-body">
-    <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center mb-2">
       <span class="text-muted">Preparação geral da reunião</span>
       @if ($canEditNotes)
         @can('update', [$meeting, $project])
-          <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"
+          <button type="button" class="btn btn-outline-primary btn-sm py-0 ml-2" data-toggle="collapse"
             data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" aria-label="Editar Anotações prévias">
             <i class="fas fa-edit"></i>
           </button>

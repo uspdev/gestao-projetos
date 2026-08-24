@@ -195,6 +195,7 @@ function updateActiveMentionOption(index) {
     }
 
     activeMentionSelector.activeIndex = index;
+    // querySelectorAll lista as opções visíveis para atualizar o estado ARIA.
     const options = [...activeMentionSelector.element.querySelectorAll(
         "[data-mention-target-type]",
     )];
@@ -265,6 +266,7 @@ function renderMentionSelector(
 
     const renderResults = (filter) => {
         results.replaceChildren();
+        // Tarefas e reuniões ficam separadas por status para facilitar a escolha.
         const filteredTargets = filter === "all"
             ? targets
             : targets.filter((target) => mentionType(target) === filter);
@@ -283,6 +285,7 @@ function renderMentionSelector(
         rememberMentionFilter(textarea, editor, range, filter);
         activeMentionSelector.activeTargets = visibleTargets;
         activeMentionSelector.activeIndex = 0;
+        // Atualiza visualmente o filtro ativo sem recriar os botões.
         filters.querySelectorAll("[data-mention-filter]").forEach((button) => {
             const isActive = button.dataset.mentionFilter === filter;
             button.classList.toggle("active", isActive);
@@ -393,6 +396,7 @@ function renderMentionSelector(
                 option.textContent = mentionDisplayLabel(label);
             }
             option.setAttribute("aria-label", accessibleName);
+            // Os eventos mantêm clique, mouse e foco sincronizados com o teclado.
             option.addEventListener("click", () => {
                 insertMention(editor, range, target);
             });
@@ -460,6 +464,7 @@ function renderMentionSelector(
         button.setAttribute("aria-pressed", index === 0 ? "true" : "false");
         button.dataset.mentionFilter = value;
         button.textContent = label;
+        // O clique troca o filtro e renderiza novamente apenas a lista de resultados.
         button.addEventListener("click", () => {
             renderResults(value);
         });
@@ -468,6 +473,7 @@ function renderMentionSelector(
 
     document.body.appendChild(selector);
     selector.append(filters, results);
+    // Centraliza Escape/Enter/setas para permitir navegação sem mouse.
     selector.addEventListener("keydown", (event) => {
         if (event.key !== "Escape" && event.target?.closest?.("[data-mention-filter]")) {
             return;
@@ -548,6 +554,7 @@ function loadMentionSelector(textarea, editor, range = mentionRange(editor)) {
     textarea.mentionRequest = request;
     activeMentionRequest = request;
 
+    // A resposta só é aplicada se ainda corresponder ao texto e à requisição atuais.
     window.fetch(url.toString(), {
         credentials: "same-origin",
         headers: csrfHeaders(),

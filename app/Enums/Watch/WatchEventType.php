@@ -10,4 +10,5 @@ enum WatchEventType: string
     case MEETING_REMOVED = 'meeting.removed';
     case SUBPROJECT_LINKED = 'subproject.linked';
     case SUBPROJECT_UNLINKED = 'subproject.unlinked';
+    case MENTION_CREATED = 'mention.created';
 }

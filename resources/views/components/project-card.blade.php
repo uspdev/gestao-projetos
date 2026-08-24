@@ -75,32 +75,32 @@
   </style>
 @endPushOnce
 
-<div {{ $attributes->class(['card project-card position-relative h-100']) }}
-  style="border-color: {{ $project->projectType->slug == 'organizacional' ? 'DodgerBlue' : '' }};">
+<div id="{{ deep_link_fragment($project) }}" tabindex="-1" data-deep-link-target
+  {{ $attributes->class(['card project-card position-relative h-100']) }}>
   <div class="card-body d-flex flex-column py-2">
 
     {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-start mb-1">
-
-      <div class="h5 project-card__title text-truncate">
-        {{ $project->name }}
-      </div>
-
-      <div class="d-flex align-items-center">
+    <div class="d-flex align-items-start mb-1">
+      <div class="d-flex align-items-center flex-grow-1 min-width-0" style="gap: 0.35rem;">
+        <div class="h5 project-card__title text-truncate flex-grow-1 min-width-0">
+          {{ $project->name }}
+        </div>
         <span class="badge badge-{{ $project->status->color() }}">
           {{ $project->status->label() }}
         </span>
 
-        @if ($showActionsMenu)
-          <div class="ml-1" style="z-index: 2;">
-            @include('projects.partials.components.index-actions-menu')
-          </div>
-        @else
+        @unless ($showActionsMenu)
           <div class="ml-1" style="z-index: 2;">
             @include('projects.partials.components.toggle-pin')
           </div>
-        @endif
+        @endunless
       </div>
+
+      @if ($showActionsMenu)
+        <div class="ml-1" style="z-index: 2;">
+          @include('projects.partials.components.index-actions-menu')
+        </div>
+      @endif
     </div>
 
     {{-- body --}}

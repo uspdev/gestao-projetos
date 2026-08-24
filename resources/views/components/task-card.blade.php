@@ -15,8 +15,6 @@
       \Carbon\Carbon::parse($task->due_date)->isPast() &&
       $task->status->value !== \App\Enums\Task\TaskStatus::DONE->value;
 
-  $borderClass = 'border-' . $task->priority?->color();
-
 @endphp
 
 @pushOnce('styles')
@@ -42,28 +40,28 @@
   </style>
 @endPushOnce
 
-<div {{ $attributes->class(['card border-1 h-100 task-card mb-3 shadow-sm border-left', $borderClass]) }}>
+<div id="{{ deep_link_fragment($task) }}" tabindex="-1" data-deep-link-target
+  {{ $attributes->class(['card h-100 task-card entity-card entity-card--task mb-3 shadow-sm']) }}>
   <div class="card-body d-flex flex-column">
 
     {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-start mb-2">
-      <h6 class="task-card__title font-weight-bold text-dark mb-0 pr-2">
-        {{ $task->title }} ok
-      </h6>
-
-      <div class="d-flex align-items-center position-relative" style="z-index: 2;">
+    <div class="d-flex align-items-start mb-2">
+      <div class="d-flex align-items-center flex-wrap flex-grow-1 min-width-0" style="gap: 0.35rem;">
+        <h6 class="task-card__title font-weight-bold text-dark mb-0">
+          {{ $task->title }}
+        </h6>
         @if ($status)
           <span class="badge badge-{{ $status->color() }}">
             {{ $status->label() }}
           </span>
         @endif
-
-        @if ($showDuplicate)
-          <div class="ml-1">
-            @include('module-tasks.partials.buttons.duplicate-btn')
-          </div>
-        @endif
       </div>
+
+      @if ($showDuplicate)
+        <div class="ml-1 d-flex align-items-center position-relative" style="z-index: 2;">
+          @include('module-tasks.partials.buttons.duplicate-btn')
+        </div>
+      @endif
     </div>
 
     {{-- Project --}}

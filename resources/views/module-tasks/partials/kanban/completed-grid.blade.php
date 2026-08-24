@@ -8,6 +8,10 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1rem;
+      max-height: min(65vh, 42rem);
+      overflow-y: auto;
+      overscroll-behavior-y: auto;
+      padding-right: .25rem;
     }
 
     .kanban-completed-grid .kanban-task {
@@ -17,7 +21,7 @@
 @endPushOnce
 
 @if ($completedTasks->isNotEmpty())
-  <div class="kanban-completed-grid">
+  <div class="kanban-completed-grid" tabindex="0" aria-label="Tarefas concluídas">
     @foreach ($completedTasks as $task)
       @include('module-tasks.partials.kanban.kanban-task-card')
     @endforeach

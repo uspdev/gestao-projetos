@@ -18,6 +18,7 @@ function fileNavigationUrl(uuid) {
 
 function contextualFileReferenceUrl(url, content) {
     const contextualUrl = new URL(url, window.location.origin);
+    // closest encontra o contexto mais próximo para manter a navegação contextual.
     const context = content.closest("[data-file-reference-context-type]");
 
     if (context) {
@@ -86,6 +87,7 @@ function configureFileReference(link, content, uuid) {
     link.dataset.fileReferenceNavigation = "pending";
     link.setAttribute("href", contextualUrl);
 
+    // Se o destino já está na página, evita uma consulta ao servidor e usa âncora.
     if (document.getElementById(anchor)) {
         link.setAttribute("href", currentPageAnchorUrl(anchor));
         link.removeAttribute("target");
@@ -95,6 +97,7 @@ function configureFileReference(link, content, uuid) {
         return;
     }
 
+    // A resposta informa a URL final e se a referência deve abrir nova aba.
     window.fetch(
         contextualFileReferenceUrl(fileNavigationUrl(uuid), content),
         {

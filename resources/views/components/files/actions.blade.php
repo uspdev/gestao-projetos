@@ -2,8 +2,6 @@
   'media',
   'owner',
   'shared' => false,
-  'previewable' => false,
-  'detailsId',
   'suffix' => 'item',
 ])
 
@@ -38,20 +36,6 @@
     <a class="dropdown-item" href="{{ route('files.download', ['uuid' => $media->uuid]) }}">
       <i class="fas fa-download fa-fw mr-2" aria-hidden="true"></i>Baixar
     </a>
-
-    @if ($previewable)
-      <button
-        type="button"
-        class="dropdown-item"
-        data-file-preview-toggle
-        data-file-details-id="{{ $detailsId }}">
-        <i class="fas fa-eye fa-fw mr-2" aria-hidden="true"></i>Pré-visualizar
-      </button>
-    @else
-      <button type="button" class="dropdown-item text-muted" disabled>
-        <i class="fas fa-eye-slash fa-fw mr-2" aria-hidden="true"></i>Pré-visualização indisponível
-      </button>
-    @endif
 
     @can('update', $media)
       <div class="dropdown-divider"></div>
@@ -93,8 +77,11 @@
       <div class="input-group input-group-sm">
         <input id="{{ $renameId }}-name" name="name" value="{{ $media->display_name }}" class="form-control form-control-sm" required maxlength="255" data-file-rename-input>
         <div class="input-group-append">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-outline-secondary" data-file-rename-cancel>Cancelar</button>
+          <button type="submit" class="btn btn-primary" aria-label="Salvar" title="Salvar">
+            <i class="fas fa-save" aria-hidden="true"></i><span class="sr-only">Salvar</span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-file-rename-cancel aria-label="Cancelar"
+            title="Cancelar"><i class="fas fa-times" aria-hidden="true"></i><span class="sr-only">Cancelar</span></button>
         </div>
       </div>
     </form>

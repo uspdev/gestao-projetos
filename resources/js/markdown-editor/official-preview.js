@@ -43,6 +43,7 @@ class OfficialPreview {
     }
 
     schedule() {
+        // Debounce reduz requisições durante a digitação e aborta a anterior.
         window.clearTimeout(this.timer);
         const revision = ++this.revision;
 
@@ -91,6 +92,7 @@ class OfficialPreview {
 
             const html = await response.text();
 
+            // Respostas antigas ou de uma prévia fechada não podem substituir o HTML atual.
             if (revision !== this.revision || !this.isVisible()) {
                 return;
             }

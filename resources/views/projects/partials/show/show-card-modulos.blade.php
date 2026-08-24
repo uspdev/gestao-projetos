@@ -4,7 +4,7 @@
   $canUpdateModules = $showToggle && isset($project) && auth()->user()?->can('updateModule', $project);
 @endphp
 
-<div class="card mb-4">
+<div class="card options-surface config-card mb-4">
   <div class="card-header d-flex align-items-center py-2">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">

@@ -3,9 +3,11 @@
 namespace App\Jobs;
 
 use App\Mail\WatchDigest;
+use App\Enums\Watch\WatchEventType;
 use App\Models\PendingWatchNotification;
 use App\Models\User;
 use App\Models\Watch;
+use App\Services\Mentions\MentionManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -58,13 +60,30 @@ class SendWatchDigest implements ShouldQueue
 
             // Pega todas as notificações pendentes para o usuário
             $pending = PendingWatchNotification::query()
-                ->with(['actor', 'watchable'])
+                ->with('actor')
                 ->where('user_id', $user->id)
                 ->oldest('occurred_at')
                 ->get();
 
+            // Carrega as relações necessárias para cada notificação pendente, dependendo do tipo de evento.
+            $pending->each(function (PendingWatchNotification $notification): void {
+                // Para notificações de Menções, carrega a fonte da menção para que o resumo possa apresentar o contexto.
+                if ($notification->event_type === WatchEventType::MENTION_CREATED) {
+                    $notification->load('mention.source');
+                } else {
+                    $notification->load('watchable');
+                }
+            });
+
             // Filtra as notificações pendentes para manter apenas as que ainda são válidas para envio.
-            $valid = $pending->filter(function (PendingWatchNotification $notification) use ($user) {
+            $valid = $pending->filter(function (PendingWatchNotification $notification) use ($user): bool {
+                if ($notification->event_type === WatchEventType::MENTION_CREATED) {
+                    return Watch::mentionEnabledFor($user->id)
+                        && app(MentionManager::class)
+                        ->incomingMentions($user, $user)
+                        ->contains(fn($mention): bool => (int) $mention->getKey() === (int) $notification->watchable_id);
+                }
+
                 $watchable = $notification->watchable;
 
                 // Verifica se o usuário ainda pode ver o conteúdo assistido e se ele ainda está assistindo.

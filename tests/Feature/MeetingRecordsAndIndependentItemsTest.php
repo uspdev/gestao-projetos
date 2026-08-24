@@ -137,6 +137,171 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
         $this->assertStringNotContainsString('com quebra', $transcriptionPreview->textContent);
     }
 
+    public function test_project_page_shows_authorized_mentions_and_meeting_agenda_items(): void
+    {
+        DB::table('projects')->insert([
+            [
+                'id' => 2,
+                'name' => 'Projeto fonte visível',
+                'slug' => 'projeto-fonte-visivel',
+                'status' => 'ACTIVE',
+                'permission_inheritance' => 'NONE',
+                'project_type_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 3,
+                'name' => 'Projeto fonte oculto',
+                'slug' => 'projeto-fonte-oculto',
+                'status' => 'ACTIVE',
+                'permission_inheritance' => 'NONE',
+                'project_type_id' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+        DB::table('project_user')->insert([
+            ['user_id' => 2, 'project_id' => 2, 'role' => 'VIEWER', 'pinned' => false, 'created_at' => now(), 'updated_at' => now()],
+            ['user_id' => 1, 'project_id' => 3, 'role' => 'CONTRIBUTOR', 'pinned' => false, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        DB::table('project_modules')->insert([
+            ['project_id' => 2, 'module_id' => 2, 'enabled' => true, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        $visibleSource = Project::findOrFail(2);
+        $hiddenSource = Project::findOrFail(3);
+        $visibleMarkdown = '@[Projeto teste](mention:project:1)';
+        $hiddenMarkdown = '@[Projeto teste](mention:project:1)';
+
+        $visibleSource->update(['description' => $visibleMarkdown]);
+        $hiddenSource->update(['description' => $hiddenMarkdown]);
+
+        app(MentionManager::class)->synchronize($visibleSource, 'description', $visibleMarkdown);
+        app(MentionManager::class)->synchronize($hiddenSource, 'description', $hiddenMarkdown);
+
+        DB::table('tasks')->insert([
+            'id' => 10,
+            'project_id' => 2,
+            'title' => 'Tarefa fonte visível',
+            'description' => $visibleMarkdown,
+            'status' => 'NEW',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $taskSource = Task::findOrFail(10);
+        app(MentionManager::class)->synchronize($taskSource, 'description', $visibleMarkdown);
+
+        $meetingMarkdown = '@[Projeto teste](mention:project:1)';
+        DB::table('meetings')->where('id', 1)->update(['notes' => $meetingMarkdown]);
+        $meetingSource = Meeting::findOrFail(1);
+        app(MentionManager::class)->synchronize($meetingSource, 'notes', $meetingMarkdown);
+
+        DB::table('projects')->where('id', 2)->update(['updated_at' => now()->subDays(3)]);
+        DB::table('tasks')->where('id', 10)->update(['updated_at' => now()->subDay()]);
+        DB::table('meetings')->where('id', 1)->update(['updated_at' => now()]);
+
+        DB::table('meeting_items')->insert([
+            'meeting_id' => 1,
+            'discussable_type' => 'project',
+            'discussable_id' => 1,
+            'title' => null,
+            'order' => 1,
+            'notes' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $this->get('/projects/projeto-teste')
+            ->assertOk()
+            ->assertSee('Onde este projeto foi mencionado')
+            ->assertSee('3 locais em 3 itens')
+            ->assertSee('mentions-card__list', false)
+            ->assertSee('max-height: 22rem', false)
+            ->assertSee('overflow-y: auto', false)
+            ->assertSeeInOrder(['Reunião teste', 'Tarefa fonte visível', 'Projeto fonte visível'])
+            ->assertSee('Projeto fonte visível')
+            ->assertSee('Descrição')
+            ->assertSee(route('projects.show', $visibleSource), false)
+            ->assertSee('Tarefa fonte visível')
+            ->assertSee(route('tasks.show', $taskSource), false)
+            ->assertSee('Anotações prévias')
+            ->assertSee('Reunião teste')
+            ->assertSee(route('projects.meetings.show', [Project::findOrFail(1), $meetingSource]), false)
+            ->assertDontSee('Projeto fonte oculto')
+            ->assertSee('Pautas de reuniões')
+            ->assertSee('Reunião teste')
+            ->assertSee('Projeto na pauta')
+            ->assertSee(route('projects.meetings.show', [Project::findOrFail(1), 1]), false);
+    }
+
+    public function test_generic_mentions_card_is_available_on_task_meeting_and_user_pages(): void
+    {
+        DB::table('tasks')->insert([
+            'id' => 10,
+            'project_id' => 1,
+            'title' => 'Tarefa mencionada na navegação',
+            'description' => null,
+            'status' => 'NEW',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $project = Project::findOrFail(1);
+        $markdown = implode(' ', [
+            '@[Tarefa mencionada](mention:task:10)',
+            '@[Reunião mencionada](mention:meeting:1)',
+            '@[Visualizador](mention:user:2)',
+        ]);
+        $project->update(['description' => $markdown]);
+        app(MentionManager::class)->synchronize($project, 'description', $markdown);
+
+        $this->actingAs(User::findOrFail(2));
+
+        $this->get('/tasks/10')
+            ->assertOk()
+            ->assertSee('Onde esta tarefa foi mencionada')
+            ->assertSee('Projeto teste')
+            ->assertSee('Descrição');
+
+        $this->get('/projects/projeto-teste/meetings/1')
+            ->assertOk()
+            ->assertSee('Onde esta reunião foi mencionada')
+            ->assertSee('Projeto teste')
+            ->assertSee('Descrição');
+
+        $this->get('/users/2')
+            ->assertOk()
+            ->assertSee('Onde você foi mencionado')
+            ->assertSee('Projeto teste')
+            ->assertSee('Descrição');
+    }
+
+    public function test_new_comment_mentions_are_indexed_during_creation(): void
+    {
+        $author = User::findOrFail(1);
+        $mentioned = User::findOrFail(2);
+        $project = Project::findOrFail(1);
+        $markdown = '@[' . $mentioned->name . '](mention:user:' . $mentioned->id . ')';
+
+        $this->actingAs($author)
+            ->post(route('comments.store'), [
+                'commentable_type' => $project->getMorphClass(),
+                'commentable_id' => $project->id,
+                'text' => $markdown,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('mentions', [
+            'source_type' => 'comment',
+            'source_field' => 'text',
+            'target_type' => 'user',
+            'target_id' => $mentioned->id,
+        ]);
+    }
+
     public function test_meeting_export_includes_the_complete_current_structure(): void
     {
         DB::table('meetings')->where('id', 1)->update([
@@ -903,6 +1068,19 @@ TXT;
         $this->assertStringContainsString('id="task-description-edit-1-textarea"', $taskPage);
         $this->assertStringContainsString('id="meeting-notes-edit-1-textarea"', $meetingPage);
         $this->assertStringContainsString('id="meeting-item-notes-edit-1-textarea"', $meetingPage);
+        $this->assertStringNotContainsString('entity-header entity-header--project', $projectPage);
+        $this->assertStringContainsString('entity-header entity-header--task', $taskPage);
+        $this->assertStringContainsString('entity-header entity-header--meeting', $meetingPage);
+        $this->assertStringContainsString('entity-context-card entity-context-card--project', $projectPage);
+        $this->assertStringContainsString('entity-context-card entity-context-card--task', $taskPage);
+        $this->assertStringContainsString('entity-context-card entity-context-card--meeting', $meetingPage);
+        foreach ([$projectPage, $taskPage, $meetingPage] as $page) {
+            $this->assertStringContainsString('content-surface', $page);
+            $this->assertStringContainsString('options-surface', $page);
+        }
+        $this->assertStringNotContainsString('border-left: 4px solid', $projectPage);
+        $this->assertStringNotContainsString('border-left: 4px solid', $taskPage);
+        $this->assertStringNotContainsString('border-left: 4px solid', $meetingPage);
 
         foreach ([$projectPage, $taskPage, $meetingPage] as $page) {
             $this->assertStringContainsString('data-markdown-profile="full"', $page);

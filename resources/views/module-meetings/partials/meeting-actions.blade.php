@@ -6,7 +6,8 @@
   $canEditNotes = $meeting && $project && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
-<div class="card mb-4 shadow-sm">
+<div id="meeting-agenda-{{ $meeting?->id }}" class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm"
+  tabindex="-1" data-deep-link-target>
   <div class="card-header h5 py-1 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
       <span class="font-weight-bold">Pauta</span>

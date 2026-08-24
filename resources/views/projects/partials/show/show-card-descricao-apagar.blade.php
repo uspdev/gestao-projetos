@@ -1,10 +1,8 @@
 {{-- Card: Título e Descrição --}}
 @php
   $type = $type ?? null;
-  $bg_color = '';
   $class = '';
   if ($type == 'main') {
-      $bg_color = 'lightcyan';
       $class = 'h5';
   }
   $descriptionDisplayId = 'project-description-display-' . $project->id;
@@ -14,7 +12,7 @@
 @endphp
 
 <div class="card mb-4">
-  <div class="card-header {{ $class }} py-2" style="background-color: {{ $bg_color }};">
+  <div class="card-header {{ $class }} py-2">
     <div class="d-flex align-items-center justify-content-between" style="gap: 0.75rem;">
       <span>Descrição</span>
       @can('update', $project)

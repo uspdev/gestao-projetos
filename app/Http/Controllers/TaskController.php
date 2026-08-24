@@ -152,9 +152,16 @@ class TaskController extends Controller
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->paginate(20, ['*'], 'files_page');
+        $links = \Illuminate\Support\Facades\Schema::hasTable('links')
+            ? $task->links()
+                ->with('creator')
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
+                ->paginate(20, ['*'], 'links_page')
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
 
 
-        return view('module-tasks.show', compact('task', 'project', 'files'));
+        return view('module-tasks.show', compact('task', 'project', 'files', 'links'));
     }
 
     /**
@@ -184,10 +191,12 @@ class TaskController extends Controller
 
         if ($request->has('action')) {
             return redirect($request->action)
+                ->withFragment(deep_link_fragment($task))
                 ->with('alert-success', 'Descrição da tarefa atualizada com sucesso!');
         }
 
         return redirect()->route('tasks.show', $task)
+            ->withFragment('task-description-'.$task->getKey())
             ->with('alert-success', 'Descrição da tarefa atualizada com sucesso!');
     }
 
@@ -218,10 +227,12 @@ class TaskController extends Controller
 
         if ($request->has('action')) {
             return redirect($request->action)
+                ->withFragment(deep_link_fragment($task))
                 ->with('alert-success', 'Informações da tarefa atualizadas com sucesso!');
         }
 
         return redirect()->route('tasks.show', $task)
+            ->withFragment('task-info-'.$task->getKey())
             ->with('alert-success', 'Informações da tarefa atualizadas com sucesso!');
     }
 
@@ -262,6 +273,7 @@ class TaskController extends Controller
         });
 
         return back()
+            ->withFragment(deep_link_fragment($task))
             ->with('alert-success', 'Status da tarefa atualizado com sucesso!');
     }
 
@@ -280,6 +292,7 @@ class TaskController extends Controller
         $user = User::query()->findOrFail($data['user_id']);
         if (!$user->isContributorOfProject($task->project)) {
             return redirect()->route('tasks.show', $task)
+                ->withFragment('task-assignees-'.$task->getKey())
                 ->with('alert-danger', 'Somente colaboradores do projeto podem ser atribuídos à tarefa.');
         }
 
@@ -292,6 +305,7 @@ class TaskController extends Controller
         }
 
         return redirect()->route('tasks.show', $task)
+            ->withFragment('task-assignees-'.$task->getKey())
             ->with('alert-success', 'Colaborador atribuído à tarefa com sucesso!');
     }
 
@@ -329,6 +343,7 @@ class TaskController extends Controller
         });
 
         return redirect()->route('tasks.show', $task)
+            ->withFragment('task-assignees-'.$task->getKey())
             ->with('alert-success', 'Membro removido da tarefa com sucesso!');
     }
 

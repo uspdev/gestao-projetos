@@ -74,6 +74,9 @@ O módulo de Arquivos usa armazenamento privado. Não execute
   invariáveis, autorização, módulos, ciclos e efeitos assíncronos.
 - [Ordenações do sistema](ordenacoes-do-sistema.md) — critérios das listas,
   desempates, tratamento de valores nulos e lacunas sem ordem garantida.
+- [Arquivos e Links](arquivos-links/implementar-links-mult-arquivos.md) — detalhes de implementação e compartilhamento de Arquivos e Links.
+- [Links profundos e fragmentos](navegacao/links-profundos-e-fragmentos.md) — uso de `deep_link()`, IDs de destino, redirects, Menções e navegação de Arquivos e Links.
+- [Cores dos Cards](visual/cores_cards.md) — identidade visual por entidade, incluindo projetos, tarefas e reuniões. Segue o padrão da EESC-USP, com cores discretas e consistentes em todas as telas.
 
 ## ADRs
 
@@ -85,6 +88,7 @@ alterar o comportamento documentado:
 - [Modelo, segurança e compartilhamento de Arquivos](adr/0003-modelo-seguranca-e-compartilhamento-de-arquivos.md)
 - [Bibliotecas de front-end por CDN](adr/0004-bibliotecas-frontend-por-cdn.md)
 - [Generalizar Menções para entidades do sistema](adr/0005-generalizar-mencoes-para-entidades.md)
+- [Notificações de Menções no resumo](adr/0007-notificacoes-de-mencoes-no-resumo.md)
 - [Geração síncrona de miniaturas no envio de Arquivos](adr/0006-geracao-sincrona-de-miniaturas.md)
 
 ## Implantação e operação
@@ -95,6 +99,8 @@ alterar o comportamento documentado:
   — checklist curto de publicação, verificação e recuperação.
 - [Implantação de acompanhamentos](email/implantacao-observacoes.md) —
   tabelas, eventos e processamento dos resumos por e-mail.
+- [Fluxo de notificações de Menções](email/fluxo-notificacoes-de-mencoes.md) —
+  criação, digest e desativação do acompanhamento geral.
 - [Índice de Menções e auditoria](operacao/indice-de-mencoes-e-auditoria.md)
   — reconstrução, limpeza, fila e observabilidade.
 - [Notificações por e-mail](../user-friendly/email/notificacoes.md) — contrato observável dos

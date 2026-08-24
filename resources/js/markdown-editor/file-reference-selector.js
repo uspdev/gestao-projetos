@@ -80,6 +80,7 @@ function openFileReferenceSelector(textarea, editor) {
         return;
     }
 
+    // querySelector localiza um seletor antigo para impedir modais duplicados.
     document.querySelector("#file-reference-selector")?.remove();
 
     window
@@ -119,6 +120,7 @@ function openFileReferenceSelector(textarea, editor) {
             close.className = "close";
             close.setAttribute("aria-label", "Fechar");
             close.textContent = "×";
+            // O evento de clique fecha o modal e remove seu conteúdo temporário.
             close.addEventListener("click", () =>
                 closeFileReferenceSelector(selector),
             );
@@ -152,6 +154,7 @@ function openFileReferenceSelector(textarea, editor) {
                         body.appendChild(
                             createSelectorButton(file, file.name, (button) => {
                                 button.dataset.fileReferenceUuid = file.uuid;
+                                // Clique insere a referência escolhida e fecha o seletor.
                                 button.addEventListener("click", () => {
                                     insertFileReference(editor, file);
                                     closeFileReferenceSelector(selector);
@@ -192,6 +195,8 @@ function openFileReferenceSelector(textarea, editor) {
                                 `Compartilhar com a reunião e mencionar: ${file.name}`,
                                 (button) => {
                                     button.dataset.fileShareUuid = file.uuid;
+                                    // Desabilita o botão durante o compartilhamento para
+                                    // evitar envios duplicados.
                                     button.addEventListener("click", () => {
                                         button.disabled = true;
                                         window

@@ -72,8 +72,24 @@ class MeetingPolicy
 
         return $meeting->projects()
             ->get()
-            ->contains(fn (Project $project) => $this->meetingsModuleEnabled($project)
+            ->contains(fn(Project $project) => $this->meetingsModuleEnabled($project)
                 && $user->isContributorOfProject($project));
+    }
+
+    /**
+     * Verifica se o usuário pode gerenciar o compartilhamento de links da reunião.
+     *
+     * Utiliza as mesmas regras de autorização aplicadas ao gerenciamento
+     * de compartilhamento de arquivos.
+     *
+     * @param User $user Usuário que está tentando realizar a ação.
+     * @param Meeting $meeting Reunião associada ao compartilhamento.
+     *
+     * @return bool True caso o usuário tenha permissão; false caso contrário.
+     */
+    public function manageLinkShares(User $user, Meeting $meeting): bool
+    {
+        return $this->manageFileShares($user, $meeting);
     }
 
     public function restore(User $user, Meeting $meeting): bool

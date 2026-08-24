@@ -10,13 +10,17 @@
     <div class="row">
       <div class="col-md-8">
         <x-projects::show.descricao-card :project="$project" />
-        @include('comments.partials.thread', ['commentable' => $project])
+        @include('comments.partials.thread', ['commentable' => $project, 'cardClass' => 'content-surface entity-context-card entity-context-card--project'])
       </div>
       <div class="col-md-4">
         <x-projects::show.tipo-card :project="$project" />
-        <x-files.list :owner="$project" :files="$files" />
+        <x-files.list class="options-surface entity-context-card entity-context-card--project" :owner="$project" :files="$files" :links="$links" />
         <x-projects::show.membros-preview-card :project="$project" />
         @include('projects.partials.show.show-card-modulos')
+        <x-mentions.incoming-card class="options-surface entity-context-card entity-context-card--project" :target="$project" empty-message="Este projeto ainda não foi mencionado." />
+        @if ($agendaMeetings->isNotEmpty())
+          <x-projects::show.pautas-card :project="$project" :meetings="$agendaMeetings" />
+        @endif
         <x-projects::show.subprojects-card :project="$project" type="preview" />
       </div>
     </div>

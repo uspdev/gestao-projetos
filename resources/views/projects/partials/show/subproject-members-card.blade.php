@@ -4,27 +4,24 @@
     $inheritance = $subproject->permission_inheritance;
   @endphp
 
-  <div class="card border mb-3"
+  <div class="card border entity-context-card entity-context-card--project mb-3"
     data-subproject-members-searchable="{{ $subproject->name }} {{ $subproject->users->pluck('name')->implode(' ') }}">
-    <div class="card-header bg-light d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-      <div class="mb-2 mb-md-0">
+    <div class="card-header bg-light d-flex flex-column flex-md-row align-items-start align-items-md-center">
+      <div class="mb-2 mb-md-0 d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
         <a href="{{ route('projects.show', $subproject) }}" class="font-weight-bold text-dark">
           <i class="fas fa-folder mr-1 text-secondary" aria-hidden="true"></i>
           {{ $subproject->name }}
         </a>
-        <span class="small text-muted ml-1">
+        <span class="small text-muted">
           {{ $memberCount }} {{ $memberCount === 1 ? 'membro direto' : 'membros diretos' }}
         </span>
-      </div>
-
-      <div class="d-flex align-items-center">
         <span class="badge badge-{{ $inheritance?->color() ?? 'secondary' }}">
           {{ $inheritance?->label() ?? 'Herança não definida' }}
         </span>
 
         @can('storeMember', $subproject)
           <a href="{{ route('projects.settings', $subproject) }}#project-members"
-            class="btn btn-sm btn-outline-primary ml-2">
+            class="btn btn-sm btn-outline-primary">
             Gerenciar equipe
           </a>
         @endcan

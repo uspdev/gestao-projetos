@@ -1,7 +1,4 @@
-<div @class([
-    'card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky',
-    'border-bottom border-warning' => request()->routeIs('projects.settings'),
-])>
+<div class="card-header d-flex justify-content-between align-items-center gap-2 card-header-sticky">
   <div class="mb-0">
     <div class="h4 mb-0 d-flex align-items-center flex-wrap" style="gap: 0.35rem;">
       <i class="fas fa-folder-open text-secondary"></i>
@@ -33,11 +30,12 @@
         @includeIf("module-{$module}.partials.project-menu-item")
       @endforeach
 
+      @include('projects.partials.show.show-tag-badges')
+
     </div>
   </div>
 
-  <div class="d-flex align-items-center gap-2">
-    @include('projects.partials.show.show-tag-badges')
+  <div class="d-flex align-items-center gap-2 ml-auto">
     @include('projects.partials.show.settings-btn')
   </div>
 </div>

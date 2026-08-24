@@ -4,7 +4,9 @@
         min-width: 0;
     }
 
-    [data-file-card] {
+    [data-file-card],
+    [data-link-card],
+    [data-deep-link-target] {
         scroll-margin-top: 1rem;
     }
 
@@ -38,8 +40,36 @@
         object-fit: cover;
     }
 
+    .file-image-preview-modal .modal-content {
+        background-color: #fff;
+    }
+
+    .file-image-preview-modal .modal-header {
+        color: #212529;
+        border-bottom-color: #dee2e6;
+    }
+
+    .file-image-preview-modal .close {
+        color: #212529;
+        text-shadow: none;
+        opacity: 0.8;
+    }
+
+    .file-image-preview-original {
+        max-height: calc(100vh - 150px);
+        object-fit: contain;
+    }
+
+    .file-image-item {
+        align-self: flex-start;
+    }
+
     .file-image-caption {
         min-height: 34px;
+    }
+
+    .file-item-edit-region {
+        flex-basis: 100%;
     }
 
     .file-list-item.is-selected {

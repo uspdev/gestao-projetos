@@ -30,6 +30,7 @@ function insertLinePrefix(editor, prefix) {
  */
 function extensionAction(eventName) {
     return function action(editor) {
+        // bubbles permite que markdown-editor.js trate o evento no documento.
         editor.element.dispatchEvent(
             new CustomEvent(eventName, {
                 bubbles: true,

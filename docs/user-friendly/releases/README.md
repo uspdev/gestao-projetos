@@ -9,6 +9,7 @@ sendo a referência para regras e limites detalhados.
 | [MVP](MVP.md) | Escopo inicial que orientou as primeiras entregas. |
 | [1.0](1.0.md) | Entrega inicial do sistema. Após MVP. |
 | [1.1](1.1.md) | Entrega de novas funcionalidades e melhorias. |
+| [1.2.0](1.2.0.md) | Navegação contextual, Links, histórico de alterações e notificações de Menções. |
 
 Para funcionalidades planejadas, consulte o [roadmap](../roadmap.md). Para
 limites do que já foi entregue, consulte o [roadmap concluído](../roadmap-concluded.md).

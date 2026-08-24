@@ -25,5 +25,5 @@
     @endforeach
   </ul>
 
-  <p>Você pode alterar essa preferência nas configurações do projeto ou na página de cada tarefa e reunião.</p>
+  <p>Você pode alterar essas preferências na sua dashboard, nas configurações do projeto ou na página de cada tarefa e reunião.</p>
 @endsection

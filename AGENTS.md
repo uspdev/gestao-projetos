@@ -5,6 +5,7 @@
 Todo agente que trabalhar neste projeto deve respeitar estas regras:
 
 - Não execute `git add`, `git commit`, `git push` nem qualquer outro comando que altere o estado do Git.
+- Não use Node para nada na aplicação, não usamos ele.
 - Ao concluir o trabalho, apresente apenas os comandos sugeridos de `git add` e `git commit` para análise do desenvolvedor. Use o padrão conventiona commits e inclua descrição, por exemplo:
     "feat(projects): permitir criação de subprojetos vinculados
     Adiciona a possibilidade de iniciar a criação de um subprojeto pelo
@@ -45,3 +46,9 @@ implementação.
 ### Glossário de tradução
 
 Quando uma skill usar termos em inglês, consulte `docs/dev-friendly/agents/glossario-traducao.md` e use as equivalências em português nos documentos do projeto.
+
+## Diretriz visual de ações e indicações
+
+- Em cards, mantenha à esquerda, junto do título, os botões, contadores, status, tags e demais indicações de uso frequente.
+- Reserve a direita para ações que devem ficar mais escondidas, como duplicar reunião ou tarefa, exportar dados, excluir reunião e ações de edição ou remoção.
+- Preserve esse padrão também nos componentes reutilizáveis e nos cabeçalhos de listas; quando houver uma ação discreta junto de uma indicação, separe a indicação à esquerda e a ação à direita.

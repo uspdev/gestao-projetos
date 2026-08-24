@@ -7,9 +7,7 @@ import {
     loadMentionSelector,
     mentionRange,
 } from "./markdown-editor/mentions.js";
-import {
-    openFileReferenceSelector,
-} from "./markdown-editor/file-reference-selector.js";
+import { openFileReferenceSelector } from "./markdown-editor/file-reference-selector.js";
 import { highlightMarkdown } from "./markdown-editor/markdown-renderer.js";
 import { toolbarFor } from "./markdown-editor/toolbar.js";
 
@@ -23,6 +21,7 @@ function startMarkdownEditors() {
     initializeMarkdownEditors();
     highlightMarkdown();
 
+    // Os eventos sobem até o documento para funcionar com editores dinâmicos.
     document.addEventListener("markdown-editor:file-reference", (event) => {
         openFileReferenceSelector(event.target, event.detail.editor);
     });
@@ -40,6 +39,7 @@ function startMarkdownEditors() {
         loadMentionSelector(event.target, editor);
     });
 
+    // Observa novos trechos do DOM, como modais inseridos após o carregamento.
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
@@ -54,6 +54,7 @@ function startMarkdownEditors() {
     observer.observe(document.body, { childList: true, subtree: true });
 
     if (window.jQuery) {
+        // Bootstrap pode revelar um editor que ainda não existia no carregamento.
         window
             .jQuery(document)
             .on("shown.bs.modal shown.bs.collapse", (event) => {
@@ -70,12 +71,10 @@ window.MarkdownEditors = {
 };
 
 if (document.readyState === "loading") {
+    // Se o script entrou cedo, espera o DOM; caso contrário, inicializa agora.
     document.addEventListener("DOMContentLoaded", startMarkdownEditors);
 } else {
     startMarkdownEditors();
 }
 
-export {
-    initializeMarkdownEditors,
-    toolbarFor,
-};
+export { initializeMarkdownEditors, toolbarFor };

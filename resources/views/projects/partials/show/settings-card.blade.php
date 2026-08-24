@@ -74,7 +74,7 @@
   }
 </style>
 
-<div class="card mb-4">
+<section id="project-general-settings" class="card config-card mb-4">
   <div class="card-header d-flex align-items-center py-2">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">
@@ -145,9 +145,9 @@
       </tr>
     </tbody>
   </table>
-</div>
+</section>
 
-<div class="card mb-4">
+<section id="project-access-settings" class="card config-card mb-4">
   <div class="card-header d-flex align-items-center py-2">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">
@@ -206,14 +206,8 @@
       @endif
     </tbody>
   </table>
-</div>
-@if ($project->isOrganizational() || $project->isSubproject())
-  <div class="mb-4">
-    @include('projects.partials.show.subproject-permissions-card')
-  </div>
-@endif
-
-<div class="card mb-4">
+</section>
+<section id="project-classification-settings" class="card config-card mb-4">
   <div class="card-header d-flex align-items-center py-2">
     <div class="d-flex align-items-center flex-wrap">
       <h6 class="m-0 text-muted mr-2">
@@ -236,4 +230,4 @@
       </tr>
     </tbody>
   </table>
-</div>
+</section>

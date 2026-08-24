@@ -766,6 +766,65 @@ class FileReferencesAndMeetingSharesTest extends TestCase
             ->assertJsonMissing(['uuid' => $otherMedia->uuid]);
     }
 
+    public function test_meeting_media_card_lists_shareable_files_in_the_existing_share_modal(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $editor = $this->user('Pessoa que edita a reunião');
+        $project = $this->projectWithMember('Projeto da reunião', $editor, 'CONTRIBUTOR');
+        $this->enableModule($project, 'meetings');
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião com arquivos compartilháveis',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach($project);
+
+        $this->actingAs($editor);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('material-da-pauta.pdf', 'conteudo'))
+            ->toMediaCollection();
+
+        $this->get(route('projects.meetings.show', [$project, $meeting]))
+            ->assertOk()
+            ->assertSee('Compartilhar com reunião')
+            ->assertSee('Compartilhar links e arquivos com a reunião')
+            ->assertSee('material-da-pauta')
+            ->assertSee('name="media_uuid" value="'.$media->uuid.'"', false)
+            ->assertSee(route('meetings.file-shares.store', $meeting), false);
+    }
+
+    public function test_meeting_file_share_form_redirects_back_after_sharing_a_file(): void
+    {
+        Storage::fake('files');
+        Queue::fake();
+
+        $editor = $this->user('Pessoa que edita a reunião');
+        $project = $this->projectWithMember('Projeto da reunião', $editor, 'CONTRIBUTOR');
+        $this->enableModule($project, 'meetings');
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião com arquivo',
+            'status' => 'DRAFT',
+        ]);
+        $meeting->projects()->attach($project);
+
+        $this->actingAs($editor);
+        $media = $project
+            ->addMedia(UploadedFile::fake()->createWithContent('material-da-pauta.pdf', 'conteudo'))
+            ->toMediaCollection();
+        $meetingPage = route('projects.meetings.show', [$project, $meeting]);
+
+        $this->from($meetingPage)
+            ->post(route('meetings.file-shares.store', $meeting), ['media_uuid' => $media->uuid])
+            ->assertRedirect($meetingPage.'#file-'.$media->uuid);
+
+        $this->assertDatabaseHas('meeting_file_shares', [
+            'meeting_id' => $meeting->id,
+            'media_id' => $media->id,
+            'shared_by' => $editor->id,
+        ]);
+    }
+
     public function test_sharing_a_related_file_grants_meeting_viewers_read_access_without_transferring_ownership(): void
     {
         Storage::fake('files');
@@ -877,7 +936,7 @@ class FileReferencesAndMeetingSharesTest extends TestCase
 
         $this->from($meetingPage)
             ->delete(route('meetings.file-shares.destroy', [$meeting, $media->uuid]))
-            ->assertRedirect($meetingPage);
+            ->assertRedirect($meetingPage.'#files-meeting-'.$meeting->id);
     }
 
     public function test_share_persists_while_a_soft_deleted_source_temporarily_hides_the_file_and_restoration_recovers_access(): void

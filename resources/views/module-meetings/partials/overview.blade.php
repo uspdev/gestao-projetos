@@ -1,11 +1,10 @@
-<div class="card mb-3">
-  <div class="card-header py-2 d-flex justify-content-between align-items-center">
+<div class="card options-surface entity-context-card entity-context-card--meeting mb-3">
+  <div class="card-header py-2 d-flex align-items-center">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações da reunião
     </h6>
 
-    <div class="d-flex align-items-center" style="gap: 0.5rem;">
-      @include('watches.partials.control', ['watchable' => $meeting])
+    <div class="ml-auto">
       @include('module-meetings.partials.delete-btn')
     </div>
   </div>

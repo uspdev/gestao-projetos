@@ -166,6 +166,16 @@ class MeetingMentionTest extends TestCase
             $table->text('notes')->nullable();
             $table->timestamps();
         });
+        Schema::create('comments', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('commentable_type');
+            $table->unsignedBigInteger('commentable_id');
+            $table->foreignId('parent_id')->nullable();
+            $table->text('text');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
         Schema::create('media', function (Blueprint $table): void {
             $table->id();
             $table->string('model_type');
@@ -620,6 +630,28 @@ class MeetingMentionTest extends TestCase
         $incoming = $manager->incomingMentions($targetMeeting, $reader);
 
         $this->assertSame([$visibleSource->id], $incoming->pluck('source_id')->all());
+    }
+
+    public function test_a_meeting_comment_can_mention_its_own_meeting_without_breaking_incoming_queries(): void
+    {
+        $reader = User::query()->create(['name' => 'Pessoa leitora']);
+        $project = $this->project('Projeto da reunião comentada', $reader, 'VIEWER');
+        $meeting = $this->meeting('Reunião mencionada no próprio comentário', $project);
+        $markdown = '@[Reunião](mention:meeting:' . $meeting->id . ')';
+        $comment = Comment::query()->create([
+            'user_id' => $reader->id,
+            'commentable_type' => 'meeting',
+            'commentable_id' => $meeting->id,
+            'text' => $markdown,
+            'is_active' => true,
+        ]);
+        $manager = app(MentionManager::class);
+
+        $manager->synchronize($comment, 'text', $markdown, true, $reader);
+
+        $incoming = $manager->incomingMentions($meeting, $reader);
+
+        $this->assertSame([$comment->id], $incoming->pluck('source_id')->all());
     }
 
     public function test_it_uses_one_validation_message_for_missing_or_inaccessible_meetings(): void

@@ -3,7 +3,7 @@
   $projectType = $project->projectType;
 @endphp
 
-<x-projects::show.card-template :type="$type">
+<x-projects::show.card-template :type="$type" class="entity-context-card entity-context-card--project">
   <x-slot:header>
     <i class="fas fa-layer-group mr-1"></i> Tipo do projeto
   </x-slot:header>

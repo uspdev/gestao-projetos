@@ -1,5 +1,35 @@
 <?php
 
+use App\Support\Navigation\DeepLink;
+use Illuminate\Database\Eloquent\Model;
+
+if (! function_exists('deep_link')) {
+    /**
+     * Gera a URL de uma rota com o fragmento canônico da entidade de destino.
+     *
+     * Use apenas quando o destino for um elemento interno diferente do recurso
+     * identificado pela rota, como um Comentário ou Item de pauta.
+     */
+    function deep_link(
+        \BackedEnum|string $name,
+        mixed $parameters,
+        Model $target,
+        bool $absolute = true,
+    ): string {
+        return DeepLink::route($name, $parameters, $target, $absolute);
+    }
+}
+
+if (! function_exists('deep_link_fragment')) {
+    /**
+     * Retorna o fragmento canônico usado para localizar uma entidade na tela.
+     */
+    function deep_link_fragment(Model $model): string
+    {
+        return DeepLink::fragment($model);
+    }
+}
+
 if (!function_exists('text2html')) {
     /**
      * Converte texto puro em HTML, preservando quebras de linha e tornando URLs clicáveis.

@@ -46,7 +46,7 @@ class UserController extends Controller
         ]);
 
         if ($user->projects->isEmpty()) {
-            return view('projects.index-no-project');
+            return view('projects.index-no-project', compact('user'));
         }
 
         $tasksByStatus = $user->tasksByStatus($taskView, $tasksDone);
@@ -55,6 +55,9 @@ class UserController extends Controller
         $watchedResources = $request->user()->is($user)
             ? $this->watchedResourcesFor($user)
             : collect();
+        $generalWatchPreferences = $request->user()->is($user)
+            ? $this->generalWatchPreferencesFor($user)
+            : collect();
 
         return view('users.show', compact(
             'user',
@@ -62,7 +65,19 @@ class UserController extends Controller
             'meetings',
             'availableMeetingProjectIds',
             'watchedResources',
+            'generalWatchPreferences',
         ));
+    }
+
+    private function generalWatchPreferencesFor(User $user): Collection
+    {
+        return collect([[
+            'type' => Watch::GENERAL_MENTION_TYPE,
+            'label' => 'Menções a você',
+            'description' => 'Receba no resumo por e-mail quando alguém mencionar você em um texto.',
+            'active' => Watch::mentionEnabledFor($user->id),
+            'watchable_id' => $user->id,
+        ]]);
     }
 
     /**
@@ -84,6 +99,7 @@ class UserController extends Controller
         }
 
         return $user->watches()
+            ->whereIn('watchable_type', ['project', 'task', 'meeting'])
             ->with(['watchable' => function (MorphTo $morphTo): void {
                 $morphTo->morphWith([
                     Project::class => ['users', 'parent.users'],

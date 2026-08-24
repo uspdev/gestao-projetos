@@ -171,31 +171,31 @@
       @if ($cardTitle || $statusLabel)
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div class="preview-card__row">
-            <{{ $titleTag }}
-              class="m-0 preview-card__title preview-card__title--{{ $titleVariant }} {{ $titleClass }}"
-              title="{{ $cardTitle }}">
-              {{ $cardTitle }}
+            <div class="d-flex align-items-center flex-wrap min-width-0" style="gap: 0.35rem;">
+              <{{ $titleTag }}
+                class="m-0 preview-card__title preview-card__title--{{ $titleVariant }} {{ $titleClass }}"
+                title="{{ $cardTitle }}">
+                {{ $cardTitle }}
               </{{ $titleTag }}>
 
-              <div class="d-flex align-items-center ml-2 position-relative" style="z-index: 2; gap: 0.35rem;">
-                @if ($statusLabel)
-                  <span class="badge badge-{{ $statusClass }} text-nowrap shadow-sm">
-                    {{ $statusLabel }}
-                  </span>
-                @endif
+              @if ($statusLabel)
+                <span class="badge badge-{{ $statusClass }} text-nowrap shadow-sm">
+                  {{ $statusLabel }}
+                </span>
+              @endif
 
-                @if ($subprojectLabel)
-                  <span class="badge badge-{{ $subprojectClass }} text-nowrap shadow-sm">
-                    {{ $subprojectLabel }}
-                  </span>
-                @endif
+              @if ($subprojectLabel)
+                <span class="badge badge-{{ $subprojectClass }} text-nowrap shadow-sm">
+                  {{ $subprojectLabel }}
+                </span>
+              @endif
+            </div>
 
-                @isset($action)
-                  <div class="{{ $actionClass }}">
-                    {{ $action }}
-                  </div>
-                @endisset
+            @isset($action)
+              <div class="{{ $actionClass }} ml-2">
+                {{ $action }}
               </div>
+            @endisset
           </div>
         </div>
       @endif

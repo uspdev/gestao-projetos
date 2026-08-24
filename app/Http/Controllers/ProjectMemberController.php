@@ -28,12 +28,14 @@ class ProjectMemberController extends Controller
 
         if (!($user instanceof User)) {
             return redirect()->back()
+                ->withFragment('project-members')
                 ->withErrors(['codpes' => $user])
                 ->withInput();
         }
 
         if ($user->isMemberOfProject($project)) {
             return redirect()->back()
+                ->withFragment('project-members')
                 ->withErrors(['codpes' => 'O usuário selecionado já faz parte do projeto.'])
                 ->withInput();
         }
@@ -50,6 +52,7 @@ class ProjectMemberController extends Controller
         }
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($user))
             ->with('alert-success', 'Membro adicionado ao projeto com sucesso!');
     }
 
@@ -65,11 +68,13 @@ class ProjectMemberController extends Controller
 
         if ($project->isLastAdmin($user) && $newRole !== ProjectUserRole::ADMIN) {
             return redirect()->route('projects.settings', $project)
+                ->withFragment(deep_link_fragment($user))
                 ->with('alert-danger', 'O último admin do projeto não pode ter sua role alterada.');
         }
         if ($project->isAdminInParent($user)) {
             if ($newRole !== ProjectUserRole::ADMIN) {
                 return redirect()->route('projects.settings', $project)
+                    ->withFragment(deep_link_fragment($user))
                     ->with('alert-danger', 'Um admin do projeto pai precisa ter privilégio de admin neste projeto.');
             }
         }
@@ -87,6 +92,7 @@ class ProjectMemberController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($user))
             ->with('alert-success', 'Função do membro atualizada com sucesso!');
     }
 
@@ -113,6 +119,7 @@ class ProjectMemberController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment('project-members')
             ->with('alert-success', 'Membro removido do projeto com sucesso!');
     }
 
@@ -190,6 +197,7 @@ class ProjectMemberController extends Controller
         $user = Auth::user();
         if ($user->isMemberOfProject($project)) {
             return redirect()->back()
+                ->withFragment(deep_link_fragment($project))
                 ->with('alert-info', 'Você já é um membro ativo deste projeto.');
         }
 
@@ -205,6 +213,7 @@ class ProjectMemberController extends Controller
         });
 
         return redirect()->back()
+            ->withFragment(deep_link_fragment($project))
             ->with('alert-success', "Você ingressou no projeto como {$inheritedRole->label()} com sucesso!");
     }
 }

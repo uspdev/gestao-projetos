@@ -48,6 +48,11 @@ class ProjectPolicy
         return $user->isAdminOfProject($project);
     }
 
+    public function viewActivity(User $user, Project $project): bool
+    {
+        return $user->isAdminOfProject($project);
+    }
+
     public function updateModule(User $user, Project $project): bool
     {
         return $user->isAdminOfProject($project);

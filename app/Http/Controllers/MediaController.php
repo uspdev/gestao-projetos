@@ -18,10 +18,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Throwable;
 
 class MediaController extends Controller
 {
+    private const RASTER_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/avif',
+    ];
+
     public function __construct(private FileUploadService $fileUploadService) {}
 
     public function selectable(Request $request, FileReferenceSelector $selector): JsonResponse
@@ -56,24 +66,65 @@ class MediaController extends Controller
     private function storeForOwner(Request $request, Model $owner)
     {
         Gate::forUser($request->user())->authorize('create', [Media::class, $owner]);
+        $ownerPageUrl = $this->ownerPageUrl($request, $owner);
 
-        $validated = $request->validate([
-            'file' => ['required', 'file', 'max:102400'],
-        ]);
+        $legacyUpload = $request->hasFile('file');
+        $selectedFiles = $request->file('files', $legacyUpload ? [$request->file('file')] : []);
+        $selectedFiles = is_array($selectedFiles) ? $selectedFiles : [$selectedFiles];
 
-        $media = $this->fileUploadService->upload(
-            $owner,
-            $validated['file'],
-            $request->user(),
-        );
-
-        if ($media === null) {
-            return back()->withErrors([
-                'file' => 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.',
+        if ($selectedFiles === []) {
+            return redirect()->to($ownerPageUrl)->withFragment($this->browserFragment($owner))->withErrors([
+                $legacyUpload ? 'file' : 'files' => 'Selecione ao menos um Arquivo.',
             ]);
         }
 
-        return back()->with('alert-success', "Arquivo {$media->display_name} enviado com sucesso.");
+        $uploaded = [];
+        $errors = [];
+
+        foreach ($selectedFiles as $file) {
+            $name = $file?->getClientOriginalName() ?: 'Arquivo sem nome';
+            $validator = Validator::make(['file' => $file], [
+                'file' => ['required', 'file', 'max:102400'],
+            ]);
+
+            if ($validator->fails()) {
+                $message = $validator->errors()->first('file');
+                $errors[] = $legacyUpload ? $message : "{$name}: {$message}";
+                continue;
+            }
+
+            try {
+                $media = $this->fileUploadService->upload($owner, $file, $request->user());
+            } catch (Throwable $exception) {
+                report($exception);
+                $message = 'Não foi possível enviar o Arquivo. Tente novamente.';
+                $errors[] = $legacyUpload ? $message : "{$name}: {$message}";
+                continue;
+            }
+
+            if ($media === null) {
+                $message = 'Não foi possível processar a miniatura. O Arquivo não foi enviado. Tente novamente.';
+                $errors[] = $legacyUpload ? $message : "{$name}: {$message}";
+                continue;
+            }
+
+            $uploaded[] = $media;
+        }
+
+        $response = redirect()->to($ownerPageUrl)->withFragment(
+            $uploaded !== []
+                ? deep_link_fragment($uploaded[array_key_last($uploaded)])
+                : $this->browserFragment($owner),
+        );
+        if ($uploaded !== []) {
+            $response->with('alert-success', count($uploaded) . ' Arquivo(s) enviado(s) com sucesso.');
+        }
+
+        if ($errors !== []) {
+            $response->withErrors([$legacyUpload ? 'file' : 'files' => $errors]);
+        }
+
+        return $response;
     }
 
     public function metadata(Request $request, string $uuid): JsonResponse
@@ -106,6 +157,44 @@ class MediaController extends Controller
             $this->downloadName($media),
             [
                 'Content-Type' => 'application/octet-stream',
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+        );
+    }
+
+    public function original(Request $request, string $uuid)
+    {
+        $media = $this->visibleMedia($request, $uuid);
+
+        if (
+            ! in_array($media->mime_type, self::RASTER_MIME_TYPES, true)
+            || $media->getCustomProperty('thumbnail_status') !== 'ready'
+        ) {
+            abort(404);
+        }
+
+        $disk = Storage::disk($media->disk);
+        $path = $media->getPathRelativeToRoot();
+
+        if (! $disk->exists($path)) {
+            abort(404);
+        }
+
+        $stream = $disk->readStream($path);
+
+        if (! is_resource($stream)) {
+            abort(404);
+        }
+
+        return response()->stream(
+            function () use ($stream): void {
+                fpassthru($stream);
+                fclose($stream);
+            },
+            200,
+            [
+                'Content-Type' => $media->mime_type,
+                'Content-Disposition' => 'inline',
                 'X-Content-Type-Options' => 'nosniff',
             ],
         );
@@ -182,13 +271,17 @@ class MediaController extends Controller
                 ->log('renamed');
         });
 
-        return back()->with('alert-success', 'Nome do Arquivo atualizado com sucesso.');
+        return back()
+            ->withFragment(deep_link_fragment($media))
+            ->with('alert-success', 'Nome do Arquivo atualizado com sucesso.');
     }
 
     public function destroy(Request $request, string $uuid)
     {
         $media = Media::query()->where('uuid', $uuid)->firstOrFail();
         Gate::forUser($request->user())->authorize('delete', $media);
+
+        $browserFragment = $this->browserFragment($media->model);
 
         DB::transaction(function () use ($media, $request): void {
             activity()
@@ -209,7 +302,9 @@ class MediaController extends Controller
             $media->delete();
         });
 
-        return back()->with('alert-success', 'Arquivo excluído definitivamente.');
+        return back()
+            ->withFragment($browserFragment)
+            ->with('alert-success', 'Arquivo excluído definitivamente.');
     }
 
     private function referenceDestination(
@@ -267,5 +362,40 @@ class MediaController extends Controller
         return $media->id . '/conversions/'
             . pathinfo($media->file_name, PATHINFO_FILENAME)
             . '-thumbnail.jpg';
+    }
+
+    private function browserFragment(Model $owner): string
+    {
+        return 'files-' . $owner->getMorphClass() . '-' . $owner->getKey();
+    }
+
+    /**
+     * Pega a URL da página do proprietário do arquivo (Project, Task ou Meeting)
+     *  para redirecionamento após upload.
+     *
+     * Corrige erro de redirecinamento errado para a dashboard
+     */
+    private function ownerPageUrl(Request $request, Model $owner): string
+    {
+        if ($owner instanceof Project) {
+            return route('projects.show', $owner);
+        }
+
+        if ($owner instanceof Task) {
+            return route('tasks.show', $owner);
+        }
+
+        if ($owner instanceof Meeting) {
+            $owner->loadMissing('projects');
+            $project = $owner->projects
+                ->sortBy('name')
+                ->first(fn(Project $project): bool => $request->user()->isViewerOfProject($project));
+
+            abort_unless($project, 404);
+
+            return route('projects.meetings.show', [$project, $owner]);
+        }
+
+        abort(404);
     }
 }

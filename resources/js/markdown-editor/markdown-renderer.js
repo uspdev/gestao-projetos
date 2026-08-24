@@ -12,12 +12,14 @@ function highlightCodeBlocks(root) {
         return;
     }
 
+    // querySelectorAll limita o highlight aos blocos da área recém-renderizada.
     root.querySelectorAll("pre code").forEach((block) => {
         window.hljs.highlightElement(block);
     });
 }
 
 function highlightMarkdown(root = document) {
+    // Aceita tanto a própria raiz quanto seus descendentes com conteúdo Markdown.
     const markdownContents = root.matches && root.matches(".markdown-content")
         ? [root]
         : root.querySelectorAll(".markdown-content");
@@ -25,6 +27,7 @@ function highlightMarkdown(root = document) {
     markdownContents.forEach((content) => {
         highlightCodeBlocks(content);
 
+        // Cada link é classificado como referência de Arquivo ou âncora interna.
         content.querySelectorAll("a[href]").forEach((link) => {
             const href = link.getAttribute("href");
             const fileUuid = referencedFileUuid(href);

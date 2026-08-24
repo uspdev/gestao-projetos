@@ -2,9 +2,8 @@
   $redirectEditToSettings = $redirectEditToSettings ?? false;
 @endphp
 
-<div id="project-members"></div>
-<div class="card mb-4">
-  <div class="card-header d-flex align-items-center justify-content-between py-2">
+<div class="card config-card mb-4">
+  <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-users mr-1" aria-hidden="true"></i> Membros do Projeto
     </h6>
@@ -15,7 +14,7 @@
   <div class="card-body p-0">
     <ul class="list-group list-group-flush">
       @forelse($project->users as $user)
-        <li
+        <li id="{{ deep_link_fragment($user) }}" tabindex="-1" data-deep-link-target
           class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
           @include('users.partials.preview')
           <div class="d-flex flex-wrap align-items-center gap-2">

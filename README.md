@@ -84,6 +84,9 @@ php artisan queue:work database --queue=default
 
 ## Changelog
 
+- [Versão 1.2.0](docs/user-friendly/releases/1.2.0.md) — Menções recebidas com
+  navegação contextual, Links externos, envio múltiplo de Arquivos, histórico
+  de alterações e acompanhamento de Menções por e-mail.
 - [Versão 1.1](docs/user-friendly/releases/1.1.md) — registros completos de
   reuniões, duplicação, Markdown, Arquivos, Menções e acompanhamento por
   e-mail.

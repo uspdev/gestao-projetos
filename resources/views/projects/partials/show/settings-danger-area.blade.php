@@ -1,4 +1,4 @@
-<div class="card border-danger">
+<div class="card border-danger config-card">
   <div class="card-header h6 py-2 text-danger font-weight-bold">Área de risco</div>
   <div class="card-body">
     <p class="text-muted mb-3">

@@ -30,6 +30,16 @@ class WatchController extends Controller
         string $watchableType,
         int $watchableId,
     ) {
+        // Permite que o usuário ative notificações de Menções para si mesmo, sem precisar de um recurso observável.
+        if ($watchableType === Watch::GENERAL_MENTION_TYPE) {
+            abort_unless($watchableId === $request->user()->id, 403);
+            Watch::activateMentionFor($request->user()->id);
+
+            return back()
+                ->withFragment(deep_link_fragment($request->user()))
+                ->with('alert-success', 'Notificações de Menções ativadas com sucesso!');
+        }
+
         $watchable = $this->resolve($watchableType, $watchableId);
         $this->authorizeViewing($request->user(), $watchable);
         abort_unless(
@@ -40,7 +50,9 @@ class WatchController extends Controller
 
         Watch::enableFor($request->user()->id, $watchable);
 
-        return back()->with('alert-success', 'Notificações ativadas com sucesso!');
+        return back()
+            ->withFragment(deep_link_fragment($watchable))
+            ->with('alert-success', 'Notificações ativadas com sucesso!');
     }
 
     /**
@@ -60,11 +72,23 @@ class WatchController extends Controller
         string $watchableType,
         int $watchableId,
     ) {
+        // Permite que o usuário desative notificações de Menções para si mesmo, sem precisar de um recurso observável.
+        if ($watchableType === Watch::GENERAL_MENTION_TYPE) {
+            abort_unless($watchableId === $request->user()->id, 403);
+            Watch::disableMentionFor($request->user()->id);
+
+            return back()
+                ->withFragment(deep_link_fragment($request->user()))
+                ->with('alert-success', 'Notificações de Menções desativadas com sucesso!');
+        }
+
         $watchable = $this->resolve($watchableType, $watchableId);
         $this->authorizeViewing($request->user(), $watchable);
         Watch::disableFor($request->user()->id, $watchable);
 
-        return back()->with('alert-success', 'Notificações desativadas com sucesso!');
+        return back()
+            ->withFragment(deep_link_fragment($watchable))
+            ->with('alert-success', 'Notificações desativadas com sucesso!');
     }
 
     private function resolve(string $type, int $id): Watchable&Model

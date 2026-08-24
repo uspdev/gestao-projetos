@@ -151,6 +151,7 @@ sejam estáveis para filtros futuros e auditoria.
 | `meeting.removed` | remoção de Reunião | `Reunião removida.`, sem URL. |
 | `subproject.linked` | vínculo de subprojeto | informa o Projeto pai. |
 | `subproject.unlinked` | desvínculo de subprojeto | informa o Projeto organizacional anterior. |
+| `mention.created` | Menção nova a Usuário com acompanhamento geral ativo | informa a origem da Menção e usa o resumo agrupado. |
 
 Em toda nova ação de domínio, a chamada a `addForWatchers()` deve ocorrer após
 a persistência bem-sucedida e com o ator autenticado. O ator nunca recebe a

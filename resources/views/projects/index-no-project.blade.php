@@ -4,7 +4,8 @@
 
 @section('content')
 
-  <div class="py-1 px-5">
+  <div @if(isset($user)) id="{{ deep_link_fragment($user) }}" tabindex="-1" data-deep-link-target @endif
+    class="py-1 px-5">
     <i class="fa fa-folder-open fa-4x text-muted mb-3"></i>
 
     <h4 class="mb-3">Seu espaço de projetos está vazio</h4>

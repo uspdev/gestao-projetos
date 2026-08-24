@@ -195,6 +195,14 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
         return $this->morphMany(Comment::class, 'commentable');
     }
 
+    /**
+     * Relacionamento com links (morph)
+     */
+    public function links(): MorphMany
+    {
+        return $this->morphMany(Link::class, 'linkable');
+    }
+
     public function watchLabel(): string
     {
         return $this->name;
@@ -594,7 +602,7 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
     public function duplicate(array $options = []): Model
     {
         return DB::transaction(
-            fn (): Model => $this->duplicateWithinTransaction($options)
+            fn(): Model => $this->duplicateWithinTransaction($options)
         );
     }
 

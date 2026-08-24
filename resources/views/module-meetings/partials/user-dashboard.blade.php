@@ -6,21 +6,25 @@
     </div>
   </div>
 
-  <div class="row">
-    @forelse ($meetings as $meeting)
-        <div class="col-12 mb-2">
-          @include('module-meetings.partials.meeting-card', [
-              'compact' => true,
-              'showDuplicate' => false,
-              'project' => $meeting->contextProjectFor($user, $availableMeetingProjectIds), // Método para obter o projeto de contexto para a reunião
-          ])
+  <div class="meetings-list meetings-list--dashboard"
+    style="max-height: 22rem; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: auto;"
+    tabindex="0" aria-label="Reuniões da dashboard">
+    <div class="row">
+      @forelse ($meetings as $meeting)
+          <div class="col-12 mb-2">
+            @include('module-meetings.partials.meeting-card', [
+                'compact' => true,
+                'showDuplicate' => false,
+                'project' => $meeting->contextProjectFor($user, $availableMeetingProjectIds), // Método para obter o projeto de contexto para a reunião
+            ])
+          </div>
+      @empty
+        <div class="col-12">
+          <div class="alert alert-light border mb-0">
+            Sem reunião agendada.
+          </div>
         </div>
-    @empty
-      <div class="col-12">
-        <div class="alert alert-light border mb-0">
-          Sem reunião agendada.
-        </div>
-      </div>
-    @endforelse
+      @endforelse
+    </div>
   </div>
 </section>

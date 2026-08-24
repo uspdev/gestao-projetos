@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Meeting;
 use App\Models\MeetingItem;
 use App\Models\Mention;
+use App\Models\PendingWatchNotification;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -54,8 +55,9 @@ class MentionManager
         ?string $markdown,
         bool $strict = true,
         ?User $actor = null,
-    ): void
-    {
+    ): void {
+        $actor ??= Auth::user();
+
         DB::transaction(function () use ($source, $field, $markdown, $strict, $actor): void {
             if ($this->sourceIsUnavailable($source)) {
                 $this->clear($source);
@@ -66,6 +68,7 @@ class MentionManager
             $references = $strict
                 ? collect($this->referencesOrFail($field, $markdown))
                 : collect($this->extractor->references($markdown, false));
+            $referencesToNotify = collect();
 
             if ($strict) {
                 $currentMarkdown = $source->getRawOriginal($field);
@@ -74,16 +77,23 @@ class MentionManager
                     is_string($currentMarkdown) ? $currentMarkdown : null
                 );
                 $currentIdentities = collect($currentReferences)
-                    ->map(fn (MentionReference $reference): string => $reference->identity());
+                    ->map(fn(MentionReference $reference): string => $reference->identity());
+                $indexedIdentities = $source->outgoingMentions()
+                    ->where('source_field', $field)
+                    ->get()
+                    ->map(fn(Mention $mention): string => $mention->target_type . ':' . $mention->target_id);
                 $newReferences = $references->reject(
-                    fn (MentionReference $reference): bool => $currentIdentities->contains($reference->identity())
+                    fn(MentionReference $reference): bool => $currentIdentities->contains($reference->identity())
+                );
+                $referencesToNotify = $references->reject(
+                    fn(MentionReference $reference): bool => $indexedIdentities->contains($reference->identity())
                 );
 
                 $this->assertEligible($source, $field, $newReferences, $actor);
             }
 
             $references = $references
-                ->filter(fn (MentionReference $reference): bool => $this->targetExists($reference, true))
+                ->filter(fn(MentionReference $reference): bool => $this->targetExists($reference, true))
                 ->mapWithKeys(function (MentionReference $reference): array {
                     $identity = $this->relationIdentity($reference);
 
@@ -92,19 +102,33 @@ class MentionManager
             $mentions = $source->outgoingMentions()
                 ->where('source_field', $field)
                 ->get()
-                ->keyBy(fn (Mention $mention): string => $mention->target_type . ':' . $mention->target_id);
+                ->keyBy(fn(Mention $mention): string => $mention->target_type . ':' . $mention->target_id);
 
             $mentions
-                ->reject(fn (Mention $mention): bool => $references->has($mention->target_type . ':' . $mention->target_id))
+                ->reject(fn(Mention $mention): bool => $references->has($mention->target_type . ':' . $mention->target_id))
                 ->each->delete();
 
-            $references
-                ->reject(fn (MentionReference $reference): bool => $mentions->has($this->relationIdentity($reference)))
-                ->each(fn (MentionReference $reference) => $source->outgoingMentions()->create([
+            $createdMentions = $references
+                ->reject(fn(MentionReference $reference): bool => $mentions->has($this->relationIdentity($reference)))
+                ->map(fn(MentionReference $reference): Mention => $source->outgoingMentions()->create([
                     'source_field' => $field,
                     'target_type' => $reference->type,
                     'target_id' => $this->relationTargetId($reference),
                 ]));
+
+            // Caso estrito, notifica apenas as menções que foram criadas e que são do tipo "user" (usuário).
+            if ($strict && $actor) {
+                $createdMentions
+                    // Para cada menção criada, verifica se o tipo de destino é "user" e se a identidade da menção
+                    // está contida nas referências a serem notificadas.
+                    ->filter(fn(Mention $mention): bool => $mention->target_type === 'user'
+                        && $referencesToNotify->contains(
+                            fn(MentionReference $reference): bool => $reference->identity() === $mention->target_type . ':' . $mention->target_id
+                        ))
+                    ->each(function (Mention $mention) use ($actor): void {
+                        PendingWatchNotification::addForMention($mention, $actor);
+                    });
+            }
         });
     }
 
@@ -113,8 +137,7 @@ class MentionManager
         string $field,
         ?string $markdown,
         ?User $actor = null,
-    ): void
-    {
+    ): void {
         $references = $this->referencesOrFail($field, $markdown);
         $currentMarkdown = $source->getRawOriginal($field);
         $currentReferences = $this->referencesOrFail(
@@ -122,13 +145,13 @@ class MentionManager
             is_string($currentMarkdown) ? $currentMarkdown : null
         );
         $currentIdentities = collect($currentReferences)
-            ->map(fn (MentionReference $reference): string => $reference->identity());
+            ->map(fn(MentionReference $reference): string => $reference->identity());
 
         $this->assertEligible(
             $source,
             $field,
             collect($references)->reject(
-                fn (MentionReference $reference): bool => $currentIdentities->contains($reference->identity())
+                fn(MentionReference $reference): bool => $currentIdentities->contains($reference->identity())
             ),
             $actor,
         );
@@ -139,8 +162,7 @@ class MentionManager
         string $field,
         ?string $markdown,
         ?User $actor = null,
-    ): void
-    {
+    ): void {
         $this->assertEligible(
             $source,
             $field,
@@ -197,8 +219,10 @@ class MentionManager
         ];
 
         foreach (MentionMap::sourceOptions() as $modelClass) {
-            if (! is_string($modelClass) || ! class_exists($modelClass)
-                || ! Schema::hasTable((new $modelClass())->getTable())) {
+            if (
+                ! is_string($modelClass) || ! class_exists($modelClass)
+                || ! Schema::hasTable((new $modelClass())->getTable())
+            ) {
                 continue;
             }
 
@@ -261,15 +285,14 @@ class MentionManager
         string $term = '',
         ?User $reader = null,
         ?string $filter = null,
-    ): Collection
-    {
+    ): Collection {
         $reader ??= Auth::user();
         $adapters = $this->adapters();
         $aliases = $this->searchAliases($filter);
 
         return collect($adapters)
-            ->filter(fn (object $adapter, string $alias): bool => in_array($alias, $aliases, true))
-            ->flatMap(fn (object $adapter): Collection => $adapter->search($source, $term, $reader))
+            ->filter(fn(object $adapter, string $alias): bool => in_array($alias, $aliases, true))
+            ->flatMap(fn(object $adapter): Collection => $adapter->search($source, $term, $reader))
             ->values();
     }
 
@@ -286,20 +309,21 @@ class MentionManager
         Model $source,
         ?User $reader = null,
         ?string $field = null,
-    ): Collection
-    {
+    ): Collection {
         $reader ??= Auth::user();
 
-        if (! $reader || ! $this->sourceIsVisible($source, $reader)
-            || ! method_exists($source, 'outgoingMentions')) {
+        if (
+            ! $reader || ! $this->sourceIsVisible($source, $reader)
+            || ! method_exists($source, 'outgoingMentions')
+        ) {
             return collect();
         }
 
         return $source->outgoingMentions()
-            ->when($field !== null, fn ($query) => $query->where('source_field', $field))
+            ->when($field !== null, fn($query) => $query->where('source_field', $field))
             ->with('target')
             ->get()
-            ->filter(fn (Mention $mention): bool => $this->targetIsVisible($mention, $reader))
+            ->filter(fn(Mention $mention): bool => $this->targetIsVisible($mention, $reader))
             ->values();
     }
 
@@ -313,16 +337,18 @@ class MentionManager
         $alias = MentionMap::aliasForTarget($target);
         $adapter = $alias ? $this->adapterFor($alias) : null;
 
-        if (! $reader || ! $alias || ! $adapter
+        if (
+            ! $reader || ! $alias || ! $adapter
             || $adapter->present($this->publicTargetKey($adapter, $target), $reader)['status'] !== 'available'
-            || ! method_exists($target, 'incomingMentions')) {
+            || ! method_exists($target, 'incomingMentions')
+        ) {
             return collect();
         }
 
         return $target->incomingMentions()
             ->where('target_type', $alias)
             ->get()
-            ->filter(fn (Mention $mention): bool => $this->sourceIsVisible($mention->source, $reader))
+            ->filter(fn(Mention $mention): bool => $this->sourceIsVisible($mention->source, $reader))
             ->values();
     }
 
@@ -352,8 +378,7 @@ class MentionManager
         string $field,
         Collection $references,
         ?User $actor = null,
-    ): void
-    {
+    ): void {
         $ineligible = $references->contains(
             function (MentionReference $reference) use ($source, $actor): bool {
                 $adapter = $this->adapterFor($reference->type);
@@ -401,7 +426,7 @@ class MentionManager
     private function adapterFor(string $type): ?object
     {
         return collect($this->adapters())->first(
-            fn (object $adapter): bool => $adapter->supports($type)
+            fn(object $adapter): bool => $adapter->supports($type)
         );
     }
 
@@ -499,12 +524,15 @@ class MentionManager
 
         return match (true) {
             $source instanceof Project,
-            $source instanceof Task,
-            $source instanceof Comment => Gate::forUser($reader)->allows('view', $source),
+            $source instanceof Task => Gate::forUser($reader)->allows('view', $source),
+            $source instanceof Comment => $this->sourceIsVisible(
+                $source->loadMissing('commentable')->commentable,
+                $reader,
+            ),
             $source instanceof Meeting => $source->loadMissing('projects')->projects
-                ->contains(fn (Project $project): bool => Gate::forUser($reader)->allows('view', [$source, $project])),
+                ->contains(fn(Project $project): bool => Gate::forUser($reader)->allows('view', [$source, $project])),
             $source instanceof MeetingItem => $source->loadMissing('meeting.projects')->meeting?->projects
-                ?->contains(fn (Project $project): bool => Gate::forUser($reader)->allows('view', [$source->meeting, $project])) ?? false,
+                ?->contains(fn(Project $project): bool => Gate::forUser($reader)->allows('view', [$source->meeting, $project])) ?? false,
             default => false,
         };
     }

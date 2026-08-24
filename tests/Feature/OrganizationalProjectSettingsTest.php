@@ -101,11 +101,12 @@ class OrganizationalProjectSettingsTest extends TestCase
             new Collection([$subprojectWithMembers, $subprojectWithoutMembers]),
         );
 
-        $html = view('projects.partials.show.subproject-members-card', [
-            'project' => $organizationalProject,
-        ])->render();
+       $html = view('projects.partials.show.subproject-members-card', [
+           'project' => $organizationalProject,
+       ])->render();
 
-        $this->assertStringNotContainsString(
+        $this->assertStringContainsString('entity-context-card entity-context-card--project', $html);
+       $this->assertStringNotContainsString(
             'A herança não os adiciona automaticamente à equipe do subprojeto.',
             $html,
         );

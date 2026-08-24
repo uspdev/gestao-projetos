@@ -35,7 +35,8 @@
   }
 @endphp
 
-<li class="list-group-item px-0 py-2">
+<li id="{{ deep_link_fragment($item) }}" class="list-group-item px-0 py-2"
+  tabindex="-1" data-deep-link-target data-deep-link-expand="{{ $notesCollapseId }}">
   <div class="d-flex align-items-start justify-content-between gap-3">
     <div class="d-flex align-items-start" style="gap: 0.75rem;">
 
