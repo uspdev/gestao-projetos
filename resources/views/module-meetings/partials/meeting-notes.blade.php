@@ -11,20 +11,16 @@
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-sticky-note mr-1" aria-hidden="true"></i> Anotações prévias
     </h6>
+    @if ($canEditNotes)
+      @can('update', [$meeting, $project])
+        <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"
+          data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" aria-label="Editar Anotações prévias">
+          <i class="fas fa-edit"></i>
+        </button>
+      @endcan
+    @endif
   </div>
   <div class="card-body">
-    <div class="d-flex align-items-center mb-2">
-      <span class="text-muted">Preparação geral da reunião</span>
-      @if ($canEditNotes)
-        @can('update', [$meeting, $project])
-          <button type="button" class="btn btn-outline-primary btn-sm py-0 ml-2" data-toggle="collapse"
-            data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" aria-label="Editar Anotações prévias">
-            <i class="fas fa-edit"></i>
-          </button>
-        @endcan
-      @endif
-    </div>
-
     <div class="collapse {{ $isEditingNotes ? '' : 'show' }}" id="{{ $notesDisplayId }}">
       @if (filled($meeting->notes))
         <div class="text-dark text-break">
@@ -43,17 +39,17 @@
             @method('PATCH')
             <input type="hidden" name="form_context" value="meeting-notes">
 
+            <div class="d-flex justify-content-end mb-2" style="gap: 0.5rem;">
+              <x-form.cancel-button class="btn-sm" data-toggle="collapse"
+                data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" />
+              <x-form.save-button class="btn btn-primary btn-sm" />
+            </div>
+
             <label for="{{ $notesEditId }}-textarea" class="sr-only">Anotações prévias</label>
             <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2" markdown-profile="full"
               rows="3" maxlength="10000" data-file-reference-url="{{ route('files.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}"
               data-file-share-url="{{ route('meetings.file-shares.store', $meeting) }}"
               data-mention-search-url="{{ route('mentions.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}" />
-
-            <div class="d-flex justify-content-end" style="gap: 0.5rem;">
-              <x-form.cancel-button class="btn-sm" data-toggle="collapse"
-                data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" />
-              <x-form.save-button class="btn btn-primary btn-sm" />
-            </div>
           </form>
         </div>
       @endcan

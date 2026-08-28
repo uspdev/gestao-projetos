@@ -11,7 +11,7 @@
   id="project-description-{{ $project->id }}" tabindex="-1" data-deep-link-target
   class="entity-context-card entity-context-card--project">
   <x-slot:header>
-    <div class="d-flex align-items-center justify-content-between" style="gap: 0.75rem;">
+    <div class="d-flex align-items-center">
       <h6 class="m-0 text-muted mr-2">
         <i class="fas fa-align-left mr-1" aria-hidden="true"></i> Descrição
       </h6>
