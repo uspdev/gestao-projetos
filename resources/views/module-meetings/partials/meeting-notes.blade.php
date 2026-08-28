@@ -39,17 +39,17 @@
             @method('PATCH')
             <input type="hidden" name="form_context" value="meeting-notes">
 
-            <div class="d-flex justify-content-end mb-2" style="gap: 0.5rem;">
-              <x-form.cancel-button class="btn-sm" data-toggle="collapse"
-                data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" />
-              <x-form.save-button class="btn btn-primary btn-sm" />
-            </div>
-
             <label for="{{ $notesEditId }}-textarea" class="sr-only">Anotações prévias</label>
             <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2" markdown-profile="full"
               rows="3" maxlength="10000" data-file-reference-url="{{ route('files.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}"
               data-file-share-url="{{ route('meetings.file-shares.store', $meeting) }}"
               data-mention-search-url="{{ route('mentions.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}" />
+
+            <div class="d-flex justify-content-end" style="gap: 0.5rem;">
+              <x-form.cancel-button class="btn-sm" data-toggle="collapse"
+                data-target="#{{ $notesDisplayId }}, #{{ $notesEditId }}" />
+              <x-form.save-button class="btn btn-primary btn-sm" />
+            </div>
           </form>
         </div>
       @endcan
