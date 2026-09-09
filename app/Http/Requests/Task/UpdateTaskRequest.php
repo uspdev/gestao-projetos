@@ -15,9 +15,7 @@ class UpdateTaskRequest extends StoreTaskRequest
     }
 
     public function rules(): array
-    {   
-        $rules = parent::rules();
-
-        return $rules;
+    {
+        return $this->sharedRules();
     }
 }

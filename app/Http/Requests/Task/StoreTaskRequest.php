@@ -20,6 +20,26 @@ class StoreTaskRequest extends FormRequest
 
     public function rules(): array
     {
+        $rules = $this->sharedRules();
+
+        // Campo assignee_id é opcional, mas se fornecido, deve ser um inteiro
+        // e existir na tabela project_user com o mesmo project_id e ter um papel de ADMIN ou CONTRIBUTOR.
+        $rules['assignee_id'] = [
+            'nullable',
+            'integer',
+            Rule::exists('project_user', 'user_id')
+                ->where('project_id', $this->route('project')->getKey())
+                ->whereIn('role', [
+                    ProjectUserRole::ADMIN->value,
+                    ProjectUserRole::CONTRIBUTOR->value,
+                ]),
+        ];
+
+        return $rules;
+    }
+
+    protected function sharedRules(): array
+    {
         return [
             'title' => ['required', 'string', 'min:3', 'max:120'],
             'description' => ['nullable', 'string', 'max:10000'],
@@ -27,20 +47,6 @@ class StoreTaskRequest extends FormRequest
             'status' => ['required', Rule::enum(TaskStatus::class)],
             'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
             'due_date' => ['nullable', 'date', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-
-            // Campo assignee_id é opcional, mas se fornecido, deve ser um inteiro 
-            // e existir na tabela project_user com o mesmo project_id e ter um papel de ADMIN ou CONTRIBUTOR.
-            'assignee_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('project_user', 'user_id')
-                    ->where('project_id', $this->route('project')->getKey())
-                    ->whereIn('role', [
-                        ProjectUserRole::ADMIN->value,
-                        ProjectUserRole::CONTRIBUTOR->value,
-                    ]),
-            ],
-
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
         ];
