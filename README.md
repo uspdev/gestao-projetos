@@ -31,6 +31,8 @@ A documentação está organizada por público:
 - [CONTEXT.md](CONTEXT.md) — glossário e linguagem canônica do domínio.
 - [Regras de domínio](docs/dev-friendly/regras-de-dominio.md) — invariantes,
   autorização, módulos e efeitos assíncronos.
+- [API de Integrações e Solicitações](docs/dev-friendly/api/integracoes-e-solicitacoes.md)
+  — autenticação, rotas, payloads, respostas e ordem operacional.
 - [ADRs](docs/dev-friendly/adr/) — decisões de arquitetura e comportamento.
 - [Aware Prompt](docs/dev-friendly/aware_prompt.md) — visão técnica para
   manutenção assistida.
@@ -52,7 +54,7 @@ A documentação está organizada por público:
 
 ## Requisitos
 
-- PHP 8.2 ou superior.
+- PHP 8.3 ou superior.
 - Composer.
 - Git.
 - SQLite, MariaDB ou MySQL compatível com a configuração do Laravel.

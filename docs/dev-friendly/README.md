@@ -9,7 +9,7 @@ com segurança.
 
 ### Requisitos
 
-- PHP 8.2 ou superior;
+- PHP 8.3 ou superior;
 - Composer;
 - os ativos próprios são publicados pelo Composer e não exigem Node.js ou npm;
 - SQLite, MariaDB ou MySQL compatível com a configuração do Laravel;
@@ -77,6 +77,8 @@ O módulo de Arquivos usa armazenamento privado. Não execute
 - [Arquivos e Links](arquivos-links/implementar-links-mult-arquivos.md) — detalhes de implementação e compartilhamento de Arquivos e Links.
 - [Links profundos e fragmentos](navegacao/links-profundos-e-fragmentos.md) — uso de `deep_link()`, IDs de destino, redirects, Menções e navegação de Arquivos e Links.
 - [Cores dos Cards](visual/cores_cards.md) — identidade visual por entidade, incluindo projetos, tarefas e reuniões. Segue o padrão da EESC-USP, com cores discretas e consistentes em todas as telas.
+- [API de Integrações e Solicitações](api/integracoes-e-solicitacoes.md) —
+  instalação, autenticação Bearer, contrato HTTP, erros e implantação.
 
 ## ADRs
 
@@ -90,6 +92,18 @@ alterar o comportamento documentado:
 - [Generalizar Menções para entidades do sistema](adr/0005-generalizar-mencoes-para-entidades.md)
 - [Notificações de Menções no resumo](adr/0007-notificacoes-de-mencoes-no-resumo.md)
 - [Geração síncrona de miniaturas no envio de Arquivos](adr/0006-geracao-sincrona-de-miniaturas.md)
+- [Escopo de Chaves de API por Projeto](adr/0008-escopo-de-chaves-de-api-por-projeto.md)
+- [Rotas de API sem versionamento inicial](adr/0009-rotas-de-api-sem-versionamento-inicial.md)
+- [Solicitações precedem Tarefas](adr/0010-solicitacoes-precedem-tarefas.md)
+- [Sistemas clientes como proprietários das Chaves de API](adr/0011-sistemas-clientes-como-proprietarios-das-chaves.md)
+- [Identidade de Solicitantes delegada aos Sistemas clientes](adr/0012-identidade-de-solicitantes-delegada-aos-sistemas-clientes.md)
+- [Sistema cliente como único ator externo](adr/0013-sistema-cliente-como-unico-ator-externo.md)
+- [Papéis e abilities das Chaves de API](adr/0014-papeis-e-abilities-das-chaves-de-api.md)
+- [Dados expostos pela API](adr/0015-dados-expostos-pela-api.md)
+- [API Keys eleva a versão mínima do PHP](adr/0016-api-keys-eleva-versao-minima-do-php.md)
+- [Interface de Integrações e Solicitações](adr/0017-interface-de-integracoes-e-solicitacoes.md)
+- [Nomenclatura técnica de Integrações](adr/0018-nomenclatura-tecnica-de-integracoes.md)
+- [Estratégia de testes da integração por API](adr/0019-estrategia-de-testes-da-integracao-por-api.md)
 
 ## Implantação e operação
 
