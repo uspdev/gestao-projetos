@@ -162,6 +162,12 @@
         margin-bottom: 0;
     }
 
+    .markdown-content > ul,
+    .markdown-content > ol {
+        margin-bottom: 1rem;
+        margin-top: 0;
+    }
+
     .markdown-content pre {
         background: #f6f8fa;
         border-radius: 0.25rem;
