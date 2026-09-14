@@ -4,6 +4,9 @@ Este documento é o contrato HTTP da primeira versão da API usada por Sistemas
 clientes. Ele descreve a instalação da infraestrutura de Chaves de API, a
 autenticação, os recursos expostos e o acompanhamento de Solicitações.
 
+Para uma verificação objetiva da integração local, consulte o
+[teste manual rápido da API](teste-manual-integracoes.md).
+
 A API não representa usuários do sistema externo. O **Sistema cliente** é o
 único ator externo reconhecido e cada uma de suas credenciais permanece
 limitada ao **Projeto de escopo da Chave**.

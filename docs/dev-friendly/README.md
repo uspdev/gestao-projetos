@@ -79,6 +79,8 @@ O módulo de Arquivos usa armazenamento privado. Não execute
 - [Cores dos Cards](visual/cores_cards.md) — identidade visual por entidade, incluindo projetos, tarefas e reuniões. Segue o padrão da EESC-USP, com cores discretas e consistentes em todas as telas.
 - [API de Integrações e Solicitações](api/integracoes-e-solicitacoes.md) —
   instalação, autenticação Bearer, contrato HTTP, erros e implantação.
+- [Teste manual rápido da API](api/teste-manual-integracoes.md) — validação
+  local por `curl`, da autenticação até a fila de Solicitações.
 
 ## ADRs
 
