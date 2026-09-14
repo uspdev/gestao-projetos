@@ -17,7 +17,22 @@
       @enderror
     </div>
   </form>
-  <small class="text-muted d-block mt-1">Aviso: Alterar a URL quebrará links antigos já compartilhados.</small>
+  @php
+    $hasClientSystems = $project->relationLoaded('clientSystems')
+        ? $project->clientSystems->isNotEmpty()
+        : $project->clientSystems()->exists();
+  @endphp
+  @if ($hasClientSystems)
+    <div data-api-url-warning class="alert alert-warning py-2 mt-2 mb-0" role="alert">
+      <strong>Atenção:</strong> Alterar o slug quebrará links antigos, inclusive as URLs da API.
+      Os Sistemas clientes precisarão ser atualizados manualmente; a URL anterior deixará de funcionar.
+    </div>
+  @else
+    <small data-api-url-warning class="text-muted d-block mt-1">
+      Aviso: Alterar o slug quebrará links antigos, inclusive as URLs da API.
+      Os Sistemas clientes precisarão ser atualizados manualmente; a URL anterior deixará de funcionar.
+    </small>
+  @endif
 @else
   <span>{{ $project->slug }}</span>
 @endcan

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ProjectController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,3 +13,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::get('projects/{project}', [ProjectController::class, 'show'])
+    ->middleware('uspdevApiKeys:projects.read')
+    ->name('api.projects.show');
