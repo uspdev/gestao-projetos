@@ -131,6 +131,15 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/requests/{projectRequest}', [ProjectRequestController::class, 'show'])
         ->whereNumber('projectRequest')
         ->name('projects.requests.show');
+    Route::get('projects/{project}/requests/{projectRequest}/accept', [ProjectRequestController::class, 'acceptForm'])
+        ->whereNumber('projectRequest')
+        ->name('projects.requests.accept.create');
+    Route::post('projects/{project}/requests/{projectRequest}/accept', [ProjectRequestController::class, 'accept'])
+        ->whereNumber('projectRequest')
+        ->name('projects.requests.accept.store');
+    Route::patch('projects/{project}/requests/{projectRequest}/reject', [ProjectRequestController::class, 'reject'])
+        ->whereNumber('projectRequest')
+        ->name('projects.requests.reject');
     Route::resource('projects.tasks', TaskController::class)->except([
         'index',
         'show',

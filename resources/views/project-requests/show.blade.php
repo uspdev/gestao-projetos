@@ -48,3 +48,36 @@
     </div>
   </div>
 @endsection
+
+@can('reject', $projectRequest)
+  @push('modals')
+    <div class="modal fade" id="rejectProjectRequestModal" tabindex="-1"
+      aria-labelledby="rejectProjectRequestModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="rejectProjectRequestModalLabel">Rejeitar Solicitação</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <form action="{{ route('projects.requests.reject', [$project, $projectRequest]) }}" method="POST">
+            @csrf
+            @method('PATCH')
+
+            <div class="modal-body">
+              <x-form.textarea name="response" label="Resposta à Solicitação" rows="6" maxlength="10000"
+                required />
+            </div>
+
+            <div class="modal-footer">
+              <x-form.cancel-button data-dismiss="modal" />
+              <x-form.save-button class="btn btn-danger" label="Rejeitar Solicitação" />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  @endpush
+@endcan

@@ -3,16 +3,19 @@
 namespace Tests\Feature;
 
 use App\Enums\ProjectRequestStatus;
+use App\Mail\TaskAssigned;
 use App\Models\ClientSystem;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\ProjectRequest;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -583,6 +586,408 @@ class ProjectRequestTest extends TestCase
             ->assertSee($projectRequest->description);
     }
 
+    public function test_opening_the_acceptance_form_prefills_the_task_without_evaluating_the_request(): void
+    {
+        $contributor = $this->user('Contribuidor avaliador');
+        $project = $this->project('Projeto com proposta pendente');
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem, [
+            'title' => 'Revisar sincronização',
+            'description' => "Preservar a primeira linha\ne revisar a segunda.",
+        ]);
+
+        $response = $this->actingAs($contributor)
+            ->get(route('projects.requests.accept.create', [$project, $projectRequest]))
+            ->assertOk()
+            ->assertSee(route('projects.requests.accept.store', [$project, $projectRequest]))
+            ->assertSee('value="Revisar sincronização"', false)
+            ->assertSee("Preservar a primeira linha\ne revisar a segunda.")
+            ->assertSee('name="priority"', false)
+            ->assertSee('name="start_date"', false)
+            ->assertSee('name="due_date"', false)
+            ->assertSee('name="tags[]"', false)
+            ->assertSee('name="assignee_id"', false)
+            ->assertSee('name="status"', false)
+            ->assertSee('name="response"', false)
+            ->assertSee(route('projects.requests.show', [$project, $projectRequest]));
+
+        $this->assertStringContainsString(
+            'data-markdown-profile="full"',
+            $response->getContent(),
+        );
+        $this->assertSame(ProjectRequestStatus::PENDING, $projectRequest->refresh()->status);
+        $this->assertNull($projectRequest->evaluated_at);
+        $this->assertNull($projectRequest->task_id);
+        $this->assertDatabaseCount('tasks', 0);
+    }
+
+    public function test_local_contributor_accepts_a_request_as_one_fully_orchestrated_task(): void
+    {
+        Mail::fake();
+
+        $evaluator = $this->user('Avaliadora local');
+        $assignee = $this->user('Responsável local');
+        $project = $this->project('Projeto que aceita propostas');
+        $project->users()->attach($evaluator, ['role' => 'CONTRIBUTOR']);
+        $project->users()->attach($assignee, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem, $token] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem, [
+            'title' => 'Título original da Solicitação',
+            'description' => 'Descrição original em texto simples.',
+        ]);
+        $mentionedTask = $this->task($project, 'Tarefa mencionada');
+        $tag = Tag::query()->create([
+            'name' => ['pt_BR' => 'Integração'],
+            'slug' => ['pt_BR' => 'integracao'],
+            'type' => Tag::TYPE_TASK,
+        ]);
+        $revisedDescription = 'Executar após @[Tarefa mencionada](mention:task:'.$mentionedTask->id.').';
+
+        $response = $this->actingAs($evaluator)
+            ->post(route('projects.requests.accept.store', [$project, $projectRequest]), [
+                'title' => 'Tarefa revisada pela equipe',
+                'description' => $revisedDescription,
+                'priority' => 2,
+                'status' => 'IN_PROGRESS',
+                'start_date' => '2026-09-15',
+                'due_date' => '2026-09-30',
+                'tags' => [$tag->id],
+                'assignee_id' => $assignee->id,
+                'response' => 'A proposta foi incorporada ao planejamento.',
+            ]);
+
+        $task = Task::query()->where('title', 'Tarefa revisada pela equipe')->firstOrFail();
+        $response
+            ->assertRedirect(route('tasks.show', $task))
+            ->assertSessionHas('alert-success');
+
+        $projectRequest->refresh();
+        $this->assertSame(ProjectRequestStatus::ACCEPTED, $projectRequest->status);
+        $this->assertSame($evaluator->id, $projectRequest->evaluated_by);
+        $this->assertNotNull($projectRequest->evaluated_at);
+        $this->assertSame($task->id, $projectRequest->task_id);
+        $this->assertSame('Título original da Solicitação', $projectRequest->title);
+        $this->assertSame('Descrição original em texto simples.', $projectRequest->description);
+        $this->assertSame($clientSystem->id, $projectRequest->client_system_id);
+        $this->assertSame('A proposta foi incorporada ao planejamento.', $projectRequest->response);
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'project_id' => $project->id,
+            'description' => $revisedDescription,
+            'priority' => 2,
+            'status' => 'IN_PROGRESS',
+            'start_date' => '2026-09-15 00:00:00',
+            'due_date' => '2026-09-30 00:00:00',
+            'created_by' => $evaluator->id,
+        ]);
+        $this->assertDatabaseHas('task_user', [
+            'task_id' => $task->id,
+            'user_id' => $assignee->id,
+        ]);
+        $this->assertDatabaseHas('taggables', [
+            'tag_id' => $tag->id,
+            'taggable_type' => 'task',
+            'taggable_id' => $task->id,
+        ]);
+        $this->assertDatabaseHas('mentions', [
+            'source_type' => 'task',
+            'source_id' => $task->id,
+            'source_field' => 'description',
+            'target_type' => 'task',
+            'target_id' => (string) $mentionedTask->id,
+        ]);
+        $this->assertDatabaseHas('watches', [
+            'user_id' => $assignee->id,
+            'watchable_type' => 'task',
+            'watchable_id' => $task->id,
+        ]);
+        Mail::assertQueued(TaskAssigned::class);
+
+        $this->withToken($token)
+            ->getJson($this->showUrl($project, $projectRequest->id))
+            ->assertOk()
+            ->assertJsonPath('data.status.value', 'accepted')
+            ->assertJsonPath('data.response', 'A proposta foi incorporada ao planejamento.')
+            ->assertJsonPath('data.task.id', $task->id)
+            ->assertJsonPath('data.task.title', 'Tarefa revisada pela equipe')
+            ->assertJsonPath('data.task.web_url', route('tasks.show', $task))
+            ->assertJsonMissingPath('data.evaluated_by')
+            ->assertJsonMissingPath('data.evaluator');
+    }
+
+    public function test_local_administrator_rejects_a_request_with_a_response_visible_to_the_client_system(): void
+    {
+        $administrator = $this->user('Administradora avaliadora');
+        $project = $this->project('Projeto que rejeita propostas');
+        $project->users()->attach($administrator, ['role' => 'ADMIN']);
+        [$clientSystem, $token] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem);
+
+        $this->actingAs($administrator)
+            ->patch(route('projects.requests.reject', [$project, $projectRequest]), [
+                'response' => '  A proposta conflita com a direção atual.  ',
+            ])
+            ->assertRedirect(route('projects.requests.show', [$project, $projectRequest]))
+            ->assertSessionHas('alert-success');
+
+        $projectRequest->refresh();
+        $this->assertSame(ProjectRequestStatus::REJECTED, $projectRequest->status);
+        $this->assertSame('A proposta conflita com a direção atual.', $projectRequest->response);
+        $this->assertSame($administrator->id, $projectRequest->evaluated_by);
+        $this->assertNotNull($projectRequest->evaluated_at);
+        $this->assertNull($projectRequest->task_id);
+        $this->assertDatabaseCount('tasks', 0);
+
+        $this->withToken($token)
+            ->getJson($this->showUrl($project, $projectRequest->id))
+            ->assertOk()
+            ->assertJsonPath('data.status.value', 'rejected')
+            ->assertJsonPath('data.response', 'A proposta conflita com a direção atual.')
+            ->assertJsonPath('data.task', null)
+            ->assertJsonMissingPath('data.evaluated_by')
+            ->assertJsonMissingPath('data.evaluator');
+    }
+
+    public function test_request_detail_offers_evaluation_actions_only_while_pending(): void
+    {
+        $contributor = $this->user('Contribuidora da triagem');
+        $project = $this->project('Projeto com ações de avaliação');
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $pending = $this->projectRequest($project, $clientSystem);
+        $rejected = $this->projectRequest($project, $clientSystem, [
+            'status' => ProjectRequestStatus::REJECTED,
+            'response' => 'Não será incorporada.',
+            'evaluated_by' => $contributor->id,
+            'evaluated_at' => now(),
+        ]);
+
+        $this->actingAs($contributor)
+            ->get(route('projects.requests.show', [$project, $pending]))
+            ->assertOk()
+            ->assertSee(route('projects.requests.accept.create', [$project, $pending]))
+            ->assertSee(route('projects.requests.reject', [$project, $pending]))
+            ->assertSee('name="response"', false)
+            ->assertSee('Aceitar')
+            ->assertSee('Rejeitar');
+
+        $this->actingAs($contributor)
+            ->get(route('projects.requests.show', [$project, $rejected]))
+            ->assertOk()
+            ->assertDontSee(route('projects.requests.accept.create', [$project, $rejected]))
+            ->assertDontSee(route('projects.requests.reject', [$project, $rejected]));
+    }
+
+    public function test_evaluation_validation_errors_keep_the_request_pending_without_a_task(): void
+    {
+        $contributor = $this->user('Contribuidor que corrige validação');
+        $project = $this->project('Projeto com validação de avaliação');
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem);
+
+        $this->actingAs($contributor)
+            ->from(route('projects.requests.accept.create', [$project, $projectRequest]))
+            ->post(route('projects.requests.accept.store', [$project, $projectRequest]), [
+                'title' => 'ab',
+                'description' => 'Descrição ainda em revisão.',
+                'status' => 'NEW',
+                'response' => str_repeat('r', 10001),
+            ])
+            ->assertRedirect(route('projects.requests.accept.create', [$project, $projectRequest]))
+            ->assertSessionHasErrors(['title', 'response']);
+
+        foreach ([" \n\t ", str_repeat('r', 10001)] as $invalidResponse) {
+            $this->actingAs($contributor)
+                ->from(route('projects.requests.show', [$project, $projectRequest]))
+                ->patch(route('projects.requests.reject', [$project, $projectRequest]), [
+                    'response' => $invalidResponse,
+                ])
+                ->assertRedirect(route('projects.requests.show', [$project, $projectRequest]))
+                ->assertSessionHasErrors('response');
+        }
+
+        $projectRequest->refresh();
+        $this->assertSame(ProjectRequestStatus::PENDING, $projectRequest->status);
+        $this->assertNull($projectRequest->response);
+        $this->assertNull($projectRequest->evaluated_by);
+        $this->assertNull($projectRequest->evaluated_at);
+        $this->assertNull($projectRequest->task_id);
+        $this->assertDatabaseCount('tasks', 0);
+    }
+
+    public function test_acceptance_rolls_back_task_creation_when_mention_synchronization_fails(): void
+    {
+        $contributor = $this->user('Contribuidor com Menção inválida');
+        $assignee = $this->user('Responsável da Tarefa revertida');
+        $project = $this->project('Projeto com transação de aceitação');
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        $project->users()->attach($assignee, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem);
+
+        $this->actingAs($contributor)
+            ->from(route('projects.requests.accept.create', [$project, $projectRequest]))
+            ->post(route('projects.requests.accept.store', [$project, $projectRequest]), [
+                'title' => 'Tarefa com Menção inválida',
+                'description' => '@[Destino](mention:task:invalida)',
+                'status' => 'NEW',
+                'assignee_id' => $assignee->id,
+            ])
+            ->assertRedirect(route('projects.requests.accept.create', [$project, $projectRequest]))
+            ->assertSessionHasErrors('description');
+
+        $projectRequest->refresh();
+        $this->assertSame(ProjectRequestStatus::PENDING, $projectRequest->status);
+        $this->assertNull($projectRequest->evaluated_by);
+        $this->assertNull($projectRequest->evaluated_at);
+        $this->assertNull($projectRequest->task_id);
+        $this->assertDatabaseCount('tasks', 0);
+        $this->assertDatabaseCount('task_user', 0);
+        $this->assertDatabaseCount('watches', 0);
+        $this->assertDatabaseCount('mentions', 0);
+    }
+
+    public function test_viewer_inherited_member_and_unlinked_global_administrator_cannot_evaluate_requests(): void
+    {
+        $viewer = $this->user('Visualizador sem triagem');
+        $inheritedContributor = $this->user('Contribuidor herdado sem triagem');
+        $globalAdministrator = $this->globalAdministrator('Administrador global sem triagem');
+        $parent = $this->project('Projeto pai da avaliação');
+        $project = $this->project('Subprojeto da avaliação', $parent);
+        $project->users()->attach($viewer, ['role' => 'VIEWER']);
+        $parent->users()->attach($inheritedContributor, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem);
+
+        foreach ([$viewer, $inheritedContributor, $globalAdministrator] as $unauthorizedUser) {
+            $this->actingAs($unauthorizedUser)
+                ->get(route('projects.requests.accept.create', [$project, $projectRequest]))
+                ->assertForbidden();
+
+            $this->actingAs($unauthorizedUser)
+                ->post(route('projects.requests.accept.store', [$project, $projectRequest]), [
+                    'title' => 'Tarefa não autorizada',
+                    'status' => 'NEW',
+                ])
+                ->assertForbidden();
+
+            $this->actingAs($unauthorizedUser)
+                ->patch(route('projects.requests.reject', [$project, $projectRequest]), [
+                    'response' => 'Rejeição não autorizada.',
+                ])
+                ->assertForbidden();
+        }
+
+        $this->assertSame(ProjectRequestStatus::PENDING, $projectRequest->refresh()->status);
+        $this->assertDatabaseCount('tasks', 0);
+    }
+
+    public function test_disabled_tasks_module_blocks_acceptance_with_a_clear_message_but_allows_rejection(): void
+    {
+        $contributor = $this->user('Contribuidor com módulo desabilitado');
+        $project = $this->project('Projeto sem criação de Tarefa');
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $projectRequest = $this->projectRequest($project, $clientSystem);
+        $project->projectModules()->update(['enabled' => false]);
+
+        $this->actingAs($contributor)
+            ->get(route('projects.requests.accept.create', [$project, $projectRequest]))
+            ->assertRedirect(route('projects.requests.show', [$project, $projectRequest]))
+            ->assertSessionHas('alert-danger', function (string $message): bool {
+                return str_contains($message, 'módulo de Tarefas estiver desabilitado');
+            });
+
+        $this->actingAs($contributor)
+            ->post(route('projects.requests.accept.store', [$project, $projectRequest]), [
+                'title' => 'Tarefa bloqueada pelo módulo',
+                'description' => 'Não deve ser persistida.',
+                'status' => 'NEW',
+            ])
+            ->assertRedirect(route('projects.requests.show', [$project, $projectRequest]))
+            ->assertSessionHas('alert-danger');
+
+        $this->assertSame(ProjectRequestStatus::PENDING, $projectRequest->refresh()->status);
+        $this->assertDatabaseCount('tasks', 0);
+
+        $this->actingAs($contributor)
+            ->patch(route('projects.requests.reject', [$project, $projectRequest]), [
+                'response' => 'Não será incorporada enquanto o módulo estiver indisponível.',
+            ])
+            ->assertRedirect(route('projects.requests.show', [$project, $projectRequest]))
+            ->assertSessionHas('alert-success');
+
+        $this->assertSame(ProjectRequestStatus::REJECTED, $projectRequest->refresh()->status);
+    }
+
+    public function test_repeated_or_conflicting_evaluations_cannot_create_a_second_task_or_change_the_result(): void
+    {
+        $contributor = $this->user('Contribuidor que avalia uma vez');
+        $project = $this->project('Projeto com avaliação terminal');
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        [$clientSystem] = $this->credentialFor($project, 'viewer');
+        $accepted = $this->projectRequest($project, $clientSystem, [
+            'title' => 'Solicitação aceita uma vez',
+        ]);
+
+        $payload = [
+            'title' => 'Única Tarefa resultante',
+            'description' => 'Resultado da primeira avaliação.',
+            'status' => 'NEW',
+        ];
+
+        $this->actingAs($contributor)
+            ->post(route('projects.requests.accept.store', [$project, $accepted]), $payload)
+            ->assertRedirect();
+
+        $accepted->refresh();
+        $taskId = $accepted->task_id;
+        $evaluatedAt = $accepted->evaluated_at?->toISOString();
+
+        $this->actingAs($contributor)
+            ->post(route('projects.requests.accept.store', [$project, $accepted]), $payload)
+            ->assertForbidden();
+        $this->actingAs($contributor)
+            ->patch(route('projects.requests.reject', [$project, $accepted]), [
+                'response' => 'Tentativa de trocar o resultado.',
+            ])
+            ->assertForbidden();
+
+        $accepted->refresh();
+        $this->assertSame(ProjectRequestStatus::ACCEPTED, $accepted->status);
+        $this->assertSame($taskId, $accepted->task_id);
+        $this->assertSame($evaluatedAt, $accepted->evaluated_at?->toISOString());
+        $this->assertNull($accepted->response);
+        $this->assertDatabaseCount('tasks', 1);
+
+        $rejected = $this->projectRequest($project, $clientSystem, [
+            'title' => 'Solicitação rejeitada uma vez',
+        ]);
+        $this->actingAs($contributor)
+            ->patch(route('projects.requests.reject', [$project, $rejected]), [
+                'response' => 'Resultado final da rejeição.',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($contributor)
+            ->post(route('projects.requests.accept.store', [$project, $rejected]), $payload)
+            ->assertForbidden();
+        $this->actingAs($contributor)
+            ->patch(route('projects.requests.reject', [$project, $rejected]), [
+                'response' => 'Segunda rejeição.',
+            ])
+            ->assertForbidden();
+
+        $rejected->refresh();
+        $this->assertSame(ProjectRequestStatus::REJECTED, $rejected->status);
+        $this->assertSame('Resultado final da rejeição.', $rejected->response);
+        $this->assertNull($rejected->task_id);
+        $this->assertDatabaseCount('tasks', 1);
+    }
+
     /**
      * @return array{ClientSystem, string}
      */
@@ -805,6 +1210,31 @@ class ProjectRequestTest extends TestCase
             $table->foreignId('user_id');
             $table->timestamps();
             $table->unique(['task_id', 'user_id']);
+        });
+
+        Schema::create('watches', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('watchable_type');
+            $table->unsignedBigInteger('watchable_id');
+            $table->timestamps();
+            $table->unique(['user_id', 'watchable_type', 'watchable_id']);
+        });
+
+        Schema::create('mentions', function (Blueprint $table): void {
+            $table->id();
+            $table->string('source_type', 50);
+            $table->unsignedBigInteger('source_id');
+            $table->string('source_field', 100);
+            $table->string('target_type', 50);
+            $table->string('target_id', 191);
+            $table->unique([
+                'source_type',
+                'source_id',
+                'source_field',
+                'target_type',
+                'target_id',
+            ]);
         });
 
         Schema::create('client_systems', function (Blueprint $table): void {
