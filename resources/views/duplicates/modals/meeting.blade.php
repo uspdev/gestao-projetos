@@ -5,6 +5,7 @@
   $suggestedTitle = \Illuminate\Support\Str::limit($meeting->title, 120 - mb_strlen($copySuffix), '') . $copySuffix;
   $titleValue = $isDuplicationForm ? old('title') : $suggestedTitle;
   $scheduledAtValue = $isDuplicationForm ? old('scheduled_at') : $meeting->scheduled_at?->format('Y-m-d\TH:i');
+  $copyItemNotes = $isDuplicationForm ? (string) old('copy_item_notes', '0') === '1' : true;
   $scheduledAtIsPast = $meeting->scheduled_at?->isPast() ?? false;
 @endphp
 
@@ -56,6 +57,20 @@
             @if ($isDuplicationForm && $errors->has('scheduled_at'))
               <div class="invalid-feedback d-block">{{ $errors->first('scheduled_at') }}</div>
             @endif
+          </div>
+
+          <div class="form-group mb-3">
+            <input type="hidden" name="copy_item_notes" value="0">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="{{ $modalId }}-copy-item-notes"
+                name="copy_item_notes" value="1" @checked($copyItemNotes)>
+              <label class="custom-control-label" for="{{ $modalId }}-copy-item-notes">
+                Copiar Anotações prévias dos itens de pauta
+              </label>
+              <small class="form-text text-muted">
+                O conteúdo em Markdown de cada item de pauta será levado para a cópia.
+              </small>
+            </div>
           </div>
 
           <div class="form-group mb-3">
