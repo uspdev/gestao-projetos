@@ -13,6 +13,7 @@ use App\Http\Controllers\MeetingLinkShareController;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
+use App\Http\Controllers\ProjectRequestController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\PhaseController;
 use App\Http\Controllers\UserController;
@@ -125,6 +126,11 @@ Route::middleware('auth')->group(function () {
 
     // Tarefas do projeto
     Route::get('projects/{project}/tasks', [TaskController::class, 'indexProject'])->name('projects.tasks.index');
+    Route::get('projects/{project}/requests', [ProjectRequestController::class, 'index'])
+        ->name('projects.requests.index');
+    Route::get('projects/{project}/requests/{projectRequest}', [ProjectRequestController::class, 'show'])
+        ->whereNumber('projectRequest')
+        ->name('projects.requests.show');
     Route::resource('projects.tasks', TaskController::class)->except([
         'index',
         'show',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ProjectRequestController;
 use App\Http\Controllers\Api\TaskController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,3 +28,16 @@ Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show'])
     ->whereNumber('task')
     ->middleware('uspdevApiKeys:tasks.read')
     ->name('api.projects.tasks.show');
+
+Route::post('projects/{project}/requests', [ProjectRequestController::class, 'store'])
+    ->middleware('uspdevApiKeys:requests.create')
+    ->name('api.projects.requests.store');
+
+Route::get('projects/{project}/requests', [ProjectRequestController::class, 'index'])
+    ->middleware('uspdevApiKeys:requests.read')
+    ->name('api.projects.requests.index');
+
+Route::get('projects/{project}/requests/{projectRequest}', [ProjectRequestController::class, 'show'])
+    ->whereNumber('projectRequest')
+    ->middleware('uspdevApiKeys:requests.read')
+    ->name('api.projects.requests.show');
