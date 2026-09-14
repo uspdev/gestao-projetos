@@ -95,6 +95,80 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_meeting_index_shows_the_two_latest_completed_meetings_by_default_and_all_meetings_when_requested(): void
+    {
+        DB::table('meetings')->where('id', 1)->update([
+            'title' => 'Reunião concluída antiga',
+            'scheduled_at' => '2026-08-01 09:00:00',
+        ]);
+
+        DB::table('meetings')->insert([
+            [
+                'id' => 2,
+                'title' => 'Reunião concluída intermediária',
+                'scheduled_at' => '2026-08-02 09:00:00',
+                'status' => 'COMPLETED',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 3,
+                'title' => 'Reunião concluída recente',
+                'scheduled_at' => '2026-08-03 09:00:00',
+                'status' => 'COMPLETED',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 4,
+                'title' => 'Reunião concluída mais recente',
+                'scheduled_at' => '2026-08-04 09:00:00',
+                'status' => 'COMPLETED',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 5,
+                'title' => 'Reunião em andamento',
+                'scheduled_at' => '2026-08-05 09:00:00',
+                'status' => 'ONGOING',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+        DB::table('meeting_projects')->insert(
+            collect([2, 3, 4, 5])
+                ->map(fn (int $meetingId): array => ['meeting_id' => $meetingId, 'project_id' => 1])
+                ->all(),
+        );
+
+        $this->actingAs(User::findOrFail(2));
+        DB::enableQueryLog();
+
+        $this->get('/projects/projeto-teste/meetings')
+            ->assertOk()
+            ->assertSee('Reunião em andamento')
+            ->assertSee('Reunião concluída recente')
+            ->assertSee('Reunião concluída mais recente')
+            ->assertDontSee('Reunião concluída antiga')
+            ->assertDontSee('Reunião concluída intermediária');
+
+        // Evita regressão do SQL incompatível com versões de MariaDB usadas em produção.
+        $this->assertFalse(collect(DB::getQueryLog())->contains(function (array $query): bool {
+            $sql = strtolower($query['query']);
+
+            return preg_match('/\bin\s*\(\s*select\b.*\blimit\b/s', $sql) === 1;
+        }));
+
+        $this->get('/projects/projeto-teste/meetings?show_completed=1')
+            ->assertOk()
+            ->assertSee('Reunião em andamento')
+            ->assertSee('Reunião concluída antiga')
+            ->assertSee('Reunião concluída intermediária')
+            ->assertSee('Reunião concluída recente')
+            ->assertSee('Reunião concluída mais recente');
+    }
+
     public function test_meeting_page_separates_prior_notes_from_the_meeting_record(): void
     {
         DB::table('meetings')->where('id', 1)->update([
