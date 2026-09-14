@@ -26,8 +26,14 @@
         "gestao"
     ],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/uspdev/api-keys.git"
+        }
+    ],
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
@@ -36,6 +42,7 @@
         "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-medialibrary": "^11.0",
         "spatie/laravel-tags": "^4.11",
+        "uspdev/api-keys": "^0.1",
         "uspdev/laravel-replicado": "^1.0",
         "uspdev/laravel-tools": "^1.6",
         "uspdev/laravel-usp-theme": "^2.8",

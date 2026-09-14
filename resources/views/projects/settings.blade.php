@@ -81,6 +81,11 @@
               <a class="nav-link" href="{{ $settingsUrl }}#project-modules-settings">
                 <i class="fas fa-puzzle-piece fa-fw mr-2" aria-hidden="true"></i> Módulos
               </a>
+              @can('create', [\App\Models\ClientSystem::class, $project])
+                <a class="nav-link" href="{{ $settingsUrl }}#project-integrations-settings">
+                  <i class="fas fa-plug fa-fw mr-2" aria-hidden="true"></i> Integrações
+                </a>
+              @endcan
               @can('viewActivity', $project)
                 <a class="nav-link" href="{{ $settingsUrl }}#project-activity-settings">
                   <i class="fas fa-history fa-fw mr-2" aria-hidden="true"></i> Histórico
@@ -113,6 +118,10 @@
           <section id="project-modules-settings">
             @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
           </section>
+
+          @can('create', [\App\Models\ClientSystem::class, $project])
+            @include('client-systems.settings-card')
+          @endcan
 
           @can('viewActivity', $project)
             <section id="project-activity-settings">

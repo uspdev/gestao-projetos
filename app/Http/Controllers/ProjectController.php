@@ -16,6 +16,7 @@ use App\Http\Requests\Project\UpdateProjectStatusRequest;
 use App\Http\Requests\Project\UpdateProjectTagsRequest;
 use App\Http\Requests\Project\UpdateProjectVisibilityRequest;
 use App\Models\Module;
+use App\Models\ClientSystem;
 use App\Models\Meeting;
 use App\Models\MeetingItem;
 use App\Models\PendingWatchNotification;
@@ -732,6 +733,10 @@ class ProjectController extends Controller
             'phase',
             'projectType.modules',
         );
+
+        if (Gate::allows('create', [ClientSystem::class, $project])) {
+            $project->load('clientSystems');
+        }
 
         return view('projects.settings', compact('project'));
     }

@@ -35,6 +35,7 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
+use Uspdev\ApiKeys\Contracts\ApiKeyManager;
 
 class Project extends Model implements Discussable, Duplicable, HasMedia, Watchable
 {
@@ -82,6 +83,20 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
                     ->each(fn(Task $task) => $task->forceDelete());
 
                 return;
+            }
+
+            if (Schema::hasTable('client_systems') && Schema::hasTable('uspdev_api_keys')) {
+                $apiKeys = app(ApiKeyManager::class);
+
+                $project->clientSystems()
+                    ->with(['apiKeys' => fn ($query) => $query
+                        ->whereNull('revoked_at')
+                        ->where(fn ($query) => $query
+                            ->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now()))])
+                    ->get()
+                    ->each(fn (ClientSystem $clientSystem) => $clientSystem->apiKeys
+                        ->each(fn ($apiKey) => $apiKeys->revoke($apiKey, Auth::id())));
             }
 
             $project->tasks()->get()->each(function (Task $task) {
@@ -185,6 +200,14 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Relacionamento com os Sistemas clientes configurados no Projeto.
+     */
+    public function clientSystems(): HasMany
+    {
+        return $this->hasMany(ClientSystem::class)->orderBy('name');
     }
 
     /**
