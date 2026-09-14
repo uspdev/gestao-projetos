@@ -6,8 +6,9 @@
   $canEditNotes = $meeting && $project && $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
-<div id="meeting-agenda-{{ $meeting?->id }}" class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm"
-  tabindex="-1" data-deep-link-target>
+<div id="meeting-agenda-{{ $meeting?->id }}"
+  class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm" tabindex="-1"
+  data-deep-link-target>
   <div class="card-header h5 py-1 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center flex-wrap" style="gap: 0.5rem;">
       <span class="font-weight-bold">Pauta</span>
@@ -17,8 +18,11 @@
           <button type="button" id="meeting-notes-toggle-all" class="btn btn-sm btn-outline-secondary py-0"
             aria-expanded="false" title="Expandir anotações" aria-label="Expandir anotações">
             <span class="meeting-notes-toggle-all-icon" aria-hidden="true">
-              <i class="far fa-envelope meeting-notes-toggle-all-icon-closed"></i>
-              <i class="far fa-envelope-open meeting-notes-toggle-all-icon-open d-none"></i>
+              <!-- Closed / hidden -->
+              <i class="far fa-eye-slash meeting-notes-toggle-all-icon-closed"></i>
+
+              <!-- Open / visible -->
+              <i class="far fa-eye meeting-notes-toggle-all-icon-open d-none"></i>
             </span>
             <span class="meeting-notes-toggle-all-text sr-only">Expandir anotações</span>
           </button>

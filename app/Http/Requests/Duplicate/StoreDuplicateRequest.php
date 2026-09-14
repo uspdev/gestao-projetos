@@ -55,6 +55,7 @@ class StoreDuplicateRequest extends FormRequest
                 'duplication_form' => ['required', 'in:meeting'],
                 'title' => ['required', 'string', 'min:3', 'max:120'],
                 'scheduled_at' => ['required', 'date'],
+                'copy_item_notes' => ['required', 'boolean'],
             ];
         }
 
@@ -86,6 +87,7 @@ class StoreDuplicateRequest extends FormRequest
             'due_date.after_or_equal' => 'A data de vencimento deve ser igual ou posterior à data de início.',
             'scheduled_at.required' => 'Informe a nova data e hora da reunião.',
             'scheduled_at.date' => 'A data e hora da reunião deve ser válida.',
+            'copy_item_notes.required' => 'Informe se as Anotações prévias dos itens de pauta devem ser copiadas.',
             'name.required' => 'O nome do projeto é obrigatório.',
             'name.min' => 'O nome do projeto deve ter pelo menos :min caracteres.',
             'name.max' => 'O nome do projeto não pode exceder :max caracteres.',
@@ -151,6 +153,7 @@ class StoreDuplicateRequest extends FormRequest
             $duplicable instanceof Meeting => [
                 'title' => $data['title'],
                 'scheduled_at' => $data['scheduled_at'],
+                'copy_item_notes' => (bool) $data['copy_item_notes'],
             ],
             $duplicable instanceof Project => [
                 'name' => $data['name'],
