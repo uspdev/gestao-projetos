@@ -609,6 +609,44 @@ TXT;
         $this->assertCount(0, $nestedCompletedModal);
     }
 
+    public function test_meeting_duplication_modal_selects_item_notes_by_default_and_preserves_the_submitted_choice(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+
+        $showRoute = '/projects/projeto-teste/meetings/1';
+        $defaultHtml = $this->get($showRoute)->assertOk()->getContent();
+        $defaultDocument = new \DOMDocument();
+        @$defaultDocument->loadHTML($defaultHtml);
+        $defaultXPath = new \DOMXPath($defaultDocument);
+        $defaultCheckbox = $defaultXPath->query(
+            '//*[@id="duplicate-meeting-modal-1"]//input[@name="copy_item_notes" and @type="checkbox"]'
+        )->item(0);
+
+        $this->assertNotNull($defaultCheckbox);
+        $this->assertTrue($defaultCheckbox->hasAttribute('checked'));
+
+        $this->from($showRoute)
+            ->post('/projects/projeto-teste/duplicates/meeting/1', [
+                'duplication_form' => 'meeting',
+                'title' => 'x',
+                'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+                'copy_item_notes' => '0',
+            ])
+            ->assertRedirect($showRoute)
+            ->assertSessionHasErrors('title');
+
+        $oldInputHtml = $this->get($showRoute)->assertOk()->getContent();
+        $oldInputDocument = new \DOMDocument();
+        @$oldInputDocument->loadHTML($oldInputHtml);
+        $oldInputXPath = new \DOMXPath($oldInputDocument);
+        $oldInputCheckbox = $oldInputXPath->query(
+            '//*[@id="duplicate-meeting-modal-1"]//input[@name="copy_item_notes" and @type="checkbox"]'
+        )->item(0);
+
+        $this->assertNotNull($oldInputCheckbox);
+        $this->assertFalse($oldInputCheckbox->hasAttribute('checked'));
+    }
+
     public function test_project_members_start_watching_a_new_meeting(): void
     {
         $this->actingAs(User::findOrFail(1));
@@ -862,7 +900,10 @@ TXT;
 
         app(MentionManager::class)->synchronize($source, 'notes', $markdown);
 
-        $copy = $source->duplicate(['scheduled_at' => now()->addDay()]);
+        $copy = $source->duplicate([
+            'scheduled_at' => now()->addDay(),
+            'copy_item_notes' => true,
+        ]);
 
         $this->assertTrue($copy->outgoingMentions()
             ->where('source_field', 'notes')
@@ -884,9 +925,17 @@ TXT;
 
         app(MentionManager::class)->synchronize($sourceItem, 'notes', $markdown);
 
-        $copy = Meeting::query()->findOrFail(1)->duplicate([
-            'scheduled_at' => now()->addDay(),
-        ]);
+        $this->actingAs(User::findOrFail(1));
+        $this->post('/projects/projeto-teste/duplicates/meeting/1', [
+            'duplication_form' => 'meeting',
+            'title' => 'Reunião com anotações de pauta',
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+            'copy_item_notes' => true,
+        ])->assertRedirect();
+
+        $copy = Meeting::query()
+            ->where('title', 'Reunião com anotações de pauta')
+            ->firstOrFail();
         $copyItem = $copy->meetingItems()->firstOrFail();
 
         $this->assertSame($markdown, $copyItem->notes);
@@ -901,6 +950,67 @@ TXT;
             ->where('target_id', 2)
             ->exists());
         $this->assertSame(2, Mention::query()->count());
+    }
+
+    public function test_meeting_duplication_without_item_notes_preserves_the_agenda_without_rebuilding_item_mentions(): void
+    {
+        $markdown = '@[Visualizador](mention:user:2)';
+        $sourceItem = MeetingItem::query()->create([
+            'meeting_id' => 1,
+            'title' => 'Item independente',
+            'order' => 3,
+            'notes' => $markdown,
+        ]);
+        app(MentionManager::class)->synchronize($sourceItem, 'notes', $markdown);
+
+        $this->actingAs(User::findOrFail(1));
+        $this->post('/projects/projeto-teste/duplicates/meeting/1', [
+            'duplication_form' => 'meeting',
+            'title' => 'Reunião sem anotações de pauta',
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+            'copy_item_notes' => false,
+        ])->assertRedirect();
+
+        $copy = Meeting::query()
+            ->where('title', 'Reunião sem anotações de pauta')
+            ->firstOrFail();
+        $copyItem = $copy->meetingItems()->firstOrFail();
+
+        $this->assertSame('Item independente', $copyItem->title);
+        $this->assertSame(3, $copyItem->order);
+        $this->assertNull($copyItem->notes);
+        $this->assertFalse($copyItem->outgoingMentions()->exists());
+        $this->assertSame(1, Mention::query()->count());
+    }
+
+    public function test_project_duplication_keeps_copied_meeting_items_without_prior_notes(): void
+    {
+        DB::table('meetings')->where('id', 1)->update(['scheduled_at' => now()->addDay()]);
+        $sourceItem = MeetingItem::query()->create([
+            'meeting_id' => 1,
+            'title' => 'Item do projeto',
+            'order' => 1,
+            'notes' => 'Preparação que não deve ser copiada',
+        ]);
+        $this->actingAs(User::findOrFail(1));
+
+        $copy = Project::query()->findOrFail(1)->duplicate([
+            'name' => 'Projeto com reunião copiada',
+            'copy_members' => false,
+            'copy_tasks' => false,
+            'copy_meetings' => true,
+        ]);
+        $copyMeetingId = DB::table('meeting_projects')
+            ->where('project_id', $copy->id)
+            ->value('meeting_id');
+
+        $this->assertNotNull($copyMeetingId);
+        $this->assertDatabaseHas('meeting_items', [
+            'meeting_id' => $copyMeetingId,
+            'title' => $sourceItem->title,
+            'order' => $sourceItem->order,
+            'notes' => null,
+        ]);
     }
 
     public function test_project_duplication_preserves_historical_mentions_without_copying_members_or_remapping_targets(): void
