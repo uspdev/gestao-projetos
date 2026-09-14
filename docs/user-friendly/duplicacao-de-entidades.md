@@ -51,13 +51,15 @@ Copiar:
 - itens de pauta e sua ordem.
 
 Nos itens de pauta, são preservados o vínculo com o projeto ou tarefa e o
-título de um Item independente. As Anotações prévias de cada item não são
-copiadas, pois registram o que foi discutido na reunião anterior.
+título de um Item independente. O modal oferece a opção **Copiar Anotações
+prévias dos itens de pauta**, marcada por padrão. Ao mantê-la selecionada, as
+Anotações prévias em Markdown de cada item também são copiadas; ao desmarcá-la,
+os itens da nova Reunião começam sem esse conteúdo.
 
 Reiniciar:
 
 - status para `Agendada`;
-- Anotações prévias dos itens de pauta.
+- Anotações prévias dos itens de pauta, quando a opção de cópia for desmarcada.
 
 Não copiar:
 
@@ -131,7 +133,8 @@ Cada reunião copiada fica vinculada somente ao novo projeto, mesmo que a
 reunião de origem estivesse vinculada a outros projetos. O restante do
 conteúdo segue as regras de cópia de reunião: a cópia nasce como `Agendada`,
 preserva Anotações prévias, Ata, Transcrição, local e itens de pauta, mas limpa
-as Anotações prévias dos itens.
+as Anotações prévias dos itens. Essa cópia não usa o checkbox disponível na
+duplicação direta de uma Reunião.
 
 Não copiar da cópia de projeto:
 

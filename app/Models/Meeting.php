@@ -315,8 +315,13 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
      * @param array{
      *     scheduled_at: \DateTimeInterface|string,
      *     title?: string,
-     *     project_ids?: array<int, int|string>
+     *     project_ids?: array<int, int|string>,
+     *     copy_item_notes?: bool
      * } $options Opções para a duplicação da reunião.
+     *
+     * `copy_item_notes` só é enviado pela duplicação direta da reunião. Quando
+     * ausente, assume `false` para preservar o comportamento das reuniões
+     * criadas durante a duplicação de um projeto.
      *
      * @return Model A nova reunião criada.
      *
@@ -329,6 +334,25 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
         );
     }
 
+    /**
+     * Executa a cópia dentro da transação aberta por {@see duplicate()}.
+     *
+     * O fluxo valida a nova data, carrega os vínculos de origem, cria a
+     * reunião com seu estado reiniciado, persiste os Projetos vinculados e
+     * recria os itens pela ordem da pauta. Por fim, reconstrói o índice de
+     * Menções apenas depois que todo o contexto da cópia existe.
+     *
+     * @param array{
+     *     scheduled_at: \DateTimeInterface|string,
+     *     title?: string,
+     *     project_ids?: array<int, int|string>,
+     *     copy_item_notes?: bool
+     * } $options Opções normalizadas ou internas da duplicação.
+     *
+     * @return Model A nova reunião persistida.
+     *
+     * @throws InvalidArgumentException Quando a nova data e hora não é informada.
+     */
     private function duplicateWithinTransaction(array $options): Model
     {
         $scheduledAt = $options['scheduled_at'] ?? null;
@@ -338,6 +362,7 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
         }
 
         $this->loadMissing(['projects', 'meetingItems']);
+        $copyItemNotes = (bool) ($options['copy_item_notes'] ?? false);
 
         $projectIds = collect($options['project_ids'] ?? $this->projects->pluck('id')->all())
             ->map(fn($id) => (int) $id)
@@ -355,6 +380,7 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
             'status' => MeetingStatus::SCHEDULED->value,
         ]);
 
+        // As Menções dependem do contexto dos Projetos, que precisa existir antes de reconstruir seu índice.
         $copy->projects()->sync($projectIds);
 
         foreach ($this->meetingItems->sortBy('order') as $item) {
@@ -364,10 +390,13 @@ class Meeting extends Model implements Duplicable, HasMedia, Watchable
                 'discussable_id' => $item->discussable_id,
                 'title' => $item->title,
                 'order' => $item->order,
-                'notes' => $item->notes,
+                'notes' => $copyItemNotes ? $item->notes : null,
             ]);
 
-            app(MentionManager::class)->rebuildSource($copyItem);
+            // Sem Markdown copiado não há Menções do item a reconstruir.
+            if ($copyItemNotes) {
+                app(MentionManager::class)->rebuildSource($copyItem);
+            }
         }
 
         app(MentionManager::class)->rebuildSource($copy);

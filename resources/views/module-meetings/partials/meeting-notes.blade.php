@@ -5,8 +5,9 @@
   $canEditNotes = $meeting->status !== \App\Enums\Meeting\MeetingStatus::COMPLETED;
 @endphp
 
-<div id="meeting-notes-{{ $meeting->id }}" class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm"
-  tabindex="-1" data-deep-link-target>
+<div id="meeting-notes-{{ $meeting->id }}"
+  class="card content-surface entity-context-card entity-context-card--meeting mb-4 shadow-sm" tabindex="-1"
+  data-deep-link-target>
   <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-sticky-note mr-1" aria-hidden="true"></i> Anotações prévias
@@ -40,8 +41,9 @@
             <input type="hidden" name="form_context" value="meeting-notes">
 
             <label for="{{ $notesEditId }}-textarea" class="sr-only">Anotações prévias</label>
-            <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2" markdown-profile="full"
-              rows="3" maxlength="10000" data-file-reference-url="{{ route('files.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}"
+            <x-form.textarea name="meeting_notes" :id="$notesEditId . '-textarea'" :value="$meeting->notes" groupClass="mb-2"
+              markdown-profile="full" rows="3" maxlength="10000"
+              data-file-reference-url="{{ route('files.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}"
               data-file-share-url="{{ route('meetings.file-shares.store', $meeting) }}"
               data-mention-search-url="{{ route('mentions.selectable', ['context_type' => 'meeting', 'context_id' => $meeting->id]) }}" />
 

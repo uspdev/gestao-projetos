@@ -115,9 +115,7 @@
 
   <div class="collapse mt-2 meeting-item-notes-collapse" id="{{ $notesCollapseId }}">
     <div class="border rounded bg-light p-2">
-      <div class="d-flex align-items-center justify-content-between mb-2">
-        <small class="text-muted">Anotações prévias do item</small>
-
+      <div class="d-flex align-items-center justify-content-start mb-2">
         @if ($canEditNotes)
           @can('update', [$meeting, $project])
             <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"

@@ -42,10 +42,26 @@ class MeetingController extends Controller
 
         $showCompleted = $request->boolean('show_completed');
 
+        // A visão padrão mostra todas as reuniões abertas e só as duas concluídas mais recentes.
+        // Os IDs são materializados antes do filtro porque o MariaDB não aceita LIMIT em subconsulta de IN.
+        $latestCompletedMeetingIds = $showCompleted
+            ? collect()
+            : $project->meetings()
+                ->where('status', MeetingStatus::COMPLETED->value)
+                ->orderByDesc('scheduled_at')
+                ->orderByDesc('meetings.id')
+                ->limit(2)
+                ->pluck('meetings.id');
+
         $meetings = $project->meetings()
             ->with('projects')
-            ->when(! $showCompleted, function ($query) {
-                $query->where('status', '!=', MeetingStatus::COMPLETED->value);
+            ->when(! $showCompleted, function ($query) use ($latestCompletedMeetingIds) {
+                // Ao clicar no olho, este filtro não é aplicado e todas as reuniões são exibidas.
+                $query->where(function ($query) use ($latestCompletedMeetingIds) {
+                    $query
+                        ->where('status', '!=', MeetingStatus::COMPLETED->value)
+                        ->orWhereIn('meetings.id', $latestCompletedMeetingIds);
+                });
             })
             ->orderBy('status', 'desc')
             ->orderBy('scheduled_at')
