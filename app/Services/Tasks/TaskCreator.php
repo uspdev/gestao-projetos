@@ -2,12 +2,9 @@
 
 namespace App\Services\Tasks;
 
-use App\Enums\ProjectRequestStatus;
 use App\Enums\Task\TaskStatus;
-use App\Exceptions\ProjectRequestAlreadyEvaluatedException;
 use App\Mail\TaskAssigned;
 use App\Models\Project;
-use App\Models\ProjectRequest;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
@@ -21,29 +18,17 @@ final class TaskCreator
     {
     }
 
-    /**
-     * Cria uma Tarefa pelo fluxo canônico e, quando informado, aceita a
-     * Solicitação de origem dentro da mesma transação.
-     *
-     * @param array<string, mixed> $data
-     */
+    /** @param array<string, mixed> $data */
     public function create(
         Project $project,
         User $creator,
         array $data,
-        ?ProjectRequest $projectRequest = null,
-        ?string $response = null,
     ): Task {
         [$task, $assignee] = DB::transaction(function () use (
             $project,
             $creator,
             $data,
-            $projectRequest,
-            $response,
         ): array {
-            $lockedRequest = $projectRequest
-                ? $this->lockPendingRequest($project, $projectRequest)
-                : null;
             $assigneeId = $data['assignee_id'] ?? null;
             $tagIds = $data['tags'] ?? [];
             unset($data['assignee_id'], $data['tags']);
@@ -75,16 +60,6 @@ final class TaskCreator
                 $task->syncTagsWithType($tags, Tag::TYPE_TASK);
             }
 
-            if ($lockedRequest) {
-                $lockedRequest->forceFill([
-                    'status' => ProjectRequestStatus::ACCEPTED,
-                    'response' => $response,
-                    'evaluated_by' => $creator->id,
-                    'evaluated_at' => now(),
-                    'task_id' => $task->id,
-                ])->save();
-            }
-
             return [$task, $assignee];
         });
 
@@ -93,21 +68,6 @@ final class TaskCreator
         }
 
         return $task;
-    }
-
-    private function lockPendingRequest(Project $project, ProjectRequest $projectRequest): ProjectRequest
-    {
-        $lockedRequest = ProjectRequest::query()
-            ->whereKey($projectRequest->getKey())
-            ->where('project_id', $project->getKey())
-            ->lockForUpdate()
-            ->firstOrFail();
-
-        if ($lockedRequest->status !== ProjectRequestStatus::PENDING) {
-            throw new ProjectRequestAlreadyEvaluatedException();
-        }
-
-        return $lockedRequest;
     }
 
     private function assignUser(Task $task, User $user): void

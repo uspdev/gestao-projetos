@@ -30,8 +30,6 @@
         @includeIf("module-{$module}.partials.project-menu-item")
       @endforeach
 
-      @include('project-requests.partials.project-menu-item')
-
       @include('projects.partials.show.show-tag-badges')
 
     </div>

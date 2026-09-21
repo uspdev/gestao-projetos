@@ -64,13 +64,10 @@ class ClientSystemApiKeyManagementTest extends TestCase
         $this->assertSame([
             'projects.read',
             'tasks.read',
-            'requests.read',
         ], $clientSystem->abilities('viewer'));
         $this->assertSame([
             'projects.read',
             'tasks.read',
-            'requests.read',
-            'requests.create',
         ], $clientSystem->abilities('contributor'));
         $this->assertSame([], $clientSystem->abilities('administrator'));
         $this->assertSame([], $clientSystem->abilities('unknown'));
@@ -254,7 +251,7 @@ class ClientSystemApiKeyManagementTest extends TestCase
         $this->assertSame($administrator->id, $apiKey->created_by);
         $this->assertTrue($apiKey->allows('projects.read'));
         $this->assertTrue($apiKey->allows('tasks.read'));
-        $this->assertTrue($apiKey->allows('requests.read'));
+        $this->assertFalse($apiKey->allows('requests.read'));
         $this->assertFalse($apiKey->allows('requests.create'));
         $this->assertFalse($apiKey->allows('*'));
 

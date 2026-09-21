@@ -440,11 +440,6 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
         return $this->hasMany(ProjectModule::class);
     }
 
-    public function projectRequests(): HasMany
-    {
-        return $this->hasMany(ProjectRequest::class);
-    }
-
     public function modules(): BelongsToMany
     {
         return $this->belongsToMany(Module::class, 'project_modules')

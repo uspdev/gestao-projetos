@@ -60,6 +60,37 @@ class TaskCreationAssigneeTest extends TestCase
         $this->assertDatabaseCount('watches', 0);
     }
 
+    public function test_request_endpoints_are_absent_while_manual_task_creation_remains_available(): void
+    {
+        $project = 'projeto-teste';
+        $user = User::query()->findOrFail(1);
+
+        $this->getJson("/api/projects/{$project}/requests")->assertNotFound();
+        $this->getJson("/api/projects/{$project}/requests/1")->assertNotFound();
+        $this->postJson("/api/projects/{$project}/requests", [
+            'title' => 'Solicitação indevida',
+        ])->assertMethodNotAllowed();
+
+        $this->actingAs($user)
+            ->getJson("/projects/{$project}/requests")
+            ->assertNotFound();
+        $this->getJson("/projects/{$project}/requests/1")->assertNotFound();
+        $this->getJson("/projects/{$project}/requests/1/accept")->assertNotFound();
+        $this->postJson("/projects/{$project}/requests/1/accept")->assertMethodNotAllowed();
+        $this->patchJson("/projects/{$project}/requests/1/reject")->assertMethodNotAllowed();
+
+        $this->post(route('projects.tasks.store', $project), [
+            'title' => 'Tarefa criada manualmente',
+            'status' => 'NEW',
+        ])->assertRedirect(route('tasks.show', 1));
+
+        $this->assertDatabaseHas('tasks', [
+            'project_id' => 1,
+            'title' => 'Tarefa criada manualmente',
+        ]);
+        $this->assertFalse(Schema::hasTable('project_requests'));
+    }
+
     public function test_task_can_be_created_with_one_assignee_who_starts_watching_it(): void
     {
         Mail::fake();
