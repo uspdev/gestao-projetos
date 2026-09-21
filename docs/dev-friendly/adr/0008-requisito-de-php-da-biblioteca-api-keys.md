@@ -1,19 +1,19 @@
-# API Keys eleva a versão mínima do PHP
+# Requisito de PHP da biblioteca API Keys
 
 **Status:** aceito
 
-O Gestão de Projetos passará a exigir PHP 8.3 para instalar e usar o package
-`uspdev/api-keys`.
+O Gestão de Projetos exige PHP 8.3 para instalar e usar a biblioteca
+`uspdev/api-keys`, conforme a versão mínima declarada por ela.
 
 ## Contexto
 
-O projeto declara atualmente PHP `^8.2`, enquanto a versão inicial do package
-`uspdev/api-keys` declara PHP `^8.3` e Laravel 12 ou 13. O Gestão de Projetos já
-usa Laravel 12 e o ambiente local analisado executa PHP 8.3.33.
+`uspdev/api-keys` declara PHP `^8.3` e Laravel 12 ou 13. O Gestão de Projetos
+usa Laravel 12; reduzir artificialmente a restrição da biblioteca criaria uma
+combinação sem suporte.
 
 ## Decisão
 
-- O requisito PHP do Gestão de Projetos será alterado de `^8.2` para `^8.3`.
+- O requisito PHP do Gestão de Projetos será `^8.3`.
 - A aplicação consumirá o package respeitando seu contrato publicado, sem
   bifurcá-lo nem reduzir artificialmente sua versão mínima.
 - A dependência será declarada como `uspdev/api-keys: ^0.1`, permitindo

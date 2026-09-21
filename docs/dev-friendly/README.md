@@ -94,18 +94,9 @@ alterar o comportamento documentado:
 - [Generalizar Menções para entidades do sistema](adr/0005-generalizar-mencoes-para-entidades.md)
 - [Notificações de Menções no resumo](adr/0007-notificacoes-de-mencoes-no-resumo.md)
 - [Geração síncrona de miniaturas no envio de Arquivos](adr/0006-geracao-sincrona-de-miniaturas.md)
-- [Escopo de Chaves de API por Projeto](adr/0008-escopo-de-chaves-de-api-por-projeto.md)
-- [Rotas de API sem versionamento inicial](adr/0009-rotas-de-api-sem-versionamento-inicial.md)
-- [Solicitações precedem Tarefas](adr/0010-solicitacoes-precedem-tarefas.md)
-- [Sistemas clientes como proprietários das Chaves de API](adr/0011-sistemas-clientes-como-proprietarios-das-chaves.md)
-- [Identidade de Solicitantes delegada aos Sistemas clientes](adr/0012-identidade-de-solicitantes-delegada-aos-sistemas-clientes.md)
-- [Sistema cliente como único ator externo](adr/0013-sistema-cliente-como-unico-ator-externo.md)
-- [Papéis e abilities das Chaves de API](adr/0014-papeis-e-abilities-das-chaves-de-api.md)
-- [Dados expostos pela API](adr/0015-dados-expostos-pela-api.md)
-- [API Keys eleva a versão mínima do PHP](adr/0016-api-keys-eleva-versao-minima-do-php.md)
-- [Interface de Integrações e Solicitações](adr/0017-interface-de-integracoes-e-solicitacoes.md)
-- [Nomenclatura técnica de Integrações](adr/0018-nomenclatura-tecnica-de-integracoes.md)
-- [Estratégia de testes da integração por API](adr/0019-estrategia-de-testes-da-integracao-por-api.md)
+- [Requisito de PHP da biblioteca API Keys](adr/0008-requisito-de-php-da-biblioteca-api-keys.md)
+- [API de Projeto somente para leitura](adr/0009-api-de-projeto-somente-para-leitura.md)
+- [Recursos granulares na API de leitura](adr/0010-recursos-granulares-na-api-de-leitura.md)
 
 ## Implantação e operação
 

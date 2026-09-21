@@ -91,45 +91,13 @@ Nome ou título da Entidade mencionável no momento em que a Menção foi inseri
 ## Integrações por API
 
 **Chave de API**:
-Credencial pertencente a um Sistema cliente e usada para acessar os recursos autorizados do Projeto ao qual esse sistema está vinculado.
+Credencial pertencente diretamente a um Projeto e usada para consultar os recursos desse Projeto autorizados pelo seu Papel da Chave de API.
 _Evitar_: token global, chave compartilhada
 
-**Projeto de escopo da Chave**:
-Projeto ao qual pertence o Sistema cliente proprietário da Chave de API e cujo limite de recursos ela não pode ultrapassar.
-_Evitar_: Projeto proprietário da Chave, projeto da sessão, projeto do usuário
+**Projeto proprietário da Chave**:
+Projeto ao qual a Chave de API pertence diretamente e cujo limite de recursos ela não pode ultrapassar.
+_Evitar_: Sistema cliente, projeto da sessão, projeto do usuário
 
 **Papel da Chave de API**:
-Nível de acesso concedido a uma Chave de API. `viewer` permite leitura e `contributor` acrescenta o envio de Solicitações, sem transformar a credencial em membro do Projeto.
+Conjunto de capacidades de leitura concedidas a uma Chave de API, sem transformar a credencial em membro humano do Projeto.
 _Evitar_: papel do usuário, papel do membro, administrador da API
-
-**Sistema cliente**:
-Identidade estável de um sistema externo dentro de um Projeto, proprietária de suas Chaves de API e de suas Solicitações mesmo quando uma credencial é renovada.
-_Evitar_: usuário da API, LLM
-
-**Solicitação**:
-Proposta de correção ou melhoria enviada por um Sistema cliente para avaliação em um Projeto. Permanece registrada após a avaliação e, quando aceita, dá origem a uma nova Tarefa vinculada.
-_Evitar_: Tarefa pendente, Tarefa externa
-
-**Avaliador da Solicitação**:
-Usuário com vínculo local de administrador ou contribuidor no Projeto que aceita ou rejeita uma Solicitação. Quando a aceita, torna-se também o criador da Tarefa resultante, enquanto o Sistema cliente permanece registrado como origem da Solicitação.
-_Evitar_: criador externo da Tarefa, Sistema cliente avaliador
-
-**URL de origem da Solicitação**:
-Link opcional para a página do Sistema cliente na qual a Solicitação se originou, preservado apenas como caminho de consulta para o avaliador.
-_Evitar_: callback, webhook, URL da API
-
-**Descrição da Solicitação**:
-Texto simples enviado pelo Sistema cliente para explicar o pedido original, preservando quebras de linha e sem produzir Markdown ou Menções.
-_Evitar_: descrição da Tarefa, conteúdo Markdown
-
-**Solicitação aceita**:
-Solicitação em estado final cuja avaliação decidiu incorporá-la ao trabalho do Projeto e originou uma única nova Tarefa vinculada.
-_Evitar_: Solicitação confirmada, Tarefa aprovada
-
-**Solicitação rejeitada**:
-Solicitação em estado final cuja avaliação decidiu não incorporá-la ao trabalho do Projeto e que permanece registrada com uma Resposta à Solicitação, sem originar Tarefa.
-_Evitar_: Solicitação excluída, Tarefa rejeitada
-
-**Resposta à Solicitação**:
-Explicação devolvida ao Sistema cliente sobre o resultado da avaliação de uma Solicitação; é obrigatória na rejeição e opcional na aceitação.
-_Evitar_: Comentário da Tarefa, motivo da exclusão
