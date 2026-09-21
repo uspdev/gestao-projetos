@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TaskResource;
 use App\Models\ClientSystem;
 use App\Models\Project;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Validator;
@@ -29,6 +31,30 @@ class TaskController extends Controller
             ->when(
                 isset($validated['status']),
                 fn ($query) => $query->whereIn('status', $validated['status']),
+            )
+            ->when(
+                isset($validated['priority']),
+                fn ($query) => $query->whereIn('priority', $validated['priority']),
+            )
+            ->when(
+                isset($validated['due_from']),
+                fn ($query) => $query->whereDate('due_date', '>=', $validated['due_from']),
+            )
+            ->when(
+                isset($validated['due_to']),
+                fn ($query) => $query->whereDate('due_date', '<=', $validated['due_to']),
+            )
+            ->when(
+                isset($validated['tag']),
+                fn ($query) => $query->whereHas('tags', fn ($tags) => $tags
+                    ->where('type', Tag::TYPE_TASK)
+                    ->whereIn('slug->'.Tag::getLocale(), $validated['tag'])),
+            )
+            ->when(
+                isset($validated['search']) && $validated['search'] !== '',
+                fn ($query) => $query->where(fn ($search) => $search
+                    ->whereLike('title', '%'.$validated['search'].'%')
+                    ->orWhereLike('description', '%'.$validated['search'].'%')),
             )
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
@@ -61,8 +87,8 @@ class TaskController extends Controller
         $owner = $apiKey?->owner;
 
         abort_unless(
-            $owner instanceof ClientSystem
-                && (int) $owner->project_id === (int) $project->getKey(),
+            ($owner instanceof Project && (int) $owner->getKey() === (int) $project->getKey())
+                || ($owner instanceof ClientSystem && (int) $owner->project_id === (int) $project->getKey()),
             404,
         );
     }
@@ -80,19 +106,29 @@ class TaskController extends Controller
     }
 
     /**
-     * @return array{status?: list<string>, per_page?: int}
+     * @return array<string, mixed>
      */
     private function validateIndex(Request $request): array
     {
         $input = $request->query();
 
-        if (array_key_exists('status', $input) && ! is_array($input['status'])) {
-            $input['status'] = [$input['status']];
+        foreach (['status', 'priority', 'tag'] as $filter) {
+            if (array_key_exists($filter, $input) && ! is_array($input[$filter])) {
+                $input[$filter] = [$input[$filter]];
+            }
         }
 
         return Validator::make($input, [
             'status' => ['sometimes', 'array', 'min:1'],
             'status.*' => ['required', Rule::enum(TaskStatus::class)],
+            'priority' => ['sometimes', 'array', 'min:1'],
+            'priority.*' => ['required', 'integer', Rule::enum(TaskPriority::class)],
+            'due_from' => ['sometimes', 'date_format:Y-m-d'],
+            'due_to' => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:due_from'],
+            'tag' => ['sometimes', 'array', 'min:1'],
+            'tag.*' => ['required', 'string', 'max:255'],
+            'search' => ['sometimes', 'string', 'max:255'],
+            'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'between:1,100'],
         ])->validate();
     }

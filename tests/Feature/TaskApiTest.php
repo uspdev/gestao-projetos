@@ -71,9 +71,10 @@ class TaskApiTest extends TestCase
     public function test_list_and_detail_expose_the_integral_documented_representation_only(): void
     {
         $project = $this->project('Projeto com contexto integral');
+        $description = "## Contexto integral\n\n".str_repeat('Descrição com **Markdown**, sem renderização. ', 40).'Fim da descrição.';
         $task = $this->task($project, [
             'title' => 'Documentar integração',
-            'description' => "## Contexto integral\n\nDescrição com **Markdown**, sem renderização.",
+            'description' => $description,
             'status' => 'DONE',
             'priority' => 2,
             'start_date' => '2026-09-01',
@@ -102,7 +103,7 @@ class TaskApiTest extends TestCase
         $expected = [
             'id' => $task->id,
             'title' => 'Documentar integração',
-            'description' => "## Contexto integral\n\nDescrição com **Markdown**, sem renderização.",
+            'description' => $description,
             'status' => [
                 'value' => 'DONE',
                 'label' => 'Concluída',
@@ -238,6 +239,106 @@ class TaskApiTest extends TestCase
             ->assertJsonValidationErrors('status.0');
     }
 
+    public function test_combined_filters_match_any_requested_tag_and_search_title_or_description(): void
+    {
+        $project = $this->project('Projeto com filtros');
+        $matching = $this->task($project, [
+            'title' => 'Planejamento',
+            'description' => 'integracao com o serviço externo',
+            'status' => 'DONE',
+            'priority' => 2,
+            'due_date' => '2026-09-12',
+        ]);
+        $alsoMatching = $this->task($project, [
+            'title' => 'INTEGRACAO de dados',
+            'status' => 'NEW',
+            'priority' => 1,
+            'due_date' => '2026-09-10',
+        ]);
+        $wrongTag = $this->task($project, [
+            'title' => 'Integracao sem tag solicitada',
+            'status' => 'DONE',
+            'priority' => 2,
+            'due_date' => '2026-09-12',
+        ]);
+        $wrongDate = $this->task($project, [
+            'title' => 'Integracao fora do intervalo',
+            'status' => 'DONE',
+            'priority' => 2,
+            'due_date' => '2026-09-13',
+        ]);
+        $firstTag = $this->tag('integracao');
+        $secondTag = $this->tag('urgente');
+        $otherTag = $this->tag('interno');
+        $matching->tags()->attach($firstTag);
+        $alsoMatching->tags()->attach($secondTag);
+        $wrongTag->tags()->attach($otherTag);
+        $wrongDate->tags()->attach($firstTag);
+
+        $response = $this->withToken($this->tokenFor($project, 'viewer'))
+            ->getJson($this->indexUrl($project).'?'.http_build_query([
+                'status' => ['DONE', 'NEW'],
+                'priority' => [1, 2],
+                'due_from' => '2026-09-10',
+                'due_to' => '2026-09-12',
+                'tag' => ['integracao', 'urgente'],
+                'search' => 'integracao',
+            ]))
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta.total', 2);
+
+        $this->assertEqualsCanonicalizing(
+            [$matching->id, $alsoMatching->id],
+            collect($response->json('data'))->pluck('id')->all(),
+        );
+
+        $this->withToken($this->tokenFor($project, 'contributor'))
+            ->getJson($this->indexUrl($project).'?tag=desconhecida')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_invalid_filters_dates_intervals_and_pages_return_laravel_validation_errors(): void
+    {
+        $project = $this->project('Projeto com validação');
+        $this->withToken($this->tokenFor($project, 'viewer'));
+
+        foreach ([
+            [['priority' => ['9']], 'priority.0'],
+            [['priority' => ['2.5']], 'priority.0'],
+            [['tag' => ['']], 'tag.0'],
+            [['due_from' => '2026-02-30'], 'due_from'],
+            [['due_to' => '2026-09-12T00:00:00Z'], 'due_to'],
+            [['due_from' => '2026-09-13', 'due_to' => '2026-09-12'], 'due_to'],
+            [['page' => 0], 'page'],
+            [['page' => 'abc'], 'page'],
+        ] as [$query, $field]) {
+            $this->getJson($this->indexUrl($project).'?'.http_build_query($query))
+                ->assertUnprocessable()
+                ->assertJsonStructure(['message', 'errors'])
+                ->assertJsonValidationErrors($field);
+        }
+    }
+
+    public function test_project_key_and_legacy_client_system_key_are_both_accepted_until_ticket_07(): void
+    {
+        $project = $this->project('Projeto em transição');
+        $task = $this->task($project);
+
+        foreach ([$this->tokenFor($project, 'viewer'), $this->legacyTokenFor($project)] as $token) {
+            $this->withToken($token)
+                ->getJson($this->indexUrl($project))
+                ->assertOk()
+                ->assertJsonPath('data.0.id', $task->id);
+
+            $this->withToken($token)
+                ->getJson($this->showUrl($project, $task))
+                ->assertOk()
+                ->assertJsonPath('data.id', $task->id);
+        }
+    }
+
     public function test_routes_hide_tasks_from_other_projects_and_soft_deleted_tasks(): void
     {
         $project = $this->project('Projeto permitido');
@@ -268,6 +369,10 @@ class TaskApiTest extends TestCase
             ->getJson($this->indexUrl($otherProject))
             ->assertNotFound()
             ->assertJsonStructure(['message']);
+
+        $this->withToken($token)
+            ->getJson($this->indexUrl($project).'/999999')
+            ->assertNotFound();
     }
 
     public function test_list_and_detail_report_a_conflict_when_tasks_module_is_disabled(): void
@@ -290,6 +395,21 @@ class TaskApiTest extends TestCase
             ->getJson($this->showUrl($project, $task))
             ->assertStatus(409)
             ->assertExactJson($expected);
+    }
+
+    public function test_foreign_project_with_disabled_tasks_module_is_hidden_before_module_conflict(): void
+    {
+        $project = $this->project('Projeto autorizado');
+        $foreign = $this->project('Projeto com módulo inativo');
+        $task = $this->task($foreign);
+        $foreign->projectModules()->update(['enabled' => false]);
+
+        $this->withToken($this->tokenFor($project, 'viewer'))
+            ->getJson($this->indexUrl($foreign))
+            ->assertNotFound();
+
+        $this->getJson($this->showUrl($foreign, $task))
+            ->assertNotFound();
     }
 
     private function project(string $name): Project
@@ -353,16 +473,35 @@ class TaskApiTest extends TestCase
 
     private function tokenFor(Project $project, string $role): string
     {
+        return app(ApiKeyManager::class)->create(
+            $project,
+            'Credencial de teste',
+            'integration',
+            $role,
+        )->plainTextToken();
+    }
+
+    private function legacyTokenFor(Project $project): string
+    {
         $clientSystem = $project->clientSystems()->create([
-            'name' => 'Sistema '.$project->id.' '.$role.' '.str()->random(6),
+            'name' => 'Sistema legado '.$project->id,
         ]);
 
         return app(ApiKeyManager::class)->create(
             $clientSystem,
             'Credencial de teste',
             'integration',
-            $role,
+            'viewer',
         )->plainTextToken();
+    }
+
+    private function tag(string $slug): Tag
+    {
+        return Tag::query()->create([
+            'name' => ['pt_BR' => $slug],
+            'slug' => ['pt_BR' => $slug],
+            'type' => Tag::TYPE_TASK,
+        ]);
     }
 
     private function indexUrl(Project $project): string
