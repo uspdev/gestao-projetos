@@ -46,11 +46,6 @@ class ProjectResource extends JsonResource
                     ->pluck('slug')
                     ->values()
                     ->all(),
-                'tasks_enabled' => (bool) data_get(
-                    $modules->firstWhere('slug', 'tasks'),
-                    'enabled',
-                    false,
-                ),
             ],
             'web_url' => route('projects.show', $project),
             'created_at' => $project->created_at?->toISOString(),

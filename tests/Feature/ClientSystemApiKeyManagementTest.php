@@ -50,6 +50,7 @@ class ClientSystemApiKeyManagementTest extends TestCase
         $this->assertSame(ClientSystem::class, config('api-keys.owners.client-system'));
         $this->assertSame([
             'client-system' => ClientSystem::class,
+            'project' => Project::class,
         ], ApiKeyOwnerMap::morphMap());
         $this->assertFalse(config('api-keys.query_parameter.enabled'));
         $this->assertSame([
@@ -414,6 +415,159 @@ class ClientSystemApiKeyManagementTest extends TestCase
         $this->assertSame('Sistema restrito', $clientSystem->refresh()->name);
     }
 
+    public function test_project_manager_is_in_settings_and_only_direct_administrators_can_use_package_routes(): void
+    {
+        $parent = $this->project('Projeto pai');
+        $project = $this->project('Projeto das chaves', $parent);
+        $administrator = $this->user('Administradora direta');
+        $contributor = $this->user('Contribuidor direto');
+        $viewer = $this->user('Visualizador direto');
+        $inherited = $this->user('Administrador herdado');
+        $global = $this->globalAdministrator('Administrador global');
+        $project->users()->attach($administrator, ['role' => 'ADMIN']);
+        $project->users()->attach($contributor, ['role' => 'CONTRIBUTOR']);
+        $project->users()->attach($viewer, ['role' => 'VIEWER']);
+        $parent->users()->attach($inherited, ['role' => 'ADMIN']);
+
+        $store = route('api-keys.keys.store', ['project', $project]);
+        $this->actingAs($administrator)
+            ->get(route('projects.settings', $project))
+            ->assertOk()
+            ->assertSee('data-api-keys-manager', false)
+            ->assertSee('value="project"', false)
+            ->assertSee('value="integration"', false)
+            ->assertSee('value="ai"', false)
+            ->assertSee('value="viewer"', false)
+            ->assertSee('value="contributor"', false);
+
+        foreach ([$contributor, $viewer, $inherited, $global] as $user) {
+            $this->actingAs($user)
+                ->get(route('projects.settings', $project))
+                ->assertOk()
+                ->assertDontSee('data-api-keys-manager', false);
+
+            $this->actingAs($user)->post($store, [
+                'name' => 'Chave recusada',
+                'purpose' => 'integration',
+                'role' => 'viewer',
+            ])->assertForbidden();
+        }
+
+        $this->actingAs($administrator)->post($store, [
+            'name' => 'Chave direta',
+            'purpose' => 'ai',
+            'role' => 'viewer',
+        ])->assertRedirect();
+
+        $key = ApiKey::query()->where('owner_type', 'project')->firstOrFail();
+        $this->assertSame($project->id, $key->owner_id);
+        $this->assertSame('project', $key->owner_type);
+        $this->assertSame('ai', $key->purpose);
+        $this->assertSame('viewer', $key->role);
+
+        $firstDisplay = $this->get(route('projects.settings', $project))
+            ->assertOk()
+            ->assertSee('Ela será exibida apenas uma vez.');
+        $this->assertSame(1, preg_match('/gpp_[A-Z0-9]{6}\.[A-Za-z0-9_-]+/', $firstDisplay->getContent(), $matches));
+        $this->get(route('projects.settings', $project))
+            ->assertOk()
+            ->assertDontSee($matches[0]);
+
+        foreach ([$contributor, $viewer, $inherited, $global] as $user) {
+            $this->actingAs($user)
+                ->post(route('api-keys.keys.renew', ['project', $project, $key]), [
+                    'name' => 'Renovação recusada',
+                    'purpose' => 'ai',
+                    'role' => 'viewer',
+                ])->assertForbidden();
+            $this->actingAs($user)
+                ->post(route('api-keys.keys.revoke', ['project', $project, $key]))
+                ->assertForbidden();
+        }
+    }
+
+    public function test_project_keys_have_read_abilities_and_package_renewal_and_revocation(): void
+    {
+        $project = $this->project('Projeto de leitura');
+        $administrator = $this->user('Administradora de leitura');
+        $project->users()->attach($administrator, ['role' => 'ADMIN']);
+        $this->actingAs($administrator);
+
+        foreach (['viewer', 'contributor'] as $role) {
+            $this->post(route('api-keys.keys.store', ['project', $project]), [
+                'name' => 'Chave '.$role,
+                'purpose' => $role === 'viewer' ? 'integration' : 'ai',
+                'role' => $role,
+            ])->assertRedirect();
+        }
+
+        $keys = $project->apiKeys()->orderBy('id')->get();
+        $this->assertCount(2, $keys);
+        foreach ($keys as $key) {
+            foreach (['projects.read', 'meetings.read', 'tasks.read', 'files.read'] as $ability) {
+                $this->assertTrue($key->allows($ability));
+            }
+            $this->assertFalse($key->allows('*'));
+            $this->assertFalse($key->allows('requests.read'));
+            $this->assertFalse($key->allows('requests.create'));
+        }
+
+        $this->post(route('api-keys.keys.renew', ['project', $project, $keys[0]]), [
+            'name' => 'Chave renovada',
+            'purpose' => 'ai',
+            'role' => 'contributor',
+        ])->assertRedirect();
+        $this->assertTrue($keys[0]->refresh()->isRevoked());
+        $replacement = $project->apiKeys()->whereKeyNot($keys[0]->id)->latest('id')->firstOrFail();
+        $this->assertSame('contributor', $replacement->role);
+        $this->post(route('api-keys.keys.revoke', ['project', $project, $replacement]))
+            ->assertRedirect();
+        $this->assertTrue($replacement->refresh()->isRevoked());
+        app(ApiKeyManager::class)->revoke($keys[1]);
+        $this->get(route('projects.settings', $project))
+            ->assertOk()
+            ->assertSee('data-api-url-warning class="text-muted', false);
+    }
+
+    public function test_project_deletion_revokes_its_direct_keys_and_slug_warning_tracks_active_keys(): void
+    {
+        $project = $this->project('Projeto mutável');
+        $administrator = $this->user('Administradora mutável');
+        $project->users()->attach($administrator, ['role' => 'ADMIN']);
+        $this->actingAs($administrator);
+
+        $this->get(route('projects.settings', $project))
+            ->assertOk()
+            ->assertSee('data-api-url-warning class="text-muted', false);
+
+        $created = app(ApiKeyManager::class)->create($project, 'Chave ativa', 'integration', 'viewer');
+        $this->get(route('projects.settings', $project))
+            ->assertOk()
+            ->assertSee('data-api-url-warning class="alert alert-warning', false)
+            ->assertSee('URLs da API');
+
+        $oldSlug = $project->slug;
+        $this->patch(route('projects.updateSlug', $project), ['slug' => 'projeto-renomeado'])
+            ->assertRedirect(route('projects.settings', 'projeto-renomeado').'#'.deep_link_fragment($project));
+        $this->getJson('/api/projects/'.$oldSlug)
+            ->assertNotFound();
+        $this->withToken($created->plainTextToken())
+            ->getJson('/api/projects/projeto-renomeado')
+            ->assertOk();
+
+        $project->refresh();
+        $this->delete(route('projects.destroy', $project))->assertRedirect();
+        $this->assertTrue($created->apiKey->refresh()->isRevoked());
+        $project->refresh()->restore();
+        $this->assertDatabaseHas('projects', [
+            'id' => $project->id,
+            'deleted_at' => null,
+        ]);
+        $this->withToken($created->plainTextToken())
+            ->getJson('/api/projects/'.$project->fresh()->slug)
+            ->assertUnauthorized();
+    }
+
     private function user(string $name): User
     {
         return User::query()->create([
@@ -458,6 +612,22 @@ class ClientSystemApiKeyManagementTest extends TestCase
             $table->rememberToken();
             $table->timestamps();
         });
+        Schema::create('project_types', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('slug');
+            $table->boolean('enabled')->default(true);
+            $table->timestamps();
+        });
+        Schema::create('phases', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('slug');
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_initial')->default(false);
+            $table->boolean('is_final')->default(false);
+            $table->timestamps();
+        });
         Schema::create('projects', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
@@ -481,6 +651,30 @@ class ClientSystemApiKeyManagementTest extends TestCase
             $table->foreignId('user_id');
             $table->string('role');
             $table->boolean('pinned')->default(false);
+            $table->timestamps();
+        });
+        Schema::create('modules', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('slug');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('project_modules', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('project_id');
+            $table->foreignId('module_id');
+            $table->boolean('enabled')->default(true);
+            $table->timestamps();
+        });
+        Schema::create('project_type_modules', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('project_type_id');
+            $table->foreignId('module_id');
+            $table->boolean('enabled')->default(true);
+            $table->boolean('required')->default(false);
+            $table->boolean('editable')->default(true);
+            $table->json('config')->nullable();
             $table->timestamps();
         });
         Schema::create('tasks', function (Blueprint $table): void {
@@ -537,9 +731,11 @@ class ClientSystemApiKeyManagementTest extends TestCase
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
         (require database_path('migrations/2026_09_14_000000_create_client_systems_table.php'))->up();
 
-        DB::table('permissions')->insert(collect([
-            'admin', 'boss', 'manager', 'poweruser', 'user',
-        ])->map(fn (string $name) => [
+        DB::table('permissions')->insert(collect(array_unique(array_merge(
+            User::$permissoesHierarquia,
+            User::$permissoesVinculo,
+            ['admin', 'boss', 'manager', 'poweruser', 'user'],
+        )))->map(fn (string $name) => [
             'name' => $name,
             'guard_name' => 'senhaunica',
             'created_at' => now(),

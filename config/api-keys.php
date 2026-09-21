@@ -36,6 +36,7 @@ return [
     // Exemplo: 'project' => App\\Models\\Project::class.
     'owners' => [
         'client-system' => App\Models\ClientSystem::class,
+        'project' => App\Models\Project::class,
     ],
 
     // Prefixo das rotas de gerenciamento fornecidas pelo package, incluindo
@@ -71,7 +72,7 @@ return [
     // logs, históricos do navegador, proxies e ferramentas de monitoramento.
     'query_parameter' => [
         // Habilita o recebimento do token completo pela query string.
-        'enabled' => (bool) env('API_KEYS_QUERY_PARAMETER_ENABLED', false),
+        'enabled' => false,
 
         // Nome do parâmetro aceito quando o fallback estiver habilitado.
         'name' => env('API_KEYS_QUERY_PARAMETER_NAME', 'api_key'),

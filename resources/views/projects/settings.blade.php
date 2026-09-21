@@ -29,6 +29,12 @@
       color: #dc3545;
     }
 
+    #project-api-keys-settings .api-keys-manager > .d-flex {
+      justify-content: flex-start !important;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
     @media (max-width: 991.98px) {
       .project-settings-nav {
         position: static;
@@ -81,6 +87,11 @@
               <a class="nav-link" href="{{ $settingsUrl }}#project-modules-settings">
                 <i class="fas fa-puzzle-piece fa-fw mr-2" aria-hidden="true"></i> Módulos
               </a>
+              @can('manageApiKeys', $project)
+                <a class="nav-link" href="{{ $settingsUrl }}#project-api-keys-settings">
+                  <i class="fas fa-key fa-fw mr-2" aria-hidden="true"></i> Chaves de API
+                </a>
+              @endcan
               @can('create', [\App\Models\ClientSystem::class, $project])
                 <a class="nav-link" href="{{ $settingsUrl }}#project-integrations-settings">
                   <i class="fas fa-plug fa-fw mr-2" aria-hidden="true"></i> Integrações
@@ -118,6 +129,14 @@
           <section id="project-modules-settings">
             @include('projects.partials.show.show-card-modulos', ['showToggle' => true])
           </section>
+
+          @can('manageApiKeys', $project)
+            <section id="project-api-keys-settings" class="card config-card mb-4">
+              <div class="card-body">
+                <x-api-keys::manager :owner="$project" owner-alias="project" />
+              </div>
+            </section>
+          @endcan
 
           @can('create', [\App\Models\ClientSystem::class, $project])
             @include('client-systems.settings-card')

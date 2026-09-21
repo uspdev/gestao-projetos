@@ -101,7 +101,7 @@ class ProjectApiTest extends TestCase
             ->assertOk();
     }
 
-    public function test_key_cannot_read_a_project_outside_its_client_system_scope(): void
+    public function test_key_cannot_read_a_project_outside_its_owner_scope(): void
     {
         $allowedProject = $this->project('Projeto permitido');
         $otherProject = $this->project('Projeto alheio');
@@ -112,6 +112,52 @@ class ProjectApiTest extends TestCase
             ->assertNotFound()
             ->assertJsonStructure(['message'])
             ->assertJsonMissing(['id' => $otherProject->id]);
+    }
+
+    public function test_missing_deleted_and_legacy_client_system_projects_are_not_readable(): void
+    {
+        $project = $this->project('Projeto da credencial');
+        $token = $this->tokenFor($project, 'viewer');
+
+        $this->withToken($token)
+            ->getJson('/api/projects/projeto-inexistente')
+            ->assertNotFound();
+
+        $clientSystem = $project->clientSystems()->create(['name' => 'Sistema legado']);
+        $legacy = app(ApiKeyManager::class)->create(
+            $clientSystem,
+            'Chave legada',
+            'integration',
+            'viewer',
+        );
+        $this->withToken($legacy->plainTextToken())
+            ->getJson('/api/projects/'.$project->slug)
+            ->assertNotFound();
+
+        $slug = $project->slug;
+        $project->delete();
+        $this->withToken($token)
+            ->getJson('/api/projects/'.$slug)
+            ->assertNotFound();
+    }
+
+    public function test_purpose_is_descriptive_and_does_not_change_project_read_access(): void
+    {
+        $project = $this->project('Projeto das finalidades');
+
+        foreach (['integration', 'ai'] as $purpose) {
+            $credential = app(ApiKeyManager::class)->create(
+                $project,
+                'Leitura '.$purpose,
+                $purpose,
+                'viewer',
+            );
+
+            $this->withToken($credential->plainTextToken())
+                ->getJson('/api/projects/'.$project->slug)
+                ->assertOk()
+                ->assertJsonPath('data.id', $project->id);
+        }
     }
 
     public function test_project_resource_exposes_only_the_documented_context(): void
@@ -202,7 +248,6 @@ class ProjectApiTest extends TestCase
                 ]],
                 'modules' => [
                     'enabled' => ['meetings'],
-                    'tasks_enabled' => false,
                 ],
                 'web_url' => route('projects.show', $project),
                 'created_at' => $project->created_at->toISOString(),
@@ -211,7 +256,7 @@ class ProjectApiTest extends TestCase
         ]);
     }
 
-    public function test_project_read_reports_the_current_tasks_module_state(): void
+    public function test_project_read_reports_enabled_modules_without_a_redundant_flag(): void
     {
         $tasks = Module::query()->create([
             'name' => 'Tarefas',
@@ -224,7 +269,7 @@ class ProjectApiTest extends TestCase
             ->getJson('/api/projects/'.$project->slug)
             ->assertOk()
             ->assertJsonPath('data.modules.enabled.0', 'tasks')
-            ->assertJsonPath('data.modules.tasks_enabled', true);
+            ->assertJsonMissingPath('data.modules.tasks_enabled');
 
         $project->projectModules()
             ->where('module_id', $tasks->id)
@@ -234,7 +279,7 @@ class ProjectApiTest extends TestCase
             ->getJson('/api/projects/'.$project->slug)
             ->assertOk()
             ->assertJsonPath('data.modules.enabled', [])
-            ->assertJsonPath('data.modules.tasks_enabled', false);
+            ->assertJsonMissingPath('data.modules.tasks_enabled');
     }
 
     public function test_slug_warning_mentions_api_urls_and_is_highlighted_for_integrated_projects(): void
@@ -300,12 +345,8 @@ class ProjectApiTest extends TestCase
 
     private function credentialFor(Project $project, string $role): CreatedApiKeyDto
     {
-        $clientSystem = $project->clientSystems()->create([
-            'name' => 'Sistema '.$project->id.' '.$role.' '.str()->random(6),
-        ]);
-
         return app(ApiKeyManager::class)->create(
-            $clientSystem,
+            $project,
             'Credencial de teste',
             'integration',
             $role,
@@ -376,6 +417,13 @@ class ProjectApiTest extends TestCase
             $table->boolean('enabled')->default(true);
             $table->timestamps();
             $table->unique(['project_id', 'module_id']);
+        });
+        Schema::create('tasks', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('project_id');
+            $table->boolean('deleted_via_project')->default(false);
+            $table->timestamps();
+            $table->softDeletes();
         });
         Schema::create('project_type_modules', function (Blueprint $table): void {
             $table->id();

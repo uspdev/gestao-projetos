@@ -36,10 +36,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Tags\HasTags;
 use Spatie\MediaLibrary\HasMedia;
 use Uspdev\ApiKeys\Contracts\ApiKeyManager;
+use Uspdev\ApiKeys\Traits\HasApiAbilities;
+use Uspdev\ApiKeys\Traits\HasApiKeys;
 
 class Project extends Model implements Discussable, Duplicable, HasMedia, Watchable
 {
     use HasFactory, SoftDeletes, Auditable, HasTags, HasSlug, HasMentions, LogsActivity;
+    use HasApiAbilities, HasApiKeys;
     use HasMeeting, InteractsWithFiles;
 
     public const ORGANIZATIONAL_TYPE_SLUG = 'organizacional';
@@ -85,18 +88,28 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
                 return;
             }
 
-            if (Schema::hasTable('client_systems') && Schema::hasTable('uspdev_api_keys')) {
+            if (Schema::hasTable('uspdev_api_keys')) {
                 $apiKeys = app(ApiKeyManager::class);
 
-                $project->clientSystems()
-                    ->with(['apiKeys' => fn ($query) => $query
-                        ->whereNull('revoked_at')
-                        ->where(fn ($query) => $query
-                            ->whereNull('expires_at')
-                            ->orWhere('expires_at', '>', now()))])
+                $project->apiKeys()
+                    ->whereNull('revoked_at')
+                    ->where(fn ($query) => $query
+                        ->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now()))
                     ->get()
-                    ->each(fn (ClientSystem $clientSystem) => $clientSystem->apiKeys
-                        ->each(fn ($apiKey) => $apiKeys->revoke($apiKey, Auth::id())));
+                    ->each(fn ($apiKey) => $apiKeys->revoke($apiKey, Auth::id()));
+
+                if (Schema::hasTable('client_systems')) {
+                    $project->clientSystems()
+                        ->with(['apiKeys' => fn ($query) => $query
+                            ->whereNull('revoked_at')
+                            ->where(fn ($query) => $query
+                                ->whereNull('expires_at')
+                                ->orWhere('expires_at', '>', now()))])
+                        ->get()
+                        ->each(fn (ClientSystem $clientSystem) => $clientSystem->apiKeys
+                            ->each(fn ($apiKey) => $apiKeys->revoke($apiKey, Auth::id())));
+                }
             }
 
             $project->tasks()->get()->each(function (Task $task) {
@@ -135,6 +148,14 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    /** @return list<string> */
+    public function abilities(string $role): array
+    {
+        return in_array($role, ['viewer', 'contributor'], true)
+            ? ['projects.read', 'meetings.read', 'tasks.read', 'files.read']
+            : [];
     }
 
     public function initializeProjectModules(): void

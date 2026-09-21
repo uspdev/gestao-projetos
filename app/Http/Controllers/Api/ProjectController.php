@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
-use App\Models\ClientSystem;
 use App\Models\Project;
 use Illuminate\Http\Request;
 
@@ -18,8 +17,8 @@ class ProjectController extends Controller
         $owner = $apiKey?->owner;
 
         abort_unless(
-            $owner instanceof ClientSystem
-                && (int) $owner->project_id === (int) $project->getKey(),
+            $owner instanceof Project
+                && (int) $owner->getKey() === (int) $project->getKey(),
             404,
         );
 

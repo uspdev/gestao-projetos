@@ -18,19 +18,25 @@
     </div>
   </form>
   @php
+    $hasActiveApiKeys = $project->apiKeys()
+        ->whereNull('revoked_at')
+        ->where(function ($query) {
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        })
+        ->exists();
     $hasClientSystems = $project->relationLoaded('clientSystems')
         ? $project->clientSystems->isNotEmpty()
         : $project->clientSystems()->exists();
   @endphp
-  @if ($hasClientSystems)
+  @if ($hasActiveApiKeys || $hasClientSystems)
     <div data-api-url-warning class="alert alert-warning py-2 mt-2 mb-0" role="alert">
       <strong>Atenção:</strong> Alterar o slug quebrará links antigos, inclusive as URLs da API.
-      Os Sistemas clientes precisarão ser atualizados manualmente; a URL anterior deixará de funcionar.
+      Os consumidores precisarão atualizar as URLs; a URL anterior deixará de funcionar.
     </div>
   @else
     <small data-api-url-warning class="text-muted d-block mt-1">
       Aviso: Alterar o slug quebrará links antigos, inclusive as URLs da API.
-      Os Sistemas clientes precisarão ser atualizados manualmente; a URL anterior deixará de funcionar.
+      Os consumidores precisarão atualizar as URLs; a URL anterior deixará de funcionar.
     </small>
   @endif
 @else

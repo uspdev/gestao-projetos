@@ -10,6 +10,10 @@ class ProjectPolicy
 
     public function before(User $user, $ability): ?bool
     {
+        if ($ability === 'manageApiKeys') {
+            return null;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
@@ -46,6 +50,11 @@ class ProjectPolicy
     public function update(User $user, Project $project): bool
     {
         return $user->isAdminOfProject($project);
+    }
+
+    public function manageApiKeys(User $user, Project $project): bool
+    {
+        return ! $project->trashed() && $user->isAdminOfProject($project);
     }
 
     public function viewActivity(User $user, Project $project): bool
