@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\MeetingController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +38,7 @@ Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show'])
     ->whereNumber('task')
     ->middleware('uspdevApiKeys:tasks.read')
     ->name('api.projects.tasks.show');
+
+Route::get('projects/{project}/files', [FileController::class, 'index'])
+    ->middleware('uspdevApiKeys:files.read')
+    ->name('api.projects.files.index');
