@@ -77,10 +77,12 @@ O módulo de Arquivos usa armazenamento privado. Não execute
 - [Arquivos e Links](arquivos-links/implementar-links-mult-arquivos.md) — detalhes de implementação e compartilhamento de Arquivos e Links.
 - [Links profundos e fragmentos](navegacao/links-profundos-e-fragmentos.md) — uso de `deep_link()`, IDs de destino, redirects, Menções e navegação de Arquivos e Links.
 - [Cores dos Cards](visual/cores_cards.md) — identidade visual por entidade, incluindo projetos, tarefas e reuniões. Segue o padrão da EESC-USP, com cores discretas e consistentes em todas as telas.
-- [API de Integrações e Solicitações](api/integracoes-e-solicitacoes.md) —
-  instalação, autenticação Bearer, contrato HTTP, erros e implantação.
-- [Teste manual rápido da API](api/teste-manual-integracoes.md) — validação
-  local por `curl`, da autenticação até a fila de Solicitações.
+- [API de leitura por Projeto](api/leitura-por-projeto.md) — autenticação
+  Bearer, contrato HTTP, filtros, erros e exemplos de consumo.
+- [Teste manual da API de leitura](api/teste-manual-leitura-por-projeto.md) —
+  validação local por `curl`, da emissão à revogação da chave.
+- [Teste manual da API de leitura no Postman](api/teste-manual-leitura-por-projeto-postman.md)
+  — mesma validação com ambiente, coleção e verificações manuais.
 
 ## ADRs
 

@@ -31,8 +31,8 @@ A documentação está organizada por público:
 - [CONTEXT.md](CONTEXT.md) — glossário e linguagem canônica do domínio.
 - [Regras de domínio](docs/dev-friendly/regras-de-dominio.md) — invariantes,
   autorização, módulos e efeitos assíncronos.
-- [API de Integrações e Solicitações](docs/dev-friendly/api/integracoes-e-solicitacoes.md)
-  — autenticação, rotas, payloads, respostas e ordem operacional.
+- [API de leitura por Projeto](docs/dev-friendly/api/leitura-por-projeto.md) —
+  autenticação, recursos, filtros, respostas e exemplos de consumo.
 - [ADRs](docs/dev-friendly/adr/) — decisões de arquitetura e comportamento.
 - [Aware Prompt](docs/dev-friendly/aware_prompt.md) — visão técnica para
   manutenção assistida.
