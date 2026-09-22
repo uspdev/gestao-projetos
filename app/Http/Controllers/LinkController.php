@@ -34,6 +34,9 @@ class LinkController extends Controller
     {
         $link = $this->visibleLink($request, $uuid);
         Gate::forUser($request->user())->authorize('update', $link);
+        // Precisa pegar a URL da página do proprietário do link para redirecionar após a atualização.
+        // Resolve issue #47
+        $ownerPageUrl = $this->ownerPageUrl($request, $link->linkable);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -41,7 +44,7 @@ class LinkController extends Controller
         ]);
 
         if (! $this->isExternalHttpUrl($validated['url'])) {
-            return back()
+            return redirect()->to($ownerPageUrl)
                 ->withFragment(deep_link_fragment($link))
                 ->withErrors(['url' => 'Informe uma URL externa válida com http:// ou https://.']);
         }
@@ -60,7 +63,7 @@ class LinkController extends Controller
                 ->log('updated');
         });
 
-        return back()
+        return redirect()->to($ownerPageUrl)
             ->withFragment(deep_link_fragment($link))
             ->with('alert-success', 'Link atualizado com sucesso.');
     }
@@ -162,7 +165,7 @@ class LinkController extends Controller
             $owner->loadMissing('projects');
             $project = $owner->projects
                 ->sortBy('name')
-                ->first(fn (Project $project): bool => $request->user()->isViewerOfProject($project));
+                ->first(fn(Project $project): bool => $request->user()->isViewerOfProject($project));
 
             abort_unless($project, 404);
 
@@ -195,6 +198,6 @@ class LinkController extends Controller
 
     private function browserFragment(Model $owner): string
     {
-        return 'files-'.$owner->getMorphClass().'-'.$owner->getKey();
+        return 'files-' . $owner->getMorphClass() . '-' . $owner->getKey();
     }
 }

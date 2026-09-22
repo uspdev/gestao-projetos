@@ -51,7 +51,13 @@ class UserController extends Controller
 
         $tasksByStatus = $user->tasksByStatus($taskView, $tasksDone);
         $availableMeetingProjectIds = Project::availableForMeetings($user)->pluck('id');
-        $meetings = $user->scheduledMeetings($availableMeetingProjectIds);
+        // A rota da reunião exige um Projeto contextual. Reuniões sem vínculo
+        // autorizado não podem ser enviadas para o card da dashboard.
+        $meetings = $user->scheduledMeetings($availableMeetingProjectIds)
+            ->filter(fn (Meeting $meeting): bool =>
+                $meeting->contextProjectFor($user, $availableMeetingProjectIds) !== null
+            )
+            ->values();
         $watchedResources = $request->user()->is($user)
             ? $this->watchedResourcesFor($user)
             : collect();

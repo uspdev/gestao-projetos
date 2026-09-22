@@ -350,6 +350,31 @@ class FileExposureTest extends TestCase
         $this->assertDatabaseMissing('links', ['id' => $link->id]);
     }
 
+    public function test_link_update_returns_to_its_project_even_when_the_referer_is_the_dashboard(): void
+    {
+        $author = $this->user('Autor de Link sem Referer');
+        $viewer = $this->user('Leitor de Link sem Referer');
+        $project = $this->projectWithMembers($author, $viewer);
+        $link = $project->links()->create([
+            'name' => 'Manual',
+            'url' => 'https://example.test/manual',
+            'created_by' => $author->id,
+        ]);
+
+        $this->actingAs($author)
+            ->from(route('dashboard'))
+            ->patch(route('links.update', $link->uuid), [
+                'name' => 'Manual atualizado',
+                'url' => 'https://example.test/manual',
+            ])
+            ->assertRedirect(route('projects.show', $project).'#link-'.$link->uuid);
+
+        $this->assertDatabaseHas('links', [
+            'id' => $link->id,
+            'name' => 'Manual atualizado',
+        ]);
+    }
+
     public function test_file_actions_render_an_edit_region_for_each_resource(): void
     {
         Storage::fake('files');
