@@ -98,18 +98,6 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
                         ->orWhere('expires_at', '>', now()))
                     ->get()
                     ->each(fn ($apiKey) => $apiKeys->revoke($apiKey, Auth::id()));
-
-                if (Schema::hasTable('client_systems')) {
-                    $project->clientSystems()
-                        ->with(['apiKeys' => fn ($query) => $query
-                            ->whereNull('revoked_at')
-                            ->where(fn ($query) => $query
-                                ->whereNull('expires_at')
-                                ->orWhere('expires_at', '>', now()))])
-                        ->get()
-                        ->each(fn (ClientSystem $clientSystem) => $clientSystem->apiKeys
-                            ->each(fn ($apiKey) => $apiKeys->revoke($apiKey, Auth::id())));
-                }
             }
 
             $project->tasks()->get()->each(function (Task $task) {
@@ -221,14 +209,6 @@ class Project extends Model implements Discussable, Duplicable, HasMedia, Watcha
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
-    }
-
-    /**
-     * Relacionamento com os Sistemas clientes configurados no Projeto.
-     */
-    public function clientSystems(): HasMany
-    {
-        return $this->hasMany(ClientSystem::class)->orderBy('name');
     }
 
     /**

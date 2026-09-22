@@ -321,22 +321,19 @@ class TaskApiTest extends TestCase
         }
     }
 
-    public function test_project_key_and_legacy_client_system_key_are_both_accepted_until_ticket_07(): void
+    public function test_project_key_reads_the_task_list_and_detail(): void
     {
         $project = $this->project('Projeto em transição');
         $task = $this->task($project);
 
-        foreach ([$this->tokenFor($project, 'viewer'), $this->legacyTokenFor($project)] as $token) {
-            $this->withToken($token)
-                ->getJson($this->indexUrl($project))
-                ->assertOk()
-                ->assertJsonPath('data.0.id', $task->id);
+        $this->withToken($this->tokenFor($project, 'viewer'))
+            ->getJson($this->indexUrl($project))
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $task->id);
 
-            $this->withToken($token)
-                ->getJson($this->showUrl($project, $task))
-                ->assertOk()
-                ->assertJsonPath('data.id', $task->id);
-        }
+        $this->getJson($this->showUrl($project, $task))
+            ->assertOk()
+            ->assertJsonPath('data.id', $task->id);
     }
 
     public function test_routes_hide_tasks_from_other_projects_and_soft_deleted_tasks(): void
@@ -481,20 +478,6 @@ class TaskApiTest extends TestCase
         )->plainTextToken();
     }
 
-    private function legacyTokenFor(Project $project): string
-    {
-        $clientSystem = $project->clientSystems()->create([
-            'name' => 'Sistema legado '.$project->id,
-        ]);
-
-        return app(ApiKeyManager::class)->create(
-            $clientSystem,
-            'Credencial de teste',
-            'integration',
-            'viewer',
-        )->plainTextToken();
-    }
-
     private function tag(string $slug): Tag
     {
         return Tag::query()->create([
@@ -602,6 +585,5 @@ class TaskApiTest extends TestCase
         });
 
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
-        (require database_path('migrations/2026_09_14_000000_create_client_systems_table.php'))->up();
     }
 }

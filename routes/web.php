@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CommentController;
-use App\Http\Controllers\ClientSystemController;
 use App\Http\Controllers\DuplicateController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MarkdownPreviewController;
@@ -84,14 +83,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('projects/{project}/tags', [ProjectController::class, 'updateTags'])->name('projects.updateTags');
     Route::get('projects/{project}/activity', [ProjectController::class, 'activity'])->name('projects.activity');
     Route::get('projects/{project}/settings', [ProjectController::class, 'settings'])->name('projects.settings');
-    Route::post('projects/{project}/client-systems', [ClientSystemController::class, 'store'])
-        ->name('projects.client-systems.store');
-    Route::patch('projects/{project}/client-systems/{clientSystem}', [ClientSystemController::class, 'update'])
-        ->scopeBindings()
-        ->name('projects.client-systems.update');
-    Route::get('projects/{project}/client-systems/{clientSystem}/api-keys', [ClientSystemController::class, 'apiKeys'])
-        ->scopeBindings()
-        ->name('projects.client-systems.api-keys');
     Route::get('projects/{project}/subprojects/members', [ProjectController::class, 'subprojectMembers'])
         ->name('projects.subprojects.members');
     Route::get('projects/{project}/subprojects/selectable', [ProjectController::class, 'selectableSubprojects'])

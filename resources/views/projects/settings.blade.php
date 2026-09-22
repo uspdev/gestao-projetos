@@ -92,11 +92,6 @@
                   <i class="fas fa-key fa-fw mr-2" aria-hidden="true"></i> Chaves de API
                 </a>
               @endcan
-              @can('create', [\App\Models\ClientSystem::class, $project])
-                <a class="nav-link" href="{{ $settingsUrl }}#project-integrations-settings">
-                  <i class="fas fa-plug fa-fw mr-2" aria-hidden="true"></i> Integrações
-                </a>
-              @endcan
               @can('viewActivity', $project)
                 <a class="nav-link" href="{{ $settingsUrl }}#project-activity-settings">
                   <i class="fas fa-history fa-fw mr-2" aria-hidden="true"></i> Histórico
@@ -136,10 +131,6 @@
                 <x-api-keys::manager :owner="$project" owner-alias="project" />
               </div>
             </section>
-          @endcan
-
-          @can('create', [\App\Models\ClientSystem::class, $project])
-            @include('client-systems.settings-card')
           @endcan
 
           @can('viewActivity', $project)

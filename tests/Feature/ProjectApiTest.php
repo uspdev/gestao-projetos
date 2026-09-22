@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\ClientSystem;
 use App\Models\Module;
 use App\Models\Phase;
 use App\Models\Project;
@@ -114,24 +113,13 @@ class ProjectApiTest extends TestCase
             ->assertJsonMissing(['id' => $otherProject->id]);
     }
 
-    public function test_missing_deleted_and_legacy_client_system_projects_are_not_readable(): void
+    public function test_missing_and_deleted_projects_are_not_readable(): void
     {
         $project = $this->project('Projeto da credencial');
         $token = $this->tokenFor($project, 'viewer');
 
         $this->withToken($token)
             ->getJson('/api/projects/projeto-inexistente')
-            ->assertNotFound();
-
-        $clientSystem = $project->clientSystems()->create(['name' => 'Sistema legado']);
-        $legacy = app(ApiKeyManager::class)->create(
-            $clientSystem,
-            'Chave legada',
-            'integration',
-            'viewer',
-        );
-        $this->withToken($legacy->plainTextToken())
-            ->getJson('/api/projects/'.$project->slug)
             ->assertNotFound();
 
         $slug = $project->slug;
@@ -293,7 +281,12 @@ class ProjectApiTest extends TestCase
         $projectWithIntegration = $this->project('Projeto com integração');
         $projectWithoutIntegration->users()->attach($administrator, ['role' => 'ADMIN']);
         $projectWithIntegration->users()->attach($administrator, ['role' => 'ADMIN']);
-        $projectWithIntegration->clientSystems()->create(['name' => 'Sistema externo']);
+        app(ApiKeyManager::class)->create(
+            $projectWithIntegration,
+            'Integração externa',
+            'integration',
+            'viewer',
+        );
 
         $this->actingAs($administrator)
             ->get(route('projects.settings', $projectWithoutIntegration))
@@ -488,7 +481,6 @@ class ProjectApiTest extends TestCase
         });
 
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
-        (require database_path('migrations/2026_09_14_000000_create_client_systems_table.php'))->up();
 
         DB::table('permissions')->insert(collect(array_merge(
             User::$permissoesHierarquia,

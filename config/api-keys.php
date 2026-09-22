@@ -35,7 +35,6 @@ return [
     // usado nas rotas de gerenciamento; o valor é a classe Eloquent do owner.
     // Exemplo: 'project' => App\\Models\\Project::class.
     'owners' => [
-        'client-system' => App\Models\ClientSystem::class,
         'project' => App\Models\Project::class,
     ],
 

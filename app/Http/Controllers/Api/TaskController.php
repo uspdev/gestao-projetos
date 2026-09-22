@@ -6,7 +6,6 @@ use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TaskResource;
-use App\Models\ClientSystem;
 use App\Models\Project;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -87,8 +86,7 @@ class TaskController extends Controller
         $owner = $apiKey?->owner;
 
         abort_unless(
-            ($owner instanceof Project && (int) $owner->getKey() === (int) $project->getKey())
-                || ($owner instanceof ClientSystem && (int) $owner->project_id === (int) $project->getKey()),
+            $owner instanceof Project && (int) $owner->getKey() === (int) $project->getKey(),
             404,
         );
     }

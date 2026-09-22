@@ -170,13 +170,6 @@ class MeetingApiTest extends TestCase
             ->getJson($this->showUrl($project, $meeting))->assertOk();
         $this->withToken($this->tokenFor($project, 'contributor'))
             ->getJson($this->indexUrl($project))->assertOk()->assertJsonPath('data.0.id', $meeting->id);
-
-        $legacy = $project->clientSystems()->create(['name' => 'Sistema legado']);
-        $legacyToken = app(ApiKeyManager::class)->create(
-            $legacy, 'Credencial legada', 'integration', 'viewer',
-        )->plainTextToken();
-        $this->withToken($legacyToken)->getJson($this->indexUrl($project))->assertForbidden();
-        $this->getJson($this->showUrl($project, $meeting))->assertForbidden();
     }
 
     public function test_list_filters_status_date_and_case_insensitive_title_or_location_search(): void
@@ -472,6 +465,5 @@ class MeetingApiTest extends TestCase
         });
 
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
-        (require database_path('migrations/2026_09_14_000000_create_client_systems_table.php'))->up();
     }
 }
