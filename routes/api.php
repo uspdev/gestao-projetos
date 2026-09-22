@@ -42,3 +42,8 @@ Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show'])
 Route::get('projects/{project}/files', [FileController::class, 'index'])
     ->middleware('uspdevApiKeys:files.read')
     ->name('api.projects.files.index');
+
+Route::get('projects/{project}/files/{uuid}', [FileController::class, 'show'])
+    ->whereUuid('uuid')
+    ->middleware('uspdevApiKeys:files.read')
+    ->name('api.projects.files.show');

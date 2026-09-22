@@ -25,6 +25,10 @@ class FileResource extends JsonResource
             'size' => $file->size,
             'uploaded_at' => $file->created_at?->toISOString(),
             'owner' => $this->ownerSummary($file->model),
+            'download_url' => route('api.projects.files.show', [
+                'project' => $request->route('project'),
+                'uuid' => $file->uuid,
+            ]),
         ];
     }
 

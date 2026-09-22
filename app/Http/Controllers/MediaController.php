@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Throwable;
 
 class MediaController extends Controller
@@ -154,7 +153,7 @@ class MediaController extends Controller
 
         return Storage::disk($media->disk)->download(
             $media->getPathRelativeToRoot(),
-            $this->downloadName($media),
+            $media->attachmentFilename(),
             [
                 'Content-Type' => 'application/octet-stream',
                 'X-Content-Type-Options' => 'nosniff',
@@ -343,18 +342,6 @@ class MediaController extends Controller
         }
 
         return $media;
-    }
-
-    private function downloadName(Media $media): string
-    {
-        $extension = strtolower((string) pathinfo($media->file_name, PATHINFO_EXTENSION));
-        $name = Str::ascii((string) $media->display_name);
-        $name = preg_replace('/[\\x00-\\x1F\\x7F"\\\\\\/;]+/', ' ', $name) ?? '';
-        $name = trim(preg_replace('/\\s+/', ' ', $name) ?? '');
-        $name = trim((string) pathinfo($name, PATHINFO_FILENAME));
-        $name = $name !== '' ? $name : 'arquivo';
-
-        return $extension !== '' ? "{$name}.{$extension}" : $name;
     }
 
     private function thumbnailPath(Media $media): string

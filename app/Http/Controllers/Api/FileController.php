@@ -4,70 +4,33 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FileResource;
-use App\Models\Media;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;
+use App\Services\Files\ProjectFileVisibility;
 use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileController extends Controller
 {
+    public function __construct(private ProjectFileVisibility $visibility) {}
+
     public function index(Request $request, Project $project): AnonymousResourceCollection
     {
         $this->ensureProjectIsInScope($request, $project);
 
-        $tasksEnabled = $project->isModuleEnabled('tasks');
-        $meetingsEnabled = $project->isModuleEnabled('meetings');
         $validated = $this->validateIndex($request);
 
-        $files = Media::query()
-            ->with('model')
-            ->where(fn (Builder $query): Builder => $query
-                ->whereHasMorph('model', Project::class)
-                ->orWhereHasMorph('model', Task::class)
-                ->orWhereHasMorph('model', Meeting::class))
-            ->where(function (Builder $query) use ($project, $tasksEnabled, $meetingsEnabled): void {
-                $query->where(fn (Builder $projectFiles): Builder => $projectFiles
-                    ->where('model_type', $project->getMorphClass())
-                    ->where('model_id', $project->getKey()));
-
-                if ($tasksEnabled) {
-                    $query->orWhere(fn (Builder $taskFiles): Builder => $taskFiles
-                        ->where('model_type', (new Task())->getMorphClass())
-                        ->whereHasMorph(
-                            'model',
-                            Task::class,
-                            fn (Builder $tasks): Builder => $tasks->where('project_id', $project->getKey()),
-                        ));
-                }
-
-                if ($meetingsEnabled) {
-                    $query
-                        ->orWhere(fn (Builder $meetingFiles): Builder => $meetingFiles
-                            ->where('model_type', (new Meeting())->getMorphClass())
-                            ->whereHasMorph(
-                                'model',
-                                Meeting::class,
-                                fn (Builder $meetings): Builder => $meetings->whereHas(
-                                    'projects',
-                                    fn (Builder $projects): Builder => $projects->whereKey($project->getKey()),
-                                ),
-                            ))
-                        ->orWhereHas(
-                            'sharedWithMeetings',
-                            fn (Builder $meetings): Builder => $meetings->whereHas(
-                                'projects',
-                                fn (Builder $projects): Builder => $projects->whereKey($project->getKey()),
-                            ),
-                        );
-                }
-            })
+        $files = $this->visibility->query($project)
+            ->with(['model' => fn (MorphTo $owner): MorphTo => $owner->withTrashed()])
             ->when(
                 isset($validated['search']) && $validated['search'] !== '',
                 fn (Builder $query): Builder => $query->whereLike('name', '%'.$validated['search'].'%'),
@@ -108,6 +71,24 @@ class FileController extends Controller
             ->withQueryString();
 
         return FileResource::collection($files);
+    }
+
+    public function show(Request $request, Project $project, string $uuid): StreamedResponse
+    {
+        $this->ensureProjectIsInScope($request, $project);
+
+        $file = $this->visibility->query($project)
+            ->where('uuid', $uuid)
+            ->firstOrFail();
+        $disk = Storage::disk($file->disk);
+        $path = $file->getPathRelativeToRoot();
+
+        abort_unless($disk->exists($path), 404);
+
+        return $disk->download($path, $file->attachmentFilename(), [
+            'Content-Type' => $file->mime_type,
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     private function ensureProjectIsInScope(Request $request, Project $project): void
