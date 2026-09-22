@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Enums\Task\TaskPriority;
 use App\Enums\Task\TaskStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TaskDetailResource;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
 use App\Models\Tag;
+use App\Services\Api\ProjectDetailLoader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Validator;
@@ -63,19 +65,19 @@ class TaskController extends Controller
         return TaskResource::collection($tasks);
     }
 
-    public function show(Request $request, Project $project, int $task): TaskResource
+    public function show(
+        Request $request,
+        Project $project,
+        int $task,
+        ProjectDetailLoader $details,
+    ): TaskDetailResource
     {
         $this->ensureProjectIsInScope($request, $project);
         $this->ensureTasksModuleIsEnabled($project);
 
-        $task = $project->tasks()
-            ->with([
-                'tags',
-                'users' => fn ($query) => $query->orderBy('name'),
-            ])
-            ->findOrFail($task);
+        $task = $project->tasks()->findOrFail($task);
 
-        return new TaskResource($task);
+        return new TaskDetailResource($details->loadTask($task, $project));
     }
 
     private function ensureProjectIsInScope(Request $request, Project $project): void

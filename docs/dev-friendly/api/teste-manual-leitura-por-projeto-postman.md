@@ -65,9 +65,10 @@ Confirme visualmente:
 
 - `200 OK`;
 - `data.slug` igual a `project_slug`;
-- presença de `description` e `modules.enabled`;
-- ausência de membros e coleções incorporadas de Tarefas, Reuniões ou
-  Arquivos.
+- presença de `description`, `visibility`, `permission_inheritance`,
+  `modules.enabled`, `modules.items`, `members`, `comments`, `files`, `links`,
+  `incoming_mentions`, `agenda_meetings` e `subprojects`;
+- ausência de e-mails e de capacidades de mutação.
 
 ## 5. Listar e detalhar Reuniões
 
@@ -100,7 +101,9 @@ GET {{base_url}}/api/projects/{{project_slug}}/meetings/{{meeting_id}}
 ```
 
 Confirme `200 OK` e o conteúdo integral em `notes`, `ata`, `transcription`,
-`agenda` e `comments`.
+`agenda`, `comments`, `files`, `links` e `incoming_mentions`. Cada Item de
+pauta deve conter `id` e `position`; comentários devem identificar comentário
+e autor.
 
 ## 6. Listar e detalhar Tarefas
 
@@ -132,7 +135,8 @@ GET {{base_url}}/api/projects/{{project_slug}}/tasks/{{task_id}}
 ```
 
 Confirme `200 OK`, o mesmo identificador e a representação integral da Tarefa,
-incluindo descrição, estado, prioridade, datas, responsáveis, tags e URL web.
+incluindo descrição, estado, prioridade, datas, Projeto, responsáveis com ID
+e papel, tags, comentários, Arquivos, Links, Menções recebidas e URL web.
 
 ## 7. Listar e baixar Arquivos
 

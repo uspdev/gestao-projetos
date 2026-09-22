@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Meeting\MeetingStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\MeetingDetailResource;
 use App\Http\Resources\MeetingResource;
 use App\Models\Project;
+use App\Services\Api\ProjectDetailLoader;
 use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Http\Request;
@@ -49,20 +51,19 @@ class MeetingController extends Controller
         return MeetingResource::collection($meetings);
     }
 
-    public function show(Request $request, Project $project, int $meeting): MeetingResource
+    public function show(
+        Request $request,
+        Project $project,
+        int $meeting,
+        ProjectDetailLoader $details,
+    ): MeetingDetailResource
     {
         $this->ensureProjectIsInScope($request, $project);
         $this->ensureMeetingsModuleIsEnabled($project);
 
-        $meeting = $project->meetings()
-            ->with([
-                'projects' => fn ($query) => $query->orderBy('name')->orderBy('id'),
-                'meetingItems' => fn ($query) => $query->with('discussable')->orderBy('order')->orderBy('id'),
-                'comments' => fn ($query) => $query->active()->with('user')->orderBy('created_at')->orderBy('id'),
-            ])
-            ->findOrFail($meeting);
+        $meeting = $project->meetings()->findOrFail($meeting);
 
-        return new MeetingResource($meeting);
+        return new MeetingDetailResource($details->loadMeeting($meeting, $project));
     }
 
     private function ensureProjectIsInScope(Request $request, Project $project): void

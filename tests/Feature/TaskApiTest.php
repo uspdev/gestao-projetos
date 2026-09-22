@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Module;
+use App\Models\Media;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Models\Task;
@@ -10,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 use Uspdev\ApiKeys\Contracts\ApiKeyManager;
 
@@ -90,6 +92,30 @@ class TaskApiTest extends TestCase
         $bia = $this->user('Bia Responsável', 'bia@example.test', 7654321);
         $this->assign($task, $bia);
         $this->assign($task, $ana);
+        $project->users()->attach($ana, ['role' => 'VIEWER']);
+
+        $commentId = DB::table('comments')->insertGetId([
+            'user_id' => $ana->id,
+            'commentable_type' => 'task',
+            'commentable_id' => $task->id,
+            'text' => 'Comentário da tarefa',
+            'is_active' => true,
+            'created_at' => '2026-09-10 16:00:00',
+            'updated_at' => '2026-09-10 16:00:00',
+        ]);
+        $file = $this->file($task, 'Especificação.pdf');
+        $link = $task->links()->create([
+            'name' => 'Referência técnica',
+            'url' => 'https://example.test/task',
+            'created_by' => null,
+        ]);
+        DB::table('mentions')->insert([
+            'source_type' => 'project',
+            'source_id' => $project->id,
+            'source_field' => 'description',
+            'target_type' => 'task',
+            'target_id' => $task->id,
+        ]);
 
         $tag = Tag::query()->create([
             'name' => ['pt_BR' => 'Integração'],
@@ -100,7 +126,7 @@ class TaskApiTest extends TestCase
         ]);
         $task->tags()->attach($tag);
 
-        $expected = [
+        $listExpected = [
             'id' => $task->id,
             'title' => 'Documentar integração',
             'description' => $description,
@@ -130,15 +156,90 @@ class TaskApiTest extends TestCase
         ];
         $token = $this->tokenFor($project, 'viewer');
 
+        $detail = $listExpected;
+        $detail['project'] = [
+            'id' => $project->id,
+            'slug' => $project->slug,
+            'name' => $project->name,
+            'web_url' => route('projects.show', $project),
+        ];
+        $detail['assignees'] = [
+            [
+                'id' => $ana->id,
+                'name' => 'Ana Responsável',
+                'project_role' => ['value' => 'VIEWER', 'label' => 'Visualizador'],
+                'web_url' => route('users.show', $ana),
+            ],
+            [
+                'id' => $bia->id,
+                'name' => 'Bia Responsável',
+                'project_role' => null,
+                'web_url' => route('users.show', $bia),
+            ],
+        ];
+        $detail['comments'] = [[
+            'id' => $commentId,
+            'text' => 'Comentário da tarefa',
+            'created_at' => '2026-09-10T19:00:00.000000Z',
+            'updated_at' => '2026-09-10T19:00:00.000000Z',
+            'author' => [
+                'id' => $ana->id,
+                'name' => $ana->name,
+                'web_url' => route('users.show', $ana),
+            ],
+        ]];
+        $detail['files'] = [
+            'owned' => [[
+                'uuid' => $file->uuid,
+                'name' => 'Especificação.pdf',
+                'extension' => 'pdf',
+                'mime_type' => 'application/pdf',
+                'size' => 100,
+                'uploaded_at' => $file->created_at->toISOString(),
+                'owner' => ['type' => 'task', 'id' => $task->id, 'title' => $task->title],
+                'download_url' => route('api.projects.files.show', [$project, $file->uuid]),
+            ]],
+            'shared' => [],
+        ];
+        $detail['links'] = [
+            'owned' => [[
+                'uuid' => $link->uuid,
+                'name' => 'Referência técnica',
+                'url' => 'https://example.test/task',
+                'created_at' => $link->created_at->toISOString(),
+                'owner' => ['type' => 'task', 'id' => $task->id, 'title' => $task->title],
+            ]],
+            'shared' => [],
+        ];
+        $detail['incoming_mentions'] = [
+            'locations_count' => 1,
+            'sources_count' => 1,
+            'sources' => [[
+                'source' => [
+                    'type' => 'project',
+                    'id' => $project->id,
+                    'title' => $project->name,
+                    'web_url' => route('projects.show', $project),
+                ],
+                'locations' => [[
+                    'source_type' => 'project',
+                    'source_id' => $project->id,
+                    'field' => 'description',
+                    'label' => 'Descrição',
+                    'web_url' => route('projects.show', $project).'#project-description-'.$project->id,
+                ]],
+            ]],
+        ];
+
         $this->withToken($token)
             ->getJson($this->showUrl($project, $task))
             ->assertOk()
-            ->assertExactJson(['data' => $expected]);
+            ->assertExactJson(['data' => $detail]);
 
         $this->withToken($token)
             ->getJson($this->indexUrl($project))
             ->assertOk()
-            ->assertJsonPath('data.0', $expected);
+            ->assertJsonPath('data.0', $listExpected);
     }
 
     public function test_list_includes_completed_tasks_and_paginates_in_descending_update_and_id_order(): void
@@ -497,6 +598,35 @@ class TaskApiTest extends TestCase
         return $this->indexUrl($project).'/'.$task->id;
     }
 
+    private function file(Task $owner, string $name): Media
+    {
+        $uuid = (string) Str::uuid();
+        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $id = DB::table('media')->insertGetId([
+            'model_type' => $owner->getMorphClass(),
+            'model_id' => $owner->getKey(),
+            'uuid' => $uuid,
+            'collection_name' => 'default',
+            'name' => $name,
+            'original_name' => $name,
+            'file_name' => $uuid.'.'.$extension,
+            'mime_type' => 'application/pdf',
+            'disk' => 'files',
+            'conversions_disk' => 'files',
+            'size' => 100,
+            'manipulations' => '[]',
+            'custom_properties' => '[]',
+            'generated_conversions' => '[]',
+            'responsive_images' => '[]',
+            'order_column' => 1,
+            'uploaded_by' => null,
+            'created_at' => '2026-09-10 15:45:00',
+            'updated_at' => '2026-09-10 15:45:00',
+        ]);
+
+        return Media::query()->findOrFail($id);
+    }
+
     private function createSchema(): void
     {
         Schema::create('users', function (Blueprint $table): void {
@@ -542,6 +672,13 @@ class TaskApiTest extends TestCase
             $table->timestamps();
             $table->unique(['project_id', 'module_id']);
         });
+        Schema::create('project_user', function (Blueprint $table): void {
+            $table->foreignId('project_id');
+            $table->foreignId('user_id');
+            $table->string('role');
+            $table->boolean('pinned')->default(false);
+            $table->timestamps();
+        });
 
         Schema::create('tasks', function (Blueprint $table): void {
             $table->id();
@@ -567,6 +704,16 @@ class TaskApiTest extends TestCase
             $table->timestamps();
             $table->unique(['task_id', 'user_id']);
         });
+        Schema::create('comments', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('commentable_type');
+            $table->unsignedBigInteger('commentable_id');
+            $table->foreignId('parent_id')->nullable();
+            $table->text('text');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
 
         Schema::create('tags', function (Blueprint $table): void {
             $table->id();
@@ -584,6 +731,9 @@ class TaskApiTest extends TestCase
             $table->unique(['tag_id', 'taggable_id', 'taggable_type']);
         });
 
+        (require database_path('migrations/2026_07_21_090000_create_media_table.php'))->up();
+        (require database_path('migrations/2026_07_23_090000_create_mentions_table.php'))->up();
+        (require database_path('migrations/2026_08_17_090000_create_links_table.php'))->up();
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
     }
 }

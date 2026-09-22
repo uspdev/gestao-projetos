@@ -62,10 +62,17 @@ publicado na coleção de Arquivos. Não há segmento de versão inicial.
 
 ## Projeto
 
-O detalhe do Projeto retorna `id`, `slug`, `name`, a `description` integral em
-Markdown, `status` com valor e rótulo, resumos opcionais de `type`, `phase` e
-`parent`, `tags`, `modules.enabled`, `web_url`, `created_at` e `updated_at`.
-Ele não incorpora membros, subprojetos, Reuniões, Tarefas ou Arquivos.
+O detalhe do Projeto reúne todas as informações disponibilizadas pela
+interface a um visualizador. Retorna `id`, `slug`, `name`, a `description`
+integral em Markdown, `status`, `visibility` e `permission_inheritance` com
+valor e rótulo, `type`, `phase`, `parent`, `tags`, `modules`, `members`,
+`comments`, `files`, `links`, `incoming_mentions`, `agenda_meetings`,
+`subprojects`, `web_url` e timestamps. E-mail e outros dados pessoais dos
+membros não são expostos.
+
+`modules.enabled` continua oferecendo a lista compacta dos módulos ativos;
+`modules.items` informa o slug, o nome e o estado de todos os módulos exibidos
+na interface. Cada membro contém ID, nome, papel no Projeto e URL web.
 
 ```sh
 curl --fail-with-body \
@@ -129,11 +136,11 @@ Cada item da coleção contém `id`, `title`, `status`, `scheduled_at`,
 coleção não inclui os campos textuais longos.
 
 O detalhe acrescenta `notes` (Anotações prévias), `ata`, `transcription`, a
-`agenda` ordenada e os `comments` ativos em ordem cronológica. Cada Item de
-pauta informa `type`, `title`, `notes` e um resumo opcional em `reference`;
-cada comentário expõe apenas texto, data e nome do autor. Uma Reunião
-diretamente vinculada é retornada integralmente mesmo que sua Pauta tenha
-referências externas.
+`agenda` ordenada, `comments`, `files`, `links` e `incoming_mentions`. Cada
+Item de pauta informa `id`, `position`, `type`, `title`, `notes` e um resumo
+opcional em `reference`. Cada comentário ativo informa ID, texto, timestamps
+e autor por ID, nome e URL web. Uma Reunião diretamente vinculada é retornada
+integralmente mesmo que sua Pauta tenha referências externas.
 
 ```sh
 curl --fail-with-body \
@@ -174,11 +181,13 @@ curl --get --fail-with-body \
   "https://projetos.example/api/projects/portal-de-servicos/tasks"
 ```
 
-Lista e detalhe usam a mesma representação integral: `id`, `title`,
-`description`, `status` e `priority` com valor e rótulo, `start_date`,
-`due_date`, `completed_at`, timestamps, responsáveis em `assignees` somente
-pelo nome, `tags` e `web_url`. E-mail e identificadores pessoais dos
-responsáveis não são expostos.
+A lista retorna `id`, `title`, `description`, `status` e `priority` com valor e
+rótulo, `start_date`, `due_date`, `completed_at`, timestamps, responsáveis em
+`assignees` somente pelo nome, `tags` e `web_url`.
+
+O detalhe acrescenta `project`, responsáveis com ID, nome, papel no Projeto e
+URL web, além de `comments`, `files`, `links` e `incoming_mentions`. E-mail e
+outros dados pessoais dos responsáveis não são expostos.
 
 ```sh
 curl --fail-with-body \
@@ -189,6 +198,28 @@ curl --fail-with-body \
 
 Quando o módulo estiver desligado, coleção e detalhe respondem `409 Conflict`
 com o código `tasks_module_disabled`.
+
+## Conteúdo incorporado nos detalhes
+
+Projeto, Tarefa e Reunião usam a mesma estrutura para conteúdo relacionado:
+
+- `comments` contém somente comentários ativos em ordem cronológica, com ID,
+  texto, timestamps e autor por ID, nome e URL web;
+- `files.owned` contém Arquivos pertencentes à entidade e `files.shared`
+  contém Arquivos compartilhados com ela;
+- `links.owned` e `links.shared` aplicam a mesma separação aos Links;
+- `incoming_mentions` informa `locations_count`, `sources_count` e `sources`,
+  agrupando os locais pela entidade de origem.
+
+Projeto e Tarefa retornam os grupos `shared` vazios, pois o compartilhamento
+atual tem Reuniões como destino. Entradas próprias e compartilhadas são
+mutuamente exclusivas. Os Arquivos incorporados usam a mesma representação da
+coleção `/files`; os bytes continuam disponíveis exclusivamente no
+`download_url`.
+
+Somente Menções cuja origem também esteja no escopo do Projeto proprietário
+da Chave são devolvidas. Uma Menção recebida não concede acesso a outro
+Projeto, Tarefa ou Reunião.
 
 ## Arquivos
 

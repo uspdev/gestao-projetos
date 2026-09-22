@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Module;
+use App\Models\Meeting;
+use App\Models\Media;
 use App\Models\Phase;
 use App\Models\Project;
 use App\Models\ProjectType;
@@ -11,6 +13,7 @@ use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 use Uspdev\ApiKeys\Contracts\ApiKeyManager;
@@ -214,15 +217,25 @@ class ProjectApiTest extends TestCase
                     'value' => 'ACTIVE',
                     'label' => 'Ativo',
                 ],
+                'visibility' => [
+                    'value' => 'PRIVATE',
+                    'label' => 'Privado',
+                ],
+                'permission_inheritance' => [
+                    'value' => 'FULL',
+                    'label' => 'Herança Total',
+                ],
                 'type' => [
                     'id' => $projectType->id,
                     'slug' => 'desenvolvimento',
                     'name' => 'Desenvolvimento',
+                    'description' => 'Configuração interna do tipo.',
                 ],
                 'phase' => [
                     'id' => $phase->id,
                     'slug' => 'production',
                     'name' => 'Produção',
+                    'color' => null,
                 ],
                 'parent' => [
                     'id' => $parent->id,
@@ -236,7 +249,22 @@ class ProjectApiTest extends TestCase
                 ]],
                 'modules' => [
                     'enabled' => ['meetings'],
+                    'items' => [
+                        ['slug' => 'meetings', 'name' => 'Reuniões', 'enabled' => true],
+                        ['slug' => 'tasks', 'name' => 'Tarefas', 'enabled' => false],
+                    ],
                 ],
+                'members' => [],
+                'comments' => [],
+                'files' => ['owned' => [], 'shared' => []],
+                'links' => ['owned' => [], 'shared' => []],
+                'incoming_mentions' => [
+                    'locations_count' => 0,
+                    'sources_count' => 0,
+                    'sources' => [],
+                ],
+                'agenda_meetings' => [],
+                'subprojects' => [],
                 'web_url' => route('projects.show', $project),
                 'created_at' => $project->created_at->toISOString(),
                 'updated_at' => $project->updated_at->toISOString(),
@@ -268,6 +296,94 @@ class ProjectApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.modules.enabled', [])
             ->assertJsonMissingPath('data.modules.tasks_enabled');
+    }
+
+    public function test_project_detail_exposes_every_resource_visible_to_a_viewer(): void
+    {
+        $organizationalType = ProjectType::query()->create([
+            'name' => 'Organizacional',
+            'slug' => Project::ORGANIZATIONAL_TYPE_SLUG,
+            'description' => 'Agrupa os subprojetos.',
+            'enabled' => true,
+        ]);
+        $project = $this->project('Programa completo');
+        $project->update(['project_type_id' => $organizationalType->id]);
+        $child = $this->project('Subprojeto visível');
+        $child->update(['parent_id' => $project->id]);
+        $member = User::query()->create([
+            'name' => 'Pessoa visualizadora',
+            'email' => 'viewer@example.test',
+            'password' => 'secret',
+        ]);
+        $project->users()->attach($member, ['role' => 'VIEWER']);
+
+        $meetingModule = Module::query()->create(['name' => 'Reuniões', 'slug' => 'meetings']);
+        $tasksModule = Module::query()->create(['name' => 'Tarefas', 'slug' => 'tasks']);
+        $project->projectModules()->create(['module_id' => $meetingModule->id, 'enabled' => true]);
+        $project->projectModules()->create(['module_id' => $tasksModule->id, 'enabled' => true]);
+        $meeting = Meeting::query()->create([
+            'title' => 'Reunião com o programa na pauta',
+            'scheduled_at' => '2026-09-21 12:00:00',
+            'status' => 'SCHEDULED',
+        ]);
+        $meeting->projects()->attach($project);
+        DB::table('meeting_items')->insert([
+            'meeting_id' => $meeting->id,
+            'discussable_type' => 'project',
+            'discussable_id' => $project->id,
+            'order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $commentId = DB::table('comments')->insertGetId([
+            'user_id' => $member->id,
+            'commentable_type' => 'project',
+            'commentable_id' => $project->id,
+            'text' => 'Comentário visível',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $file = $this->file($project, 'Documento do projeto.pdf');
+        $link = $project->links()->create([
+            'name' => 'Referência do projeto',
+            'url' => 'https://example.test/project',
+            'created_by' => null,
+        ]);
+
+        $sourceTaskId = DB::table('tasks')->insertGetId([
+            'project_id' => $project->id,
+            'title' => 'Tarefa que menciona o projeto',
+            'status' => 'NEW',
+            'deleted_via_project' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('mentions')->insert([
+            'source_type' => 'task',
+            'source_id' => $sourceTaskId,
+            'source_field' => 'description',
+            'target_type' => 'project',
+            'target_id' => $project->id,
+        ]);
+
+        $response = $this->withToken($this->tokenFor($project, 'viewer'))
+            ->getJson('/api/projects/'.$project->slug)
+            ->assertOk();
+
+        $response
+            ->assertJsonPath('data.visibility.value', 'PRIVATE')
+            ->assertJsonPath('data.permission_inheritance.value', 'FULL')
+            ->assertJsonPath('data.type.description', 'Agrupa os subprojetos.')
+            ->assertJsonPath('data.members.0.id', $member->id)
+            ->assertJsonPath('data.members.0.role.value', 'VIEWER')
+            ->assertJsonPath('data.comments.0.id', $commentId)
+            ->assertJsonPath('data.files.owned.0.uuid', $file->uuid)
+            ->assertJsonPath('data.links.owned.0.uuid', $link->uuid)
+            ->assertJsonPath('data.incoming_mentions.sources.0.source.id', $sourceTaskId)
+            ->assertJsonPath('data.agenda_meetings.0.id', $meeting->id)
+            ->assertJsonPath('data.subprojects.0.id', $child->id);
     }
 
     public function test_slug_warning_mentions_api_urls_and_is_highlighted_for_integrated_projects(): void
@@ -346,6 +462,35 @@ class ProjectApiTest extends TestCase
         );
     }
 
+    private function file(Project $owner, string $name): Media
+    {
+        $uuid = (string) Str::uuid();
+        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $id = DB::table('media')->insertGetId([
+            'model_type' => $owner->getMorphClass(),
+            'model_id' => $owner->getKey(),
+            'uuid' => $uuid,
+            'collection_name' => 'default',
+            'name' => $name,
+            'original_name' => $name,
+            'file_name' => $uuid.'.'.$extension,
+            'mime_type' => 'application/pdf',
+            'disk' => 'files',
+            'conversions_disk' => 'files',
+            'size' => 100,
+            'manipulations' => '[]',
+            'custom_properties' => '[]',
+            'generated_conversions' => '[]',
+            'responsive_images' => '[]',
+            'order_column' => 1,
+            'uploaded_by' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return Media::query()->findOrFail($id);
+    }
+
     private function createSchema(): void
     {
         Schema::create('users', function (Blueprint $table): void {
@@ -414,9 +559,54 @@ class ProjectApiTest extends TestCase
         Schema::create('tasks', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('project_id');
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->string('status')->nullable();
             $table->boolean('deleted_via_project')->default(false);
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
+        });
+        Schema::create('meetings', function (Blueprint $table): void {
+            $table->id();
+            $table->string('title');
+            $table->dateTime('scheduled_at')->nullable();
+            $table->string('location')->nullable();
+            $table->longText('notes')->nullable();
+            $table->longText('ata')->nullable();
+            $table->longText('transcription')->nullable();
+            $table->string('status');
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+        Schema::create('meeting_projects', function (Blueprint $table): void {
+            $table->foreignId('meeting_id');
+            $table->foreignId('project_id');
+        });
+        Schema::create('meeting_items', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('meeting_id');
+            $table->string('discussable_type')->nullable();
+            $table->unsignedBigInteger('discussable_id')->nullable();
+            $table->string('title')->nullable();
+            $table->unsignedInteger('order');
+            $table->text('notes')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('comments', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('commentable_type');
+            $table->unsignedBigInteger('commentable_id');
+            $table->foreignId('parent_id')->nullable();
+            $table->text('text');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
         });
         Schema::create('project_type_modules', function (Blueprint $table): void {
             $table->id();
@@ -479,6 +669,10 @@ class ProjectApiTest extends TestCase
             $table->foreignId('role_id');
             $table->primary(['permission_id', 'role_id']);
         });
+
+        (require database_path('migrations/2026_07_21_090000_create_media_table.php'))->up();
+        (require database_path('migrations/2026_07_23_090000_create_mentions_table.php'))->up();
+        (require database_path('migrations/2026_08_17_090000_create_links_table.php'))->up();
 
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
 

@@ -48,6 +48,14 @@ class ApiIntegrationDocumentationTest extends TestCase
 
         foreach ([
             '`modules.enabled`',
+            '`modules.items`',
+            '`visibility`',
+            '`permission_inheritance`',
+            '`incoming_mentions`',
+            '`files.owned`',
+            '`files.shared`',
+            '`links.owned`',
+            '`links.shared`',
             '`status[]`',
             '`priority[]`',
             '`due_from`',
@@ -103,7 +111,6 @@ class ApiIntegrationDocumentationTest extends TestCase
             '`requests.read`',
             'Swagger',
             'OpenAPI',
-            'Links externos',
         ] as $discardedContract) {
             self::assertStringNotContainsString($discardedContract, $document, $discardedContract);
         }
@@ -132,6 +139,9 @@ class ApiIntegrationDocumentationTest extends TestCase
             '`401 Unauthorized`',
             '`data`, `links` e `meta`',
             'conteúdo integral',
+            '`incoming_mentions`',
+            '`files`',
+            '`links`',
             'isolamento entre Projetos',
             'módulos desligados',
         ] as $manualContract) {

@@ -2,8 +2,9 @@
 
 **Status:** aceito
 
-O Projeto será o owner direto das suas Chaves de API e a API de negócio
-autenticada por essas credenciais oferecerá somente operações de leitura. A
+O Projeto será o Projeto proprietário direto das suas Chaves de API e a API
+de negócio autenticada por essas credenciais oferecerá somente operações de
+leitura. A
 entrada e a triagem de correções, melhorias e outras demandas pertencem ao
 sistema Chamados, que já oferece abertura, acompanhamento, comentários e
 arquivos para demandas no contexto USP. Repetir esse fluxo no Gestão de
@@ -39,8 +40,8 @@ abilities ou nas respostas.
 - O Projeto resolve diretamente os papéis e as abilities das suas Chaves de
   API.
 - As configurações do Projeto apresentarão um único card de Chaves de API com
-  o gerenciador fornecido pelo package e o próprio Projeto como owner. Não
-  haverá telas intermediárias de Sistemas clientes. Somente administradores
+  o gerenciador fornecido pelo package e o próprio Projeto como proprietário.
+  Não haverá telas intermediárias de Sistemas clientes. Somente administradores
   diretamente vinculados ao Projeto poderão emitir, renovar ou revogar essas
   credenciais; contribuidores, visualizadores, administradores herdados e
   administradores globais não vinculados permanecerão sem acesso.

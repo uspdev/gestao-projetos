@@ -45,8 +45,10 @@ curl -i \
   "${API_BASE_URL}/api/projects/${PROJECT_SLUG}"
 ```
 
-Confirme `200 OK`, `data.slug`, `data.description`, `data.modules.enabled` e
-as URLs e datas. A resposta não deve conter membros nem coleções embutidas.
+Confirme `200 OK`, `data.slug`, `data.description`, `data.visibility`,
+`data.permission_inheritance`, `data.modules.enabled`, `data.modules.items`,
+`data.members`, `data.comments`, `data.files`, `data.links`,
+`data.incoming_mentions`, `data.agenda_meetings` e `data.subprojects`.
 
 ## 3. Listar e detalhar Reuniões
 
@@ -70,8 +72,9 @@ curl -i \
   "${API_BASE_URL}/api/projects/${PROJECT_SLUG}/meetings/${MEETING_ID}"
 ```
 
-Confirme o conteúdo integral em `notes`, `ata`, `transcription`, `agenda` e
-`comments`.
+Confirme o conteúdo integral em `notes`, `ata`, `transcription`, `agenda`,
+`comments`, `files`, `links` e `incoming_mentions`. Cada Item de pauta deve
+ter `id` e `position`; comentários devem identificar comentário e autor.
 
 ## 4. Listar e detalhar Tarefas
 
@@ -97,8 +100,9 @@ curl -i \
   "${API_BASE_URL}/api/projects/${PROJECT_SLUG}/tasks/${TASK_ID}"
 ```
 
-Confirme descrição, estado, prioridade, datas, tags, URL web e somente os
-nomes dos responsáveis.
+Confirme descrição, estado, prioridade, datas, tags, URL web, Projeto,
+responsáveis identificados por ID e papel, `comments`, `files`, `links` e
+`incoming_mentions`. E-mails não devem aparecer.
 
 ## 5. Listar e baixar Arquivos
 

@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\Meeting;
+use App\Models\Media;
 use App\Models\Module;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 use Uspdev\ApiKeys\Contracts\ApiKeyManager;
 
@@ -100,6 +102,11 @@ class MeetingApiTest extends TestCase
             $this->agendaRow($meeting, 2, null, null, 'Tema independente', 'Anotações próprias'),
             $this->agendaRow($meeting, 1, 'project', $external->id, null, 'Anotações do projeto'),
         ]);
+        $agendaItems = DB::table('meeting_items')
+            ->where('meeting_id', $meeting->id)
+            ->orderBy('order')
+            ->get()
+            ->keyBy('order');
         $userId = DB::table('users')->insertGetId([
             'name' => 'Ana Autora',
             'email' => 'segredo@example.test',
@@ -120,6 +127,12 @@ class MeetingApiTest extends TestCase
                 'updated_at' => $date,
             ]);
         }
+        $comments = DB::table('comments')
+            ->where('commentable_type', 'meeting')
+            ->where('commentable_id', $meeting->id)
+            ->where('is_active', true)
+            ->orderBy('created_at')
+            ->get();
 
         $token = $this->tokenFor($project, 'viewer');
         $list = $this->withToken($token)->getJson($this->indexUrl($project))->assertOk();
@@ -134,9 +147,15 @@ class MeetingApiTest extends TestCase
         $detail->assertJsonPath('data.notes', 'Anotações prévias completas')
             ->assertJsonPath('data.ata', 'Ata completa')
             ->assertJsonPath('data.transcription', 'Transcrição completa')
+            ->assertJsonPath('data.agenda.0.id', $agendaItems[1]->id)
+            ->assertJsonPath('data.agenda.0.position', 1)
             ->assertJsonPath('data.agenda.0.type', 'project')
             ->assertJsonPath('data.agenda.0.reference', [
-                'id' => $external->id, 'slug' => $external->slug, 'name' => $external->name,
+                'type' => 'project',
+                'id' => $external->id,
+                'slug' => $external->slug,
+                'name' => $external->name,
+                'web_url' => route('projects.show', $external),
             ])
             ->assertJsonPath('data.agenda.1.type', 'independent')
             ->assertJsonPath('data.agenda.1.title', 'Tema independente')
@@ -144,15 +163,33 @@ class MeetingApiTest extends TestCase
             ->assertJsonPath('data.agenda.1.reference', null)
             ->assertJsonPath('data.agenda.2.type', 'task')
             ->assertJsonPath('data.agenda.2.reference', [
-                'id' => $taskId, 'title' => 'Tarefa externa',
+                'type' => 'task',
+                'id' => $taskId,
+                'title' => 'Tarefa externa',
+                'web_url' => route('tasks.show', $taskId),
             ])
             ->assertJsonCount(2, 'data.comments')
+            ->assertJsonPath('data.comments.0.id', $comments[0]->id)
             ->assertJsonPath('data.comments.0.text', 'Primeiro comentário')
             ->assertJsonPath('data.comments.0.created_at', '2026-09-20T13:00:00.000000Z')
+            ->assertJsonPath('data.comments.0.updated_at', '2026-09-20T13:00:00.000000Z')
             ->assertJsonPath('data.comments.1.text', 'Segundo comentário')
-            ->assertJsonPath('data.comments.0.author', ['name' => 'Ana Autora']);
-        $this->assertEqualsCanonicalizing(['text', 'created_at', 'author'], array_keys($detail->json('data.comments.0')));
-        $this->assertArrayNotHasKey('files', $detail->json('data'));
+            ->assertJsonPath('data.comments.0.author', [
+                'id' => $userId,
+                'name' => 'Ana Autora',
+                'web_url' => route('users.show', $userId),
+            ])
+            ->assertJsonPath('data.files', ['owned' => [], 'shared' => []])
+            ->assertJsonPath('data.links', ['owned' => [], 'shared' => []])
+            ->assertJsonPath('data.incoming_mentions', [
+                'locations_count' => 0,
+                'sources_count' => 0,
+                'sources' => [],
+            ]);
+        $this->assertEqualsCanonicalizing(
+            ['id', 'text', 'created_at', 'updated_at', 'author'],
+            array_keys($detail->json('data.comments.0')),
+        );
 
         $this->getJson('/api/projects/'.$project->slug.'/tasks/'.$taskId)->assertNotFound();
         $this->getJson('/api/projects/'.$external->slug)->assertNotFound();
@@ -170,6 +207,70 @@ class MeetingApiTest extends TestCase
             ->getJson($this->showUrl($project, $meeting))->assertOk();
         $this->withToken($this->tokenFor($project, 'contributor'))
             ->getJson($this->indexUrl($project))->assertOk()->assertJsonPath('data.0.id', $meeting->id);
+    }
+
+    public function test_detail_exposes_owned_shared_content_and_only_project_scoped_incoming_mentions(): void
+    {
+        $project = $this->project('Projeto autorizado');
+        $foreign = $this->project('Projeto externo');
+        $meeting = $this->meeting([$project], ['title' => 'Reunião completa']);
+        $task = Task::query()->create([
+            'project_id' => $project->id,
+            'title' => 'Tarefa de origem',
+            'status' => 'NEW',
+        ]);
+        $foreignTask = Task::query()->create([
+            'project_id' => $foreign->id,
+            'title' => 'Tarefa externa',
+            'status' => 'NEW',
+        ]);
+
+        $ownedFile = $this->file($meeting, 'Arquivo próprio.pdf');
+        $sharedFile = $this->file($task, 'Arquivo compartilhado.txt');
+        $meeting->sharedFiles()->attach($sharedFile, ['shared_by' => null]);
+
+        $ownedLink = $meeting->links()->create([
+            'name' => 'Link próprio',
+            'url' => 'https://example.test/owned',
+            'created_by' => null,
+        ]);
+        $sharedLink = $task->links()->create([
+            'name' => 'Link compartilhado',
+            'url' => 'https://example.test/shared',
+            'created_by' => null,
+        ]);
+        $meeting->sharedLinks()->attach($sharedLink, ['shared_by' => null]);
+
+        DB::table('mentions')->insert([
+            [
+                'source_type' => 'task',
+                'source_id' => $task->id,
+                'source_field' => 'description',
+                'target_type' => 'meeting',
+                'target_id' => $meeting->id,
+            ],
+            [
+                'source_type' => 'task',
+                'source_id' => $foreignTask->id,
+                'source_field' => 'description',
+                'target_type' => 'meeting',
+                'target_id' => $meeting->id,
+            ],
+        ]);
+
+        $response = $this->withToken($this->tokenFor($project, 'viewer'))
+            ->getJson($this->showUrl($project, $meeting))
+            ->assertOk();
+
+        $response
+            ->assertJsonPath('data.files.owned.0.uuid', $ownedFile->uuid)
+            ->assertJsonPath('data.files.shared.0.uuid', $sharedFile->uuid)
+            ->assertJsonPath('data.links.owned.0.uuid', $ownedLink->uuid)
+            ->assertJsonPath('data.links.shared.0.uuid', $sharedLink->uuid)
+            ->assertJsonPath('data.incoming_mentions.locations_count', 1)
+            ->assertJsonPath('data.incoming_mentions.sources_count', 1)
+            ->assertJsonPath('data.incoming_mentions.sources.0.source.id', $task->id)
+            ->assertJsonPath('data.incoming_mentions.sources.0.locations.0.field', 'description');
     }
 
     public function test_list_filters_status_date_and_case_insensitive_title_or_location_search(): void
@@ -365,6 +466,35 @@ class MeetingApiTest extends TestCase
         )->plainTextToken();
     }
 
+    private function file(Meeting|Task $owner, string $name): Media
+    {
+        $uuid = (string) Str::uuid();
+        $extension = pathinfo($name, PATHINFO_EXTENSION);
+        $id = DB::table('media')->insertGetId([
+            'model_type' => $owner->getMorphClass(),
+            'model_id' => $owner->getKey(),
+            'uuid' => $uuid,
+            'collection_name' => 'default',
+            'name' => $name,
+            'original_name' => $name,
+            'file_name' => $uuid.'.'.$extension,
+            'mime_type' => $extension === 'pdf' ? 'application/pdf' : 'text/plain',
+            'disk' => 'files',
+            'conversions_disk' => 'files',
+            'size' => 100,
+            'manipulations' => '[]',
+            'custom_properties' => '[]',
+            'generated_conversions' => '[]',
+            'responsive_images' => '[]',
+            'order_column' => 1,
+            'uploaded_by' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return Media::query()->findOrFail($id);
+    }
+
     private function indexUrl(Project $project): string
     {
         return '/api/projects/'.$project->slug.'/meetings';
@@ -460,10 +590,19 @@ class MeetingApiTest extends TestCase
             $table->foreignId('project_id');
             $table->string('title');
             $table->string('status');
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->foreignId('deleted_by')->nullable();
+            $table->boolean('deleted_via_project')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });
 
+        (require database_path('migrations/2026_07_21_090000_create_media_table.php'))->up();
+        (require database_path('migrations/2026_07_22_090000_create_meeting_file_shares_table.php'))->up();
+        (require database_path('migrations/2026_07_23_090000_create_mentions_table.php'))->up();
+        (require database_path('migrations/2026_08_17_090000_create_links_table.php'))->up();
+        (require database_path('migrations/2026_08_17_090100_create_meeting_link_shares_table.php'))->up();
         (require database_path('migrations/2026_07_13_000000_create_uspdev_api_keys_table.php'))->up();
     }
 }
