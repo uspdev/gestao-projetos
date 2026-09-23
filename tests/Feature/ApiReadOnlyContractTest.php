@@ -7,6 +7,11 @@ use Tests\TestCase;
 
 class ApiReadOnlyContractTest extends TestCase
 {
+    public function test_unknown_api_route_returns_not_found(): void
+    {
+        $this->getJson('/api/rota-inexistente')->assertNotFound();
+    }
+
     #[DataProvider('businessApiUrls')]
     public function test_business_api_does_not_expose_write_methods(string $url): void
     {

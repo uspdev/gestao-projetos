@@ -6,44 +6,43 @@ use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+// ==========================================
+// PROJETOS
+// ==========================================
+Route::prefix('projects/{project}')->name('api.projects.')->group(function () {
+    Route::get('', [ProjectController::class, 'show'])
+        ->middleware('uspdevApiKeys:projects.read')
+        ->name('show');
 
-Route::get('projects/{project}', [ProjectController::class, 'show'])
-    ->middleware('uspdevApiKeys:projects.read')
-    ->name('api.projects.show');
+    // ==========================================
+    // REUNIÕES
+    // ==========================================
+    Route::prefix('meetings')->name('meetings.')->middleware('uspdevApiKeys:meetings.read')->group(function () {
+        Route::get('', [MeetingController::class, 'index'])->name('index');
+        Route::get('{meeting}', [MeetingController::class, 'show'])
+            ->whereNumber('meeting')
+            ->name('show');
+    });
 
-Route::get('projects/{project}/meetings', [MeetingController::class, 'index'])
-    ->middleware('uspdevApiKeys:meetings.read')
-    ->name('api.projects.meetings.index');
+    // ==========================================
+    // TAREFAS
+    // ==========================================
+    Route::prefix('tasks')->name('tasks.')->middleware('uspdevApiKeys:tasks.read')->group(function () {
+        Route::get('', [TaskController::class, 'index'])->name('index');
+        Route::get('{task}', [TaskController::class, 'show'])
+            ->whereNumber('task')
+            ->name('show');
+    });
 
-Route::get('projects/{project}/meetings/{meeting}', [MeetingController::class, 'show'])
-    ->whereNumber('meeting')
-    ->middleware('uspdevApiKeys:meetings.read')
-    ->name('api.projects.meetings.show');
+    // ==========================================
+    // ARQUIVOS
+    // ==========================================
+    Route::prefix('files')->name('files.')->middleware('uspdevApiKeys:files.read')->group(function () {
+        Route::get('', [FileController::class, 'index'])->name('index');
+        Route::get('{uuid}', [FileController::class, 'show'])
+            ->whereUuid('uuid')
+            ->name('show');
+    });
+});
 
-Route::get('projects/{project}/tasks', [TaskController::class, 'index'])
-    ->middleware('uspdevApiKeys:tasks.read')
-    ->name('api.projects.tasks.index');
-
-Route::get('projects/{project}/tasks/{task}', [TaskController::class, 'show'])
-    ->whereNumber('task')
-    ->middleware('uspdevApiKeys:tasks.read')
-    ->name('api.projects.tasks.show');
-
-Route::get('projects/{project}/files', [FileController::class, 'index'])
-    ->middleware('uspdevApiKeys:files.read')
-    ->name('api.projects.files.index');
-
-Route::get('projects/{project}/files/{uuid}', [FileController::class, 'show'])
-    ->whereUuid('uuid')
-    ->middleware('uspdevApiKeys:files.read')
-    ->name('api.projects.files.show');
+Route::fallback(fn() => abort(404));
