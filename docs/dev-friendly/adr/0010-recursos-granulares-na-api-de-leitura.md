@@ -43,11 +43,12 @@ quantidade por página e total de registros.
 
 O detalhe do Projeto retornará identificador, slug, nome, descrição integral,
 estado, visibilidade, herança de permissões, tipo, fase, Projeto pai, tags,
-todos os módulos com seu estado, membros e papéis, comentários, Arquivos e
+os módulos ativos com seus dados, membros e papéis, comentários, Arquivos e
 Links próprios, Menções recebidas, subprojetos e Reuniões em cuja Pauta o
-Projeto aparece. O campo redundante `modules.tasks_enabled` não integrará a
-resposta; `modules.enabled` será preservado e `modules.items` apresentará cada
-módulo visível na interface.
+Projeto aparece. `modules_enabled` será uma lista de objetos com `slug`,
+`name` e `enabled`, contendo somente módulos ativos. O e-mail dos membros,
+dos responsáveis por Tarefas e dos autores de comentários substituirá a URL
+do perfil pessoal nessas representações.
 
 Uma Reunião diretamente vinculada ao Projeto será retornada integralmente,
 mesmo quando também estiver vinculada a outros Projetos. Isso inclui toda a
@@ -81,7 +82,7 @@ serão filtradas por slug com correspondência a qualquer valor e a busca
 abrangerá título e descrição. Sem filtros, serão retornadas todas as Tarefas
 não excluídas, inclusive concluídas, por atualização e identificador
 decrescentes. Não haverá filtro por responsável. O detalhe acrescentará o
-Projeto, os responsáveis com identificador, nome e papel no Projeto,
+Projeto, os responsáveis com identificador, nome, e-mail e papel no Projeto,
 comentários, Arquivos e Links próprios e Menções recebidas.
 
 Quando o módulo correspondente estiver desativado no Projeto, os endpoints de

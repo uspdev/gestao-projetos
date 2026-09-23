@@ -66,9 +66,9 @@ Confirme visualmente:
 - `200 OK`;
 - `data.slug` igual a `project_slug`;
 - presença de `description`, `visibility`, `permission_inheritance`,
-  `modules.enabled`, `modules.items`, `members`, `comments`, `files`, `links`,
+  `modules_enabled`, `members`, `comments`, `files`, `links`,
   `incoming_mentions`, `agenda_meetings` e `subprojects`;
-- ausência de e-mails e de capacidades de mutação.
+- e-mail nos membros e ausência de capacidades de mutação.
 
 ## 5. Listar e detalhar Reuniões
 

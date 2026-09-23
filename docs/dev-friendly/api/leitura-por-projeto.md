@@ -65,14 +65,12 @@ publicado na coleção de Arquivos. Não há segmento de versão inicial.
 O detalhe do Projeto reúne todas as informações disponibilizadas pela
 interface a um visualizador. Retorna `id`, `slug`, `name`, a `description`
 integral em Markdown, `status`, `visibility` e `permission_inheritance` com
-valor e rótulo, `type`, `phase`, `parent`, `tags`, `modules`, `members`,
+valor e rótulo, `type`, `phase`, `parent`, `tags`, `modules_enabled`, `members`,
 `comments`, `files`, `links`, `incoming_mentions`, `agenda_meetings`,
-`subprojects`, `web_url` e timestamps. E-mail e outros dados pessoais dos
-membros não são expostos.
+`subprojects`, `web_url` e timestamps.
 
-`modules.enabled` continua oferecendo a lista compacta dos módulos ativos;
-`modules.items` informa o slug, o nome e o estado de todos os módulos exibidos
-na interface. Cada membro contém ID, nome, papel no Projeto e URL web.
+`modules_enabled` contém somente os módulos ativos, cada um com `slug`, `name`
+e `enabled: true`. Cada membro contém ID, nome, e-mail e papel no Projeto.
 
 ```sh
 curl --fail-with-body \
@@ -95,7 +93,10 @@ Resposta resumida:
     "phase": {"id": 4, "slug": "production", "name": "Produção"},
     "parent": null,
     "tags": [{"id": 9, "name": "Integração", "slug": "integracao"}],
-    "modules": {"enabled": ["tasks", "meetings"]},
+    "modules_enabled": [
+      {"slug": "tasks", "name": "Tarefas", "enabled": true},
+      {"slug": "meetings", "name": "Reuniões", "enabled": true}
+    ],
     "web_url": "https://projetos.example/projects/portal-de-servicos",
     "created_at": "2026-08-30T09:00:00.000000Z",
     "updated_at": "2026-09-10T15:30:00.000000Z"
@@ -139,7 +140,7 @@ O detalhe acrescenta `notes` (Anotações prévias), `ata`, `transcription`, a
 `agenda` ordenada, `comments`, `files`, `links` e `incoming_mentions`. Cada
 Item de pauta informa `id`, `position`, `type`, `title`, `notes` e um resumo
 opcional em `reference`. Cada comentário ativo informa ID, texto, timestamps
-e autor por ID, nome e URL web. Uma Reunião diretamente vinculada é retornada
+e autor por ID, nome e e-mail. Uma Reunião diretamente vinculada é retornada
 integralmente mesmo que sua Pauta tenha referências externas.
 
 ```sh
@@ -185,9 +186,8 @@ A lista retorna `id`, `title`, `description`, `status` e `priority` com valor e
 rótulo, `start_date`, `due_date`, `completed_at`, timestamps, responsáveis em
 `assignees` somente pelo nome, `tags` e `web_url`.
 
-O detalhe acrescenta `project`, responsáveis com ID, nome, papel no Projeto e
-URL web, além de `comments`, `files`, `links` e `incoming_mentions`. E-mail e
-outros dados pessoais dos responsáveis não são expostos.
+O detalhe acrescenta `project`, responsáveis com ID, nome, e-mail e papel no
+Projeto, além de `comments`, `files`, `links` e `incoming_mentions`.
 
 ```sh
 curl --fail-with-body \
@@ -204,7 +204,7 @@ com o código `tasks_module_disabled`.
 Projeto, Tarefa e Reunião usam a mesma estrutura para conteúdo relacionado:
 
 - `comments` contém somente comentários ativos em ordem cronológica, com ID,
-  texto, timestamps e autor por ID, nome e URL web;
+  texto, timestamps e autor por ID, nome e e-mail;
 - `files.owned` contém Arquivos pertencentes à entidade e `files.shared`
   contém Arquivos compartilhados com ela;
 - `links.owned` e `links.shared` aplicam a mesma separação aos Links;

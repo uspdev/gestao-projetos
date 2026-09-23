@@ -46,7 +46,7 @@ curl -i \
 ```
 
 Confirme `200 OK`, `data.slug`, `data.description`, `data.visibility`,
-`data.permission_inheritance`, `data.modules.enabled`, `data.modules.items`,
+`data.permission_inheritance`, `data.modules_enabled`,
 `data.members`, `data.comments`, `data.files`, `data.links`,
 `data.incoming_mentions`, `data.agenda_meetings` e `data.subprojects`.
 
