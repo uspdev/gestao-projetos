@@ -241,18 +241,15 @@ class ProjectApiTest extends TestCase
                     'id' => $parent->id,
                     'slug' => 'programa-institucional',
                     'name' => 'Programa institucional',
+                    'web_url' => route('projects.show', $parent),
                 ],
                 'tags' => [[
                     'id' => $tag->id,
                     'name' => 'Prioridade institucional',
                     'slug' => 'prioridade-institucional',
                 ]],
-                'modules' => [
-                    'enabled' => ['meetings'],
-                    'items' => [
-                        ['slug' => 'meetings', 'name' => 'Reuniões', 'enabled' => true],
-                        ['slug' => 'tasks', 'name' => 'Tarefas', 'enabled' => false],
-                    ],
+                'modules_enabled' => [
+                    ['slug' => 'meetings', 'name' => 'Reuniões', 'enabled' => true],
                 ],
                 'members' => [],
                 'comments' => [],
@@ -272,7 +269,7 @@ class ProjectApiTest extends TestCase
         ]);
     }
 
-    public function test_project_read_reports_enabled_modules_without_a_redundant_flag(): void
+    public function test_project_read_reports_only_enabled_modules_with_their_details(): void
     {
         $tasks = Module::query()->create([
             'name' => 'Tarefas',
@@ -284,8 +281,12 @@ class ProjectApiTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/projects/'.$project->slug)
             ->assertOk()
-            ->assertJsonPath('data.modules.enabled.0', 'tasks')
-            ->assertJsonMissingPath('data.modules.tasks_enabled');
+            ->assertJsonPath('data.modules_enabled.0', [
+                'slug' => 'tasks',
+                'name' => 'Tarefas',
+                'enabled' => true,
+            ])
+            ->assertJsonMissingPath('data.modules');
 
         $project->projectModules()
             ->where('module_id', $tasks->id)
@@ -294,8 +295,8 @@ class ProjectApiTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/projects/'.$project->slug)
             ->assertOk()
-            ->assertJsonPath('data.modules.enabled', [])
-            ->assertJsonMissingPath('data.modules.tasks_enabled');
+            ->assertJsonPath('data.modules_enabled', [])
+            ->assertJsonMissingPath('data.modules');
     }
 
     public function test_project_detail_exposes_every_resource_visible_to_a_viewer(): void
@@ -377,6 +378,8 @@ class ProjectApiTest extends TestCase
             ->assertJsonPath('data.permission_inheritance.value', 'FULL')
             ->assertJsonPath('data.type.description', 'Agrupa os subprojetos.')
             ->assertJsonPath('data.members.0.id', $member->id)
+            ->assertJsonPath('data.members.0.email', $member->email)
+            ->assertJsonMissingPath('data.members.0.web_url')
             ->assertJsonPath('data.members.0.role.value', 'VIEWER')
             ->assertJsonPath('data.comments.0.id', $commentId)
             ->assertJsonPath('data.files.owned.0.uuid', $file->uuid)

@@ -78,7 +78,7 @@ class MeetingApiTest extends TestCase
         $this->getJson($this->showUrl($child, $meeting))->assertNotFound();
     }
 
-    public function test_detail_contains_ordered_agenda_external_references_and_active_comments_without_private_user_fields(): void
+    public function test_detail_contains_ordered_agenda_external_references_and_active_comments_with_author_email(): void
     {
         $project = $this->project('Projeto principal');
         $external = $this->project('Projeto externo');
@@ -177,7 +177,7 @@ class MeetingApiTest extends TestCase
             ->assertJsonPath('data.comments.0.author', [
                 'id' => $userId,
                 'name' => 'Ana Autora',
-                'web_url' => route('users.show', $userId),
+                'email' => 'segredo@example.test',
             ])
             ->assertJsonPath('data.files', ['owned' => [], 'shared' => []])
             ->assertJsonPath('data.links', ['owned' => [], 'shared' => []])

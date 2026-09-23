@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Shared;
 
 use App\Models\Comment;
 use Illuminate\Http\Request;
@@ -20,11 +20,7 @@ class CommentResource extends JsonResource
             'text' => $comment->text,
             'created_at' => $comment->created_at?->toISOString(),
             'updated_at' => $comment->updated_at?->toISOString(),
-            'author' => $author ? [
-                'id' => $author->id,
-                'name' => $author->name,
-                'web_url' => route('users.show', $author),
-            ] : null,
+            'author' => $author ? (new UserResource($author))->resolve($request) : null,
         ];
     }
 }

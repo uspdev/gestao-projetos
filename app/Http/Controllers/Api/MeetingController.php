@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\Meeting\MeetingStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\MeetingDetailResource;
-use App\Http\Resources\MeetingResource;
+use App\Http\Resources\Meeting\MeetingDetailResource;
+use App\Http\Resources\Meeting\MeetingResource;
 use App\Models\Project;
 use App\Services\Api\ProjectDetailLoader;
 use Carbon\CarbonImmutable;

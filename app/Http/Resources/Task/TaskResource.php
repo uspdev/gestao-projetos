@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Task;
 
+use App\Http\Resources\Shared\TagResource;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
@@ -40,11 +41,7 @@ class TaskResource extends JsonResource
                 ->values()
                 ->all(),
             'tags' => $task->tags
-                ->map(fn (Tag $tag): array => [
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'slug' => $tag->slug,
-                ])
+                ->map(fn (Tag $tag): array => (new TagResource($tag))->resolve($request))
                 ->values()
                 ->all(),
             'web_url' => route('tasks.show', $task),

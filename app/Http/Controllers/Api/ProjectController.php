@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ProjectResource;
+use App\Http\Resources\Project\ProjectResource;
 use App\Models\Project;
 use App\Services\Api\ProjectDetailLoader;
 use Illuminate\Http\Request;

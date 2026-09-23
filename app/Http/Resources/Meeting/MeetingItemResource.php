@@ -1,34 +1,22 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Meeting;
 
+use App\Http\Resources\Project\ProjectSummaryResource;
 use App\Models\MeetingItem;
 use App\Models\Project;
 use App\Models\Task;
 use App\Morphs\DiscussableMap;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class MeetingDetailResource extends ApiDetailResource
+class MeetingItemResource extends JsonResource
 {
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
-        $meeting = $this->resource;
-
-        return array_merge((new MeetingResource($meeting))->resolve($request), [
-            'notes' => $meeting->notes,
-            'ata' => $meeting->ata,
-            'transcription' => $meeting->transcription,
-            'agenda' => $meeting->meetingItems
-                ->map(fn (MeetingItem $item): array => $this->agendaItem($item))
-                ->values()
-                ->all(),
-        ], $this->visibleDetail($request));
-    }
-
-    /** @return array<string, mixed> */
-    private function agendaItem(MeetingItem $item): array
-    {
+        /** @var MeetingItem $item */
+        $item = $this->resource;
         $reference = $item->discussable;
 
         return [
@@ -44,10 +32,7 @@ class MeetingDetailResource extends ApiDetailResource
             'reference' => match (true) {
                 $reference instanceof Project => [
                     'type' => 'project',
-                    'id' => $reference->id,
-                    'slug' => $reference->slug,
-                    'name' => $reference->name,
-                    'web_url' => route('projects.show', $reference),
+                    ...(new ProjectSummaryResource($reference))->resolve($request),
                 ],
                 $reference instanceof Task => [
                     'type' => 'task',

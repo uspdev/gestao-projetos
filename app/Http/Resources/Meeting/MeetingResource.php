@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Meeting;
 
+use App\Http\Resources\Project\ProjectSummaryResource;
 use App\Models\Meeting;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -24,11 +25,7 @@ class MeetingResource extends JsonResource
             'scheduled_at' => $meeting->scheduled_at?->toISOString(),
             'location' => $meeting->location,
             'projects' => $meeting->projects
-                ->map(fn (Project $project): array => [
-                    'id' => $project->id,
-                    'slug' => $project->slug,
-                    'name' => $project->name,
-                ])
+                ->map(fn (Project $project): array => (new ProjectSummaryResource($project))->resolve($request))
                 ->values()
                 ->all(),
             'created_at' => $meeting->created_at?->toISOString(),

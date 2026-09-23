@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Project;
 
+use App\Http\Resources\Shared\ApiDetailResource;
+use App\Http\Resources\Shared\TagResource;
 use App\Models\Phase;
 use App\Models\Project;
 use App\Models\ProjectType;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProjectResource extends ApiDetailResource
@@ -38,44 +41,22 @@ class ProjectResource extends ApiDetailResource
             ],
             'type' => $this->projectTypeSummary($project->projectType),
             'phase' => $this->phaseSummary($project->phase),
-            'parent' => $this->projectSummary($project->parent),
+            'parent' => $project->parent ? (new ProjectSummaryResource($project->parent))->resolve($request) : null,
             'tags' => $project->tags
-                ->map(fn (Tag $tag): array => [
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'slug' => $tag->slug,
+                ->map(fn (Tag $tag): array => (new TagResource($tag))->resolve($request))
+                ->values()
+                ->all(),
+            'modules_enabled' => $modules
+                ->filter(fn (array $module): bool => $module['enabled'])
+                ->map(fn (array $module): array => [
+                    'slug' => $module['slug'],
+                    'name' => $module['name'],
+                    'enabled' => $module['enabled'],
                 ])
                 ->values()
                 ->all(),
-            'modules' => [
-                'enabled' => $modules
-                    ->filter(fn (array $module): bool => $module['enabled'])
-                    ->pluck('slug')
-                    ->values()
-                    ->all(),
-                'items' => $modules
-                    ->map(fn (array $module): array => [
-                        'slug' => $module['slug'],
-                        'name' => $module['name'],
-                        'enabled' => $module['enabled'],
-                    ])
-                    ->values()
-                    ->all(),
-            ],
             'members' => $project->users
-                ->map(function ($user) use ($project): array {
-                    $role = $project->userRole($user);
-
-                    return [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'role' => $role ? [
-                            'value' => $role->value,
-                            'label' => $role->label(),
-                        ] : null,
-                        'web_url' => route('users.show', $user),
-                    ];
-                })
+                ->map(fn (User $user): array => (new ProjectMemberResource($user, $project))->resolve($request))
                 ->values()
                 ->all(),
             ...$this->visibleDetail($request),
@@ -94,23 +75,16 @@ class ProjectResource extends ApiDetailResource
                 ->all(),
             'subprojects' => collect($project->getRelation('apiSubprojects'))
                 ->map(fn (Project $subproject): array => [
-                    'id' => $subproject->id,
-                    'slug' => $subproject->slug,
-                    'name' => $subproject->name,
+                    ...(new ProjectSummaryResource($subproject))->resolve($request),
                     'status' => [
                         'value' => $subproject->status->value,
                         'label' => $subproject->status->label(),
                     ],
                     'type' => $this->projectTypeSummary($subproject->projectType),
                     'tags' => $subproject->tags
-                        ->map(fn (Tag $tag): array => [
-                            'id' => $tag->id,
-                            'name' => $tag->name,
-                            'slug' => $tag->slug,
-                        ])
+                        ->map(fn (Tag $tag): array => (new TagResource($tag))->resolve($request))
                         ->values()
                         ->all(),
-                    'web_url' => route('projects.show', $subproject),
                 ])
                 ->values()
                 ->all(),
@@ -151,22 +125,6 @@ class ProjectResource extends ApiDetailResource
             'slug' => $phase->slug,
             'name' => $phase->name,
             'color' => $phase->color,
-        ];
-    }
-
-    /**
-     * @return array{id: int, slug: string, name: string}|null
-     */
-    private function projectSummary(?Project $project): ?array
-    {
-        if ($project === null) {
-            return null;
-        }
-
-        return [
-            'id' => $project->id,
-            'slug' => $project->slug,
-            'name' => $project->name,
         ];
     }
 }

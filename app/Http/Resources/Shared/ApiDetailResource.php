@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Shared;
 
+use App\Http\Resources\Content\FileResource;
+use App\Http\Resources\Content\LinkResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

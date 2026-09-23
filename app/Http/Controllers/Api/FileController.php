@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\FileResource;
+use App\Http\Resources\Content\FileResource;
 use App\Models\Meeting;
 use App\Models\Project;
 use App\Models\Task;

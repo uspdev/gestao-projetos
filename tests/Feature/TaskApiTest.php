@@ -167,14 +167,14 @@ class TaskApiTest extends TestCase
             [
                 'id' => $ana->id,
                 'name' => 'Ana Responsável',
+                'email' => $ana->email,
                 'project_role' => ['value' => 'VIEWER', 'label' => 'Visualizador'],
-                'web_url' => route('users.show', $ana),
             ],
             [
                 'id' => $bia->id,
                 'name' => 'Bia Responsável',
+                'email' => $bia->email,
                 'project_role' => null,
-                'web_url' => route('users.show', $bia),
             ],
         ];
         $detail['comments'] = [[
@@ -185,7 +185,7 @@ class TaskApiTest extends TestCase
             'author' => [
                 'id' => $ana->id,
                 'name' => $ana->name,
-                'web_url' => route('users.show', $ana),
+                'email' => $ana->email,
             ],
         ]];
         $detail['files'] = [
