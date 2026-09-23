@@ -4,7 +4,10 @@ use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\MeetingController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/', fn() => view('api.guide'))->name('api.guide');
 
 // ==========================================
 // PROJETOS
@@ -45,4 +48,13 @@ Route::prefix('projects/{project}')->name('api.projects.')->group(function () {
     });
 });
 
-Route::fallback(fn() => abort(404));
+Route::fallback(function (Request $request) {
+    if ($request->expectsJson()) {
+        return response()->json([
+            'message' => 'Not Found',
+            'documentation_url' => route('api.guide'),
+        ], 404);
+    }
+
+    return response()->view('api.guide', ['notFound' => true], 404);
+});

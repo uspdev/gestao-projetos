@@ -12,8 +12,13 @@ manual de Tarefas permanece disponível na interface web.
 
 ## URL, autenticação e escopo
 
-Todas as rotas ficam abaixo de `/api/projects/{project}`, em que `{project}` é
-o slug explícito do Projeto. A forma recomendada envia a Chave de API pelo
+As rotas de consulta ficam abaixo de `/api/projects/{project}`, em que
+`{project}` é o slug explícito do Projeto. O guia navegável em `GET /api`
+apresenta todos os endpoints e exemplos `curl` sem exigir uma chave. Uma rota
+desconhecida responde `404`; no navegador, a resposta exibe esse guia, e
+clientes JSON recebem um link para ele em `documentation_url`.
+
+A forma recomendada envia a Chave de API pelo
 cabeçalho:
 
 ```http

@@ -47,8 +47,7 @@ class ApiIntegrationDocumentationTest extends TestCase
         $document = $this->document(self::DOCUMENT);
 
         foreach ([
-            '`modules.enabled`',
-            '`modules.items`',
+            '`modules_enabled`',
             '`visibility`',
             '`permission_inheritance`',
             '`incoming_mentions`',
