@@ -35,7 +35,7 @@ class ApiIntegrationDocumentationTest extends TestCase
             '`tasks.read`',
             '`files.read`',
             '`purpose` é somente metadado',
-            '`api_key` está desabilitado',
+            '?api_key=<CHAVE_DE_API>',
             '60 requisições por minuto por endereço IP',
         ] as $authenticationContract) {
             self::assertStringContainsString($authenticationContract, $document, $authenticationContract);
@@ -99,7 +99,7 @@ class ApiIntegrationDocumentationTest extends TestCase
             'Alterar o slug do Projeto quebra todas as URLs da API',
             'não há redirecionamento nem alias',
             'atualizar o slug configurado em todos os consumidores',
-            'O download também exige o cabeçalho Bearer',
+            'inclusive no download de Arquivos',
         ] as $scopeContract) {
             self::assertStringContainsString($scopeContract, $document, $scopeContract);
         }

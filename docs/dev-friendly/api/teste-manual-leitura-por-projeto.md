@@ -39,9 +39,9 @@ caminho `/projects/gestao-projetos/settings` nem o fragmento
 ## 2. Ler o Projeto
 
 ```sh
-curl -i \
-  --header "Authorization: Bearer ${API_TEST_KEY}" \
+curl --get -i \
   --header "Accept: application/json" \
+  --data-urlencode "api_key=${API_TEST_KEY}" \
   "${API_BASE_URL}/api/projects/${PROJECT_SLUG}"
 ```
 
@@ -49,6 +49,8 @@ Confirme `200 OK`, `data.slug`, `data.description`, `data.visibility`,
 `data.permission_inheritance`, `data.modules_enabled`,
 `data.members`, `data.comments`, `data.files`, `data.links`,
 `data.incoming_mentions`, `data.agenda_meetings` e `data.subprojects`.
+Esse passo valida o fallback por parâmetro de consulta; os passos seguintes
+validam a forma recomendada pelo cabeçalho Bearer.
 
 ## 3. Listar e detalhar Reuniões
 

@@ -13,16 +13,21 @@ manual de Tarefas permanece disponível na interface web.
 ## URL, autenticação e escopo
 
 Todas as rotas ficam abaixo de `/api/projects/{project}`, em que `{project}` é
-o slug explícito do Projeto. Envie a Chave de API somente pelo cabeçalho:
+o slug explícito do Projeto. A forma recomendada envia a Chave de API pelo
+cabeçalho:
 
 ```http
 Authorization: Bearer <CHAVE_DE_API>
 Accept: application/json
 ```
 
-O fallback por `api_key` está desabilitado para evitar que credenciais sejam
-registradas em URLs, históricos e logs. O download também exige o cabeçalho
-Bearer.
+Clientes que não conseguem enviar o cabeçalho também podem usar o parâmetro de
+consulta `?api_key=<CHAVE_DE_API>` em qualquer endpoint, inclusive no download
+de Arquivos. Quando as duas formas forem enviadas, o cabeçalho Bearer prevalece.
+
+Prefira o cabeçalho sempre que possível. URLs com credenciais podem ser
+registradas em históricos, logs, proxies e ferramentas de monitoramento; não
+as compartilhe nem as persista.
 
 A Chave de API pertence diretamente a um Projeto. Em cada requisição, a
 aplicação verifica separadamente:
@@ -293,7 +298,7 @@ configurável nem opção de desabilitar a paginação.
 
 | Status | Significado |
 | --- | --- |
-| `401 Unauthorized` | Bearer ausente, inválido, expirado ou revogado |
+| `401 Unauthorized` | Chave ausente, inválida, expirada ou revogada |
 | `403 Forbidden` | chave válida sem a ability exigida |
 | `404 Not Found` | slug, ID ou UUID inexistente, excluído ou fora do escopo |
 | `409 Conflict` | módulo necessário desligado; veja o campo `code` |

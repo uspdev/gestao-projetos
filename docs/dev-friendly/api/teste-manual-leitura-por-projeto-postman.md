@@ -50,8 +50,13 @@ Crie uma coleção chamada `Gestão de Projetos - API de leitura` e configure:
 - em **Headers**, `Accept: application/json`;
 - em cada requisição, **Inherit auth from parent**.
 
-Não coloque a chave na URL nem em parâmetros. O fallback `api_key` está
-desabilitado.
+O cabeçalho Bearer é recomendado, mas todos os endpoints também aceitam
+`api_key={{api_key}}` na aba **Params**. Para validar essa forma, duplique a
+requisição `GET Projeto`, selecione **No Auth** e adicione o parâmetro
+`api_key` com o valor `{{api_key}}`; ela também deve responder `200 OK`.
+
+Evite salvar ou compartilhar URLs já montadas com a credencial, pois elas
+podem aparecer em históricos, logs, proxies e ferramentas de monitoramento.
 
 ## 4. Ler o Projeto
 

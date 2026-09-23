@@ -56,19 +56,23 @@ class ProjectApiTest extends TestCase
             ->assertJsonPath('data.id', $project->id);
     }
 
+    public function test_viewer_key_can_read_its_project_through_the_query_parameter(): void
+    {
+        $project = $this->project('Projeto integrado por query parameter');
+        $token = $this->tokenFor($project, 'viewer');
+
+        $this->getJson('/api/projects/'.$project->slug.'?'.http_build_query([
+            'api_key' => $token,
+        ]))
+            ->assertOk()
+            ->assertJsonPath('data.id', $project->id);
+    }
+
     public function test_route_requires_an_active_bearer_key_with_projects_read_ability(): void
     {
         $project = $this->project('Projeto protegido');
 
         $this->getJson('/api/projects/'.$project->slug)
-            ->assertUnauthorized()
-            ->assertExactJson(['message' => 'Unauthenticated.']);
-
-        $queryOnlyToken = $this->tokenFor($project, 'viewer');
-
-        $this->getJson('/api/projects/'.$project->slug.'?'.http_build_query([
-            'api_key' => $queryOnlyToken,
-        ]))
             ->assertUnauthorized()
             ->assertExactJson(['message' => 'Unauthenticated.']);
 

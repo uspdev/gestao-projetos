@@ -1,6 +1,6 @@
 # API de Projeto somente para leitura
 
-**Status:** aceito
+**Status:** aceito; decisão de transporte da Chave de API substituída pelo ADR 0011
 
 O Projeto será o Projeto proprietário direto das suas Chaves de API e a API
 de negócio autenticada por essas credenciais oferecerá somente operações de
@@ -32,6 +32,9 @@ As chaves serão enviadas exclusivamente em `Authorization: Bearer`; o fallback
 por parâmetro da URL permanecerá desabilitado. As finalidades `integration` e
 `ai` oferecidas na emissão serão apenas metadados descritivos, sem efeito nas
 abilities ou nas respostas.
+
+> A exclusividade do cabeçalho Bearer registrada acima foi substituída pelo
+> ADR 0011. As demais decisões deste ADR permanecem vigentes.
 
 ## Consequências
 
