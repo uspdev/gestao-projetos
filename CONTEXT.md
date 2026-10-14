@@ -87,3 +87,17 @@ Entidade do sistema que pode ser destino de uma Menção por possuir identidade 
 
 **Rótulo histórico da Menção**:
 Nome ou título da Entidade mencionável no momento em que a Menção foi inserida, preservado no texto mesmo que a entidade seja renomeada.
+
+## Integrações por API
+
+**Chave de API**:
+Credencial pertencente diretamente a um Projeto e usada para consultar os recursos desse Projeto autorizados pelo seu Papel da Chave de API.
+_Evitar_: token global, chave compartilhada
+
+**Projeto proprietário da Chave**:
+Projeto ao qual a Chave de API pertence diretamente e cujo limite de recursos ela não pode ultrapassar.
+_Evitar_: Sistema cliente, projeto da sessão, projeto do usuário
+
+**Papel da Chave de API**:
+Conjunto de capacidades de leitura concedidas a uma Chave de API, sem transformar a credencial em membro humano do Projeto.
+_Evitar_: papel do usuário, papel do membro, administrador da API

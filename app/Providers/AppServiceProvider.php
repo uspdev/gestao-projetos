@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Morphs\ApiKeyOwnerMap;
 use App\Morphs\CommentableMap;
 use App\Morphs\DuplicableMap;
 use App\Morphs\DiscussableMap;
@@ -44,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap(CommentableMap::morphMap());
         Relation::morphMap(DuplicableMap::morphMap());
         Relation::morphMap(MentionMap::morphMap());
+        Relation::morphMap(ApiKeyOwnerMap::morphMap());
 
         // registrando pasta projects.components
         Blade::anonymousComponentPath(

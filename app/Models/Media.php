@@ -113,6 +113,18 @@ class Media extends BaseMedia
         );
     }
 
+    public function attachmentFilename(): string
+    {
+        $extension = strtolower((string) pathinfo($this->file_name, PATHINFO_EXTENSION));
+        $name = Str::ascii((string) $this->display_name);
+        $name = preg_replace('/[\\x00-\\x1F\\x7F"\\\\\\/;]+/', ' ', $name) ?? '';
+        $name = trim(preg_replace('/\\s+/', ' ', $name) ?? '');
+        $name = trim((string) pathinfo($name, PATHINFO_FILENAME));
+        $name = $name !== '' ? $name : 'arquivo';
+
+        return $extension !== '' ? "{$name}.{$extension}" : $name;
+    }
+
     private function ensureSupportedOwner(): void
     {
         $ownerClass = Relation::getMorphedModel($this->model_type) ?? $this->model_type;

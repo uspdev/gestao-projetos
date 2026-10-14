@@ -9,7 +9,7 @@ com segurança.
 
 ### Requisitos
 
-- PHP 8.2 ou superior;
+- PHP 8.3 ou superior;
 - Composer;
 - os ativos próprios são publicados pelo Composer e não exigem Node.js ou npm;
 - SQLite, MariaDB ou MySQL compatível com a configuração do Laravel;
@@ -77,6 +77,12 @@ O módulo de Arquivos usa armazenamento privado. Não execute
 - [Arquivos e Links](arquivos-links/implementar-links-mult-arquivos.md) — detalhes de implementação e compartilhamento de Arquivos e Links.
 - [Links profundos e fragmentos](navegacao/links-profundos-e-fragmentos.md) — uso de `deep_link()`, IDs de destino, redirects, Menções e navegação de Arquivos e Links.
 - [Cores dos Cards](visual/cores_cards.md) — identidade visual por entidade, incluindo projetos, tarefas e reuniões. Segue o padrão da EESC-USP, com cores discretas e consistentes em todas as telas.
+- [API de leitura por Projeto](api/leitura-por-projeto.md) — autenticação
+  Bearer, contrato HTTP, filtros, erros e exemplos de consumo.
+- [Teste manual da API de leitura](api/teste-manual-leitura-por-projeto.md) —
+  validação local por `curl`, da emissão à revogação da chave.
+- [Teste manual da API de leitura no Postman](api/teste-manual-leitura-por-projeto-postman.md)
+  — mesma validação com ambiente, coleção e verificações manuais.
 
 ## ADRs
 
@@ -90,6 +96,9 @@ alterar o comportamento documentado:
 - [Generalizar Menções para entidades do sistema](adr/0005-generalizar-mencoes-para-entidades.md)
 - [Notificações de Menções no resumo](adr/0007-notificacoes-de-mencoes-no-resumo.md)
 - [Geração síncrona de miniaturas no envio de Arquivos](adr/0006-geracao-sincrona-de-miniaturas.md)
+- [Requisito de PHP da biblioteca API Keys](adr/0008-requisito-de-php-da-biblioteca-api-keys.md)
+- [API de Projeto somente para leitura](adr/0009-api-de-projeto-somente-para-leitura.md)
+- [Recursos granulares na API de leitura](adr/0010-recursos-granulares-na-api-de-leitura.md)
 
 ## Implantação e operação
 

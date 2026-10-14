@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "263683e658b93c9af02b1d866bf96c97",
+    "content-hash": "b42102fec9baad0eb19ffb777b18ea6b",
     "packages": [
         {
             "name": "brick/math",
@@ -7964,6 +7964,65 @@
             "time": "2025-12-02T11:56:42+00:00"
         },
         {
+            "name": "uspdev/api-keys",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/uspdev/api-keys.git",
+                "reference": "8480d130caba955f2f753c9c622bce5d0963e2b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/uspdev/api-keys/zipball/8480d130caba955f2f753c9c622bce5d0963e2b7",
+                "reference": "8480d130caba955f2f753c9c622bce5d0963e2b7",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^12.0",
+                "illuminate/encryption": "^12.0",
+                "illuminate/hashing": "^12.0",
+                "illuminate/http": "^12.0",
+                "illuminate/routing": "^12.0",
+                "illuminate/support": "^12.0",
+                "illuminate/validation": "^12.0",
+                "illuminate/view": "^12.0",
+                "laravel/framework": "^12.0 | ^13.0",
+                "php": "^8.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Uspdev\\ApiKeys\\ApiKeyServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Uspdev\\ApiKeys\\": "src/"
+                }
+            },
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Masaki Kawabata Neto",
+                    "email": "kawabata@usp.br"
+                },
+                {
+                    "name": "Lucas Dalossa Lopes",
+                    "email": "lopslucas12@gmail.com"
+                }
+            ],
+            "description": "Gerenciamento seguro de API keys associadas a modelos Laravel para integrações e consumo por inteligência artificial.",
+            "support": {
+                "source": "https://github.com/uspdev/api-keys/tree/0.1.0",
+                "issues": "https://github.com/uspdev/api-keys/issues"
+            },
+            "time": "2026-08-27T18:32:11+00:00"
+        },
+        {
             "name": "uspdev/cache",
             "version": "1.0.0",
             "source": {
@@ -11372,12 +11431,12 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.2"
+        "php": "^8.3"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }

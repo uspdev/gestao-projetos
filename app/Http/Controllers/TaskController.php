@@ -10,11 +10,11 @@ use App\Http\Requests\Task\UpdateTaskDescriptionRequest;
 use App\Http\Requests\Task\UpdateTaskStatusRequest;
 use App\Mail\TaskAssigned;
 use App\Models\Project;
-use App\Models\Tag;
 use App\Models\Module;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\Mentions\MentionManager;
+use App\Services\Tasks\TaskCreator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -93,42 +93,11 @@ class TaskController extends Controller
     }
 
 
-    public function store(StoreTaskRequest $request, Project $project, MentionManager $mentionManager)
+    public function store(StoreTaskRequest $request, Project $project, TaskCreator $taskCreator)
     {
         $this->ensureTasksModuleEnabled($project);
 
-        [$task, $assignee] = DB::transaction(function () use ($project, $request, $mentionManager) {
-            $data = $request->validated();
-            $assigneeId = $data['assignee_id'] ?? null;
-            unset($data['assignee_id']);
-
-            $data['project_id'] = $project->id;
-            $data['created_by'] = Auth::id();
-            $data['status'] = $data['status'] ?? TaskStatus::ASSIGNED->value;
-
-            $task = Task::create($data);
-            $assignee = $assigneeId ? User::query()->findOrFail($assigneeId) : null;
-
-            if ($assignee) {
-                $this->assignUser($task, $assignee);
-            }
-
-            $mentionManager->validateAllMentions($task, 'description', $data['description'] ?? null);
-            $mentionManager->synchronize($task, 'description', $data['description'] ?? null);
-
-            if ($request->has('tags')) {
-                $tagsToSync = Tag::withType(Tag::TYPE_TASK)
-                    ->whereIn('id', $request->tags)
-                    ->get();
-                $task->syncTagsWithType($tagsToSync, Tag::TYPE_TASK);
-            }
-
-            return [$task, $assignee];
-        });
-
-        if ($assignee) {
-            $this->queueAssignmentNotification($task, $assignee);
-        }
+        $task = $taskCreator->create($project, $request->user(), $request->validated());
 
         return redirect()->route('tasks.show', $task)
             ->with('alert-success', 'Tarefa criada com sucesso!');
