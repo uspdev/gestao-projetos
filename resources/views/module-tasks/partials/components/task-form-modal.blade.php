@@ -39,10 +39,6 @@
                 <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required minlength="3"
                   maxlength="120" />
               </div>
-              <div data-role="info-fields">
-                <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
-                  maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
-              </div>
             </div>
           </div>
 
@@ -101,6 +97,13 @@
                   <div class="invalid-feedback d-block">{{ $message }}</div>
                 @enderror
               </div>
+            </div>
+          </div>
+
+          <div class="row" data-role="info-fields">
+            <div class="col-12">
+              <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
+                maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
             </div>
           </div>
 
