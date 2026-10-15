@@ -8,7 +8,7 @@
     <x-separator />
     <b class="text-truncate" title="{{ $task->title }}">{{ $task->title }}</b>
     @include('module-tasks.partials.components.update-status')
-    @include('module-tasks.partials.buttons.edit-btn')
+    @include('module-tasks.partials.buttons.edit-btn', ['editSection' => 'title'])
     @include('watches.partials.control', ['watchable' => $task])
   </div>
 

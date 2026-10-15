@@ -1,11 +1,13 @@
-<div id="task-info-{{ $task->id }}" class="card options-surface entity-context-card entity-context-card--task mb-4 shadow-sm border-top-primary"
+<div id="task-info-{{ $task->id }}"
+  class="card options-surface entity-context-card entity-context-card--task mb-4 shadow-sm border-top-primary"
   tabindex="-1" data-deep-link-target>
   <div class="card-header d-flex align-items-center justify-content-between py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações
     </h6>
 
-    <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      @include('module-tasks.partials.buttons.edit-btn', ['editSection' => 'info'])
       @include('module-tasks.partials.buttons.delete-btn')
     </div>
   </div>
@@ -23,7 +25,10 @@
           </div>
         </div>
       </li>
-
+      <li class="mb-3 border-bottom pb-2 text-break">
+        <span class="text-muted small mr-2">Solicitante:</span>
+        <span class="small">{{ $task->requester ?? 'Não informado' }}</span>
+      </li>
       <li class="mb-0">
         <div class="row no-gutters">
           <div class="col-4 border-right">

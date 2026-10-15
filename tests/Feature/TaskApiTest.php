@@ -77,6 +77,7 @@ class TaskApiTest extends TestCase
         $task = $this->task($project, [
             'title' => 'Documentar integração',
             'description' => $description,
+            'requester' => 'Secretaria da unidade',
             'status' => 'DONE',
             'priority' => 2,
             'start_date' => '2026-09-01',
@@ -130,6 +131,7 @@ class TaskApiTest extends TestCase
             'id' => $task->id,
             'title' => 'Documentar integração',
             'description' => $description,
+            'requester' => 'Secretaria da unidade',
             'status' => [
                 'value' => 'DONE',
                 'label' => 'Concluída',
@@ -731,6 +733,7 @@ class TaskApiTest extends TestCase
             $table->unique(['tag_id', 'taggable_id', 'taggable_type']);
         });
 
+        (require database_path('migrations/2026_10_15_090000_add_requester_to_tasks_table.php'))->up();
         (require database_path('migrations/2026_07_21_090000_create_media_table.php'))->up();
         (require database_path('migrations/2026_07_23_090000_create_mentions_table.php'))->up();
         (require database_path('migrations/2026_08_17_090000_create_links_table.php'))->up();

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\TaskAssigned;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,7 @@ class TaskCreationAssigneeTest extends TestCase
         DB::setDefaultConnection('sqlite');
 
         $this->createSchema();
+        (require database_path('migrations/2026_10_15_090000_add_requester_to_tasks_table.php'))->up();
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         $this->seedProject();
     }
@@ -55,6 +57,7 @@ class TaskCreationAssigneeTest extends TestCase
             'id' => 1,
             'title' => 'Tarefa sem responsável',
             'status' => 'NEW',
+            'requester' => null,
         ]);
         $this->assertDatabaseCount('task_user', 0);
         $this->assertDatabaseCount('watches', 0);
@@ -153,11 +156,198 @@ class TaskCreationAssigneeTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('name="assignee_id"', $html);
+        $this->assertStringContainsString('name="requester"', $html);
+        $this->assertStringContainsString('Solicitante (opcional)', $html);
         $this->assertStringContainsString('Responsável', $html);
         $this->assertStringContainsString('Sem responsável', $html);
         $this->assertStringContainsString('Criador Admin', $html);
         $this->assertStringContainsString('Colaborador Elegível', $html);
         $this->assertStringNotContainsString('Visualizador Inelegível', $html);
+    }
+
+    public function test_requester_can_be_created_updated_and_cleared(): void
+    {
+        $this->actingAs(User::query()->findOrFail(1))
+            ->post(route('projects.tasks.store', 'projeto-teste'), [
+                'title' => 'Tarefa solicitada externamente',
+                'status' => 'NEW',
+                'requester' => '  Secretaria da unidade  ',
+            ])->assertRedirect(route('tasks.show', 1));
+
+        $this->assertDatabaseHas('tasks', ['id' => 1, 'requester' => 'Secretaria da unidade']);
+
+        $this->patch(route('tasks.updateInfo', 1), [
+            'title' => 'Tarefa solicitada externamente',
+            'status' => 'NEW',
+            'requester' => 'Ana — atendimento por e-mail',
+        ])->assertRedirect(route('tasks.show', 1).'#task-info-1');
+
+        $this->assertDatabaseHas('tasks', ['id' => 1, 'requester' => 'Ana — atendimento por e-mail']);
+
+        // Atualizações que não enviam o campo preservam o valor já informado.
+        $this->patch(route('tasks.updateInfo', 1), [
+            'title' => 'Título atualizado',
+            'status' => 'NEW',
+        ])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('tasks', ['id' => 1, 'requester' => 'Ana — atendimento por e-mail']);
+
+        $this->patch(route('tasks.updateInfo', 1), [
+            'title' => 'Título atualizado',
+            'status' => 'NEW',
+            'requester' => '   ',
+        ])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('tasks', ['id' => 1, 'requester' => null]);
+    }
+
+    public function test_requester_validation_applies_to_creation_and_editing(): void
+    {
+        $this->actingAs(User::query()->findOrFail(1))
+            ->post(route('projects.tasks.store', 'projeto-teste'), [
+                'title' => 'Tarefa com solicitante',
+                'status' => 'NEW',
+                'requester' => str_repeat('á', 255),
+            ])->assertSessionHasNoErrors();
+
+        foreach ([str_repeat('á', 256), ['solicitante inválido']] as $invalid) {
+            $data = ['title' => 'Tarefa inválida', 'status' => 'NEW', 'requester' => $invalid];
+            $this->post(route('projects.tasks.store', 'projeto-teste'), $data)
+                ->assertSessionHasErrors('requester')
+                ->assertSessionHasInput('requester', $invalid);
+            $this->patch(route('tasks.updateInfo', 1), $data)
+                ->assertSessionHasErrors('requester');
+        }
+
+        $this->assertDatabaseCount('tasks', 1);
+        $this->assertDatabaseHas('tasks', ['id' => 1, 'requester' => str_repeat('á', 255)]);
+    }
+
+    public function test_viewer_cannot_create_or_change_the_requester(): void
+    {
+        $task = Task::query()->create([
+            'project_id' => 1, 'title' => 'Tarefa protegida', 'status' => 'NEW', 'requester' => 'Secretaria',
+        ]);
+
+        $this->actingAs(User::query()->findOrFail(3));
+        $data = ['title' => 'Tarefa protegida', 'status' => 'NEW', 'requester' => 'Outra pessoa'];
+        $this->postJson(route('projects.tasks.store', 'projeto-teste'), $data)->assertForbidden();
+        $this->patchJson(route('tasks.updateInfo', $task), $data)->assertForbidden();
+        $this->assertSame('Secretaria', $task->fresh()->requester);
+    }
+
+    public function test_info_card_and_edit_button_escape_requester_and_show_empty_state(): void
+    {
+        $this->actingAs(User::query()->findOrFail(1));
+        $task = Task::query()->create([
+            'project_id' => 1, 'title' => 'Tarefa com origem', 'status' => 'NEW',
+            'requester' => '<script>alert("origem")</script> & Secretaria',
+        ]);
+        $task->setRelation('tags', new \Illuminate\Database\Eloquent\Collection());
+
+        $html = view('module-tasks.partials.show.info-card', compact('task'))->render();
+        $this->assertStringContainsString('Solicitante:', $html);
+        $this->assertStringContainsString('Editar informações da tarefa', $html);
+        $this->assertStringContainsString('data-edit-section="info"', $html);
+        $this->assertStringContainsString(e($task->requester), $html);
+        $this->assertStringNotContainsString('<script>', $html);
+
+        $button = view('module-tasks.partials.buttons.edit-btn', [
+            'task' => $task, 'taskTagIds' => [],
+        ])->render();
+        $this->assertStringContainsString('data-requester="'.e($task->requester).'"', $button);
+
+        $task->requester = null;
+        $this->assertStringContainsString('Não informado',
+            view('module-tasks.partials.show.info-card', compact('task'))->render());
+    }
+
+    public function test_title_edit_preserves_all_card_information(): void
+    {
+        $this->actingAs(User::query()->findOrFail(1));
+        $task = Task::query()->create([
+            'project_id' => 1, 'title' => 'Título original', 'status' => 'ASSIGNED',
+            'requester' => 'Secretaria', 'priority' => 1,
+            'start_date' => '2026-09-01', 'due_date' => '2026-09-10',
+            'completed_at' => null, 'description' => 'Descrição original',
+        ]);
+        $task->attachTag('Infraestrutura', \App\Models\Tag::TYPE_TASK);
+        $original = $task->fresh()->getAttributes();
+        $tagIds = $task->tags->modelKeys();
+
+        $this->patch(route('tasks.updateInfo', $task), [
+            'form_context' => 'task-title', 'title' => 'Título atualizado',
+            'status' => 'NEW', 'requester' => 'Outro solicitante', 'tags' => [],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $updated = $task->fresh();
+        $this->assertSame('Título atualizado', $updated->title);
+        foreach (['status', 'requester', 'priority', 'start_date', 'due_date', 'completed_at', 'description'] as $field) {
+            $this->assertSame($original[$field], $updated->getRawOriginal($field), $field);
+        }
+        $this->assertSame($tagIds, $updated->tags->modelKeys());
+    }
+
+    public function test_card_information_can_be_updated_without_sending_a_title(): void
+    {
+        $this->actingAs(User::query()->findOrFail(1));
+        $task = Task::query()->create([
+            'project_id' => 1, 'title' => 'Título preservado', 'status' => 'NEW',
+        ]);
+        $task->attachTag('Infraestrutura', \App\Models\Tag::TYPE_TASK);
+
+        $this->patch(route('tasks.updateInfo', $task), [
+            'form_context' => 'task-info', 'status' => 'ASSIGNED', 'requester' => 'Secretaria',
+            'priority' => 1, 'start_date' => '2026-09-01', 'due_date' => '2026-09-10',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $updated = $task->fresh();
+        $this->assertSame('Título preservado', $updated->title);
+        $this->assertSame('ASSIGNED', $updated->status->value);
+        $this->assertSame('Secretaria', $updated->requester);
+        $this->assertNull($updated->completed_at);
+        $this->assertCount(0, $updated->tags);
+
+        $this->patch(route('tasks.updateInfo', $task), [
+            'form_context' => 'task-info', 'status' => 'NEW', 'title' => 'Alteração indevida',
+        ])->assertSessionHasNoErrors();
+        $this->assertSame('Título preservado', $task->fresh()->title);
+    }
+
+    public function test_separate_edits_validate_their_fields_and_require_authorization(): void
+    {
+        $task = Task::query()->create([
+            'project_id' => 1, 'title' => 'Tarefa protegida', 'status' => 'NEW',
+        ]);
+        $this->actingAs(User::query()->findOrFail(1));
+        $this->patch(route('tasks.updateInfo', $task), [
+            'form_context' => 'task-title', 'title' => 'ab',
+        ])->assertSessionHasErrors('title')->assertSessionHasInput('form_context', 'task-title');
+        $this->patch(route('tasks.updateInfo', $task), [
+            'form_context' => 'task-info', 'status' => 'inválido',
+        ])->assertSessionHasErrors('status')->assertSessionHasInput('form_context', 'task-info');
+
+        $this->actingAs(User::query()->findOrFail(3));
+        foreach (['task-title', 'task-info'] as $context) {
+            $this->patchJson(route('tasks.updateInfo', $task), [
+                'form_context' => $context, 'title' => 'Novo título', 'status' => 'DONE',
+            ])->assertForbidden();
+        }
+        $task->setRelation('tags', new \Illuminate\Database\Eloquent\Collection());
+        $html = view('module-tasks.partials.show.info-card', compact('task'))->render();
+        $this->assertStringNotContainsString('Editar informações da tarefa', $html);
+    }
+
+    public function test_requester_migration_preserves_existing_tasks_and_can_be_reversed(): void
+    {
+        $migration = require database_path('migrations/2026_10_15_090000_add_requester_to_tasks_table.php');
+        $migration->down();
+        DB::table('tasks')->insert(['project_id' => 1, 'title' => 'Tarefa anterior', 'status' => 'NEW']);
+
+        $migration->up();
+        $this->assertDatabaseHas('tasks', ['title' => 'Tarefa anterior', 'requester' => null]);
+
+        $migration->down();
+        $this->assertFalse(Schema::hasColumn('tasks', 'requester'));
+        $this->assertDatabaseHas('tasks', ['title' => 'Tarefa anterior']);
     }
 
     private function seedProject(): void
@@ -200,6 +390,8 @@ class TaskCreationAssigneeTest extends TestCase
 
     private function createSchema(): void
     {
+        (require database_path('migrations/2026_04_22_172311_create_tag_tables.php'))->up();
+
         Schema::create('users', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
