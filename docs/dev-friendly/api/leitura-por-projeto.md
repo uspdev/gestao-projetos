@@ -192,7 +192,8 @@ curl --get --fail-with-body \
   "https://projetos.example/api/projects/portal-de-servicos/tasks"
 ```
 
-A lista retorna `id`, `title`, `description`, `status` e `priority` com valor e
+A lista retorna `id`, `title`, `description`, `requester` (solicitante em texto
+livre, ou `null` quando não informado), `status` e `priority` com valor e
 rótulo, `start_date`, `due_date`, `completed_at`, timestamps, responsáveis em
 `assignees` somente pelo nome, `tags` e `web_url`.
 

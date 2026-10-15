@@ -33,6 +33,7 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
         'project_id',
         'title',
         'description',
+        'requester',
         'priority',
         'status',
         'start_date',
@@ -231,6 +232,7 @@ class Task extends Model implements Discussable, Duplicable, HasMedia, Watchable
             'project_id' => (int) ($options['project_id'] ?? $this->project_id),
             'title' => $options['title'] ?? $this->title,
             'description' => $this->description,
+            'requester' => $this->requester,
             'priority' => $this->priority?->value,
             'status' => (bool) ($options['preserve_status'] ?? false)
                 ? $this->status?->value

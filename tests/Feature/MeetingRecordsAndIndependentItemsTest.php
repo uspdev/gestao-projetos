@@ -1098,6 +1098,7 @@ TXT;
             'project_id' => 1,
             'title' => 'Tarefa original',
             'description' => 'Descrição original',
+            'requester' => 'Secretaria da unidade',
             'priority' => 3,
             'status' => 'ASSIGNED',
         ]);
@@ -1121,6 +1122,7 @@ TXT;
             ->where('project_id', $copy->id)
             ->where('title', 'Tarefa original')
             ->firstOrFail();
+        $this->assertSame('Secretaria da unidade', $copyTask->requester);
         $copyMeetingId = DB::table('meeting_projects')
             ->where('project_id', $copy->id)
             ->value('meeting_id');
@@ -1757,6 +1759,7 @@ TXT;
             $table->foreignId('project_id');
             $table->string('title');
             $table->text('description')->nullable();
+            $table->string('requester')->nullable();
             $table->unsignedTinyInteger('priority')->nullable();
             $table->string('status');
             $table->date('start_date')->nullable();

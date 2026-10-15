@@ -23,6 +23,7 @@ class TaskResource extends JsonResource
             'id' => $task->id,
             'title' => $task->title,
             'description' => $task->description,
+            'requester' => $task->requester,
             'status' => [
                 'value' => $task->status->value,
                 'label' => $task->status->label(),

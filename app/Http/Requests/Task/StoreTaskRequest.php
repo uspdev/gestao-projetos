@@ -43,6 +43,7 @@ class StoreTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'min:3', 'max:120'],
             'description' => ['nullable', 'string', 'max:10000'],
+            'requester' => ['nullable', 'string', 'max:255'],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
             'status' => ['required', Rule::enum(TaskStatus::class)],
             'start_date' => ['nullable', 'date', 'date_format:Y-m-d'],
@@ -59,6 +60,8 @@ class StoreTaskRequest extends FormRequest
             'title.min' => 'O título da tarefa deve ter pelo menos :min caracteres.',
             'title.max' => 'O título da tarefa não pode exceder :max caracteres.',
             'description.max' => 'A descrição é muito longa. O limite é de :max caracteres.',
+            'requester.string' => 'O solicitante deve ser um texto.',
+            'requester.max' => 'O solicitante não pode exceder :max caracteres.',
             'priority.max' => 'A prioridade não pode exceder :max caracteres.',
             'status.required' => 'É necessário definir um status para a tarefa.',
             'status.enum' => 'O status selecionado é inválido.',

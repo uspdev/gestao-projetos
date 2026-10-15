@@ -97,6 +97,7 @@ class ProjectActivityService
         'slug' => 'Identificador',
         'title' => 'Título',
         'description' => 'Descrição',
+        'requester' => 'Solicitante',
         'text' => 'Texto',
         'notes' => 'Anotações prévias',
         'ata' => 'Ata',

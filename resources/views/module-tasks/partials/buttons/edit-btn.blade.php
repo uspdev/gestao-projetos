@@ -10,6 +10,7 @@
     data-task-modal="task-form" data-mode="edit" data-task-id="{{ $task->id }}" data-action="{{ route('tasks.updateInfo', $task->id) }}"
     data-title="{{ e($task->title) }}" data-status="{{ $task->status?->value }}"
     data-priority="{{ $task->priority?->value }}"
+    data-requester="{{ $task->requester }}"
     data-start-date="{{ $task->start_date ? $task->start_date->format('Y-m-d') : '' }}"
     data-due-date="{{ $task->due_date ? $task->due_date->format('Y-m-d') : '' }}"
     data-tags='@json($taskTagIds)' aria-label="Editar tarefa" title="Editar tarefa">

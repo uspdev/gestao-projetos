@@ -35,6 +35,8 @@
             <div class="col-12">
               <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required minlength="3"
                 maxlength="120" />
+              <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
+                maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
             </div>
           </div>
 
@@ -150,6 +152,7 @@
       var methodInput = form.querySelector('input[name="_method"]');
       var taskIdInput = form.querySelector('input[name="task_id"]');
       var titleInput = modal.querySelector('[name="title"]');
+      var requesterInput = form.querySelector('[name="requester"]');
       var statusSelect = form.querySelector('[name="status"]');
       var prioritySelect = form.querySelector('[name="priority"]');
       var startDateInput = form.querySelector('[name="start_date"]');
@@ -239,6 +242,9 @@
         if (titleInput) {
           titleInput.value = '';
         }
+        if (requesterInput) {
+          requesterInput.value = '';
+        }
         if (statusSelect && statusSelect.options.length) {
           statusSelect.selectedIndex = 0;
         }
@@ -279,6 +285,9 @@
         }
         if (titleInput && data.title !== undefined) {
           titleInput.value = data.title;
+        }
+        if (requesterInput && data.requester !== undefined) {
+          requesterInput.value = data.requester;
         }
         if (statusSelect && data.status !== undefined) {
           setSelectValue(statusSelect, data.status);
@@ -329,6 +338,7 @@
               action: action,
               taskId: button.getAttribute('data-task-id'),
               title: button.getAttribute('data-title') || '',
+              requester: button.getAttribute('data-requester') || '',
               status: button.getAttribute('data-status') || '',
               priority: button.getAttribute('data-priority') || '',
               startDate: button.getAttribute('data-start-date') || '',

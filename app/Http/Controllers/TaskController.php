@@ -170,7 +170,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Atualiza as demais informações da tarefa (título, status, prioridade, datas e tags).
+     * Atualiza as demais informações da tarefa (título, solicitante, status, prioridade, datas e tags).
      *
      * @param  \App\Http\Requests\Task\UpdateTaskRequest  $request
      * @param  \App\Models\Task  $task
@@ -181,7 +181,7 @@ class TaskController extends Controller
         $this->ensureTasksModuleEnabled($task->project);
 
         DB::transaction(function () use ($task, $request) {
-            $data = $request->only(['title', 'status', 'priority', 'start_date', 'due_date']);
+            $data = $request->only(['title', 'requester', 'status', 'priority', 'start_date', 'due_date']);
             $data['updated_by'] = Auth::id();
 
             if ($data['status'] === TaskStatus::DONE->value) {
