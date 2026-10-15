@@ -6,7 +6,8 @@
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações
     </h6>
 
-    <div class="d-flex align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      @include('module-tasks.partials.buttons.edit-btn', ['editSection' => 'info'])
       @include('module-tasks.partials.buttons.delete-btn')
     </div>
   </div>

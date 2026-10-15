@@ -6,7 +6,7 @@
       ?? \App\Models\User::assignableToProject($project->id)->get(['users.id', 'users.name', 'users.email']);
   $createAction = $createAction ?? route('projects.tasks.store', $project);
   $hasOldCreate = $errors->any() && old('_method') === null && old('title') !== null;
-  $hasOldEdit = $errors->any() && old('_method') === 'PATCH' && old('title') !== null;
+  $hasOldEdit = $errors->any() && old('_method') === 'PATCH' && (old('title') !== null || in_array(old('form_context'), ['task-title', 'task-info'], true));
   $oldTaskId = old('task_id');
   $oldUpdateAction = $oldTaskId ? route('tasks.updateInfo', $oldTaskId) : '';
 @endphp
@@ -14,6 +14,7 @@
 <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true"
   data-create-action="{{ $createAction }}" data-old-update-action="{{ $oldUpdateAction }}"
   data-old-task-id="{{ $oldTaskId ?? '' }}" data-has-old-create="{{ $hasOldCreate ? '1' : '0' }}"
+  data-old-edit-section="{{ old('form_context') === 'task-title' ? 'title' : (old('form_context') === 'task-info' ? 'info' : 'edit') }}"
   data-has-old-edit="{{ $hasOldEdit ? '1' : '0' }}">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -27,20 +28,25 @@
       <form action="{{ $createAction }}" method="POST">
         @csrf
         <input type="hidden" name="_method" value="PATCH" disabled>
+        <input type="hidden" name="form_context" value="task-form">
         <input type="hidden" name="task_id" value="{{ $oldTaskId ?? '' }}">
         <input type="hidden" name="action" value="{{ url()->current() }}">
 
         <div class="modal-body">
           <div class="row">
             <div class="col-12">
-              <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required minlength="3"
-                maxlength="120" />
-              <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
-                maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
+              <div data-role="title-fields">
+                <x-form.input name="title" label="Título da Tarefa" value="{{ old('title') }}" required minlength="3"
+                  maxlength="120" />
+              </div>
+              <div data-role="info-fields">
+                <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
+                  maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
+              </div>
             </div>
           </div>
 
-          <div class="row">
+          <div class="row" data-role="info-fields">
             <div class="col-md-4">
               <div class="form-group mb-3">
                 <label for="status">Status <span class="text-danger">*</span></label>
@@ -118,7 +124,7 @@
             </div>
           </div>
 
-          <div class="row">
+          <div class="row" data-role="info-fields">
             <div class="col-md-6">
               <x-form.input type="date" name="start_date" label="Data de Início" value="{{ old('start_date') }}" />
             </div>
@@ -211,8 +217,24 @@
         return current;
       }
 
+      function setEditSection(section) {
+        form.querySelector('[name="form_context"]').value =
+          section === 'title' ? 'task-title' : (section === 'info' ? 'task-info' : 'task-form');
+        ['title', 'info'].forEach(function(group) {
+          var hidden = (section === 'title' && group === 'info') ||
+            (section === 'info' && group === 'title');
+          form.querySelectorAll('[data-role="' + group + '-fields"]').forEach(function(field) {
+            field.classList.toggle('d-none', hidden);
+            field.querySelectorAll('input, select, textarea').forEach(function(input) {
+              input.disabled = hidden;
+            });
+          });
+        });
+      }
+
       function prepareCreate(action) {
         if (!form) return;
+        setEditSection('edit');
         form.action = action || modal.dataset.createAction || form.action;
         if (methodInput) {
           methodInput.disabled = true;
@@ -269,6 +291,8 @@
       }
 
       function applyEditData(data) {
+        var section = data.editSection || 'edit';
+        setEditSection(section);
         form.action = data.action || form.action;
         if (methodInput) {
           methodInput.disabled = false;
@@ -306,7 +330,9 @@
           setMultiSelect(tagsSelect, data.tags || []);
         }
         if (modalTitle) {
-          var title = data.title ? 'Editar Tarefa: ' + data.title : 'Editar Tarefa';
+          var label = section === 'title' ? 'Editar título da tarefa' :
+            (section === 'info' ? 'Editar informações da tarefa' : 'Editar Tarefa');
+          var title = data.title ? label + ': ' + data.title : label;
           modalTitle.textContent = title;
         }
         if (submitBtn) {
@@ -335,6 +361,7 @@
             }
 
             applyEditData({
+              editSection: button.getAttribute('data-edit-section'),
               action: action,
               taskId: button.getAttribute('data-task-id'),
               title: button.getAttribute('data-title') || '',
@@ -359,6 +386,7 @@
       }
       if (modal.dataset.hasOldEdit === '1') {
         applyEditData({
+          editSection: modal.dataset.oldEditSection,
           action: modal.dataset.oldUpdateAction,
           taskId: modal.dataset.oldTaskId || ''
         });
