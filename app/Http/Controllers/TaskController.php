@@ -181,17 +181,17 @@ class TaskController extends Controller
         $this->ensureTasksModuleEnabled($task->project);
 
         DB::transaction(function () use ($task, $request) {
-            $data = $request->only(['title', 'requester', 'status', 'priority', 'start_date', 'due_date']);
+            $data = $request->safe()->only(['title', 'requester', 'status', 'priority', 'start_date', 'due_date']);
             $data['updated_by'] = Auth::id();
 
-            if ($data['status'] === TaskStatus::DONE->value) {
-                $data['completed_at'] = now();
-            } else {
-                $data['completed_at'] = null;
+            if (isset($data['status'])) {
+                $data['completed_at'] = $data['status'] === TaskStatus::DONE->value ? now() : null;
             }
             $task->update($data);
 
-            $task->syncTagsByIds($request->tags ?? []);
+            if ($request->input('form_context') !== 'task-title') {
+                $task->syncTagsByIds($request->validated('tags') ?? []);
+            }
         });
 
         if ($request->has('action')) {

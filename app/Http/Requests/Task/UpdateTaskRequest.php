@@ -16,6 +16,16 @@ class UpdateTaskRequest extends StoreTaskRequest
 
     public function rules(): array
     {
-        return $this->sharedRules();
+        $rules = $this->sharedRules();
+
+        if ($this->input('form_context') === 'task-title') {
+            return ['title' => $rules['title']];
+        }
+
+        if ($this->input('form_context') === 'task-info') {
+            unset($rules['title']);
+        }
+
+        return $rules;
     }
 }
