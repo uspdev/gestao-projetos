@@ -104,9 +104,13 @@
               processResults: function (data) {
                 return {
                   results: (data.results || []).map(function (person) {
+                    var prefix = String(person.id) + ' ';
+                    var name = person.text.indexOf(prefix) === 0 ? person.text.slice(prefix.length) : person.text;
                     return {
-                      id: element.dataset.valueType === 'text' ? person.text : person.id,
-                      text: person.text
+                      id: element.dataset.valueType === 'name' ? name :
+                        (element.dataset.valueType === 'text' ? person.text : person.id),
+                      text: person.text,
+                      name: name
                     };
                   })
                 };
@@ -118,6 +122,9 @@
             width: '100%',
             language: 'pt-BR',
             placeholder: element.dataset.placeholder,
+            templateSelection: function (person) {
+              return element.dataset.valueType === 'name' ? (person.name || person.text) : person.text;
+            },
             allowClear: !element.required,
             tags: freeText,
             createTag: function (params) {

@@ -104,7 +104,7 @@
             <div class="col-12">
               <x-form.usp-person-select name="requester" :id="$modalId . '-requester'"
                 label="Solicitante (opcional)" :url="route('projects.tasks.requesters.selectable', $project)"
-                value-type="text" :allow-free-text="true" :query-fields="['task_id' => 'task_id']"
+                value-type="name" :allow-free-text="true" :query-fields="['task_id' => 'task_id']"
                 placeholder="Digite o nome ou número USP, ou um texto livre..."
                 help="Busque por nome ou número USP, ou informe um texto livre." />
             </div>

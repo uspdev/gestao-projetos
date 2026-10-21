@@ -25,7 +25,7 @@ class UspPersonSelectTest extends TestCase
             <x-form.usp-person-select name="codpes" label="Usuário" url="/members/selectable"
                 :required="true" :auto-open="true" value="1234567" value-label="1234567 Maria" />
             <x-form.usp-person-select name="requester" label="Solicitante" url="/requesters/selectable"
-                :allow-free-text="true" value-type="text" value="Secretaria & apoio"
+                :allow-free-text="true" value-type="name" value="Secretaria & apoio"
                 :query-fields="['task_id' => 'task_id']" />
             @stack('scripts')
             BLADE);
@@ -40,7 +40,7 @@ class UspPersonSelectTest extends TestCase
         $this->assertSame('1234567', $xpath->query('//select[@name="codpes"]/option[@selected]')->item(0)->getAttribute('value'));
         $this->assertSame('1234567 Maria', $xpath->query('//select[@name="codpes"]/option[@selected]')->item(0)->textContent);
 
-        $this->assertSame('text', $requester->getAttribute('data-value-type'));
+        $this->assertSame('name', $requester->getAttribute('data-value-type'));
         $this->assertSame('1', $requester->getAttribute('data-allow-free-text'));
         $this->assertFalse($requester->hasAttribute('required'));
         $this->assertSame('/requesters/selectable', $requester->getAttribute('data-search-url'));
