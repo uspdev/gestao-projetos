@@ -27,7 +27,7 @@
       </li>
       <li class="mb-3 border-bottom pb-2 text-break">
         <span class="text-muted small mr-2">Solicitante:</span>
-        <span class="small">{{ $task->requester ?? 'Não informado' }}</span>
+        <span class="small">{{ $task->requester === null ? 'Não informado' : preg_replace('/^\d+\s+(?=\p{L})/u', '', $task->requester) }}</span>
       </li>
       <li class="mb-0">
         <div class="row no-gutters">

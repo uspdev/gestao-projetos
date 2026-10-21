@@ -284,6 +284,35 @@ class TaskCreationAssigneeTest extends TestCase
             view('module-tasks.partials.show.info-card', compact('task'))->render());
     }
 
+    public function test_requester_card_hides_usp_number_without_changing_the_value_for_editing(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+        $task = Task::create([
+            'project_id' => 1, 'title' => 'Tarefa com solicitante USP', 'status' => 'NEW',
+            'requester' => '13794435 Alexandre Garcia Costa',
+        ]);
+        $task->setRelation('tags', new \Illuminate\Database\Eloquent\Collection());
+
+        foreach ([
+            '13794435 Alexandre Garcia Costa' => 'Alexandre Garcia Costa',
+            'Secretaria da unidade' => 'Secretaria da unidade',
+            '13794435' => '13794435',
+            'Setor 12345' => 'Setor 12345',
+        ] as $stored => $displayed) {
+            $task->requester = (string) $stored;
+            $html = view('module-tasks.partials.show.info-card', compact('task'))->render();
+            $document = new \DOMDocument();
+            @$document->loadHTML('<?xml encoding="UTF-8">'.$html);
+            $xpath = new \DOMXPath($document);
+            $requester = $xpath->query('//li[span[normalize-space()="Solicitante:"]]/span[last()]')->item(0);
+
+            $this->assertSame($displayed, $requester->textContent);
+            $this->assertStringContainsString('data-requester="'.e((string) $stored).'"', $html);
+        }
+
+        $this->assertSame('13794435 Alexandre Garcia Costa', $task->fresh()->requester);
+    }
+
     public function test_title_edit_preserves_all_card_information(): void
     {
         $this->actingAs(User::query()->findOrFail(1));
