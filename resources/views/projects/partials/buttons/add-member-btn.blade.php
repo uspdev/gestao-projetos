@@ -58,6 +58,8 @@
     </div>
   @endpush
 
+  @include('components.form.person-select-script')
+
   @push('scripts')
     @if ($errors->has('codpes') || $errors->has('role'))
       <script>
@@ -88,27 +90,12 @@
             return;
           }
 
-          userSelect.select2({
+          if (!window.initUspPersonSelect(userSelect, {
             ajax: {
-              url: loadUrl,
-              dataType: 'json',
-              delay: 1000,
-              data: function(params) {
-                return {
-                  term: params.term
-                };
-              },
-              processResults: function(data) {
-                return data;
-              }
+              url: loadUrl
             },
-            dropdownParent: $('#addProjectMemberModal'),
-            minimumInputLength: 4,
-            theme: 'bootstrap4',
-            width: '100%',
-            language: 'pt-BR',
             placeholder: 'Digite o nome ou codpes..'
-          });
+          })) return;
 
           userSelect.on('change', function() {
             if ($(this).val()) {
@@ -144,7 +131,7 @@
 
         $('#addProjectMemberModal').on('shown.bs.modal', function() {
           initSelect2();
-          $('#member-codpes').select2('open');
+          if (selectInitialized) userSelect.select2('open');
         });
 
         $(document).on('select2:open', function() {

@@ -102,8 +102,20 @@
 
           <div class="row" data-role="info-fields">
             <div class="col-12">
-              <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
-                maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
+              <div class="form-group mb-3">
+                <label for="{{ $modalId }}-requester">Solicitante (opcional)</label>
+                <select id="{{ $modalId }}-requester" name="requester" style="width: 100%;"
+                  class="form-control @error('requester') is-invalid @enderror">
+                  <option value=""></option>
+                  @if (old('requester') !== null && old('requester') !== '')
+                    <option value="{{ old('requester') }}" selected>{{ old('requester') }}</option>
+                  @endif
+                </select>
+                @error('requester')
+                  <div class="invalid-feedback d-block">{{ $message }}</div>
+                @enderror
+                <small class="form-text text-muted">Busque por nome ou número USP, ou informe um texto livre.</small>
+              </div>
             </div>
           </div>
 
@@ -149,6 +161,8 @@
   </div>
 </div>
 
+@include('components.form.person-select-script')
+
 @pushOnce('scripts')
   @include('module-tasks.partials.scripts.multi-select-script')
 
@@ -172,6 +186,79 @@
       var assigneeSelect = form.querySelector('[name="assignee_id"]');
       var modalTitle = modal.querySelector('[data-role="modal-title"]');
       var submitBtn = modal.querySelector('[data-role="submit-btn"]');
+      var requesterSearchTerm = null;
+
+      function initRequesterSelect() {
+        if (!requesterInput || !window.jQuery || !window.jQuery.fn.select2) return;
+        if (window.jQuery(requesterInput).data('select2')) return;
+
+        window.initUspPersonSelect(requesterInput, {
+          ajax: {
+            url: @json(route('projects.tasks.requesters.selectable', $project)),
+            data: function(params) {
+              return {
+                term: params.term,
+                task_id: methodInput.disabled ? '' : taskIdInput.value
+              };
+            },
+            processResults: function(data) {
+              return {
+                results: (data.results || []).map(function(person) {
+                  return { id: person.text, text: person.text };
+                })
+              };
+            }
+          },
+          minimumInputLength: 0,
+          tags: true,
+          allowClear: true,
+          placeholder: 'Digite o nome ou número USP, ou um texto livre...',
+          createTag: function(params) {
+            var text = params.term.trim();
+            if (!text || Array.from(text).length > 255) return null;
+            return { id: text, text: text };
+          }
+        });
+
+        window.jQuery(requesterInput).on('select2:open', function() {
+          var search = window.jQuery(this).data('select2').dropdown.$search;
+          requesterSearchTerm = null;
+          search.off('input.requester').on('input.requester', function() {
+            requesterSearchTerm = this.value.trim();
+          });
+          search.trigger('focus');
+        }).on('select2:select select2:clear', function() {
+          requesterSearchTerm = null;
+        }).on('select2:close', function() {
+          // A seleção de uma sugestão termina antes deste callback.
+          window.setTimeout(commitRequesterText, 0);
+        });
+      }
+
+      function setRequesterValue(value) {
+        if (!requesterInput) return;
+        requesterSearchTerm = null;
+        requesterInput.options.length = 0;
+        requesterInput.add(new Option('', ''));
+        if (value) requesterInput.add(new Option(value, value, true, true));
+        if (window.jQuery) window.jQuery(requesterInput).trigger('change');
+      }
+
+      function commitRequesterText() {
+        if (requesterSearchTerm !== null) setRequesterValue(requesterSearchTerm);
+      }
+
+      if (window.jQuery) {
+        window.jQuery(modal).on('shown.bs.modal', initRequesterSelect);
+      }
+
+      form.addEventListener('submit', function() {
+        if (!requesterInput || requesterInput.disabled || !window.jQuery) return;
+        commitRequesterText();
+        var select = window.jQuery(requesterInput).data('select2');
+        if (!select || !select.isOpen()) return;
+        window.jQuery(requesterInput).select2('close');
+      });
 
       function setSelectValue(select, value) {
         if (!select) return;
@@ -267,9 +354,7 @@
         if (titleInput) {
           titleInput.value = '';
         }
-        if (requesterInput) {
-          requesterInput.value = '';
-        }
+        setRequesterValue('');
         if (statusSelect && statusSelect.options.length) {
           statusSelect.selectedIndex = 0;
         }
@@ -313,8 +398,8 @@
         if (titleInput && data.title !== undefined) {
           titleInput.value = data.title;
         }
-        if (requesterInput && data.requester !== undefined) {
-          requesterInput.value = data.requester;
+        if (data.requester !== undefined) {
+          setRequesterValue(data.requester);
         }
         if (statusSelect && data.status !== undefined) {
           setSelectValue(statusSelect, data.status);
