@@ -29,28 +29,9 @@ class UspPersonSearch
 
         $results = [];
 
-        // Prioriza a busca direta pelo número USP quando o termo é numérico.
-        if (is_numeric($term) && strlen($term) >= 4) {
-            try {
-                $pessoa = Pessoa::dump((int) $term);
-
-                if ($pessoa && !in_array((string) $pessoa['codpes'], $excludedCodpes, true)) {
-                    $results[] = [
-                        'id' => $pessoa['codpes'],
-                        'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
-                    ];
-                }
-            } catch (\Exception $e) {
-            }
-
-            if (!empty($results)) {
-                return $results;
-            }
-        }
-
-        // Busca por nome, remove duplicatas, ordena e limita a 50 registros.
+        // Busca por código ou nome, remove duplicatas, ordena e limita a 50 registros.
         try {
-            $pessoas = Pessoa::procurarPorNome($term) ?? [];
+            $pessoas = Pessoa::procurarPorCodigoOuNome($term) ?? [];
             $pessoas = collect($pessoas)
                 ->unique('codpes')
                 ->sortBy('nompesttd')
