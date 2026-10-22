@@ -4,10 +4,10 @@
   <div class="card-header d-flex align-items-center justify-content-between py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-info-circle mr-1" aria-hidden="true"></i> Informações
+      @include('module-tasks.partials.buttons.edit-btn', ['editSection' => 'info'])
     </h6>
 
     <div class="d-flex align-items-center gap-2">
-      @include('module-tasks.partials.buttons.edit-btn', ['editSection' => 'info'])
       @include('module-tasks.partials.buttons.delete-btn')
     </div>
   </div>
@@ -27,7 +27,8 @@
       </li>
       <li class="mb-3 border-bottom pb-2 text-break">
         <span class="text-muted small mr-2">Solicitante:</span>
-        <span class="small">{{ $task->requester === null ? 'Não informado' : preg_replace('/^\d+\s+(?=\p{L})/u', '', $task->requester) }}</span>
+        <span
+          class="small">{{ $task->requester === null ? 'Não informado' : preg_replace('/^\d+\s+(?=\p{L})/u', '', $task->requester) }}</span>
       </li>
       <li class="mb-0">
         <div class="row no-gutters">
