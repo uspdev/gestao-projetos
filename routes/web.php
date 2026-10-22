@@ -115,6 +115,8 @@ Route::middleware('auth')->group(function () {
     // ==========================================
 
     // Tarefas do projeto
+    Route::get('projects/{project}/tasks/requesters/selectable', [TaskController::class, 'selectableRequesters'])
+        ->name('projects.tasks.requesters.selectable');
     Route::get('projects/{project}/tasks', [TaskController::class, 'indexProject'])->name('projects.tasks.index');
     Route::resource('projects.tasks', TaskController::class)->except([
         'index',

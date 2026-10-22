@@ -15,6 +15,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Services\Mentions\MentionManager;
 use App\Services\Tasks\TaskCreator;
+use App\Services\UspPersonSearch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -279,9 +280,31 @@ class TaskController extends Controller
     }
 
     /**
+     * Busca pessoas da USP sem excluir os membros atuais do projeto.
+     */
+    public function selectableRequesters(Request $request, Project $project, UspPersonSearch $people)
+    {
+        $data = $request->validate([
+            'term' => ['nullable', 'string', 'max:255'],
+            'task_id' => ['nullable', 'integer'],
+        ]);
+
+        if (!empty($data['task_id'])) {
+            $task = $project->tasks()->findOrFail($data['task_id']);
+            Gate::authorize('update', $task);
+        } else {
+            Gate::authorize('create', [Task::class, $project]);
+        }
+
+        $term = trim($data['term'] ?? '');
+
+        return response()->json([
+            'results' => mb_strlen($term) < 4 ? [] : $people->search($term),
+        ]);
+    }
+
+    /**
      * Retorna usuários selecionáveis para atribuir a uma tarefa.
-     *
-     * @param  \App\Models\Task  $task
      */
     public function selectableAssignees(Task $task)
     {

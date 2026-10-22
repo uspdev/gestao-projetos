@@ -20,16 +20,9 @@
             <div class="modal-body">
               <div id="project-member-empty-state" class="alert alert-light border text-muted mb-3 d-none"></div>
 
-              <div class="form-group">
-                <label for="member-codpes" class="font-weight-bold">Usuário</label>
-                <select id="member-codpes" name="codpes" class="form-control @error('codpes') is-invalid @enderror"
-                  style="width: 100%;" required>
-                  <option value="">Digite o nome ou codpes..</option>
-                </select>
-                @error('codpes')
-                  <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
-              </div>
+              <x-form.usp-person-select name="codpes" id="member-codpes" label="Usuário"
+                label-class="font-weight-bold" :url="route('projects.members.selectable', $project)"
+                :required="true" :auto-open="true" placeholder="Digite o nome ou codpes.." />
 
               <div class="form-group mb-0">
                 <label for="member-role" class="font-weight-bold">Função no projeto</label>
@@ -70,89 +63,15 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('addProjectMemberModal');
         const userSelect = $('#member-codpes');
         const confirmBtn = document.getElementById('project-member-confirm-btn');
-        const emptyState = document.getElementById('project-member-empty-state');
-        const loadUrl = '{{ route('projects.members.selectable', $project) }}';
-        const oldCodpes = '{{ old('codpes', '') }}';
+        if (!userSelect.length || !confirmBtn) return;
 
-        if (!modal || !userSelect.length || !emptyState || !confirmBtn) {
-          return;
-        }
-
-        let selectInitialized = false;
-
-        const initSelect2 = function() {
-          if (selectInitialized) {
-            return;
-          }
-
-          userSelect.select2({
-            ajax: {
-              url: loadUrl,
-              dataType: 'json',
-              delay: 1000,
-              data: function(params) {
-                return {
-                  term: params.term
-                };
-              },
-              processResults: function(data) {
-                return data;
-              }
-            },
-            dropdownParent: $('#addProjectMemberModal'),
-            minimumInputLength: 4,
-            theme: 'bootstrap4',
-            width: '100%',
-            language: 'pt-BR',
-            placeholder: 'Digite o nome ou codpes..'
-          });
-
-          userSelect.on('change', function() {
-            if ($(this).val()) {
-              confirmBtn.removeAttribute('disabled');
-            } else {
-              confirmBtn.setAttribute('disabled', 'disabled');
-            }
-          });
-
-          selectInitialized = true;
-
-          if (oldCodpes) {
-            fetch(loadUrl + '?term=' + encodeURIComponent(oldCodpes), {
-                headers: {
-                  'X-Requested-With': 'XMLHttpRequest'
-                }
-              })
-              .then(function(response) {
-                if (!response.ok) throw new Error('Falha ao carregar usuário selecionado.');
-                return response.json();
-              })
-              .then(function(data) {
-                if (!data || !Array.isArray(data.results) || data.results.length === 0) {
-                  return;
-                }
-
-                const candidate = data.results[0];
-                const option = new Option(candidate.text, candidate.id, true, true);
-                userSelect.append(option).trigger('change');
-              });
-          }
+        const updateConfirmButton = function() {
+          confirmBtn.disabled = !userSelect.val();
         };
-
-        $('#addProjectMemberModal').on('shown.bs.modal', function() {
-          initSelect2();
-          $('#member-codpes').select2('open');
-        });
-
-        $(document).on('select2:open', function() {
-          const searchField = document.querySelector('.select2-search__field');
-          if (searchField) {
-            searchField.focus();
-          }
-        });
+        userSelect.on('change', updateConfirmButton);
+        updateConfirmButton();
       });
     </script>
   @endpush

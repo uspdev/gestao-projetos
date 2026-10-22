@@ -6,6 +6,7 @@ use App\Mail\TaskAssigned;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\UspPersonSearch;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -165,6 +166,29 @@ class TaskCreationAssigneeTest extends TestCase
         $this->assertStringNotContainsString('Visualizador Inelegível', $html);
     }
 
+    public function test_requester_select_preserves_previous_text_in_the_submitted_control(): void
+    {
+        $previous = 'Secretaria & apoio <externo>';
+        request()->setLaravelSession(app('session')->driver());
+        session()->flash('_old_input', ['requester' => $previous]);
+        View::share('errors', new ViewErrorBag());
+        $html = view('module-tasks.partials.components.task-form-modal', [
+            'project' => Project::findOrFail(1),
+            'availableTaskTags' => collect(),
+            'availableTaskAssignees' => collect(),
+        ])->render();
+
+        $document = new \DOMDocument();
+        @$document->loadHTML('<?xml encoding="UTF-8">'.$html);
+        $xpath = new \DOMXPath($document);
+        $this->assertSame(1, $xpath->query('//select[@name="requester"]')->length);
+        $this->assertSame(1, $xpath->query('//*[@name="requester"]')->length);
+        $selected = $xpath->query('//select[@name="requester"]/option[@selected]')->item(0);
+        $this->assertNotNull($selected);
+        $this->assertSame($previous, $selected->getAttribute('value'));
+        $this->assertSame($previous, $selected->textContent);
+    }
+
     public function test_requester_can_be_created_updated_and_cleared(): void
     {
         $this->actingAs(User::query()->findOrFail(1))
@@ -260,6 +284,35 @@ class TaskCreationAssigneeTest extends TestCase
             view('module-tasks.partials.show.info-card', compact('task'))->render());
     }
 
+    public function test_requester_card_hides_usp_number_without_changing_the_value_for_editing(): void
+    {
+        $this->actingAs(User::findOrFail(1));
+        $task = Task::create([
+            'project_id' => 1, 'title' => 'Tarefa com solicitante USP', 'status' => 'NEW',
+            'requester' => '13794435 Alexandre Garcia Costa',
+        ]);
+        $task->setRelation('tags', new \Illuminate\Database\Eloquent\Collection());
+
+        foreach ([
+            '13794435 Alexandre Garcia Costa' => 'Alexandre Garcia Costa',
+            'Secretaria da unidade' => 'Secretaria da unidade',
+            '13794435' => '13794435',
+            'Setor 12345' => 'Setor 12345',
+        ] as $stored => $displayed) {
+            $task->requester = (string) $stored;
+            $html = view('module-tasks.partials.show.info-card', compact('task'))->render();
+            $document = new \DOMDocument();
+            @$document->loadHTML('<?xml encoding="UTF-8">'.$html);
+            $xpath = new \DOMXPath($document);
+            $requester = $xpath->query('//li[span[normalize-space()="Solicitante:"]]/span[last()]')->item(0);
+
+            $this->assertSame($displayed, $requester->textContent);
+            $this->assertStringContainsString('data-requester="'.e((string) $stored).'"', $html);
+        }
+
+        $this->assertSame('13794435 Alexandre Garcia Costa', $task->fresh()->requester);
+    }
+
     public function test_title_edit_preserves_all_card_information(): void
     {
         $this->actingAs(User::query()->findOrFail(1));
@@ -334,6 +387,87 @@ class TaskCreationAssigneeTest extends TestCase
         $task->setRelation('tags', new \Illuminate\Database\Eloquent\Collection());
         $html = view('module-tasks.partials.show.info-card', compact('task'))->render();
         $this->assertStringNotContainsString('Editar informações da tarefa', $html);
+    }
+
+    public function test_contributor_can_search_requesters_by_name_or_usp_number(): void
+    {
+        $people = $this->mock(UspPersonSearch::class);
+        $results = [['id' => 1234567, 'text' => '1234567 Maria da Silva']];
+        $people->shouldReceive('search')->with('Maria')->once()->andReturn($results);
+        $people->shouldReceive('search')->with('1234567')->once()->andReturn($results);
+
+        $this->actingAs(User::findOrFail(2));
+        foreach (['Maria', '1234567'] as $term) {
+            $this->getJson(route('projects.tasks.requesters.selectable', [
+                'project' => 'projeto-teste', 'term' => $term,
+            ]))->assertOk()->assertExactJson(['results' => $results]);
+        }
+    }
+
+    public function test_requester_search_requires_task_creation_permission_and_enabled_module(): void
+    {
+        $this->mock(UspPersonSearch::class)->shouldNotReceive('search');
+        $url = route('projects.tasks.requesters.selectable', [
+            'project' => 'projeto-teste', 'term' => 'Maria',
+        ]);
+
+        $this->getJson($url)->assertUnauthorized();
+        $this->actingAs(User::findOrFail(3))->getJson($url)->assertForbidden();
+        DB::table('project_modules')->update(['enabled' => false]);
+        $this->actingAs(User::findOrFail(2))->getJson($url)->assertForbidden();
+    }
+
+    public function test_requester_search_in_edit_mode_respects_task_authorization(): void
+    {
+        $task = Task::create(['project_id' => 1, 'title' => 'Tarefa atribuída', 'status' => 'NEW']);
+        $task->users()->attach(3);
+        $people = $this->mock(UspPersonSearch::class);
+        $people->shouldReceive('search')->with('Maria')->once()->andReturn([]);
+        $url = route('projects.tasks.requesters.selectable', [
+            'project' => 'projeto-teste', 'task_id' => $task->id, 'term' => 'Maria',
+        ]);
+
+        $this->actingAs(User::findOrFail(2))->getJson($url)->assertForbidden();
+        $this->actingAs(User::findOrFail(3))->getJson($url)->assertOk();
+        $task->update(['status' => 'DONE']);
+        $this->getJson($url)->assertForbidden();
+    }
+
+    public function test_requester_search_validates_input_and_does_not_search_short_terms(): void
+    {
+        $this->actingAs(User::findOrFail(2));
+        $this->mock(UspPersonSearch::class)->shouldNotReceive('search');
+        foreach (['', 'Ana', '   '] as $term) {
+            $this->getJson(route('projects.tasks.requesters.selectable', [
+                'project' => 'projeto-teste', 'term' => $term,
+            ]))->assertOk()->assertExactJson(['results' => []]);
+        }
+        foreach ([['term' => ['Maria']], ['term' => str_repeat('a', 256)], ['task_id' => ['1']]] as $query) {
+            $this->getJson(route('projects.tasks.requesters.selectable', [
+                'project' => 'projeto-teste', ...$query,
+            ]))->assertUnprocessable();
+        }
+
+        $other = Project::create(['name' => 'Outro projeto', 'slug' => 'outro-projeto', 'status' => 'ACTIVE']);
+        $task = Task::create(['project_id' => $other->id, 'title' => 'Outra tarefa', 'status' => 'NEW']);
+        $this->getJson(route('projects.tasks.requesters.selectable', [
+            'project' => 'projeto-teste', 'task_id' => $task->id, 'term' => 'Maria',
+        ]))->assertNotFound();
+    }
+
+    public function test_member_search_keeps_excluding_current_project_members(): void
+    {
+        \Spatie\Permission\Models\Permission::findOrCreate('admin', User::$hierarquiaNs);
+        Schema::table('users', fn(Blueprint $table) => $table->unsignedBigInteger('codpes')->nullable());
+        User::findOrFail(2)->update(['codpes' => 1234567]);
+        $results = [['id' => 7654321, 'text' => '7654321 Outra pessoa']];
+        $people = $this->mock(UspPersonSearch::class);
+        $people->shouldReceive('search')->with('Maria', ['1234567'])->once()->andReturn($results);
+        $url = route('projects.members.selectable', ['project' => 'projeto-teste', 'term' => 'Maria']);
+
+        $this->actingAs(User::findOrFail(1))->getJson($url)
+            ->assertOk()->assertExactJson(['results' => $results]);
+        $this->actingAs(User::findOrFail(2))->getJson($url)->assertForbidden();
     }
 
     public function test_requester_migration_preserves_existing_tasks_and_can_be_reversed(): void

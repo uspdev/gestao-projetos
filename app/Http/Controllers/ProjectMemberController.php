@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
-use Uspdev\Replicado\Pessoa;
+use App\Services\UspPersonSearch;
 use App\Models\ProjectUser;
 
 class ProjectMemberController extends Controller
@@ -130,63 +130,16 @@ class ProjectMemberController extends Controller
     {
         Gate::authorize('storeMember', $project);
 
-        $term = trim((string) $request->input('term', ''));
-
-        //todo: se não houver replicado precisa buscar na base local
-        if ($term === '' || !function_exists('hasReplicado') || !hasReplicado()) {
-            return response()->json(['results' => []]);
-        }
-
         $excludedCodpes = $project->users()
             ->whereNotNull('users.codpes')
             ->pluck('users.codpes')
             ->map(fn($codpes) => (string) $codpes)
             ->all();
 
-        $results = [];
-
-
-        //todo: poderia ter um método no replicado procurarPorNomeouCodpes. Poderá ser usado no senhaunica-socialite também
-        // este método todo poderia ser usado de lá. é necessário ajustar o findUsersGate no config.
-        if (is_numeric($term) && strlen($term) >= 4) {
-            try {
-                $pessoa = Pessoa::dump((int) $term);
-
-                if ($pessoa && !in_array((string) $pessoa['codpes'], $excludedCodpes, true)) {
-                    $results[] = [
-                        'id' => $pessoa['codpes'],
-                        'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
-                    ];
-                }
-            } catch (\Exception $e) {
-            }
-
-            if (!empty($results)) {
-                return response()->json(['results' => $results]);
-            }
-        }
-
-        try {
-            $pessoas = Pessoa::procurarPorNome($term) ?? [];
-            $pessoas = collect($pessoas)
-                ->unique('codpes')
-                ->sortBy('nompesttd')
-                ->take(50);
-
-            foreach ($pessoas as $pessoa) {
-                if (in_array((string) $pessoa['codpes'], $excludedCodpes, true)) {
-                    continue;
-                }
-
-                $results[] = [
-                    'id' => $pessoa['codpes'],
-                    'text' => $pessoa['codpes'] . ' ' . $pessoa['nompesttd'],
-                ];
-            }
-        } catch (\Exception $e) {
-        }
-
-        return response()->json(['results' => $results]);
+        return response()->json(['results' => app(UspPersonSearch::class)->search(
+            (string) $request->input('term', ''),
+            $excludedCodpes,
+        )]);
     }
 
     /**

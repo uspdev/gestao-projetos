@@ -102,8 +102,11 @@
 
           <div class="row" data-role="info-fields">
             <div class="col-12">
-              <x-form.input name="requester" label="Solicitante (opcional)" value="{{ old('requester') }}"
-                maxlength="255" placeholder="Pessoa, setor ou origem da tarefa" />
+              <x-form.usp-person-select name="requester" :id="$modalId . '-requester'"
+                label="Solicitante (opcional)" :url="route('projects.tasks.requesters.selectable', $project)"
+                value-type="name" :allow-free-text="true" :query-fields="['task_id' => 'task_id']"
+                placeholder="Digite o nome ou número USP, ou um texto livre..."
+                help="Busque por nome ou número USP, ou informe um texto livre." />
             </div>
           </div>
 
@@ -172,6 +175,9 @@
       var assigneeSelect = form.querySelector('[name="assignee_id"]');
       var modalTitle = modal.querySelector('[data-role="modal-title"]');
       var submitBtn = modal.querySelector('[data-role="submit-btn"]');
+      function setRequesterValue(value) {
+        window.UspPersonSelect.setValue(requesterInput, value);
+      }
 
       function setSelectValue(select, value) {
         if (!select) return;
@@ -267,9 +273,7 @@
         if (titleInput) {
           titleInput.value = '';
         }
-        if (requesterInput) {
-          requesterInput.value = '';
-        }
+        setRequesterValue('');
         if (statusSelect && statusSelect.options.length) {
           statusSelect.selectedIndex = 0;
         }
@@ -313,8 +317,8 @@
         if (titleInput && data.title !== undefined) {
           titleInput.value = data.title;
         }
-        if (requesterInput && data.requester !== undefined) {
-          requesterInput.value = data.requester;
+        if (data.requester !== undefined) {
+          setRequesterValue(data.requester);
         }
         if (statusSelect && data.status !== undefined) {
           setSelectValue(statusSelect, data.status);
