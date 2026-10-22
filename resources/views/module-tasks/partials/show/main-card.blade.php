@@ -8,16 +8,11 @@
 
 <div id="task-description-{{ $task->id }}" class="card content-surface entity-context-card entity-context-card--task mb-4 shadow-sm"
   tabindex="-1" data-deep-link-target>
-  <div class="card-header d-flex justify-content-between align-items-center gap-2 py-2">
+  <div class="card-header d-flex align-items-center py-2">
     <h6 class="m-0 text-muted mr-2">
       <i class="fas fa-align-left mr-1" aria-hidden="true"></i> Descrição
     </h6>
-    @can('update', $task)
-      <button type="button" class="btn btn-outline-primary btn-sm py-0" data-toggle="collapse"
-        data-target="#{{ $descriptionDisplayId }}, #{{ $descriptionEditId }}" aria-label="Editar descrição">
-        <i class="fas fa-edit"></i>
-      </button>
-    @endcan
+    @include('module-tasks.partials.buttons.edit-desc-btn')
   </div>
   <div class="card-body">
     <div class="text-dark text-justify collapse {{ $isEditingDescription ? '' : 'show' }}"
