@@ -70,15 +70,34 @@
       box-shadow: var(--app-card-shadow) !important;
     }
 
+    .content-surface {
+      border-top: 2px solid var(--entity-context-divider, var(--entity-project-accent));
+    }
+
     .content-surface > .card-header {
+      background-color: #e8f1fa;
       border-bottom-color: var(--app-card-content-border);
     }
 
-    .options-surface > .card-header {
+    .options-surface,
+    .col-md-4 > .card,
+    .col-lg-4 > .card {
+      border-top: 2px solid #bfa058;
+    }
+
+    .options-surface > .card-header,
+    .col-md-4 > .card > .card-header,
+    .col-lg-4 > .card > .card-header {
+      background-color: #f8f4eb;
       border-bottom-color: var(--app-card-options-border);
     }
 
+    .mentions-card {
+      border-top: 2px solid #bfa058;
+    }
+
     .mentions-card > .card-header {
+      background-color: #f8f4eb;
       border-bottom-color: var(--app-card-resources-divider);
     }
 
@@ -89,6 +108,44 @@
 
     .entity-header {
       border-bottom: 1px solid var(--entity-header-accent, var(--entity-accent));
+    }
+
+    .entity-module-card {
+      background-color: #f8fafc;
+      border: 1px solid #dce4ec;
+      box-shadow: none !important;
+    }
+
+    .entity-module-card > .card-header {
+      background-color: #edf2f7;
+    }
+
+    .entity-module-card > .card-body {
+      background-color: #f8fafc;
+    }
+
+    .entity-module-card--task {
+      border-top: 3px solid var(--entity-task-accent) !important;
+    }
+
+    .entity-module-card--task > .card-header {
+      background-color: #edf2f7;
+    }
+
+    .entity-module-card--task > .card-header .fa-tasks {
+      color: var(--entity-task-accent);
+    }
+
+    .entity-module-card--meeting {
+      border-top: 3px solid var(--entity-meeting-accent) !important;
+    }
+
+    .entity-module-card--meeting > .card-header {
+      background-color: #eaf0f5;
+    }
+
+    .entity-module-card--meeting > .card-header .fa-calendar-alt {
+      color: var(--entity-meeting-accent);
     }
 
     .entity-card--project {
@@ -126,7 +183,12 @@
       --entity-context-divider: var(--entity-meeting-accent);
     }
 
+    .config-card {
+      border-top: 2px solid var(--app-card-settings-divider);
+    }
+
     .config-card > .card-header {
+      background-color: #fdfaf2;
       border-bottom: 1px solid var(--app-card-settings-divider);
     }
 
