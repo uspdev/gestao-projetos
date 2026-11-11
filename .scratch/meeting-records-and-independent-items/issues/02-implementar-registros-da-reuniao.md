@@ -9,7 +9,7 @@
 - [ ] Exibir o conteúdo legado de `notes` como Anotações prévias gerais, preservando seus dados e o preenchimento na criação da reunião.
 - [ ] Exibir Anotações prévias gerais imediatamente acima da Pauta, com edição própria e limpeza persistindo `NULL`.
 - [ ] Permitir edição da Ata em texto simples, com limite de 10.000 caracteres e possibilidade de revisão após `COMPLETED`.
-- [ ] Permitir edição da Transcrição em texto simples, com limite de 100.000 caracteres e possibilidade de revisão após `COMPLETED`.
+- [ ] Permitir edição da Transcrição em texto simples, com limite de 500.000 caracteres e possibilidade de revisão após `COMPLETED`.
 - [ ] Rejeitar valores acima dos limites sem truncamento silencioso e preservar quebras de linha.
 - [ ] Permitir consulta pelos visualizadores autorizados e edição somente por colaboradores autorizados.
 - [ ] Manter Anotações prévias bloqueadas em `COMPLETED` e editáveis novamente quando a reunião for reaberta.

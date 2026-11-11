@@ -8,7 +8,7 @@
   <div class="card-body">
     @foreach ([
         'ata' => ['label' => 'Ata', 'route' => 'projects.meetings.updateAta', 'max' => 10000],
-        'transcription' => ['label' => 'Transcrição', 'route' => 'projects.meetings.updateTranscription', 'max' => 100000],
+        'transcription' => ['label' => 'Transcrição', 'route' => 'projects.meetings.updateTranscription', 'max' => 500000],
     ] as $field => $record)
       @php
         $content = $meeting->{$field};

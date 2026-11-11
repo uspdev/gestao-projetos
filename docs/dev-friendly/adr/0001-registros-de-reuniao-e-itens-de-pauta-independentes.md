@@ -16,7 +16,7 @@ O sistema está em produção ativa. Portanto, registros atuais não podem ser r
 
 - `meetings.notes` será preservado fisicamente e passará a ser denominado **Anotações prévias**. Seu conteúdo existente será mantido exatamente como está; não haverá cópia ou migração automática para outro campo.
 - Será adicionado o campo técnico `ata`, correspondente à **Ata**: um texto livre geral, escrito durante ou após a reunião, que resume os assuntos relevantes e as conclusões. O limite será de 10.000 caracteres.
-- Será adicionado o campo técnico `transcription`, correspondente à **Transcrição**: texto bruto produzido por uma ferramenta externa, armazenado sem processamento ou sumarização pelo sistema. O limite será de 100.000 caracteres.
+- Será adicionado o campo técnico `transcription`, correspondente à **Transcrição**: texto bruto produzido por uma ferramenta externa, armazenado sem processamento ou sumarização pelo sistema. O limite inicial será de 100.000 caracteres; a revisão registrada abaixo o amplia para 300.000 caracteres.
 - Ata, Transcrição e Anotações prévias serão textos simples, preservando quebras de linha e sem interpretação de Markdown ou HTML. Valores vazios ou compostos apenas por espaços serão armazenados como `NULL`.
 - O envio acima dos limites será rejeitado; não haverá truncamento silencioso.
 - A Ata e a Transcrição serão editáveis por contribuidores em qualquer status da reunião. As Anotações prévias manterão o comportamento atual, inclusive o bloqueio quando a reunião estiver concluída.
@@ -49,7 +49,17 @@ O sistema está em produção ativa. Portanto, registros atuais não podem ser r
 ### Auditoria
 
 - Alterações da Ata continuarão registrando o conteúdo no mecanismo de auditoria existente.
-- Alterações da Transcrição serão auditadas apenas por metadados mínimos de alteração, como usuário, data e tamanho ou hash quando aplicável. O texto bruto não será copiado para `activity_log`, evitando replicar até 100.000 caracteres potencialmente sensíveis a cada atualização.
+- Alterações da Transcrição serão auditadas apenas por metadados mínimos de alteração, como usuário, data e tamanho ou hash quando aplicável. O texto bruto não será copiado para `activity_log`, evitando replicar conteúdo potencialmente sensível a cada atualização.
+
+## Revisão de 2026-11-11: limite da Transcrição
+
+O limite de aplicação da Transcrição passou de 100.000 para 300.000 caracteres para permitir o armazenamento de transcrições maiores. O campo já é `LONGTEXT` na tabela `meetings`, que comporta esse tamanho; essa alteração não exigiu migration. A validação e o limite do editor devem permanecer alinhados.
+
+O texto bruto continuará fora do `activity_log`; a auditoria registrará apenas metadados mínimos.
+
+## Revisão de 2026-11-11: limite da Transcrição para 500.000 caracteres
+
+O limite de aplicação da Transcrição passa de 300.000 para 500.000 caracteres. A validação e o limite do editor devem permanecer alinhados. O tipo `LONGTEXT` já suporta esse volume, portanto não é necessária uma migration.
 
 ## Opções consideradas
 

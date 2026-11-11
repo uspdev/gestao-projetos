@@ -21,7 +21,7 @@ class UpdateMeetingTranscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'transcription' => ['nullable', 'string', 'max:100000'],
+            'transcription' => ['nullable', 'string', 'max:500000'],
         ];
     }
 

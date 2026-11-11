@@ -73,7 +73,7 @@ da Tarefa quando esse tipo de discussão for necessário.
 | Anotações prévias | Preparar a Reunião como um todo | Markdown | 10.000 caracteres | Sim |
 | Anotações prévias do item | Preparar um assunto específico da Pauta | Markdown | 10.000 caracteres | Sim |
 | Ata | Sintetizar assuntos relevantes e conclusões | Texto simples | 10.000 caracteres | Não |
-| Transcrição | Guardar o texto bruto fornecido por ferramenta externa | Texto simples | 100.000 caracteres | Não |
+| Transcrição | Guardar o texto bruto fornecido por ferramenta externa | Texto simples | 500.000 caracteres | Não |
 
 Anotações prévias e Ata não são sinônimos: a primeira orienta a conversa; a
 segunda é o registro final. A Transcrição não é resumida nem transformada em
