@@ -71,7 +71,16 @@ class MeetingRecordsAndIndependentItemsTest extends TestCase
         $this->patch($this->meetingRoute('ata'), ['ata' => str_repeat('a', 10001)])
             ->assertSessionHasErrors('ata');
 
-        $this->patch($this->meetingRoute('transcription'), ['transcription' => str_repeat('a', 100001)])
+        $transcription = str_repeat('a', 500000);
+        $this->patch($this->meetingRoute('transcription'), ['transcription' => $transcription])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('meetings', [
+            'id' => 1,
+            'transcription' => $transcription,
+        ]);
+
+        $this->patch($this->meetingRoute('transcription'), ['transcription' => str_repeat('a', 500001)])
             ->assertSessionHasErrors('transcription');
 
         $activities = ActivityLog::query()
@@ -539,6 +548,7 @@ TXT;
         $this->assertNotNull($textarea);
         $this->assertNotNull($display);
         $this->assertStringContainsString('meeting-record-textarea', $textarea->getAttribute('class'));
+        $this->assertSame('500000', $textarea->getAttribute('maxlength'));
         $this->assertFalse($textarea->hasAttribute('data-autogrow-textarea'));
         $this->assertCount(1, $xpath->query(
             './/textarea[@id="meeting-transcription-textarea"]'

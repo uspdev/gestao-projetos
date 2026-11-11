@@ -32,7 +32,7 @@ Tornar a ação de adicionar item de pauta explícita na interface, com texto vi
 14. Como usuário, quero que a Transcrição seja tratada como texto bruto, para que o sistema não altere, resuma ou interprete o conteúdo externo.
 15. Como usuário, quero que Ata e Transcrição preservem quebras de linha, para manter a legibilidade do material armazenado.
 16. Como usuário, quero receber uma validação clara quando a Ata ultrapassar 10.000 caracteres, para saber por que o envio não foi aceito.
-17. Como usuário, quero receber uma validação clara quando a Transcrição ultrapassar 100.000 caracteres, para evitar truncamento silencioso.
+17. Como usuário, quero receber uma validação clara quando a Transcrição ultrapassar 500.000 caracteres, para evitar truncamento silencioso.
 18. Como usuário, quero limpar Ata, Transcrição ou Anotações prévias deixando o campo vazio, para remover um conteúdo que não é mais necessário.
 19. Como colaborador, quero adicionar um item de pauta independente, para registrar uma ideia ou assunto que ainda não é projeto ou tarefa.
 20. Como colaborador, quero escolher entre Projeto, Tarefa e Item independente no mesmo fluxo de adição, para usar uma experiência consistente.
@@ -61,7 +61,7 @@ Tornar a ação de adicionar item de pauta explícita na interface, com texto vi
 - O campo existente `notes` de Meeting será preservado, sem renomeação física, cópia ou preenchimento retroativo. Seu significado de produto passará a ser Anotações prévias gerais.
 - O campo existente `notes` de MeetingItem será preservado e exibido como Anotações prévias do item. Seu limite de 10.000 caracteres e suporte atual a Markdown serão mantidos para compatibilidade.
 - A tabela de reuniões receberá os campos opcionais `ata` e `transcription`, ambos armazenados como texto longo e sem valor padrão obrigatório.
-- `ata` terá limite de aplicação de 10.000 caracteres. `transcription` terá limite de aplicação de 100.000 caracteres. Valores acima do limite serão rejeitados, nunca truncados silenciosamente.
+- `ata` terá limite de aplicação de 10.000 caracteres. `transcription` terá limite de aplicação de 500.000 caracteres. Valores acima do limite serão rejeitados, nunca truncados silenciosamente.
 - Ata e Transcrição serão texto simples, preservando quebras de linha e sem interpretação de Markdown ou HTML.
 - Campos textuais serão aparados; vazio ou somente espaços limpará o valor e persistirá `NULL`.
 - Ata e Transcrição serão editáveis por colaboradores em qualquer status da reunião. Usuários com permissão de visualização poderão consultá-las.

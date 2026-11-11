@@ -66,7 +66,7 @@ comentários ativos com identificadores do comentário e do autor, Arquivos e
 Links próprios ou compartilhados e Menções recebidas. Os metadados dos
 Arquivos serão incorporados, mas os bytes continuarão disponíveis somente no
 endpoint de download. A coleção não repetirá os registros textuais longos,
-especialmente a Transcrição, cujo limite atual é 100.000 caracteres.
+especialmente a Transcrição, cujo limite atual é 500.000 caracteres.
 
 A coleção de Reuniões aceitará `status[]`, `scheduled_from`, `scheduled_to`,
 `search` e `per_page`. A busca abrangerá título e local; as datas serão limites
